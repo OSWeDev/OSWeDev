@@ -1,12 +1,12 @@
 import Component from 'vue-class-component';
-import { Prop, Watch } from 'vue-property-decorator';
+import { Inject, Prop } from 'vue-property-decorator';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
+import { reflect } from '../../../../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../../../../shared/tools/PromiseTools';
 import VueComponentBase from '../../../VueComponentBase';
-import { ModuleDashboardPageAction } from '../../page/DashboardPageStore';
 import ResetFiltersWidgetOptions from './options/ResetFiltersWidgetOptions';
 import './ResetFiltersWidgetComponent.scss';
 import ResetFiltersWidgetController from './ResetFiltersWidgetController';
@@ -16,6 +16,7 @@ import ResetFiltersWidgetController from './ResetFiltersWidgetController';
     components: {}
 })
 export default class ResetFiltersWidgetComponent extends VueComponentBase {
+    @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @Prop({ default: null })
     private page_widget: DashboardPageWidgetVO;
@@ -26,10 +27,20 @@ export default class ResetFiltersWidgetComponent extends VueComponentBase {
     @Prop({ default: null })
     private dashboard_page: DashboardPageVO;
 
-    @ModuleDashboardPageAction
-    private clear_active_field_filters: () => void;
-
     private start_update: boolean = false;
+
+    // Accès dynamiques Vuex
+    public vuexGet<T>(getter: string): T {
+        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    }
+    public vuexAct<A>(action: string, payload?: A) {
+        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    }
+
+    public clear_active_field_filters() {
+        return this.vuexAct(reflect<this>().clear_active_field_filters);
+    }
+
 
     private async reset() {
         if (this.start_update) {

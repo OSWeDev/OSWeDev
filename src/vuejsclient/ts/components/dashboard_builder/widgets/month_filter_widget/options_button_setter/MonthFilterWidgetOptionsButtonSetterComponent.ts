@@ -8,13 +8,12 @@ import DashboardWidgetVO from '../../../../../../../shared/modules/DashboardBuil
 import MonthFilterWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/MonthFilterWidgetOptionsVO';
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
+import { reflect } from '../../../../../../../shared/tools/ObjectHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import { ModuleTranslatableTextGetter } from '../../../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../../../VueComponentBase';
 import MonthFilterInputComponent from '../../../../month_filter_input/MonthFilterInputComponent';
-import { ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import './MonthFilterWidgetOptionsButtonSetterComponent.scss';
-import { reflect } from '../../../../../../../shared/tools/ObjectHandler';
 
 @Component({
     template: require('./MonthFilterWidgetOptionsButtonSetterComponent.pug'),

@@ -2,6 +2,7 @@ import { cloneDeep, isEqual } from 'lodash';
 import Vue from 'vue';
 import Component from 'vue-class-component';
 import { Inject, Prop, Watch } from 'vue-property-decorator';
+import APIControllerWrapper from '../../../../../../shared/modules/API/APIControllerWrapper';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleCheckListBase from '../../../../../../shared/modules/CheckList/ModuleCheckListBase';
 import ICheckListItem from '../../../../../../shared/modules/CheckList/interfaces/ICheckListItem';
@@ -35,12 +36,11 @@ import InlineTranslatableText from '../../../InlineTranslatableText/InlineTransl
 import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleDAOAction, ModuleDAOGetter } from '../../../dao/store/DaoStore';
-import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import TablePaginationComponent from '../table_widget/pagination/TablePaginationComponent';
 import './ChecklistWidgetComponent.scss';
 import ChecklistItemModalComponent from './checklist_item_modal/ChecklistItemModalComponent';
 import ChecklistWidgetOptions from './options/ChecklistWidgetOptions';
-import APIControllerWrapper from '../../../../../../shared/modules/API/APIControllerWrapper';
+import { ModuleModalsAndBasicPageComponentsHolderGetter } from '../../../modals_and_basic_page_components_holder/ModalsAndBasicPageComponentsHolderStore';
 
 /**
  * Datatable of checklist items
@@ -55,6 +55,9 @@ import APIControllerWrapper from '../../../../../../shared/modules/API/APIContro
 })
 export default class ChecklistWidgetComponent extends VueComponentBase {
     @Inject('storeNamespace') readonly storeNamespace!: string;
+
+    @ModuleModalsAndBasicPageComponentsHolderGetter
+    private get_Checklistitemmodalcomponent: ChecklistItemModalComponent;
 
     @ModuleDAOGetter
     private getStoredDatas: { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } };
@@ -107,10 +110,6 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
     private step_id: number = null;
     private last_calculation_cpt: number = 0;
     private old_widget_options: ChecklistWidgetOptions = null;
-
-    get get_Checklistitemmodalcomponent(): ChecklistItemModalComponent {
-        return this.vuexGet<ChecklistItemModalComponent>(reflect<this>().get_Checklistitemmodalcomponent);
-    }
 
     get get_active_field_filters(): FieldFiltersVO {
         return this.vuexGet<FieldFiltersVO>(reflect<this>().get_active_field_filters);

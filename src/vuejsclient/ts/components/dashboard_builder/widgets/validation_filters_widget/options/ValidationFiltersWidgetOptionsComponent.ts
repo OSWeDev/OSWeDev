@@ -1,13 +1,13 @@
 import Component from 'vue-class-component';
-import { Prop, Watch } from 'vue-property-decorator';
+import { Inject, Prop, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
+import { reflect } from '../../../../../../../shared/tools/ObjectHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/DroppableVoFieldsStore';
-import { ModuleDashboardPageAction } from '../../../page/DashboardPageStore';
 import ValidationFiltersWidgetOptions from './ValidationFiltersWidgetOptions';
 import './ValidationFiltersWidgetOptionsComponent.scss';
 
@@ -18,15 +18,13 @@ import './ValidationFiltersWidgetOptionsComponent.scss';
     }
 })
 export default class ValidationFiltersWidgetOptionsComponent extends VueComponentBase {
+    @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @Prop({ default: null })
     private page_widget: DashboardPageWidgetVO;
 
     @ModuleDroppableVoFieldsAction
     private set_selected_fields: (selected_fields: { [api_type_id: string]: { [field_id: string]: boolean } }) => void;
-
-    @ModuleDashboardPageAction
-    private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
 
     private next_update_options: ValidationFiltersWidgetOptions = null;
     private throttled_update_options = ThrottleHelper.declare_throttle_without_args(
@@ -95,6 +93,18 @@ export default class ValidationFiltersWidgetOptionsComponent extends VueComponen
         if (this.bg_color != this.widget_options.bg_color) {
             this.bg_color = this.widget_options.bg_color;
         }
+    }
+
+    // Accès dynamiques Vuex
+    public vuexGet<T>(getter: string): T {
+        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    }
+    public vuexAct<A>(action: string, payload?: A) {
+        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    }
+
+    public set_page_widget(page_widget: DashboardPageWidgetVO) {
+        return this.vuexAct(reflect<this>().set_page_widget, page_widget);
     }
 
     private async switch_load_widgets_prevalidation() {

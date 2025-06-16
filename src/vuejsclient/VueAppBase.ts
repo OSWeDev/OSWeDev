@@ -67,6 +67,9 @@ import PushDataVueModule from './ts/modules/PushData/PushDataVueModule';
 import StatsVueModule from "./ts/modules/Stats/StatsVueModule";
 import VueModuleBase from './ts/modules/VueModuleBase';
 import AppVuexStoreManager from './ts/store/AppVuexStoreManager';
+import ModalsAndBasicPageComponentsHolderStore from "./ts/components/modals_and_basic_page_components_holder/ModalsAndBasicPageComponentsHolderStore";
+import SupervisionDashboardStore from "./ts/components/supervision/dashboard/SupervisionDashboardStore";
+import SurveyStore from "./ts/components/survey/store/SurveyStore";
 
 // const loadComponent = async (component) => {
 //     try {
@@ -509,6 +512,9 @@ export default abstract class VueAppBase {
         Vue.directive('vars-directive', VarsDirective.getInstance());
 
         AppVuexStoreManager.getInstance().registerModule(DocumentStore.getInstance());
+        AppVuexStoreManager.getInstance().registerModule(ModalsAndBasicPageComponentsHolderStore.getInstance());
+        AppVuexStoreManager.getInstance().registerModule(SupervisionDashboardStore.getInstance());
+        AppVuexStoreManager.getInstance().registerModule(SurveyStore.getInstance());
 
         // On applique un zoom auto si param à TRUE
         // if (EnvHandler.zoom_auto) {

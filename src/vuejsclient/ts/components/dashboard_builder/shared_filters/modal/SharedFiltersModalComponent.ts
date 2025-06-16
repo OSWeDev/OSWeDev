@@ -289,7 +289,7 @@ export default class SharedFiltersModalComponent extends VueComponentBase {
     /**
      * Watch on is_modal_open
      *  - Happen on component each time is_modal_open changes
-     *
+     *field_filtersfield_filters
      * @returns {void}
      */
     @Watch('is_modal_open', { immediate: true, deep: true })
@@ -490,6 +490,11 @@ export default class SharedFiltersModalComponent extends VueComponentBase {
         const dashboard_pages_field_filters = DashboardPageFieldFiltersVOManager.get_INTERSECTION_all_dashboard_pages_field_filters(//merge_all_dashboard_pages_field_filters(
             dashboard_pages_field_filters_map
         );
+
+        if (!dashboard_pages_field_filters) {
+            this.selectionnable_field_filters = {};
+            return;
+        }
 
         const selectionnable_field_filters: FieldFiltersVO = cloneDeep(
             dashboard_pages_field_filters.field_filters

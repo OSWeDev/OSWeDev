@@ -1,9 +1,9 @@
 import { Component, Inject, Prop, Watch } from 'vue-property-decorator';
 
-import CanvasDiagram from './CanvasDiagram/CanvasDiagram';
-import SelectionPanel from './SelectionPanel/SelectionPanel';
 import AddPanel from './AddPanel/AddPanel';
+import CanvasDiagram from './CanvasDiagram/CanvasDiagram';
 import './OseliaRunGraphWidgetComponent.scss';
+import SelectionPanel from './SelectionPanel/SelectionPanel';
 
 import ContextFilterVO, { filter } from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
@@ -12,8 +12,7 @@ import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/D
 import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 
 import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
-import { ModuleDashboardPageGetter, ModuleDashboardPageAction } from '../../page/DashboardPageStore';
-import { ModuleOseliaGetter, ModuleOseliaAction } from '../oselia_thread_widget/OseliaStore';
+import { ModuleOseliaAction, ModuleOseliaGetter } from '../oselia_thread_widget/OseliaStore';
 
 import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import OseliaRunTemplateVO from '../../../../../../shared/modules/Oselia/vos/OseliaRunTemplateVO';
@@ -22,17 +21,18 @@ import OseliaRunVO from '../../../../../../shared/modules/Oselia/vos/OseliaRunVO
 import ContextFilterVOManager from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 import FieldFiltersVOManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
 
-import VueComponentBase from '../../../VueComponentBase';
 import { field_names, reflect } from '../../../../../../shared/tools/ObjectHandler';
+import VueComponentBase from '../../../VueComponentBase';
 
-import CRUDUpdateModalComponent from '../table_widget/crud_modals/update/CRUDUpdateModalComponent';
-import { ModuleDAOAction } from '../../../dao/store/DaoStore';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
+import { ModuleDAOAction } from '../../../dao/store/DaoStore';
+import CRUDUpdateModalComponent from '../table_widget/crud_modals/update/CRUDUpdateModalComponent';
 
-import SortByVO from '../../../../../../shared/modules/ContextFilter/vos/SortByVO';
-import OseliaRunFunctionCallVO from '../../../../../../shared/modules/Oselia/vos/OseliaRunFunctionCallVO';
 import Throttle from '../../../../../../shared/annotations/Throttle';
+import SortByVO from '../../../../../../shared/modules/ContextFilter/vos/SortByVO';
 import EventifyEventListenerConfVO from '../../../../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO';
+import OseliaRunFunctionCallVO from '../../../../../../shared/modules/Oselia/vos/OseliaRunFunctionCallVO';
+import { ModuleModalsAndBasicPageComponentsHolderGetter } from '../../../modals_and_basic_page_components_holder/ModalsAndBasicPageComponentsHolderStore';
 
 @Component({
     components: {
@@ -45,6 +45,9 @@ import EventifyEventListenerConfVO from '../../../../../../shared/modules/Eventi
 export default class OseliaRunGraphWidgetComponent extends VueComponentBase {
     @Inject('storeNamespace') readonly storeNamespace!: string;
 
+    @ModuleModalsAndBasicPageComponentsHolderGetter
+    private get_Crudupdatemodalcomponent: CRUDUpdateModalComponent;
+
     @ModuleOseliaGetter
     private get_show_hidden_messages: boolean;
     @ModuleOseliaAction
@@ -54,9 +57,6 @@ export default class OseliaRunGraphWidgetComponent extends VueComponentBase {
     private set_left_panel_open: (left_panel_open: boolean) => void;
     @ModuleOseliaGetter
     private get_left_panel_open: boolean;
-
-    @ModuleDashboardPageAction
-    private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
 
     @ModuleDAOAction
     private storeDatas!: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void;
@@ -127,10 +127,6 @@ export default class OseliaRunGraphWidgetComponent extends VueComponentBase {
 
     get get_active_field_filters(): FieldFiltersVO {
         return this.vuexGet<FieldFiltersVO>(reflect<this>().get_active_field_filters);
-    }
-
-    get get_Crudupdatemodalcomponent(): CRUDUpdateModalComponent {
-        return this.vuexGet<CRUDUpdateModalComponent>(reflect<this>().get_Crudupdatemodalcomponent);
     }
 
     get get_discarded_field_paths(): { [vo_type: string]: { [field_id: string]: boolean } } {
@@ -293,6 +289,11 @@ export default class OseliaRunGraphWidgetComponent extends VueComponentBase {
     public vuexAct<A>(action: string, payload?: A) {
         return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
     }
+
+    public set_active_field_filter(param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) {
+        return this.vuexAct(reflect<this>().set_active_field_filter, param);
+    }
+
 
 
     // -------------------------------------------------------------------------

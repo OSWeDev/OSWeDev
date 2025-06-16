@@ -3,21 +3,20 @@ import { Inject, Prop, Watch } from 'vue-property-decorator';
 import ContextFilterVOHandler from '../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ContextFilterVOManager from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
-import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
+import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import VOFieldRefVO from '../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import NumRange from '../../../../../../shared/modules/DataRender/vos/NumRange';
 import NumSegment from '../../../../../../shared/modules/DataRender/vos/NumSegment';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
+import { reflect } from '../../../../../../shared/tools/ObjectHandler';
 import RangeHandler from '../../../../../../shared/tools/RangeHandler';
 import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../../VueComponentBase';
-import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import './DOWFilterWidgetComponent.scss';
 import DOWFilterWidgetOptions from './options/DOWFilterWidgetOptions';
-import { reflect } from '../../../../../../shared/tools/ObjectHandler';
 
 @Component({
     template: require('./DOWFilterWidgetComponent.pug'),
@@ -28,12 +27,6 @@ export default class DOWFilterWidgetComponent extends VueComponentBase {
 
     @ModuleTranslatableTextGetter
     private get_flat_locale_translations: { [code_text: string]: string };
-
-    @ModuleDashboardPageAction
-    private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
-
-    @ModuleDashboardPageAction
-    private remove_active_field_filter: (params: { vo_type: string, field_id: string }) => void;
 
     @Prop({ default: null })
     private page_widget: DashboardPageWidgetVO;
@@ -70,8 +63,50 @@ export default class DOWFilterWidgetComponent extends VueComponentBase {
         return this.vuexGet<FieldFiltersVO>(reflect<this>().get_active_field_filters);
     }
 
-    private switch_selection(i: string) {
-        this.selected_dows[i] = !this.selected_dows[i];
+    get is_vo_field_ref(): boolean {
+        if (!this.widget_options) {
+            return true;
+        }
+
+        return this.widget_options.is_vo_field_ref;
+    }
+
+    get custom_filter_name(): string {
+        if (!this.widget_options) {
+            return null;
+        }
+
+        return this.widget_options.custom_filter_name;
+    }
+
+    get vo_field_ref(): VOFieldRefVO {
+        const options: DOWFilterWidgetOptions = this.widget_options;
+
+        if ((!options) || (!options.vo_field_ref)) {
+            return null;
+        }
+
+        return Object.assign(new VOFieldRefVO(), options.vo_field_ref);
+    }
+
+    get widget_options() {
+        if (!this.page_widget) {
+            return null;
+        }
+
+        let options: DOWFilterWidgetOptions = null;
+        try {
+            if (this.page_widget.json_options) {
+                options = JSON.parse(this.page_widget.json_options) as DOWFilterWidgetOptions;
+                options = options ? new DOWFilterWidgetOptions(
+                    options.is_vo_field_ref, options.vo_field_ref,
+                    options.custom_filter_name) : null;
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+
+        return options;
     }
 
     get vo_field_ref_label(): string {
@@ -246,49 +281,15 @@ export default class DOWFilterWidgetComponent extends VueComponentBase {
         return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
     }
 
-    get is_vo_field_ref(): boolean {
-        if (!this.widget_options) {
-            return true;
-        }
-
-        return this.widget_options.is_vo_field_ref;
+    public set_active_field_filter(param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) {
+        return this.vuexAct(reflect<this>().set_active_field_filter, param);
     }
 
-    get custom_filter_name(): string {
-        if (!this.widget_options) {
-            return null;
-        }
-
-        return this.widget_options.custom_filter_name;
+    public remove_active_field_filter(params: { vo_type: string, field_id: string }) {
+        return this.vuexAct(reflect<this>().remove_active_field_filter, params);
     }
 
-    get vo_field_ref(): VOFieldRefVO {
-        const options: DOWFilterWidgetOptions = this.widget_options;
-
-        if ((!options) || (!options.vo_field_ref)) {
-            return null;
-        }
-
-        return Object.assign(new VOFieldRefVO(), options.vo_field_ref);
-    }
-
-    get widget_options() {
-        if (!this.page_widget) {
-            return null;
-        }
-
-        let options: DOWFilterWidgetOptions = null;
-        try {
-            if (this.page_widget.json_options) {
-                options = JSON.parse(this.page_widget.json_options) as DOWFilterWidgetOptions;
-                options = options ? new DOWFilterWidgetOptions(
-                    options.is_vo_field_ref, options.vo_field_ref,
-                    options.custom_filter_name) : null;
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-
-        return options;
+    private switch_selection(i: string) {
+        this.selected_dows[i] = !this.selected_dows[i];
     }
 }

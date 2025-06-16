@@ -23,6 +23,7 @@ import DataFilterOption from '../../../../../../../shared/modules/DataRender/vos
 import TSRange from '../../../../../../../shared/modules/DataRender/vos/TSRange';
 import TimeSegment from '../../../../../../../shared/modules/DataRender/vos/TimeSegment';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
+import { reflect } from '../../../../../../../shared/tools/ObjectHandler';
 import RangeHandler from '../../../../../../../shared/tools/RangeHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTranslatableText';
@@ -31,12 +32,10 @@ import TSRangeInputComponent from '../../../../tsrangeinput/TSRangeInputComponen
 import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/DroppableVoFieldsStore';
 import MultipleVoFieldRefHolderComponent from '../../../options_tools/multiple_vo_field_ref_holder/MultipleVoFieldRefHolderComponent';
 import SingleVoFieldRefHolderComponent from '../../../options_tools/single_vo_field_ref_holder/SingleVoFieldRefHolderComponent';
-import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import BooleanFilter from '../boolean/BooleanFilter';
 import AdvancedRefFieldFilter from '../ref_field/AdvancedRefFieldFilter';
 import AdvancedStringFilter from '../string/AdvancedStringFilter';
 import './FieldValueFilterWidgetOptionsComponent.scss';
-import { reflect } from '../../../../../../../shared/tools/ObjectHandler';
 
 @Component({
     template: require('./FieldValueFilterWidgetOptionsComponent.pug'),
@@ -58,9 +57,6 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
 
     @ModuleDroppableVoFieldsAction
     private set_selected_fields: (selected_fields: { [api_type_id: string]: { [field_id: string]: boolean } }) => void;
-
-    @ModuleDashboardPageAction
-    private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
 
     private filter_type_options: number[] = [
         AdvancedStringFilter.FILTER_TYPE_COMMENCE,
@@ -938,6 +934,11 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
     public vuexAct<A>(action: string, payload?: A) {
         return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
     }
+
+    public set_page_widget(page_widget: DashboardPageWidgetVO) {
+        return this.vuexAct(reflect<this>().set_page_widget, page_widget);
+    }
+
 
     /**
      * Update Colors

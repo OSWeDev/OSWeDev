@@ -1,23 +1,15 @@
 import Vue from 'vue';
 import { ActionContext, ActionTree, GetterTree } from "vuex";
-import { Action, Getter, namespace } from 'vuex-class/lib/bindings';
-import IStoreModule from "../../../store/IStoreModule";
-import DashboardPageWidgetVO from "../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO";
-import DashboardPageVO from "../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO";
-import SharedFiltersVO from '../../../../../shared/modules/DashboardBuilder/vos/SharedFiltersVO';
-import FieldFiltersVO from '../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import ContextFilterVO from "../../../../../shared/modules/ContextFilter/vos/ContextFilterVO";
-import { store_mutations_names } from '../../../store/StoreModuleBase';
-import FavoritesFiltersModalComponent from "../widgets/favorites_filters_widget/modal/FavoritesFiltersModalComponent";
-import SupervisionItemModalComponent from "../widgets/supervision_widget/supervision_item_modal/SupervisionItemModalComponent";
-import ChecklistItemModalComponent from "../widgets/checklist_widget/checklist_item_modal/ChecklistItemModalComponent";
-import CRUDCreateModalComponent from "../widgets/table_widget/crud_modals/create/CRUDCreateModalComponent";
-import CRUDUpdateModalComponent from "../widgets/table_widget/crud_modals/update/CRUDUpdateModalComponent";
-import SharedFiltersModalComponent from '../shared_filters/modal/SharedFiltersModalComponent';
-import DashboardCopyWidgetComponent from "../copy_widget/DashboardCopyWidgetComponent";
-import VueComponentBase from "../../VueComponentBase";
-import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
+import DashboardPageVO from "../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO";
+import DashboardPageWidgetVO from "../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO";
+import FieldFiltersVO from '../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
+import SharedFiltersVO from '../../../../../shared/modules/DashboardBuilder/vos/SharedFiltersVO';
 import ObjectHandler from '../../../../../shared/tools/ObjectHandler';
+import IStoreModule from "../../../store/IStoreModule";
+import { store_mutations_names } from '../../../store/StoreModuleBase';
+import VueComponentBase from "../../VueComponentBase";
+import DashboardCopyWidgetComponent from "../copy_widget/DashboardCopyWidgetComponent";
 
 export type DashboardPageContext = ActionContext<IDashboardPageState, any>;
 
@@ -34,12 +26,6 @@ export interface IDashboardPageState {
 
     active_field_filters: FieldFiltersVO;
 
-    Favoritesfiltersmodalcomponent: FavoritesFiltersModalComponent;
-    Sharedfiltersmodalcomponent: SharedFiltersModalComponent;
-    Checklistitemmodalcomponent: ChecklistItemModalComponent;
-    Supervisionitemmodal: SupervisionItemModalComponent;
-    Crudupdatemodalcomponent: CRUDUpdateModalComponent;
-    Crudcreatemodalcomponent: CRUDCreateModalComponent;
     Dashboardcopywidgetcomponent: DashboardCopyWidgetComponent;
 
     dashboard_navigation_history: { current_dashboard_id: number, previous_dashboard_id: number };
@@ -59,7 +45,10 @@ export interface IDashboardPageState {
 }
 
 export default class DashboardPageStore implements IStoreModule<IDashboardPageState, DashboardPageContext> {
-    public static instance: DashboardPageStore;
+
+    public static __UID: number = 0;
+
+    // public static instance: DashboardPageStore;
 
     public module_name: string;
     public state: any;
@@ -117,30 +106,6 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
 
         pop_page_history(state: IDashboardPageState, fk) {
             state.page_history.pop();
-        },
-
-        set_Checklistitemmodalcomponent(state: IDashboardPageState, Checklistitemmodalcomponent: ChecklistItemModalComponent) {
-            state.Checklistitemmodalcomponent = Checklistitemmodalcomponent;
-        },
-
-        set_Supervisionitemmodal(state: IDashboardPageState, Supervisionitemmodal: SupervisionItemModalComponent) {
-            state.Supervisionitemmodal = Supervisionitemmodal;
-        },
-
-        set_Favoritesfiltersmodalcomponent(state: IDashboardPageState, Favoritesfiltersmodalcomponent: FavoritesFiltersModalComponent) {
-            state.Favoritesfiltersmodalcomponent = Favoritesfiltersmodalcomponent;
-        },
-
-        set_Crudupdatemodalcomponent(state: IDashboardPageState, Crudupdatemodalcomponent: CRUDUpdateModalComponent) {
-            state.Crudupdatemodalcomponent = Crudupdatemodalcomponent;
-        },
-
-        set_Crudcreatemodalcomponent(state: IDashboardPageState, Crudcreatemodalcomponent: CRUDCreateModalComponent) {
-            state.Crudcreatemodalcomponent = Crudcreatemodalcomponent;
-        },
-
-        set_Sharedfiltersmodalcomponent(state: IDashboardPageState, Sharedfiltersmodalcomponent: SharedFiltersModalComponent) {
-            state.Sharedfiltersmodalcomponent = Sharedfiltersmodalcomponent;
         },
 
         set_Dashboardcopywidgetcomponent(state: IDashboardPageState, Dashboardcopywidgetcomponent: DashboardCopyWidgetComponent) {
@@ -336,30 +301,6 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
                 return state.widgets_invisibility;
             },
 
-            get_Checklistitemmodalcomponent(state: IDashboardPageState): ChecklistItemModalComponent {
-                return state.Checklistitemmodalcomponent;
-            },
-
-            get_Supervisionitemmodal(state: IDashboardPageState): SupervisionItemModalComponent {
-                return state.Supervisionitemmodal;
-            },
-
-            get_Favoritesfiltersmodalcomponent(state: IDashboardPageState): FavoritesFiltersModalComponent {
-                return state.Favoritesfiltersmodalcomponent;
-            },
-
-            get_Sharedfiltersmodalcomponent(state: IDashboardPageState): SharedFiltersModalComponent {
-                return state.Sharedfiltersmodalcomponent;
-            },
-
-            get_Crudupdatemodalcomponent(state: IDashboardPageState): CRUDUpdateModalComponent {
-                return state.Crudupdatemodalcomponent;
-            },
-
-            get_Crudcreatemodalcomponent(state: IDashboardPageState): CRUDCreateModalComponent {
-                return state.Crudcreatemodalcomponent;
-            },
-
             get_Dashboardcopywidgetcomponent(state: IDashboardPageState): DashboardCopyWidgetComponent {
                 return state.Dashboardcopywidgetcomponent;
             },
@@ -386,12 +327,6 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
             set_page_history: (context: DashboardPageContext, page_history: DashboardPageVO[]) => context.commit(store_mutations_names(this).set_page_history, page_history),
             add_page_history: (context: DashboardPageContext, page_history: DashboardPageVO) => context.commit(store_mutations_names(this).add_page_history, page_history),
             pop_page_history: (context: DashboardPageContext, fk) => context.commit(store_mutations_names(this).pop_page_history, null),
-            set_Favoritesfiltersmodalcomponent: (context: DashboardPageContext, Favoritesfiltersmodalcomponent: FavoritesFiltersModalComponent) => context.commit(store_mutations_names(this).set_Favoritesfiltersmodalcomponent, Favoritesfiltersmodalcomponent),
-            set_Sharedfiltersmodalcomponent: (context: DashboardPageContext, Sharedfiltersmodalcomponent: SharedFiltersModalComponent) => context.commit(store_mutations_names(this).set_Sharedfiltersmodalcomponent, Sharedfiltersmodalcomponent),
-            set_Crudupdatemodalcomponent: (context: DashboardPageContext, Crudupdatemodalcomponent: CRUDUpdateModalComponent) => context.commit(store_mutations_names(this).set_Crudupdatemodalcomponent, Crudupdatemodalcomponent),
-            set_Checklistitemmodalcomponent: (context: DashboardPageContext, Checklistitemmodalcomponent: ChecklistItemModalComponent) => context.commit(store_mutations_names(this).set_Checklistitemmodalcomponent, Checklistitemmodalcomponent),
-            set_Supervisionitemmodal: (context: DashboardPageContext, Supervisionitemmodal: SupervisionItemModalComponent) => context.commit(store_mutations_names(this).set_Supervisionitemmodal, Supervisionitemmodal),
-            set_Crudcreatemodalcomponent: (context: DashboardPageContext, Crudcreatemodalcomponent: CRUDCreateModalComponent) => context.commit(store_mutations_names(this).set_Crudcreatemodalcomponent, Crudcreatemodalcomponent),
             set_Dashboardcopywidgetcomponent: (context: DashboardPageContext, Dashboardcopywidgetcomponent: DashboardCopyWidgetComponent) => context.commit(store_mutations_names(this).set_Dashboardcopywidgetcomponent, Dashboardcopywidgetcomponent),
             set_dashboard_navigation_history: (context: DashboardPageContext, dashboard_navigation_history: { current_dashboard_id: number, previous_dashboard_id: number }) => context.commit(store_mutations_names(this).set_dashboard_navigation_history, dashboard_navigation_history),
             add_shared_filters_to_map: (context: DashboardPageContext, shared_filters_map: SharedFiltersVO[]) => context.commit(store_mutations_names(this).add_shared_filters_to_map, shared_filters_map),
@@ -409,18 +344,18 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
         };
     }
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): DashboardPageStore {
-        if (!DashboardPageStore.instance) {
-            DashboardPageStore.instance = new DashboardPageStore();
-        }
-        return DashboardPageStore.instance;
-    }
+    // // istanbul ignore next: nothing to test
+    // public static getInstance(): DashboardPageStore {
+    //     if (!DashboardPageStore.instance) {
+    //         DashboardPageStore.instance = new DashboardPageStore();
+    //     }
+    //     return DashboardPageStore.instance;
+    // }
 }
 
 
-export const DashboardPageStoreInstance = DashboardPageStore.getInstance();
+// export const DashboardPageStoreInstance = DashboardPageStore.getInstance();
 
-const __namespace = namespace('DashboardPageStore');
-export const ModuleDashboardPageGetter = __namespace.Getter;
-export const ModuleDashboardPageAction = __namespace.Action;
+// const __namespace = namespace('DashboardPageStore');
+// export const ModuleDashboardPageGetter = __namespace.Getter;
+// export const ModuleDashboardPageAction = __namespace.Action;

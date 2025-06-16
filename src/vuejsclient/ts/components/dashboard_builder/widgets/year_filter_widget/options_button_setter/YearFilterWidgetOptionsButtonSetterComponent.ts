@@ -7,11 +7,11 @@ import DashboardPageWidgetVO from '../../../../../../../shared/modules/Dashboard
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import YearFilterWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/YearFilterWidgetOptionsVO';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
+import { reflect } from '../../../../../../../shared/tools/ObjectHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import { ModuleTranslatableTextGetter } from '../../../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../../../VueComponentBase';
 import YearFilterInputComponent from '../../../../year_filter_input/YearFilterInputComponent';
-import { ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import './YearFilterWidgetOptionsButtonSetterComponent.scss';
 
 @Component({
@@ -28,9 +28,6 @@ export default class YearFilterWidgetOptionsButtonSetterComponent extends VueCom
 
     @ModuleTranslatableTextGetter
     private get_flat_locale_translations: { [code_text: string]: string };
-
-    @ModuleDashboardPageGetter
-    private get_page_widgets_components_by_pwid: { [pwid: number]: VueComponentBase };
 
     private next_update_options: YearFilterWidgetOptionsVO = null;
 
@@ -152,6 +149,10 @@ export default class YearFilterWidgetOptionsButtonSetterComponent extends VueCom
 
     //     return other_filter_selected_years;
     // }
+
+    get get_page_widgets_components_by_pwid(): { [pwid: number]: VueComponentBase } {
+        return this.vuexGet<{ [pwid: number]: VueComponentBase }>(reflect<this>().get_page_widgets_components_by_pwid);
+    }
 
     get default_placeholder_translation(): string {
         return this.label('DOWFilterWidget.filter_placeholder');

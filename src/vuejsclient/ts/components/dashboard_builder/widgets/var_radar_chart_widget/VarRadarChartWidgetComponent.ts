@@ -6,33 +6,32 @@ import ContextFilterVOManager from '../../../../../../shared/modules/ContextFilt
 import ContextFilterVO, { filter } from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO, { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../../../../shared/modules/ContextFilter/vos/SortByVO';
+import ModuleTableController from '../../../../../../shared/modules/DAO/ModuleTableController';
 import FieldFiltersVOManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
 import FieldValueFilterWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterWidgetManager';
-import VarRadarChartWidgetOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/VarRadarChartWidgetOptionsVO';
-import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
-import DashboardWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
-import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
+import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
+import DashboardWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
+import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
+import VarRadarChartWidgetOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/VarRadarChartWidgetOptionsVO';
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ModuleVar from '../../../../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../../../../shared/modules/Var/VarsController';
 import VarRadarDataSetDescriptor from '../../../../../../shared/modules/Var/graph/VarRadarDataSetDescriptor';
 import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
+import Filters from '../../../../../../shared/tools/Filters';
 import ObjectHandler, { reflect } from '../../../../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../../../../shared/tools/RangeHandler';
 import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../../VueComponentBase';
-import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import DashboardBuilderWidgetsController from '../DashboardBuilderWidgetsController';
 import ValidationFiltersWidgetController from '../validation_filters_widget/ValidationFiltersWidgetController';
 import VarWidgetComponent from '../var_widget/VarWidgetComponent';
-import Filters from '../../../../../../shared/tools/Filters';
 import './VarRadarChartWidgetComponent.scss';
-import ModuleTableController from '../../../../../../shared/modules/DAO/ModuleTableController';
-import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 
 @Component({
     template: require('./VarRadarChartWidgetComponent.pug')
@@ -40,17 +39,8 @@ import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsType
 export default class VarRadarChartWidgetComponent extends VueComponentBase {
     @Inject('storeNamespace') readonly storeNamespace!: string;
 
-    @ModuleDashboardPageGetter
-    private get_dashboard_api_type_ids: string[];
-
-    @ModuleDashboardPageGetter
-    private get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
-
     @ModuleTranslatableTextGetter
     private get_flat_locale_translations: { [code_text: string]: string };
-
-    @ModuleDashboardPageGetter
-    private get_custom_filters: string[];
 
     @Prop({ default: null })
     private all_page_widget: DashboardPageWidgetVO[];
@@ -81,6 +71,18 @@ export default class VarRadarChartWidgetComponent extends VueComponentBase {
 
     get get_active_field_filters(): FieldFiltersVO {
         return this.vuexGet<FieldFiltersVO>(reflect<this>().get_active_field_filters);
+    }
+
+    get get_dashboard_api_type_ids(): string[] {
+        return this.vuexGet<string[]>(reflect<this>().get_dashboard_api_type_ids);
+    }
+
+    get get_discarded_field_paths(): { [vo_type: string]: { [field_id: string]: boolean } } {
+        return this.vuexGet<{ [vo_type: string]: { [field_id: string]: boolean } }>(reflect<this>().get_discarded_field_paths);
+    }
+
+    get get_custom_filters(): string[] {
+        return this.vuexGet<string[]>(reflect<this>().get_custom_filters);
     }
 
     get var_filter(): () => string {

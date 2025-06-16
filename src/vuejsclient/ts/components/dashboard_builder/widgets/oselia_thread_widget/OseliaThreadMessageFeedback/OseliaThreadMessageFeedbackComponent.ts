@@ -11,7 +11,6 @@ import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import VueAppController from '../../../../../../VueAppController';
 import { ModuleTranslatableTextGetter } from '../../../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../../../VueComponentBase';
-import { ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import OseliaFeedbackEditorComponent from '../OseliaFeedbackEditor/OseliaFeedbackEditorComponent';
 import './OseliaThreadMessageFeedbackComponent.scss';
 
@@ -29,12 +28,6 @@ export default class OseliaThreadMessageFeedbackComponent extends VueComponentBa
     @ModuleTranslatableTextGetter
     private get_flat_locale_translations: { [code_text: string]: string };
 
-    @ModuleDashboardPageGetter
-    private get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
-
-    @ModuleDashboardPageGetter
-    private get_dashboard_api_type_ids: string[];
-
     @Prop({ default: null })
     private thread_message: GPTAssistantAPIThreadMessageVO;
 
@@ -42,6 +35,13 @@ export default class OseliaThreadMessageFeedbackComponent extends VueComponentBa
         'OseliaThreadMessageFeedbackComponent.throttle_load_feedback',
         this.load_feedback, 10);
 
+    get get_discarded_field_paths(): { [vo_type: string]: { [field_id: string]: boolean } } {
+        return this.vuexGet<{ [vo_type: string]: { [field_id: string]: boolean } }>(reflect<this>().get_discarded_field_paths);
+    }
+
+    get get_dashboard_api_type_ids(): string[] {
+        return this.vuexGet<string[]>(reflect<this>().get_dashboard_api_type_ids);
+    }
 
     get get_active_field_filters(): FieldFiltersVO {
         return this.vuexGet<FieldFiltersVO>(reflect<this>().get_active_field_filters);

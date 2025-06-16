@@ -3,18 +3,18 @@ import Component from 'vue-class-component';
 import { Inject, Prop, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import SupervisionTypeWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/SupervisionTypeWidgetManager';
+import WidgetOptionsVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/WidgetOptionsVOManager';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
+import SupervisionTypeWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/SupervisionTypeWidgetOptionsVO';
 import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
+import { reflect } from '../../../../../../../shared/tools/ObjectHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/DroppableVoFieldsStore';
-import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import './SupervisionTypeWidgetOptionsComponent.scss';
-import WidgetOptionsVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/WidgetOptionsVOManager';
-import SupervisionTypeWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/SupervisionTypeWidgetOptionsVO';
 
 @Component({
     template: require('./SupervisionTypeWidgetOptionsComponent.pug'),
@@ -25,9 +25,6 @@ import SupervisionTypeWidgetOptionsVO from '../../../../../../../shared/modules/
 export default class SupervisionTypeWidgetOptionsComponent extends VueComponentBase {
     @Inject('storeNamespace') readonly storeNamespace!: string;
 
-    @ModuleDashboardPageGetter
-    private get_dashboard_api_type_ids: string[];
-
     @Prop({ default: null })
     private dashboard: DashboardVO;
 
@@ -36,9 +33,6 @@ export default class SupervisionTypeWidgetOptionsComponent extends VueComponentB
 
     @ModuleDroppableVoFieldsAction
     private set_selected_fields: (selected_fields: { [api_type_id: string]: { [field_id: string]: boolean } }) => void;
-
-    @ModuleDashboardPageAction
-    private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
 
     private next_update_options: SupervisionTypeWidgetOptionsVO = null;
     private throttled_update_options = ThrottleHelper.declare_throttle_without_args(
@@ -74,6 +68,10 @@ export default class SupervisionTypeWidgetOptionsComponent extends VueComponentB
 
     get default_supervision_api_type_ids(): string[] {
         return this.widget_options?.supervision_api_type_ids ?? [];
+    }
+
+    get get_dashboard_api_type_ids(): string[] {
+        return this.vuexGet<string[]>(reflect<this>().get_dashboard_api_type_ids);
     }
 
     // get order_by_categories(): boolean {
@@ -138,6 +136,19 @@ export default class SupervisionTypeWidgetOptionsComponent extends VueComponentB
             this.throttled_update_options();
         }
     }
+
+    // Accès dynamiques Vuex
+    public vuexGet<T>(getter: string): T {
+        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    }
+    public vuexAct<A>(action: string, payload?: A) {
+        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    }
+
+    public set_page_widget(page_widget: DashboardPageWidgetVO) {
+        return this.vuexAct(reflect<this>().set_page_widget, page_widget);
+    }
+
 
     private supervision_select_label(api_type_id: string): string {
         return this.label('supervision_widget_component.' + api_type_id);

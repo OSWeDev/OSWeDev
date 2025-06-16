@@ -48,6 +48,7 @@ import ExportVarIndicatorVO from '../../../../../../../shared/modules/DataExport
 import ExportVarcolumnConfVO from '../../../../../../../shared/modules/DataExport/vos/ExportVarcolumnConfVO';
 import ExportContextQueryToXLSXParamVO from '../../../../../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
 import NumRange from '../../../../../../../shared/modules/DataRender/vos/NumRange';
+import NumSegment from '../../../../../../../shared/modules/DataRender/vos/NumSegment';
 import Dates from '../../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IArchivedVOBase from '../../../../../../../shared/modules/IArchivedVOBase';
 import IDistantVOBase from '../../../../../../../shared/modules/IDistantVOBase';
@@ -74,7 +75,7 @@ import CRUDComponentField from '../../../../crud/component/field/CRUDComponentFi
 import { ModuleDAOAction } from '../../../../dao/store/DaoStore';
 import DatatableRowController from '../../../../datatable/component/DatatableRowController';
 import DatatableComponentField from '../../../../datatable/component/fields/DatatableComponentField';
-import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
+import { ModuleModalsAndBasicPageComponentsHolderGetter } from '../../../../modals_and_basic_page_components_holder/ModalsAndBasicPageComponentsHolderStore';
 import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
 import FieldValueFilterWidgetOptions from '../../field_value_filter_widget/options/FieldValueFilterWidgetOptions';
 import ResetFiltersWidgetController from '../../reset_filters_widget/ResetFiltersWidgetController';
@@ -88,7 +89,6 @@ import CRUDCreateModalComponent from './../crud_modals/create/CRUDCreateModalCom
 import CRUDUpdateModalComponent from './../crud_modals/update/CRUDUpdateModalComponent';
 import TablePaginationComponent from './../pagination/TablePaginationComponent';
 import './TableWidgetTableComponent.scss';
-import NumSegment from '../../../../../../../shared/modules/DataRender/vos/NumSegment';
 
 //TODO Faire en sorte que les champs qui n'existent plus car supprimés du dashboard ne se conservent pas lors de la création d'un tableau
 
@@ -105,20 +105,14 @@ import NumSegment from '../../../../../../../shared/modules/DataRender/vos/NumSe
 export default class TableWidgetTableComponent extends VueComponentBase {
     @Inject('storeNamespace') readonly storeNamespace!: string;
 
+    @ModuleModalsAndBasicPageComponentsHolderGetter
+    private get_Crudcreatemodalcomponent: CRUDCreateModalComponent;
+
+    @ModuleModalsAndBasicPageComponentsHolderGetter
+    private get_Crudupdatemodalcomponent: CRUDUpdateModalComponent;
+
     @ModuleDAOAction
     private storeDatas: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void;
-
-    @ModuleDashboardPageAction
-    private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
-
-    @ModuleDashboardPageAction
-    private remove_active_field_filter: (params: { vo_type: string, field_id: string }) => void;
-
-    @ModuleDashboardPageAction
-    private set_query_api_type_ids: (query_api_type_ids: string[]) => void;
-
-    @ModuleDashboardPageAction
-    private clear_active_field_filters: () => void;
 
     @ModuleTranslatableTextGetter
     private get_flat_locale_translations: { [code_text: string]: string };
@@ -237,15 +231,6 @@ export default class TableWidgetTableComponent extends VueComponentBase {
     get get_discarded_field_paths(): { [vo_type: string]: { [field_id: string]: boolean } } {
         return this.vuexGet<{ [vo_type: string]: { [field_id: string]: boolean } }>(reflect<this>().get_discarded_field_paths);
     }
-
-    get get_Crudupdatemodalcomponent(): CRUDUpdateModalComponent {
-        return this.vuexGet<CRUDUpdateModalComponent>(reflect<this>().get_Crudupdatemodalcomponent);
-    }
-
-    get get_Crudcreatemodalcomponent(): CRUDCreateModalComponent {
-        return this.vuexGet<CRUDCreateModalComponent>(reflect<this>().get_Crudcreatemodalcomponent);
-    }
-
 
     get dashboard_vo_action() {
         return this.$route.params.dashboard_vo_action;
@@ -1520,6 +1505,22 @@ export default class TableWidgetTableComponent extends VueComponentBase {
     }
     public vuexAct<A>(action: string, payload?: A) {
         return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    }
+
+    public set_active_field_filter(param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) {
+        return this.vuexAct(reflect<this>().set_active_field_filter, param);
+    }
+
+    public remove_active_field_filter(params: { vo_type: string, field_id: string }) {
+        return this.vuexAct(reflect<this>().remove_active_field_filter, params);
+    }
+
+    public set_query_api_type_ids(query_api_type_ids: string[]) {
+        return this.vuexAct(reflect<this>().set_query_api_type_ids, query_api_type_ids);
+    }
+
+    public clear_active_field_filters() {
+        return this.vuexAct(reflect<this>().clear_active_field_filters);
     }
 
     private async open_update(type: string, id: number) {

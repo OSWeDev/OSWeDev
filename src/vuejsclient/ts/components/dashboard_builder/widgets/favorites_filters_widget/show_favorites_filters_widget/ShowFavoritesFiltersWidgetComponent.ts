@@ -26,11 +26,11 @@ import { all_promises } from '../../../../../../../shared/tools/PromiseTools';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import { ModuleTranslatableTextGetter } from '../../../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../../../VueComponentBase';
-import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import ReloadFiltersWidgetController from '../../reload_filters_widget/RealoadFiltersWidgetController';
 import ResetFiltersWidgetController from '../../reset_filters_widget/ResetFiltersWidgetController';
 import FavoritesFiltersModalComponent from '../modal/FavoritesFiltersModalComponent';
 import './ShowFavoritesFiltersWidgetComponent.scss';
+import { ModuleModalsAndBasicPageComponentsHolderGetter } from '../../../../modals_and_basic_page_components_holder/ModalsAndBasicPageComponentsHolderStore';
 
 @Component({
     template: require('./ShowFavoritesFiltersWidgetComponent.pug'),
@@ -41,17 +41,8 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
     private static TESTUID = 0;
     @Inject('storeNamespace') readonly storeNamespace!: string;
 
-    @ModuleDashboardPageAction
-    private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
-
-    @ModuleDashboardPageAction
-    private set_active_field_filters: (active_field_filters: FieldFiltersVO) => void;
-
-    @ModuleDashboardPageAction
-    private remove_active_field_filter: (params: { vo_type: string, field_id: string }) => void;
-
-    @ModuleDashboardPageAction
-    private clear_active_field_filters: () => void;
+    @ModuleModalsAndBasicPageComponentsHolderGetter
+    private get_Favoritesfiltersmodalcomponent: FavoritesFiltersModalComponent;
 
     @ModuleTranslatableTextGetter
     private get_flat_locale_translations: { [code_text: string]: string };
@@ -105,10 +96,6 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
 
     get get_active_field_filters(): FieldFiltersVO {
         return this.vuexGet<FieldFiltersVO>(reflect<this>().get_active_field_filters);
-    }
-
-    get get_Favoritesfiltersmodalcomponent(): FavoritesFiltersModalComponent {
-        return this.vuexGet<FavoritesFiltersModalComponent>(reflect<this>().get_Favoritesfiltersmodalcomponent);
     }
 
 
@@ -221,6 +208,22 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
     }
     public vuexAct<A>(action: string, payload?: A) {
         return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    }
+
+    public set_active_field_filter(param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) {
+        return this.vuexAct(reflect<this>().set_active_field_filter, param);
+    }
+
+    public set_active_field_filters(active_field_filters: FieldFiltersVO) {
+        return this.vuexAct(reflect<this>().set_active_field_filters, active_field_filters);
+    }
+
+    public remove_active_field_filter(params: { vo_type: string, field_id: string }) {
+        return this.vuexAct(reflect<this>().remove_active_field_filter, params);
+    }
+
+    public clear_active_field_filters() {
+        return this.vuexAct(reflect<this>().clear_active_field_filters);
     }
 
     private async update_active_field_filters(): Promise<void> {

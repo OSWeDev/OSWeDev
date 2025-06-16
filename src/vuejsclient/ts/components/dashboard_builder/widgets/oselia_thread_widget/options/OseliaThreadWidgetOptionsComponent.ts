@@ -6,7 +6,6 @@ import { reflect } from '../../../../../../../shared/tools/ObjectHandler';
 import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/DroppableVoFieldsStore';
-import { ModuleDashboardPageAction } from '../../../page/DashboardPageStore';
 import OseliaThreadWidgetOptions from './OseliaThreadWidgetOptions';
 import './OseliaThreadWidgetOptionsComponent.scss';
 
@@ -27,9 +26,6 @@ export default class OseliaThreadWidgetOptionsComponent extends VueComponentBase
 
     @ModuleDroppableVoFieldsAction
     private set_selected_fields: (selected_fields: { [api_type_id: string]: { [field_id: string]: boolean } }) => void;
-
-    @ModuleDashboardPageAction
-    private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
 
     get title_name_code_text(): string {
         if (!this.widget_options) {
@@ -63,4 +59,9 @@ export default class OseliaThreadWidgetOptionsComponent extends VueComponentBase
     public vuexAct<A>(action: string, payload?: A) {
         return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
     }
+
+    public set_page_widget(page_widget: DashboardPageWidgetVO) {
+        return this.vuexAct(reflect<this>().set_page_widget, page_widget);
+    }
+
 }

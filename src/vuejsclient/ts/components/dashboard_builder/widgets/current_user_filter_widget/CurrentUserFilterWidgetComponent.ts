@@ -1,10 +1,9 @@
 import Component from 'vue-class-component';
-import { Watch } from 'vue-property-decorator';
+import { Inject } from 'vue-property-decorator';
 import UserVO from '../../../../../../shared/modules/AccessPolicy/vos/UserVO';
 import ContextFilterVO, { filter } from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
-import { field_names } from '../../../../../../shared/tools/ObjectHandler';
+import { field_names, reflect } from '../../../../../../shared/tools/ObjectHandler';
 import VueComponentBase from '../../../VueComponentBase';
-import { ModuleDashboardPageAction } from '../../page/DashboardPageStore';
 import './CurrentUserFilterWidgetComponent.scss';
 
 @Component({
@@ -12,9 +11,19 @@ import './CurrentUserFilterWidgetComponent.scss';
     components: {}
 })
 export default class CurrentUserFilterWidgetComponent extends VueComponentBase {
+    @Inject('storeNamespace') readonly storeNamespace!: string;
 
-    @ModuleDashboardPageAction
-    private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
+    // Accès dynamiques Vuex
+    public vuexGet<T>(getter: string): T {
+        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    }
+    public vuexAct<A>(action: string, payload?: A) {
+        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    }
+
+    public set_active_field_filter(param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) {
+        return this.vuexAct(reflect<this>().set_active_field_filter, param);
+    }
 
     private mounted() {
         this.set_active_field_filter({

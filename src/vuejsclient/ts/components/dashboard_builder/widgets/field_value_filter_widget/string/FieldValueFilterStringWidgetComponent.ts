@@ -27,6 +27,7 @@ import DataFilterOption from '../../../../../../../shared/modules/DataRender/vos
 import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import EnvHandler from '../../../../../../../shared/tools/EnvHandler';
+import { reflect } from '../../../../../../../shared/tools/ObjectHandler';
 import PromisePipeline from '../../../../../../../shared/tools/PromisePipeline/PromisePipeline';
 import { all_promises } from '../../../../../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../../../../../shared/tools/RangeHandler';
@@ -34,7 +35,6 @@ import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import { ModuleTranslatableTextGetter } from '../../../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/DroppableVoFieldsStore';
-import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
 import ResetFiltersWidgetController from '../../reset_filters_widget/ResetFiltersWidgetController';
 import ValidationFiltersCallUpdaters from '../../validation_filters_widget/ValidationFiltersCallUpdaters';
@@ -42,7 +42,6 @@ import ValidationFiltersWidgetController from '../../validation_filters_widget/V
 import FieldValueFilterWidgetController from '../FieldValueFilterWidgetController';
 import AdvancedStringFilter from './AdvancedStringFilter';
 import './FieldValueFilterStringWidgetComponent.scss';
-import { reflect } from '../../../../../../../shared/tools/ObjectHandler';
 
 @Component({
     template: require('./FieldValueFilterStringWidgetComponent.pug'),
@@ -51,24 +50,6 @@ import { reflect } from '../../../../../../../shared/tools/ObjectHandler';
 })
 export default class FieldValueFilterStringWidgetComponent extends VueComponentBase {
     @Inject('storeNamespace') readonly storeNamespace!: string;
-
-    @ModuleDashboardPageAction
-    private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
-
-    @ModuleDashboardPageAction
-    private remove_active_field_filter: (params: { vo_type: string, field_id: string }) => void;
-
-    @ModuleDashboardPageAction
-    private set_widgets_invisibility: (widgets_invisibility: { [w_id: number]: boolean }) => void;
-
-    @ModuleDashboardPageAction
-    private set_widget_invisibility: (w_id: number) => void;
-
-    @ModuleDashboardPageAction
-    private set_widget_visibility: (w_id: number) => void;
-
-    @ModuleDashboardPageAction
-    private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
 
     @ModuleDroppableVoFieldsAction
     private set_selected_fields: (selected_fields: { [api_type_id: string]: { [field_id: string]: boolean } }) => void;
@@ -854,6 +835,30 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
     }
     public vuexAct<A>(action: string, payload?: A) {
         return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    }
+
+    public set_active_field_filter(param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) {
+        return this.vuexAct(reflect<this>().set_active_field_filter, param);
+    }
+
+    public remove_active_field_filter(params: { vo_type: string, field_id: string }) {
+        return this.vuexAct(reflect<this>().remove_active_field_filter, params);
+    }
+
+    public set_widgets_invisibility(widgets_invisibility: { [w_id: number]: boolean }) {
+        return this.vuexAct(reflect<this>().set_widgets_invisibility, widgets_invisibility);
+    }
+
+    public set_widget_invisibility(w_id: number) {
+        return this.vuexAct(reflect<this>().set_widget_invisibility, w_id);
+    }
+
+    public set_widget_visibility(w_id: number) {
+        return this.vuexAct(reflect<this>().set_widget_visibility, w_id);
+    }
+
+    public set_page_widget(page_widget: DashboardPageWidgetVO) {
+        return this.vuexAct(reflect<this>().set_page_widget, page_widget);
     }
 
     private throttled_update_visible_options = (timeout: number = 300) => (ThrottleHelper.declare_throttle_without_args(

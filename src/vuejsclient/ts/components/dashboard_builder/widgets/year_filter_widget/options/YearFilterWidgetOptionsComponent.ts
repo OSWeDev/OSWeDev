@@ -7,11 +7,11 @@ import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/v
 import YearFilterWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/YearFilterWidgetOptionsVO';
 import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
+import { reflect } from '../../../../../../../shared/tools/ObjectHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/DroppableVoFieldsStore';
 import SingleVoFieldRefHolderComponent from '../../../options_tools/single_vo_field_ref_holder/SingleVoFieldRefHolderComponent';
-import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
 import './YearFilterWidgetOptionsComponent.scss';
 
@@ -29,20 +29,6 @@ export default class YearFilterWidgetOptionsComponent extends VueComponentBase {
 
     @ModuleDroppableVoFieldsAction
     private set_selected_fields: (selected_fields: { [api_type_id: string]: { [field_id: string]: boolean } }) => void;
-
-    @ModuleDashboardPageAction
-    private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
-
-    @ModuleDashboardPageGetter
-    private get_custom_filters: string[];
-
-    @ModuleDashboardPageAction
-    private set_custom_filters: (custom_filters: string[]) => void;
-
-    @ModuleDashboardPageGetter
-    private get_page_widgets: DashboardPageWidgetVO[];
-    @ModuleDashboardPageGetter
-    private get_page_widgets_components_by_pwid: { pwid: number, page_widget_component: VueComponentBase };
 
     private is_vo_field_ref: boolean = true;
     private year_relative_mode: boolean = true;
@@ -107,6 +93,18 @@ export default class YearFilterWidgetOptionsComponent extends VueComponentBase {
         }
 
         return options;
+    }
+
+    get get_custom_filters(): string[] {
+        return this.vuexGet<string[]>(reflect<this>().get_custom_filters);
+    }
+
+    get get_page_widgets(): DashboardPageWidgetVO[] {
+        return this.vuexGet<DashboardPageWidgetVO[]>(reflect<this>().get_page_widgets);
+    }
+
+    get get_page_widgets_components_by_pwid(): { pwid: number, page_widget_component: VueComponentBase } {
+        return this.vuexGet<{ pwid: number, page_widget_component: VueComponentBase }>(reflect<this>().get_page_widgets_components_by_pwid);
     }
 
     get other_filters_by_name(): { [filter_name: string]: DashboardPageWidgetVO } {
@@ -329,6 +327,14 @@ export default class YearFilterWidgetOptionsComponent extends VueComponentBase {
     }
     public vuexAct<A>(action: string, payload?: A) {
         return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    }
+
+    public set_page_widget(page_widget: DashboardPageWidgetVO) {
+        return this.vuexAct(reflect<this>().set_page_widget, page_widget);
+    }
+
+    public set_custom_filters(custom_filters: string[]) {
+        return this.vuexAct(reflect<this>().set_custom_filters, custom_filters);
     }
 
     private change_custom_filter(custom_filter: string) {

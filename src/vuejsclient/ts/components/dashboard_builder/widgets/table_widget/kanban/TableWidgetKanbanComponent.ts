@@ -64,7 +64,6 @@ import { ModuleDAOAction } from '../../../../dao/store/DaoStore';
 import DatatableRowController from '../../../../datatable/component/DatatableRowController';
 import DatatableComponentField from '../../../../datatable/component/fields/DatatableComponentField';
 import SortableListComponent from '../../../../sortable/SortableListComponent';
-import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
 import FieldValueFilterWidgetOptions from '../../field_value_filter_widget/options/FieldValueFilterWidgetOptions';
 import ValidationFiltersWidgetController from '../../validation_filters_widget/ValidationFiltersWidgetController';
@@ -75,6 +74,7 @@ import CRUDUpdateModalComponent from './../crud_modals/update/CRUDUpdateModalCom
 import './TableWidgetKanbanComponent.scss';
 import TableWidgetKanbanCardFooterLinksComponent from './kanban_card_footer_links/TableWidgetKanbanCardFooterLinksComponent';
 import TableWidgetKanbanCardHeaderCollageComponent from './kanban_card_header_collage/TableWidgetKanbanCardHeaderCollageComponent';
+import { ModuleModalsAndBasicPageComponentsHolderGetter } from '../../../../modals_and_basic_page_components_holder/ModalsAndBasicPageComponentsHolderStore';
 
 //TODO Faire en sorte que les champs qui n'existent plus car supprimés du dashboard ne se conservent pas lors de la création d'un tableau
 
@@ -93,14 +93,14 @@ import TableWidgetKanbanCardHeaderCollageComponent from './kanban_card_header_co
 export default class TableWidgetKanbanComponent extends VueComponentBase {
     @Inject('storeNamespace') readonly storeNamespace!: string;
 
+    @ModuleModalsAndBasicPageComponentsHolderGetter
+    private get_Crudcreatemodalcomponent: CRUDCreateModalComponent;
+
+    @ModuleModalsAndBasicPageComponentsHolderGetter
+    private get_Crudupdatemodalcomponent: CRUDUpdateModalComponent;
+
     @ModuleDAOAction
     private storeDatas: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void;
-
-    @ModuleDashboardPageAction
-    private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
-
-    @ModuleDashboardPageAction
-    private remove_active_field_filter: (params: { vo_type: string, field_id: string }) => void;
 
     @ModuleTranslatableTextGetter
     private get_flat_locale_translations: { [code_text: string]: string };
@@ -214,15 +214,6 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
     get get_discarded_field_paths(): { [vo_type: string]: { [field_id: string]: boolean } } {
         return this.vuexGet<{ [vo_type: string]: { [field_id: string]: boolean } }>(reflect<this>().get_discarded_field_paths);
     }
-
-    get get_Crudupdatemodalcomponent(): CRUDUpdateModalComponent {
-        return this.vuexGet<CRUDUpdateModalComponent>(reflect<this>().get_Crudupdatemodalcomponent);
-    }
-
-    get get_Crudcreatemodalcomponent(): CRUDCreateModalComponent {
-        return this.vuexGet<CRUDCreateModalComponent>(reflect<this>().get_Crudcreatemodalcomponent);
-    }
-
 
     get contextmenu_items(): any {
         const contextmenu_items: any = {};
@@ -1166,6 +1157,14 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
     }
     public vuexAct<A>(action: string, payload?: A) {
         return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    }
+
+    public set_active_field_filter(param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) {
+        return this.vuexAct(reflect<this>().set_active_field_filter, param);
+    }
+
+    public remove_active_field_filter(params: { vo_type: string, field_id: string }) {
+        return this.vuexAct(reflect<this>().remove_active_field_filter, params);
     }
 
     public async getquerystr() {

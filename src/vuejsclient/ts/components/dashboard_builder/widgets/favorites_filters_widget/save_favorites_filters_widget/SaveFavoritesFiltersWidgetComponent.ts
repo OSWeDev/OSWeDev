@@ -18,15 +18,15 @@ import YearFilterWidgetOptionsVO from '../../../../../../../shared/modules/Dashb
 import ExportContextQueryToXLSXParamVO from '../../../../../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
 import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
+import { reflect } from '../../../../../../../shared/tools/ObjectHandler';
+import { ModuleModalsAndBasicPageComponentsHolderGetter } from '../../../../modals_and_basic_page_components_holder/ModalsAndBasicPageComponentsHolderStore';
 import VueComponentBase from '../../../../VueComponentBase';
-import { ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
 import FieldValueFilterWidgetOptions from '../../field_value_filter_widget/options/FieldValueFilterWidgetOptions';
 import MonthFilterWidgetOptions from '../../month_filter_widget/options/MonthFilterWidgetOptions';
 import ReloadFiltersWidgetController from '../../reload_filters_widget/RealoadFiltersWidgetController';
 import FavoritesFiltersModalComponent from '../modal/FavoritesFiltersModalComponent';
 import './SaveFavoritesFiltersWidgetComponent.scss';
-import { reflect } from '../../../../../../../shared/tools/ObjectHandler';
 
 @Component({
     template: require('./SaveFavoritesFiltersWidgetComponent.pug'),
@@ -34,6 +34,9 @@ import { reflect } from '../../../../../../../shared/tools/ObjectHandler';
 })
 export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBase {
     @Inject('storeNamespace') readonly storeNamespace!: string;
+
+    @ModuleModalsAndBasicPageComponentsHolderGetter
+    private get_Favoritesfiltersmodalcomponent: FavoritesFiltersModalComponent;
 
     @Prop({ default: null })
     private page_widget: DashboardPageWidgetVO;
@@ -52,11 +55,6 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
     get get_active_field_filters(): FieldFiltersVO {
         return this.vuexGet<FieldFiltersVO>(reflect<this>().get_active_field_filters);
     }
-
-    get get_Favoritesfiltersmodalcomponent(): FavoritesFiltersModalComponent {
-        return this.vuexGet<FavoritesFiltersModalComponent>(reflect<this>().get_Favoritesfiltersmodalcomponent);
-    }
-
 
     // Accès dynamiques Vuex
     public vuexGet<T>(getter: string): T {

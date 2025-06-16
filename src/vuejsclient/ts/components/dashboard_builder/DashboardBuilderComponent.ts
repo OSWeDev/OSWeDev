@@ -55,7 +55,6 @@ import IExportableWidgetOptions from './widgets/IExportableWidgetOptions';
         Inlinetranslatabletext: InlineTranslatableText,
         Droppablevofieldscomponent: DroppableVoFieldsComponent,
         Dashboardbuilderwidgetscomponent: DashboardBuilderWidgetsComponent,
-        // Dashboardbuilderoseliachat: DashboardBuilderOseliaChatComponent,
         Dashboardbuilderboardcomponent: DashboardBuilderBoardComponent,
         Tablesgraphcomponent: TablesGraphComponent,
         Dashboardmenuconfcomponent: DashboardMenuConfComponent,
@@ -82,10 +81,9 @@ export default class DashboardBuilderComponent extends VueComponentBase {
     private set_selected_fields: (selected_fields: { [api_type_id: string]: { [field_id: string]: boolean } }) => void;
 
     // namespace dynamique
-    private storeNamespace: string = `dashboardStore_${this._uid}`;
     // eslint-disable-next-line @typescript-eslint/member-ordering
     @Provide('storeNamespace')
-    private providedNamespace: string;
+    private readonly storeNamespace = `dashboardStore_${DashboardPageStore.__UID++}`;
 
     private dashboards: DashboardVO[] = [];
     private dashboard: DashboardVO = null;
@@ -219,7 +217,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         this.loading = false;
     }
 
-    @Watch("dashboard_id", { immediate: true })
+    @Watch("dashboard_id")
     private async onchange_dashboard_id() {
         this.loading = true;
 
@@ -320,21 +318,21 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         this.vuexAct(reflect<this>().add_shared_filters_to_map, shared_filters);
     }
 
+    // registre/déréf module
+    public created() {
+        const instance = new DashboardPageStore();
+        this.$store.registerModule(this.storeNamespace, instance);
+
+        // Ne pas mettre en immediate true, le storeNamespace n'est pas encore créé
+        this.onchange_dashboard_id();
+    }
+
     // Accès dynamiques Vuex
     private vuexGet<T>(getter: string): T {
         return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
     }
     private vuexAct<A>(action: string, payload?: A) {
         return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
-    }
-
-    // registre/déréf module
-    private created() {
-        // TODO FIXME DELETE TEST TEMPORAIRE :
-        const instance = DashboardPageStore.getInstance();  //new DashboardPageStore();
-        this.$store.registerModule(this.storeNamespace, instance);
-
-        // DashboardPageStore.instance = instance;
     }
 
     private dashboard_label(dashboard: DashboardVO): string {
@@ -528,6 +526,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
             }),
         );
     }
+
 
     private sort_pages(page_a: DashboardPageVO, page_b: DashboardPageVO): number {
         return (page_a.weight == page_b.weight) ? page_a.id - page_b.id : page_a.weight - page_b.weight;

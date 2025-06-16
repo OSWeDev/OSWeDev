@@ -1,27 +1,26 @@
 import Component from 'vue-class-component';
 import { Inject, Prop, Watch } from 'vue-property-decorator';
+import ContextFilterVO, { filter } from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SupervisionTypeWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/SupervisionTypeWidgetManager';
-import SupervisionTypeWidgetOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/SupervisionTypeWidgetOptionsVO';
-import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
-import SupervisedCategoryVO from '../../../../../../shared/modules/Supervision/vos/SupervisedCategoryVO';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
-import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
+import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
+import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
+import SupervisionTypeWidgetOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/SupervisionTypeWidgetOptionsVO';
+import ISupervisedItem from '../../../../../../shared/modules/Supervision/interfaces/ISupervisedItem';
+import SupervisionController from '../../../../../../shared/modules/Supervision/SupervisionController';
+import SupervisedCategoryVO from '../../../../../../shared/modules/Supervision/vos/SupervisedCategoryVO';
+import SupervisedProbeGroupVO from '../../../../../../shared/modules/Supervision/vos/SupervisedProbeGroupVO';
+import SupervisedProbeVO from '../../../../../../shared/modules/Supervision/vos/SupervisedProbeVO';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
+import ObjectHandler, { field_names, reflect } from '../../../../../../shared/tools/ObjectHandler';
+import ThreadHandler from '../../../../../../shared/tools/ThreadHandler';
+import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
+import AjaxCacheClientController from '../../../../modules/AjaxCache/AjaxCacheClientController';
 import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
-import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import VueComponentBase from '../../../VueComponentBase';
 import './SupervisionTypeWidgetComponent.scss';
-import SupervisedProbeVO from '../../../../../../shared/modules/Supervision/vos/SupervisedProbeVO';
-import SupervisionController from '../../../../../../shared/modules/Supervision/SupervisionController';
-import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ObjectHandler, { field_names, reflect } from '../../../../../../shared/tools/ObjectHandler';
-import ContextFilterVO, { filter } from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
-import ISupervisedItem from '../../../../../../shared/modules/Supervision/interfaces/ISupervisedItem';
-import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
-import ThreadHandler from '../../../../../../shared/tools/ThreadHandler';
-import AjaxCacheClientController from '../../../../modules/AjaxCache/AjaxCacheClientController';
-import SupervisedProbeGroupVO from '../../../../../../shared/modules/Supervision/vos/SupervisedProbeGroupVO';
 
 @Component({
     template: require('./SupervisionTypeWidgetComponent.pug'),
@@ -32,24 +31,6 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
 
     @ModuleTranslatableTextGetter
     private get_flat_locale_translations: { [code_text: string]: string };
-
-    @ModuleDashboardPageGetter
-    private get_active_api_type_ids: string[];
-
-    @ModuleDashboardPageGetter
-    private get_query_api_type_ids: string[];
-
-    @ModuleDashboardPageAction
-    private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
-
-    @ModuleDashboardPageAction
-    private remove_active_field_filter: (params: { vo_type: string, field_id: string }) => void;
-
-    @ModuleDashboardPageAction
-    private set_active_api_type_ids: (active_api_type_ids: string[]) => void;
-
-    @ModuleDashboardPageAction
-    private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
 
     @Prop({ default: null })
     private page_widget: DashboardPageWidgetVO;
@@ -102,6 +83,14 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
 
     get get_active_field_filters(): FieldFiltersVO {
         return this.vuexGet<FieldFiltersVO>(reflect<this>().get_active_field_filters);
+    }
+
+    get get_active_api_type_ids(): string[] {
+        return this.vuexGet<string[]>(reflect<this>().get_active_api_type_ids);
+    }
+
+    get get_query_api_type_ids(): string[] {
+        return this.vuexGet<string[]>(reflect<this>().get_query_api_type_ids);
     }
 
     get title_name_code_text() {
@@ -342,6 +331,22 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
     }
     public vuexAct<A>(action: string, payload?: A) {
         return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    }
+
+    public set_active_field_filter(param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) {
+        return this.vuexAct(reflect<this>().set_active_field_filter, param);
+    }
+
+    public remove_active_field_filter(params: { vo_type: string, field_id: string }) {
+        return this.vuexAct(reflect<this>().remove_active_field_filter, params);
+    }
+
+    public set_active_api_type_ids(active_api_type_ids: string[]) {
+        return this.vuexAct(reflect<this>().set_active_api_type_ids, active_api_type_ids);
+    }
+
+    public set_page_widget(page_widget: DashboardPageWidgetVO) {
+        return this.vuexAct(reflect<this>().set_page_widget, page_widget);
     }
 
     private async mounted() {

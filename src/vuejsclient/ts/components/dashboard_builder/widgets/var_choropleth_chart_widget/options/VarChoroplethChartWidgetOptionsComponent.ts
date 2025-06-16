@@ -9,12 +9,11 @@ import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/v
 import TimeSegment from '../../../../../../../shared/modules/DataRender/vos/TimeSegment';
 import VarsController from '../../../../../../../shared/modules/Var/VarsController';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
-import ObjectHandler from '../../../../../../../shared/tools/ObjectHandler';
+import ObjectHandler, { reflect } from '../../../../../../../shared/tools/ObjectHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../../../VueComponentBase';
 import SingleVoFieldRefHolderComponent from '../../../options_tools/single_vo_field_ref_holder/SingleVoFieldRefHolderComponent';
-import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import WidgetFilterOptionsComponent from '../../var_widget/options/filters/WidgetFilterOptionsComponent';
 import VarChoroplethChartWidgetOptions from './VarChoroplethChartWidgetOptions';
 import './VarChoroplethChartWidgetOptionsComponent.scss';
@@ -32,12 +31,6 @@ export default class VarChoroplethChartWidgetOptionsComponent extends VueCompone
 
     @Prop({ default: null })
     private page_widget: DashboardPageWidgetVO;
-
-    @ModuleDashboardPageAction
-    private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
-
-    @ModuleDashboardPageGetter
-    private get_custom_filters: string[];
 
     private next_update_options: VarChoroplethChartWidgetOptions = null;
     private throttled_reload_options = ThrottleHelper.declare_throttle_without_args(
@@ -173,12 +166,20 @@ export default class VarChoroplethChartWidgetOptionsComponent extends VueCompone
         return Object.assign(new VOFieldRefVO(), options.dimension_vo_field_ref);
     }
 
+    get get_custom_filters(): string[] {
+        return this.vuexGet<string[]>(reflect<this>().get_custom_filters);
+    }
+
     // Accès dynamiques Vuex
     public vuexGet<T>(getter: string): T {
         return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
     }
     public vuexAct<A>(action: string, payload?: A) {
         return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    }
+
+    public set_page_widget(page_widget: DashboardPageWidgetVO) {
+        return this.vuexAct(reflect<this>().set_page_widget, page_widget);
     }
 
     private async remove_dimension_vo_field_ref() {

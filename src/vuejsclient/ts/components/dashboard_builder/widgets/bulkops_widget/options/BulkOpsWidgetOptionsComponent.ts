@@ -1,21 +1,20 @@
 import Component from 'vue-class-component';
 import { Inject, Prop, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
+import ModuleTableController from '../../../../../../../shared/modules/DAO/ModuleTableController';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import TableColumnDescVO from '../../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
+import { reflect } from '../../../../../../../shared/tools/ObjectHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/DroppableVoFieldsStore';
-import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
 import BulkOpsWidgetOptions from './BulkOpsWidgetOptions';
 import './BulkOpsWidgetOptionsComponent.scss';
-import ModuleTableController from '../../../../../../../shared/modules/DAO/ModuleTableController';
-import { reflect } from '../../../../../../../shared/tools/ObjectHandler';
 
 @Component({
     template: require('./BulkOpsWidgetOptionsComponent.pug'),
@@ -35,9 +34,6 @@ export default class BulkOpsWidgetOptionsComponent extends VueComponentBase {
     @ModuleDroppableVoFieldsAction
     private set_selected_fields: (selected_fields: { [api_type_id: string]: { [field_id: string]: boolean } }) => void;
 
-    @ModuleDashboardPageAction
-    private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
-
     private next_update_options: BulkOpsWidgetOptions = null;
     private throttled_update_options = ThrottleHelper.declare_throttle_without_args(
         'BulkOpsWidgetOptionsComponent.throttled_update_options',
@@ -54,10 +50,6 @@ export default class BulkOpsWidgetOptionsComponent extends VueComponentBase {
 
     get api_type_id_select_options(): string[] {
         return this.get_dashboard_api_type_ids;
-    }
-
-    private api_type_id_select_label(api_type_id: string): string {
-        return this.t(ModuleTableController.module_tables_by_vo_type[api_type_id].label.code_text);
     }
 
     @Watch('page_widget', { immediate: true })
@@ -96,8 +88,18 @@ export default class BulkOpsWidgetOptionsComponent extends VueComponentBase {
         return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
     }
 
+    public set_page_widget(page_widget: DashboardPageWidgetVO) {
+        return this.vuexAct(reflect<this>().set_page_widget, page_widget);
+    }
+
+
     private get_default_options(): BulkOpsWidgetOptions {
         return new BulkOpsWidgetOptions(null, 10);
+    }
+
+
+    private api_type_id_select_label(api_type_id: string): string {
+        return this.t(ModuleTableController.module_tables_by_vo_type[api_type_id].label.code_text);
     }
 
     private async update_options() {

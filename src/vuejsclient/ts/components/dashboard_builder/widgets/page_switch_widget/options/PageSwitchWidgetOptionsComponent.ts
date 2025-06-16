@@ -1,14 +1,14 @@
 import Component from 'vue-class-component';
-import { Prop, Watch } from 'vue-property-decorator';
+import { Inject, Prop, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import DashboardPageVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
+import { reflect } from '../../../../../../../shared/tools/ObjectHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../../../VueComponentBase';
 import SingleVoFieldRefHolderComponent from '../../../options_tools/single_vo_field_ref_holder/SingleVoFieldRefHolderComponent';
-import { ModuleDashboardPageAction } from '../../../page/DashboardPageStore';
 import PageSwitchWidgetOptions from './PageSwitchWidgetOptions';
 import './PageSwitchWidgetOptionsComponent.scss';
 
@@ -20,6 +20,7 @@ import './PageSwitchWidgetOptionsComponent.scss';
     }
 })
 export default class PageSwitchWidgetOptionsComponent extends VueComponentBase {
+    @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @Prop({ default: null })
     private page_widget: DashboardPageWidgetVO;
@@ -29,9 +30,6 @@ export default class PageSwitchWidgetOptionsComponent extends VueComponentBase {
 
     @Prop({ default: null })
     private dashboard_page: DashboardPageVO;
-
-    @ModuleDashboardPageAction
-    private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
 
     private next_update_options: PageSwitchWidgetOptions = null;
     private throttled_update_options = ThrottleHelper.declare_throttle_without_args(
@@ -100,6 +98,19 @@ export default class PageSwitchWidgetOptionsComponent extends VueComponentBase {
             ConsoleHandler.error(error);
         }
     }
+
+    // Accès dynamiques Vuex
+    public vuexGet<T>(getter: string): T {
+        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    }
+    public vuexAct<A>(action: string, payload?: A) {
+        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    }
+
+    public set_page_widget(page_widget: DashboardPageWidgetVO) {
+        return this.vuexAct(reflect<this>().set_page_widget, page_widget);
+    }
+
 
     private async update_options() {
         try {

@@ -21,18 +21,17 @@ import VarsController from '../../../../../../shared/modules/Var/VarsController'
 import VarChoroplethDataSetDescriptor from '../../../../../../shared/modules/Var/graph/VarChoroplethDataSetDescriptor';
 import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
+import Filters from '../../../../../../shared/tools/Filters';
 import ObjectHandler, { reflect } from '../../../../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../../../../shared/tools/RangeHandler';
 import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../../VueComponentBase';
-import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import DashboardBuilderWidgetsController from '../DashboardBuilderWidgetsController';
 import ValidationFiltersWidgetController from '../validation_filters_widget/ValidationFiltersWidgetController';
 import VarWidgetComponent from '../var_widget/VarWidgetComponent';
-import VarChoroplethChartWidgetOptions from './options/VarChoroplethChartWidgetOptions';
 import './VarChoroplethChartWidgetComponent.scss';
-import Filters from '../../../../../../shared/tools/Filters';
+import VarChoroplethChartWidgetOptions from './options/VarChoroplethChartWidgetOptions';
 
 @Component({
     template: require('./VarChoroplethChartWidgetComponent.pug')

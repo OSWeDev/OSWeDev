@@ -1,14 +1,13 @@
 import Component from 'vue-class-component';
-import { Watch } from 'vue-property-decorator';
+import { Inject, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ContextFilterVO, { filter } from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import GPTAssistantAPIThreadVO from '../../../../../../../shared/modules/GPT/vos/GPTAssistantAPIThreadVO';
 import ModuleOselia from '../../../../../../../shared/modules/Oselia/ModuleOselia';
 import ModuleParams from '../../../../../../../shared/modules/Params/ModuleParams';
-import { field_names } from '../../../../../../../shared/tools/ObjectHandler';
+import { field_names, reflect } from '../../../../../../../shared/tools/ObjectHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../../VueComponentBase';
-import { ModuleDashboardPageAction } from '../../../page/DashboardPageStore';
 import TableWidgetExternalSelectorController from '../../table_widget/external_selector/TableWidgetExternalSelectorController';
 import OseliaLastThreadsComponent from '../OseliaLastThreads/OseliaLastThreadsComponent';
 import { ModuleOseliaAction } from '../OseliaStore';
@@ -21,9 +20,7 @@ import './OseliaSelectThreadComponent.scss';
     }
 })
 export default class OseliaSelectThreadComponent extends VueComponentBase {
-
-    @ModuleDashboardPageAction
-    private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
+    @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @ModuleOseliaAction
     private set_left_panel_open: (left_panel_open: boolean) => void;
@@ -50,6 +47,18 @@ export default class OseliaSelectThreadComponent extends VueComponentBase {
                 }
             }
         }
+    }
+
+    // Accès dynamiques Vuex
+    public vuexGet<T>(getter: string): T {
+        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    }
+    public vuexAct<A>(action: string, payload?: A) {
+        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    }
+
+    public set_active_field_filter(param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) {
+        return this.vuexAct(reflect<this>().set_active_field_filter, param);
     }
 
     private async get_access() {

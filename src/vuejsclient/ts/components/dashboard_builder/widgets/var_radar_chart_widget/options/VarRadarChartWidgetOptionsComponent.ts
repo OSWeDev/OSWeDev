@@ -2,22 +2,21 @@ import { cloneDeep } from 'lodash';
 import Component from 'vue-class-component';
 import { Inject, Prop, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
-import VarRadarChartWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VarRadarChartWidgetOptionsVO';
+import ModuleTableController from '../../../../../../../shared/modules/DAO/ModuleTableController';
+import ModuleTableFieldVO from '../../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
+import VarRadarChartWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VarRadarChartWidgetOptionsVO';
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import TimeSegment from '../../../../../../../shared/modules/DataRender/vos/TimeSegment';
 import VarsController from '../../../../../../../shared/modules/Var/VarsController';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
-import ObjectHandler from '../../../../../../../shared/tools/ObjectHandler';
+import ObjectHandler, { reflect } from '../../../../../../../shared/tools/ObjectHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../../../VueComponentBase';
 import SingleVoFieldRefHolderComponent from '../../../options_tools/single_vo_field_ref_holder/SingleVoFieldRefHolderComponent';
 import WidgetFilterOptionsComponent from '../../var_widget/options/filters/WidgetFilterOptionsComponent';
-import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import './VarRadarChartWidgetOptionsComponent.scss';
-import ModuleTableController from '../../../../../../../shared/modules/DAO/ModuleTableController';
-import ModuleTableFieldVO from '../../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 
 @Component({
     template: require('./VarRadarChartWidgetOptionsComponent.pug'),
@@ -32,12 +31,6 @@ export default class VarRadarChartWidgetOptionsComponent extends VueComponentBas
 
     @Prop({ default: null })
     private page_widget: DashboardPageWidgetVO;
-
-    @ModuleDashboardPageAction
-    private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
-
-    @ModuleDashboardPageGetter
-    private get_custom_filters: string[];
 
     private next_update_options: VarRadarChartWidgetOptionsVO = null;
     private throttled_reload_options = ThrottleHelper.declare_throttle_without_args(
@@ -118,6 +111,10 @@ export default class VarRadarChartWidgetOptionsComponent extends VueComponentBas
         }
 
         return Object.assign(new VOFieldRefVO(), options.dimension_vo_field_ref);
+    }
+
+    get get_custom_filters(): string[] {
+        return this.vuexGet<string[]>(reflect<this>().get_custom_filters);
     }
 
     get sort_dimension_by_vo_field_ref(): VOFieldRefVO {
@@ -656,6 +653,10 @@ export default class VarRadarChartWidgetOptionsComponent extends VueComponentBas
     }
     public vuexAct<A>(action: string, payload?: A) {
         return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    }
+
+    public set_page_widget(page_widget: DashboardPageWidgetVO) {
+        return this.vuexAct(reflect<this>().set_page_widget, page_widget);
     }
 
     private async update_colors() {

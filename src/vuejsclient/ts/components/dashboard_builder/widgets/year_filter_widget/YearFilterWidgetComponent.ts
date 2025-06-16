@@ -13,13 +13,12 @@ import YearFilterWidgetOptionsVO from '../../../../../../shared/modules/Dashboar
 import NumRange from '../../../../../../shared/modules/DataRender/vos/NumRange';
 import NumSegment from '../../../../../../shared/modules/DataRender/vos/NumSegment';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
+import { reflect } from '../../../../../../shared/tools/ObjectHandler';
 import RangeHandler from '../../../../../../shared/tools/RangeHandler';
 import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../../VueComponentBase';
 import YearFilterInputComponent from '../../../year_filter_input/YearFilterInputComponent';
-import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import './YearFilterWidgetComponent.scss';
-import { reflect } from '../../../../../../shared/tools/ObjectHandler';
 
 @Component({
     template: require('./YearFilterWidgetComponent.pug'),
@@ -30,26 +29,14 @@ import { reflect } from '../../../../../../shared/tools/ObjectHandler';
 export default class YearFilterWidgetComponent extends VueComponentBase {
     @Inject('storeNamespace') readonly storeNamespace!: string;
 
-    public selected_years: { [year: number]: boolean } = {};
 
     @Prop({ default: null })
     private page_widget: DashboardPageWidgetVO;
 
-    @ModuleDashboardPageAction
-    private set_page_widget_component_by_pwid: (param: { pwid: number, page_widget_component: VueComponentBase }) => void;
-
-    @ModuleDashboardPageGetter
-    private get_page_widgets_components_by_pwid: { [pwid: number]: VueComponentBase };
-
-    @ModuleDashboardPageAction
-    private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
-
-    @ModuleDashboardPageAction
-    private remove_active_field_filter: (params: { vo_type: string, field_id: string }) => void;
-
     @ModuleTranslatableTextGetter
     private get_flat_locale_translations: { [code_text: string]: string };
 
+    public selected_years: { [year: number]: boolean } = {};
     // Is All Years Selected Toggle Button
     // - Shall be highlight or true when selected_years empty
     // - Shall be false when selected_years has at least one selected
@@ -74,6 +61,11 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
         return this.vuexGet<FieldFiltersVO>(reflect<this>().get_active_field_filters);
     }
 
+    get get_page_widgets_components_by_pwid(): { [pwid: number]: VueComponentBase } {
+        return this.vuexGet<{ [pwid: number]: VueComponentBase }>(reflect<this>().get_page_widgets_components_by_pwid);
+    }
+
+
     // Accès dynamiques Vuex
     public vuexGet<T>(getter: string): T {
         return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
@@ -81,6 +73,19 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
     public vuexAct<A>(action: string, payload?: A) {
         return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
     }
+
+    public set_page_widget_component_by_pwid(param: { pwid: number, page_widget_component: VueComponentBase }) {
+        return this.vuexAct(reflect<this>().set_page_widget_component_by_pwid, param);
+    }
+
+    public set_active_field_filter(param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) {
+        return this.vuexAct(reflect<this>().set_active_field_filter, param);
+    }
+
+    public remove_active_field_filter(params: { vo_type: string, field_id: string }) {
+        return this.vuexAct(reflect<this>().remove_active_field_filter, params);
+    }
+
 
     protected async mounted() {
         this.set_page_widget_component_by_pwid({

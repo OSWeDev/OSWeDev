@@ -8,7 +8,6 @@ import { reflect } from '../../../../../../../shared/tools/ObjectHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import { ModuleTranslatableTextGetter } from '../../../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../../../VueComponentBase';
-import { ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import './OseliaFeedbackEditorComponent.scss';
 
 @Component({

@@ -1,20 +1,18 @@
 import Component from 'vue-class-component';
 import { Inject, Prop, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
-import InsertOrDeleteQueryResult from '../../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
+import { reflect } from '../../../../../../../shared/tools/ObjectHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/DroppableVoFieldsStore';
 import SingleVoFieldRefHolderComponent from '../../../options_tools/single_vo_field_ref_holder/SingleVoFieldRefHolderComponent';
-import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
 import DOWFilterWidgetOptions from './DOWFilterWidgetOptions';
 import './DOWFilterWidgetOptionsComponent.scss';
-import { reflect } from '../../../../../../../shared/tools/ObjectHandler';
 
 @Component({
     template: require('./DOWFilterWidgetOptionsComponent.pug'),
@@ -30,12 +28,6 @@ export default class DOWFilterWidgetOptionsComponent extends VueComponentBase {
 
     @ModuleDroppableVoFieldsAction
     private set_selected_fields: (selected_fields: { [api_type_id: string]: { [field_id: string]: boolean } }) => void;
-
-    @ModuleDashboardPageAction
-    private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
-
-    @ModuleDashboardPageAction
-    private set_custom_filters: (custom_filters: string[]) => void;
 
     private is_vo_field_ref: boolean = true;
     private custom_filter_name: string = null;
@@ -78,13 +70,38 @@ export default class DOWFilterWidgetOptionsComponent extends VueComponentBase {
         return this.get_custom_filters;
     }
 
-    private change_custom_filter(custom_filter: string) {
-        this.custom_filter_name = custom_filter;
-        if (this.get_custom_filters && (this.get_custom_filters.indexOf(custom_filter) < 0)) {
-            const custom_filters = Array.from(this.get_custom_filters);
-            custom_filters.push(custom_filter);
-            this.set_custom_filters(custom_filters);
+    get vo_field_ref(): VOFieldRefVO {
+        const options: DOWFilterWidgetOptions = this.widget_options;
+
+        if ((!options) || (!options.vo_field_ref)) {
+            return null;
         }
+
+        return Object.assign(new VOFieldRefVO(), options.vo_field_ref);
+    }
+
+    get default_placeholder_translation(): string {
+        return this.label('DOWFilterWidget.filter_placeholder');
+    }
+
+    get widget_options(): DOWFilterWidgetOptions {
+        if (!this.page_widget) {
+            return null;
+        }
+
+        let options: DOWFilterWidgetOptions = null;
+        try {
+            if (this.page_widget.json_options) {
+                options = JSON.parse(this.page_widget.json_options) as DOWFilterWidgetOptions;
+                options = options ? new DOWFilterWidgetOptions(
+                    options.is_vo_field_ref, options.vo_field_ref,
+                    options.custom_filter_name) : null;
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+
+        return options;
     }
 
     @Watch('widget_options', { immediate: true })
@@ -120,6 +137,15 @@ export default class DOWFilterWidgetOptionsComponent extends VueComponentBase {
         return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
     }
 
+    public set_page_widget(page_widget: DashboardPageWidgetVO) {
+        return this.vuexAct(reflect<this>().set_page_widget, page_widget);
+    }
+
+    public set_custom_filters(custom_filters: string[]) {
+        return this.vuexAct(reflect<this>().set_custom_filters, custom_filters);
+    }
+
+
     private async switch_is_vo_field_ref() {
         this.next_update_options = this.widget_options;
 
@@ -148,16 +174,6 @@ export default class DOWFilterWidgetOptionsComponent extends VueComponentBase {
         this.set_selected_fields(get_selected_fields ? get_selected_fields(this.page_widget) : {});
     }
 
-    get vo_field_ref(): VOFieldRefVO {
-        const options: DOWFilterWidgetOptions = this.widget_options;
-
-        if ((!options) || (!options.vo_field_ref)) {
-            return null;
-        }
-
-        return Object.assign(new VOFieldRefVO(), options.vo_field_ref);
-    }
-
     private async remove_field_ref() {
         this.next_update_options = this.widget_options;
 
@@ -172,30 +188,6 @@ export default class DOWFilterWidgetOptionsComponent extends VueComponentBase {
         this.next_update_options.vo_field_ref = null;
 
         await this.throttled_update_options();
-    }
-
-    get default_placeholder_translation(): string {
-        return this.label('DOWFilterWidget.filter_placeholder');
-    }
-
-    get widget_options(): DOWFilterWidgetOptions {
-        if (!this.page_widget) {
-            return null;
-        }
-
-        let options: DOWFilterWidgetOptions = null;
-        try {
-            if (this.page_widget.json_options) {
-                options = JSON.parse(this.page_widget.json_options) as DOWFilterWidgetOptions;
-                options = options ? new DOWFilterWidgetOptions(
-                    options.is_vo_field_ref, options.vo_field_ref,
-                    options.custom_filter_name) : null;
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-
-        return options;
     }
 
     private async add_field_ref(api_type_id: string, field_id: string) {
@@ -213,5 +205,14 @@ export default class DOWFilterWidgetOptionsComponent extends VueComponentBase {
         this.next_update_options.vo_field_ref = vo_field_ref;
 
         await this.throttled_update_options();
+    }
+
+    private change_custom_filter(custom_filter: string) {
+        this.custom_filter_name = custom_filter;
+        if (this.get_custom_filters && (this.get_custom_filters.indexOf(custom_filter) < 0)) {
+            const custom_filters = Array.from(this.get_custom_filters);
+            custom_filters.push(custom_filter);
+            this.set_custom_filters(custom_filters);
+        }
     }
 }

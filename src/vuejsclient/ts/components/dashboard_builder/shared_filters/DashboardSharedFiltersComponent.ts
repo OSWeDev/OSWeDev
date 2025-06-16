@@ -11,12 +11,11 @@ import LocaleManager from '../../../../../shared/tools/LocaleManager';
 import ThrottleHelper from '../../../../../shared/tools/ThrottleHelper';
 import VueAppController from '../../../../VueAppController';
 import { ModuleTranslatableTextGetter } from '../../InlineTranslatableText/TranslatableTextStore';
+import { ModuleModalsAndBasicPageComponentsHolderGetter } from '../../modals_and_basic_page_components_holder/ModalsAndBasicPageComponentsHolderStore';
 import VueComponentBase from '../../VueComponentBase';
-import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../page/DashboardPageStore';
 import './DashboardSharedFiltersComponent.scss';
 import ISelectionnableFieldFilters from './interface/ISelectionnableFieldFilters';
 import SharedFiltersModalComponent from './modal/SharedFiltersModalComponent';
-import { reflect } from '../../../../../shared/tools/ObjectHandler';
 
 @Component({
     template: require('./DashboardSharedFiltersComponent.pug'),
@@ -28,14 +27,14 @@ export default class DashboardSharedFiltersComponent extends VueComponentBase {
 
     @Inject('storeNamespace') readonly storeNamespace!: string;
 
+    @ModuleModalsAndBasicPageComponentsHolderGetter
+    private get_Sharedfiltersmodalcomponent: SharedFiltersModalComponent;
+
     @Prop()
     private dashboard: DashboardVO;
 
     @ModuleTranslatableTextGetter
     private get_flat_locale_translations: { [code_text: string]: string };
-
-    @ModuleDashboardPageAction
-    private set_Sharedfiltersmodalcomponent: (Sharedfiltersmodalcomponent: SharedFiltersModalComponent) => void;
 
     private start_update: boolean = false;
 
@@ -73,10 +72,6 @@ export default class DashboardSharedFiltersComponent extends VueComponentBase {
         false
     );
 
-    get get_Sharedfiltersmodalcomponent(): SharedFiltersModalComponent {
-        return this.vuexGet<SharedFiltersModalComponent>(reflect<this>().get_Sharedfiltersmodalcomponent);
-    }
-
     @Watch('dashboard', { immediate: true })
     private async onchange_dashboard() {
         this.is_loading = true;
@@ -107,15 +102,6 @@ export default class DashboardSharedFiltersComponent extends VueComponentBase {
     }
     public vuexAct<A>(action: string, payload?: A) {
         return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
-    }
-
-
-    /**
-     * mounted
-     * - Vue lifecycle hook
-     */
-    private mounted() {
-        this.set_Sharedfiltersmodalcomponent(this.$refs['Sharedfiltersmodalcomponent'] as SharedFiltersModalComponent);
     }
 
 

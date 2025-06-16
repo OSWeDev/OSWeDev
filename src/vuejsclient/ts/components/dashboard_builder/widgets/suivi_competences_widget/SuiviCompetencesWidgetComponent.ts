@@ -48,6 +48,7 @@ import CRUDCreateModalComponent from '../table_widget/crud_modals/create/CRUDCre
 import './SuiviCompetencesWidgetComponent.scss';
 import SuiviCompetencesWidgetController from './SuiviCompetencesWidgetController';
 import SuiviCompetencesWidgetContainerComponent from './container/SuiviCompetencesWidgetContainerComponent';
+import { ModuleModalsAndBasicPageComponentsHolderGetter } from '../../../modals_and_basic_page_components_holder/ModalsAndBasicPageComponentsHolderStore';
 
 @Component({
     template: require('./SuiviCompetencesWidgetComponent.pug'),
@@ -58,6 +59,9 @@ import SuiviCompetencesWidgetContainerComponent from './container/SuiviCompetenc
 })
 export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
     @Inject('storeNamespace') readonly storeNamespace!: string;
+
+    @ModuleModalsAndBasicPageComponentsHolderGetter
+    private get_Crudcreatemodalcomponent: CRUDCreateModalComponent;
 
     @ModuleDAOAction
     private storeDatas: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void;
@@ -108,11 +112,6 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
     get get_discarded_field_paths(): { [vo_type: string]: { [field_id: string]: boolean } } {
         return this.vuexGet<{ [vo_type: string]: { [field_id: string]: boolean } }>(reflect<this>().get_discarded_field_paths);
     }
-
-    get get_Crudcreatemodalcomponent(): CRUDCreateModalComponent {
-        return this.vuexGet<CRUDCreateModalComponent>(reflect<this>().get_Crudcreatemodalcomponent);
-    }
-
 
     get plan_action_editable_field() {
         return SimpleDatatableFieldVO.createNew(field_names<SuiviCompetencesItemRapportVO>().plan_action).setModuleTable(ModuleTableController.module_tables_by_vo_type[SuiviCompetencesItemRapportVO.API_TYPE_ID]);

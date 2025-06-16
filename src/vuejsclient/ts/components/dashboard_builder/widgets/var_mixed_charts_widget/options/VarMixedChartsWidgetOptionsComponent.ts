@@ -1,26 +1,25 @@
+import { Scale } from 'chart.js';
 import { cloneDeep, isEqual } from 'lodash';
 import Component from 'vue-class-component';
 import { Inject, Prop, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
-import VarMixedChartWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VarMixedChartWidgetOptionsVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import VarChartOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VarChartOptionsVO';
+import VarChartScalesOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VarChartScalesOptionsVO';
+import VarMixedChartWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VarMixedChartWidgetOptionsVO';
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import TimeSegment from '../../../../../../../shared/modules/DataRender/vos/TimeSegment';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
-import ObjectHandler from '../../../../../../../shared/tools/ObjectHandler';
+import ObjectHandler, { reflect } from '../../../../../../../shared/tools/ObjectHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
+import ChartJsScaleOptionsComponent from '../../../../chartjs/scale_options/ChartJsScaleOptionsComponent';
 import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../../../VueComponentBase';
 import SingleVoFieldRefHolderComponent from '../../../options_tools/single_vo_field_ref_holder/SingleVoFieldRefHolderComponent';
-import ChartJsScaleOptionsComponent from '../../../../chartjs/scale_options/ChartJsScaleOptionsComponent';
-import WidgetFilterOptionsComponent from '../../var_widget/options/filters/WidgetFilterOptionsComponent';
 import VarChartsOptionsComponent from '../../var_chart_options/VarChartsOptionsComponent';
-import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
-import './VarMixedChartsWidgetOptionsComponent.scss';
-import { Scale } from 'chart.js';
 import VarChartScalesOptionsComponent from '../../var_chart_scales_options/VarChartScalesOptionsComponent';
-import VarChartScalesOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VarChartScalesOptionsVO';
+import WidgetFilterOptionsComponent from '../../var_widget/options/filters/WidgetFilterOptionsComponent';
+import './VarMixedChartsWidgetOptionsComponent.scss';
 
 /**
  * Composant lié au template VarMixedChartsWidgetOptionsComponent.pug
@@ -47,11 +46,6 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
     @Prop({ default: null })
     private page_widget: DashboardPageWidgetVO;
 
-    @ModuleDashboardPageAction
-    private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
-
-    @ModuleDashboardPageGetter
-    private get_custom_filters: string[];
 
     // --------------------------------------------------------------------------
     // Sections repliables pour l'UX (accordions)
@@ -174,6 +168,11 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
         }
         return this.widget_options.get_title_name_code_text(this.page_widget?.id);
     }
+
+    get get_custom_filters() {
+        return this.vuexGet<string[]>(reflect<this>().get_custom_filters);
+    }
+
 
     /**
      * Retourne les échelles (var_chart_scales_options) disponibles
@@ -460,6 +459,10 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
     }
     public vuexAct<A>(action: string, payload?: A) {
         return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    }
+
+    public set_page_widget(page_widget: DashboardPageWidgetVO) {
+        return this.vuexAct(reflect<this>().set_page_widget, page_widget);
     }
 
     /**

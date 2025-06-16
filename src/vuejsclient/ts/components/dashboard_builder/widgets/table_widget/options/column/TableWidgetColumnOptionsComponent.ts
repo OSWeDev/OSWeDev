@@ -20,13 +20,12 @@ import VOsTypesManager from '../../../../../../../../shared/modules/VO/manager/V
 import VarsController from '../../../../../../../../shared/modules/Var/VarsController';
 import { ConditionStatement } from '../../../../../../../../shared/tools/ConditionHandler';
 import ConsoleHandler from '../../../../../../../../shared/tools/ConsoleHandler';
-import ObjectHandler, { field_names } from '../../../../../../../../shared/tools/ObjectHandler';
+import ObjectHandler, { field_names, reflect } from '../../../../../../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../../../../../../shared/tools/PromiseTools';
 import ThrottleHelper from '../../../../../../../../shared/tools/ThrottleHelper';
 import IWeightedItem from '../../../../../../../../shared/tools/interfaces/IWeightedItem';
 import InlineTranslatableText from '../../../../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../../../../VueComponentBase';
-import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../../page/DashboardPageStore';
 import VoFieldWidgetRefComponent from '../../../../vo_field_widget_ref/VoFieldWidgetRefComponent';
 import FieldValueFilterWidgetOptions from '../../../field_value_filter_widget/options/FieldValueFilterWidgetOptions';
 import WidgetFilterOptionsComponent from '../../../var_widget/options/filters/WidgetFilterOptionsComponent';
@@ -43,18 +42,6 @@ import './TableWidgetColumnOptionsComponent.scss';
 })
 export default class TableWidgetColumnOptionsComponent extends VueComponentBase {
     @Inject('storeNamespace') readonly storeNamespace!: string;
-
-    @ModuleDashboardPageGetter
-    private get_custom_filters: string[];
-
-    @ModuleDashboardPageGetter
-    private get_page_widgets_components_by_pwid: { [pwid: number]: VueComponentBase };
-
-    @ModuleDashboardPageGetter
-    private get_page_widgets: DashboardPageWidgetVO[];
-
-    @ModuleDashboardPageAction
-    private set_custom_filters: (custom_filters: string[]) => void;
 
     @Prop({ default: null })
     private page_widget: DashboardPageWidgetVO;
@@ -135,6 +122,18 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
 
         return VOFieldRefVOHandler.is_type_string(options.vo_field_ref);
 
+    }
+
+    get get_custom_filters(): string[] {
+        return this.vuexGet<string[]>(reflect<this>().get_custom_filters);
+    }
+
+    get get_page_widgets_components_by_pwid(): { [pwid: number]: VueComponentBase } {
+        return this.vuexGet<{ [pwid: number]: VueComponentBase }>(reflect<this>().get_page_widgets_components_by_pwid);
+    }
+
+    get get_page_widgets(): DashboardPageWidgetVO[] {
+        return this.vuexGet<DashboardPageWidgetVO[]>(reflect<this>().get_page_widgets);
     }
 
     get column_type_has_weight(): boolean {
@@ -772,6 +771,10 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
     }
     public vuexAct<A>(action: string, payload?: A) {
         return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    }
+
+    public set_custom_filters(custom_filters: string[]) {
+        return this.vuexAct(reflect<this>().set_custom_filters, custom_filters);
     }
 
     private async switch_kanban_use_weight() {

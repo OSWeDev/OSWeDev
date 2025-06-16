@@ -42,7 +42,6 @@ import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/Tr
 import VueComponentBase from '../../../VueComponentBase';
 import DatatableComponentField from '../../../datatable/component/fields/DatatableComponentField';
 import MailIDEventsComponent from '../../../mail_id_events/MailIDEventsComponent';
-import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import OseliaRunGraphWidgetComponent from '../oselia_run_graph_widget/OseliaRunGraphWidgetComponent';
 import TablePaginationComponent from '../table_widget/pagination/TablePaginationComponent';
 import OseliaLeftPanelComponent from './OseliaLeftPanel/OseliaLeftPanelComponent';
@@ -83,9 +82,6 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     public set_left_panel_open: (left_panel_open: boolean) => void;
     @ModuleOseliaGetter
     public get_left_panel_open: boolean;
-
-    @ModuleDashboardPageAction
-    public set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
 
     @ModuleTranslatableTextGetter
     public get_flat_locale_translations: { [code_text: string]: string };
@@ -436,6 +432,11 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     public vuexAct<A>(action: string, payload?: A) {
         return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
     }
+
+    public set_active_field_filter(param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) {
+        return this.vuexAct(reflect<this>().set_active_field_filter, param);
+    }
+
 
     private select_thread_id(thread_id: number) {
         this.set_active_field_filter({

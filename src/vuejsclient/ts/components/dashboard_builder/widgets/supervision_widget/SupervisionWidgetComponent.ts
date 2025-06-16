@@ -1,40 +1,40 @@
-import { cloneDeep, isEqual, isEmpty } from 'lodash';
+import { cloneDeep, isEmpty, isEqual } from 'lodash';
 import Component from 'vue-class-component';
 import { Inject, Prop, Vue, Watch } from 'vue-property-decorator';
+import APIControllerWrapper from '../../../../../../shared/modules/API/APIControllerWrapper';
+import ContextFilterVOManager from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 import ModuleContextFilter from '../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
+import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import SortByVO from '../../../../../../shared/modules/ContextFilter/vos/SortByVO';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
+import ModuleTableController from '../../../../../../shared/modules/DAO/ModuleTableController';
 import SupervisionTypeWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/SupervisionTypeWidgetManager';
 import SupervisionWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/SupervisionWidgetManager';
-import ContextFilterVOManager from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
-import SupervisionWidgetOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/SupervisionWidgetOptionsVO';
-import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
-import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
+import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
-import SortByVO from '../../../../../../shared/modules/ContextFilter/vos/SortByVO';
+import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
+import SupervisionWidgetOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/SupervisionWidgetOptionsVO';
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 import ISupervisedItem from '../../../../../../shared/modules/Supervision/interfaces/ISupervisedItem';
 import SupervisionController from '../../../../../../shared/modules/Supervision/SupervisionController';
+import SupervisedProbeGroupVO from '../../../../../../shared/modules/Supervision/vos/SupervisedProbeGroupVO';
+import SupervisedProbeVO from '../../../../../../shared/modules/Supervision/vos/SupervisedProbeVO';
+import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
-import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
+import { field_names, reflect } from '../../../../../../shared/tools/ObjectHandler';
 import ThreadHandler from '../../../../../../shared/tools/ThreadHandler';
+import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import AjaxCacheClientController from '../../../../modules/AjaxCache/AjaxCacheClientController';
 import { ModuleDAOAction, ModuleDAOGetter } from '../../../dao/store/DaoStore';
 import InlineTranslatableText from '../../../InlineTranslatableText/InlineTranslatableText';
 import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
-import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
+import { ModuleModalsAndBasicPageComponentsHolderGetter } from '../../../modals_and_basic_page_components_holder/ModalsAndBasicPageComponentsHolderStore';
 import VueComponentBase from '../../../VueComponentBase';
 import TablePaginationComponent from '../table_widget/pagination/TablePaginationComponent';
 import SupervisionItemModalComponent from './supervision_item_modal/SupervisionItemModalComponent';
 import './SupervisionWidgetComponent.scss';
-import { field_names, reflect } from '../../../../../../shared/tools/ObjectHandler';
-import ModuleTableController from '../../../../../../shared/modules/DAO/ModuleTableController';
-import APIControllerWrapper from '../../../../../../shared/modules/API/APIControllerWrapper';
-import SupervisedProbeGroupVO from '../../../../../../shared/modules/Supervision/vos/SupervisedProbeGroupVO';
-import SupervisedProbeVO from '../../../../../../shared/modules/Supervision/vos/SupervisedProbeVO';
-import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 
 @Component({
     template: require('./SupervisionWidgetComponent.pug'),
@@ -46,23 +46,14 @@ import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsType
 export default class SupervisionWidgetComponent extends VueComponentBase {
     @Inject('storeNamespace') readonly storeNamespace!: string;
 
-    @ModuleDashboardPageGetter
-    private get_dashboard_api_type_ids: string[];
+    @ModuleModalsAndBasicPageComponentsHolderGetter
+    private get_Supervisionitemmodal: SupervisionItemModalComponent;
 
     @ModuleDAOGetter
     private getStoredDatas: { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } };
 
     @ModuleDAOAction
     private storeDatas: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void;
-
-    @ModuleDashboardPageAction
-    private set_query_api_type_ids: (query_api_type_ids: string[]) => void;
-
-    @ModuleDashboardPageGetter
-    private get_Supervisionitemmodal: SupervisionItemModalComponent;
-
-    @ModuleDashboardPageGetter
-    private get_active_api_type_ids: string[];
 
     @ModuleTranslatableTextGetter
     private get_flat_locale_translations: { [code_text: string]: string };
@@ -103,6 +94,14 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
 
     get show_bulk_edit(): boolean {
         return this.widget_options && this.widget_options.show_bulk_edit;
+    }
+
+    get get_dashboard_api_type_ids(): string[] {
+        return this.vuexGet<string[]>(reflect<this>().get_dashboard_api_type_ids);
+    }
+
+    get get_active_api_type_ids(): string[] {
+        return this.vuexGet<string[]>(reflect<this>().get_active_api_type_ids);
     }
 
     get get_active_field_filters(): FieldFiltersVO {
@@ -224,6 +223,10 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
     }
     public vuexAct<A>(action: string, payload?: A) {
         return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    }
+
+    public set_query_api_type_ids(query_api_type_ids: string[]) {
+        return this.vuexAct(reflect<this>().set_query_api_type_ids, query_api_type_ids);
     }
 
     private async mounted() {

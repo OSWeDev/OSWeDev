@@ -1,24 +1,23 @@
 import Component from 'vue-class-component';
+import { VueNestable, VueNestableHandle } from 'vue-nestable';
 import { Inject, Prop, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
-import { VueNestable, VueNestableHandle } from 'vue-nestable';
+import ModuleTableController from '../../../../../../../shared/modules/DAO/ModuleTableController';
+import ModuleTableFieldVO from '../../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import AdvancedDateFilterOptDescVO from '../../../../../../../shared/modules/DashboardBuilder/vos/AdvancedDateFilterOptDescVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
+import { reflect } from '../../../../../../../shared/tools/ObjectHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/DroppableVoFieldsStore';
 import SingleVoFieldRefHolderComponent from '../../../options_tools/single_vo_field_ref_holder/SingleVoFieldRefHolderComponent';
-import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
 import AdvancedDateFilterWidgetOptions from './AdvancedDateFilterWidgetOptions';
 import './AdvancedDateFilterWidgetOptionsComponent.scss';
 import AdvancedDateFilterWidgetOptionsOptComponent from './opt/AdvancedDateFilterWidgetOptionsOptComponent';
-import ModuleTableFieldVO from '../../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
-import ModuleTableController from '../../../../../../../shared/modules/DAO/ModuleTableController';
-import { reflect } from '../../../../../../../shared/tools/ObjectHandler';
 
 @Component({
     template: require('./AdvancedDateFilterWidgetOptionsComponent.pug'),
@@ -38,12 +37,6 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
 
     @ModuleDroppableVoFieldsAction
     private set_selected_fields: (selected_fields: { [api_type_id: string]: { [field_id: string]: boolean } }) => void;
-
-    @ModuleDashboardPageAction
-    private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
-
-    @ModuleDashboardPageAction
-    private set_custom_filters: (custom_filters: string[]) => void;
 
     private editable_opts: AdvancedDateFilterOptDescVO[] = null;
     private is_checkbox: boolean = false;
@@ -215,6 +208,15 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
     public vuexAct<A>(action: string, payload?: A) {
         return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
     }
+
+    public set_page_widget(page_widget: DashboardPageWidgetVO) {
+        return this.vuexAct(reflect<this>().set_page_widget, page_widget);
+    }
+
+    public set_custom_filters(custom_filters: string[]) {
+        return this.vuexAct(reflect<this>().set_custom_filters, custom_filters);
+    }
+
 
     private async switch_is_vo_field_ref() {
         this.next_update_options = this.widget_options;

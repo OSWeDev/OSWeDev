@@ -1,18 +1,16 @@
 import Component from 'vue-class-component';
 import { Inject, Prop, Watch } from 'vue-property-decorator';
+import Throttle from '../../../../../../shared/annotations/Throttle';
 import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import DashboardWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
-import VueComponentBase from '../../../VueComponentBase';
-import DashboardCopyWidgetComponent from '../../copy_widget/DashboardCopyWidgetComponent';
-import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
-import './DashboardBuilderBoardItemComponent.scss';
-import Throttle from '../../../../../../shared/annotations/Throttle';
-import EventifyEventConfVO from '../../../../../../shared/modules/Eventify/vos/EventifyEventConfVO';
 import EventifyEventListenerConfVO from '../../../../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO';
 import { reflect } from '../../../../../../shared/tools/ObjectHandler';
+import VueComponentBase from '../../../VueComponentBase';
+import DashboardCopyWidgetComponent from '../../copy_widget/DashboardCopyWidgetComponent';
+import './DashboardBuilderBoardItemComponent.scss';
 
 @Component({
     template: require('./DashboardBuilderBoardItemComponent.pug'),

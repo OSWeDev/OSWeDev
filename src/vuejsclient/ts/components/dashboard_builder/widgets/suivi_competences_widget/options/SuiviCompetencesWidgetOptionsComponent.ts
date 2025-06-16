@@ -1,27 +1,26 @@
+import { isEqual } from 'lodash';
 import 'quill/dist/quill.bubble.css'; // Compliqué à lazy load
 import 'quill/dist/quill.core.css'; // Compliqué à lazy load
 import 'quill/dist/quill.snow.css'; // Compliqué à lazy load
 import Component from 'vue-class-component';
 import { Inject, Prop, Watch } from 'vue-property-decorator';
+import RoleVO from '../../../../../../../shared/modules/AccessPolicy/vos/RoleVO';
+import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import FieldFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import SuiviCompetencesWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/SuiviCompetencesWidgetOptionsVO';
-import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
-import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import NiveauMaturiteStyle from '../../../../../../../shared/modules/SuiviCompetences/class/NiveauMaturiteStyle';
-import VueComponentBase from '../../../../VueComponentBase';
-import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/DroppableVoFieldsStore';
-import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
-import './SuiviCompetencesWidgetOptionsComponent.scss';
-import RoleVO from '../../../../../../../shared/modules/AccessPolicy/vos/RoleVO';
-import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import { isEqual } from 'lodash';
 import SuiviCompetencesGrilleVO from '../../../../../../../shared/modules/SuiviCompetences/vos/SuiviCompetencesGrilleVO';
-import PromisePipeline from '../../../../../../../shared/tools/PromisePipeline/PromisePipeline';
+import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import EnvHandler from '../../../../../../../shared/tools/EnvHandler';
 import { reflect } from '../../../../../../../shared/tools/ObjectHandler';
+import PromisePipeline from '../../../../../../../shared/tools/PromisePipeline/PromisePipeline';
+import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
+import VueComponentBase from '../../../../VueComponentBase';
+import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/DroppableVoFieldsStore';
+import './SuiviCompetencesWidgetOptionsComponent.scss';
 
 @Component({
     template: require('./SuiviCompetencesWidgetOptionsComponent.pug')
@@ -37,9 +36,6 @@ export default class SuiviCompetencesWidgetOptionsComponent extends VueComponent
 
     @ModuleDroppableVoFieldsAction
     private set_selected_fields: (selected_fields: { [api_type_id: string]: { [field_id: string]: boolean } }) => void;
-
-    @ModuleDashboardPageAction
-    private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
 
     private next_update_options: SuiviCompetencesWidgetOptionsVO = null;
     private niveau_maturite_styles: NiveauMaturiteStyle[] = [];
@@ -161,6 +157,11 @@ export default class SuiviCompetencesWidgetOptionsComponent extends VueComponent
     public vuexAct<A>(action: string, payload?: A) {
         return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
     }
+
+    public set_page_widget(page_widget: DashboardPageWidgetVO) {
+        return this.vuexAct(reflect<this>().set_page_widget, page_widget);
+    }
+
 
     private async mounted() {
         if (!this.widget_options) {

@@ -1,0 +1,117 @@
+TODO => si ce fichier n'est pas vide, il faut passer en 0.35
+Pour le vider, on doit patcher les regexp déjà, et/ou patcher du codex ?
+
+** Supprimer les lignes suivantes **
+AppVuexStoreManager.getInstance().registerModule(DashboardPageStore.getInstance());
+
+** Tous les composants qui utilisent du @ModuleDashboardPageAction ou @ModuleDashboardPageGetter : **
+
+*** Injecter le store local du DB (première ligne de la classe du composant) ***
+    @Inject('storeNamespace') readonly storeNamespace!: string;
+
+*** Ajouter les méthodes publiques d'accès au store ***
+
+    // Accès dynamiques Vuex
+    public vuexGet<T>(getter: string): T {
+        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    }
+    public vuexAct<A>(action: string, payload?: A) {
+        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    }
+
+*** Les appels aux modals changent ***
+get_Checklistitemmodalcomponent
+get_Supervisionitemmodal
+get_Favoritesfiltersmodalcomponent
+get_Sharedfiltersmodalcomponent
+get_Crudupdatemodalcomponent
+get_Crudcreatemodalcomponent
+
+qui sont aujourd'hui en @ModuleDashboardPageGetter
+passent en @ModuleModalsAndBasicPageComponentsHolderStoreGetter
+
+*** Tous les getters en @ModuleDashboardPageGetter migrent de cette manière : ***
+AVANT :
+    @ModuleDashboardPageGetter
+    private get_active_field_filters: FieldFiltersVO;
+
+APRES : 
+    get get_active_field_filters(): FieldFiltersVO {
+        return this.vuexGet<FieldFiltersVO>(reflect<this>().get_active_field_filters);
+    }
+
+*** Toutes les méthodes en @ModuleDashboardPageAction migrent de cette manière : ***
+AVANT :
+    @ModuleDashboardPageAction
+    private set_Sharedfiltersmodalcomponent: (Sharedfiltersmodalcomponent: SharedFiltersModalComponent) => void;
+
+APRES : 
+    public set_Sharedfiltersmodalcomponent(Sharedfiltersmodalcomponent: SharedFiltersModalComponent) {
+        this.vuexAct<SharedFiltersModalComponent>(reflect<this>().set_Sharedfiltersmodalcomponent, Sharedfiltersmodalcomponent);
+    }
+
+
+* Modifs avec exemples de modifs issues d'un projet, des variations sont attendues suivant les projets *
+** vue_main.pug passe de : **
+#VueMain
+    Varsmanagercomponent
+
+    .wrapper(v-if="isLoad")
+        include ./components/common/header.pug
+        include ./components/common/sidebar.pug
+        include ./components/common/content.pug
+
+    vue-snotify
+    Documenthandlermodalcomponent
+    Popupcomponent
+    .footer_fixed
+        Onpagetranslation(v-if="has_access_to_onpage_translation").hidden-print
+        Documenthandlerneedinfocomponent.hidden-print
+        Feedbackhandlercomponent.hidden-print
+        Surveycomponent.hidden-print
+
+
+à :
+#VueMain
+    .wrapper(v-if="isLoad")
+        include ./components/common/header.pug
+        include ./components/common/sidebar.pug
+        include ./components/common/content.pug
+
+    ModalsAndBasicPageComponentsHolderComponent
+    
+
+** Et AdminVueMain de : **
+.vuehome
+
+    vars_manager_component
+
+    include ./includes/navbar.pug
+    .content-wrapper
+        .container-fluid
+            router-view()
+        
+        include ../../sb-admin/pug/includes/scroll-to-top.pug
+
+        include ./includes/modals/logout.pug
+
+    vue-snotify
+    
+    .footer_fixed
+        Onpagetranslation(v-if="has_access_to_onpage_translation").hidden-print
+        Oseliachathandlercomponent
+    
+à:
+.vuehome
+
+    include ./includes/navbar.pug
+    .content-wrapper
+        .container-fluid
+            router-view()
+        
+        include ../../sb-admin/pug/includes/scroll-to-top.pug
+
+        include ./includes/modals/logout.pug
+
+
+    ModalsAndBasicPageComponentsHolderComponent

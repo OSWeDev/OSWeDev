@@ -1,5 +1,5 @@
 import Component from 'vue-class-component';
-import { Prop, Watch } from 'vue-property-decorator';
+import { Inject, Prop, Watch } from 'vue-property-decorator';
 import CheckListVO from '../../../../../../../shared/modules/CheckList/vos/CheckListVO';
 import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
@@ -7,11 +7,11 @@ import DashboardPageWidgetVO from '../../../../../../../shared/modules/Dashboard
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
+import { reflect } from '../../../../../../../shared/tools/ObjectHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/DroppableVoFieldsStore';
-import { ModuleDashboardPageAction } from '../../../page/DashboardPageStore';
 import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
 import ChecklistWidgetOptions from './ChecklistWidgetOptions';
 import './ChecklistWidgetOptionsComponent.scss';
@@ -23,6 +23,7 @@ import './ChecklistWidgetOptionsComponent.scss';
     }
 })
 export default class ChecklistWidgetOptionsComponent extends VueComponentBase {
+    @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @Prop({ default: null })
     private dashboard: DashboardVO;
@@ -32,9 +33,6 @@ export default class ChecklistWidgetOptionsComponent extends VueComponentBase {
 
     @ModuleDroppableVoFieldsAction
     private set_selected_fields: (selected_fields: { [api_type_id: string]: { [field_id: string]: boolean } }) => void;
-
-    @ModuleDashboardPageAction
-    private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
 
     private next_update_options: ChecklistWidgetOptions = null;
     private throttled_update_options = ThrottleHelper.declare_throttle_without_args(
@@ -52,10 +50,6 @@ export default class ChecklistWidgetOptionsComponent extends VueComponentBase {
 
     get checklist_select_options(): CheckListVO[] {
         return this.checklists;
-    }
-
-    private checklist_select_label(checklist: CheckListVO): string {
-        return checklist.name;
     }
 
     @Watch('page_widget', { immediate: true })
@@ -115,6 +109,23 @@ export default class ChecklistWidgetOptionsComponent extends VueComponentBase {
 
             await this.throttled_update_options();
         }
+    }
+
+    // Accès dynamiques Vuex
+    public vuexGet<T>(getter: string): T {
+        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    }
+    public vuexAct<A>(action: string, payload?: A) {
+        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    }
+
+    public set_page_widget(page_widget: DashboardPageWidgetVO) {
+        return this.vuexAct(reflect<this>().set_page_widget, page_widget);
+    }
+
+
+    private checklist_select_label(checklist: CheckListVO): string {
+        return checklist.name;
     }
 
     private get_default_options(): ChecklistWidgetOptions {

@@ -1,6 +1,6 @@
 import { cloneDeep, debounce } from 'lodash';
 import Component from 'vue-class-component';
-import { Prop, Watch } from 'vue-property-decorator';
+import { Inject, Prop, Watch } from 'vue-property-decorator';
 import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleTableFieldVO from '../../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
@@ -18,12 +18,11 @@ import VarConfVO from '../../../../../../../shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../../../../../shared/modules/Var/vos/VarDataValueResVO';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
-import ObjectHandler from '../../../../../../../shared/tools/ObjectHandler';
+import ObjectHandler, { reflect } from '../../../../../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../../../../../shared/tools/PromiseTools';
 import ThreadHandler from '../../../../../../../shared/tools/ThreadHandler';
 import VarDataRefComponent from '../../../../Var/components/dataref/VarDataRefComponent';
 import VueComponentBase from '../../../../VueComponentBase';
-import { ModuleDashboardPageGetter } from '../../../../dashboard_builder/page/DashboardPageStore';
 import DashboardBuilderWidgetsController from '../../../../dashboard_builder/widgets/DashboardBuilderWidgetsController';
 import ValidationFiltersWidgetController from '../../../../dashboard_builder/widgets/validation_filters_widget/ValidationFiltersWidgetController';
 import VarWidgetComponent from '../../../../dashboard_builder/widgets/var_widget/VarWidgetComponent';
@@ -34,6 +33,7 @@ import './db_var_datatable_field.scss';
     components: {}
 })
 export default class DBVarDatatableFieldComponent extends VueComponentBase {
+    @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @Prop()
     public var_id: number;
@@ -77,12 +77,6 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
     @Prop({ default: null })
     private var_value_callback: (var_value: VarDataValueResVO, component: VarDataRefComponent) => any;
 
-    @ModuleDashboardPageGetter
-    private get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
-
-    @ModuleDashboardPageGetter
-    private get_active_field_filters: FieldFiltersVO;
-
     private throttle_init_param = debounce(this.throttled_init_param.bind(this), 10);
     // private throttle_do_init_param = debounce(this.throttled_do_init_param.bind(this), 10);
 
@@ -92,6 +86,14 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
 
     private var_param_no_value_or_param_is_invalid: boolean = false;
     private limit_nb_ts_ranges_on_param_by_context_filter: number = 100;
+
+    get get_discarded_field_paths(): { [vo_type: string]: { [field_id: string]: boolean } } {
+        return this.vuexGet<{ [vo_type: string]: { [field_id: string]: boolean } }>(reflect<this>().get_discarded_field_paths);
+    }
+
+    get get_active_field_filters(): FieldFiltersVO {
+        return this.vuexGet<FieldFiltersVO>(reflect<this>().get_active_field_filters);
+    }
 
     get var_custom_filters(): { [var_param_field_name: string]: string } {
 
@@ -124,6 +126,15 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
     private async onchange_dashboard_id() {
         await this.throttle_init_param();
     }
+
+    // Accès dynamiques Vuex
+    public vuexGet<T>(getter: string): T {
+        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    }
+    public vuexAct<A>(action: string, payload?: A) {
+        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    }
+
 
     private async mounted() {
 

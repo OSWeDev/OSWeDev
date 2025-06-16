@@ -1,16 +1,14 @@
 import Component from 'vue-class-component';
-import { Prop } from 'vue-property-decorator';
+import { Inject, Prop } from 'vue-property-decorator';
 import { filter } from '../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import FieldFiltersVO from '../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import GPTAssistantAPIThreadVO from '../../../../../shared/modules/GPT/vos/GPTAssistantAPIThreadVO';
 import ModuleOselia from '../../../../../shared/modules/Oselia/ModuleOselia';
 import ModuleParams from '../../../../../shared/modules/Params/ModuleParams';
-import VueComponentBase from '../../VueComponentBase';
-import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../dashboard_builder/page/DashboardPageStore';
-import './OseliaDBComponent.scss';
+import { reflect } from '../../../../../shared/tools/ObjectHandler';
 import { ModuleOseliaGetter } from '../../dashboard_builder/widgets/oselia_thread_widget/OseliaStore';
-import OseliaReferrerVO from '../../../../../shared/modules/Oselia/vos/OseliaReferrerVO';
-import OseliaUserReferrerOTTVO from '../../../../../shared/modules/Oselia/vos/OseliaUserReferrerOTTVO';
+import VueComponentBase from '../../VueComponentBase';
+import './OseliaDBComponent.scss';
 
 @Component({
     template: require('./OseliaDBComponent.pug'),
@@ -19,20 +17,31 @@ import OseliaUserReferrerOTTVO from '../../../../../shared/modules/Oselia/vos/Os
     }
 })
 export default class OseliaDBComponent extends VueComponentBase {
+    @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @Prop({ default: null })
     private thread_vo_id: number;
-
-    @ModuleDashboardPageAction
-    private set_active_field_filters: (active_field_filters: FieldFiltersVO) => void;
-
-    @ModuleDashboardPageGetter
-    private get_active_field_filters: FieldFiltersVO;
 
     @ModuleOseliaGetter
     private get_oselia_first_loading_done: boolean;
 
     private oselia_db_id: number = null;
+
+    get get_active_field_filters(): FieldFiltersVO {
+        return this.vuexGet<FieldFiltersVO>(reflect<this>().get_active_field_filters);
+    }
+
+    // Accès dynamiques Vuex
+    public vuexGet<T>(getter: string): T {
+        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    }
+    public vuexAct<A>(action: string, payload?: A) {
+        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    }
+
+    public set_active_field_filters(active_field_filters: FieldFiltersVO) {
+        return this.vuexAct(reflect<this>().set_active_field_filters, active_field_filters);
+    }
 
     private async mounted() {
         this.oselia_db_id = await ModuleParams.getInstance().getParamValueAsInt(ModuleOselia.OSELIA_DB_ID_PARAM_NAME, null, 10000);

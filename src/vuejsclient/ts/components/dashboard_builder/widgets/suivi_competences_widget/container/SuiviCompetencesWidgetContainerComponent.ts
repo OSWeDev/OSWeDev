@@ -31,7 +31,6 @@ import { all_promises } from '../../../../../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../../../../../shared/tools/RangeHandler';
 import VarDataRefComponent from '../../../../Var/components/dataref/VarDataRefComponent';
 import VueComponentBase from '../../../../VueComponentBase';
-import { ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import CRUDCreateModalComponent from '../../table_widget/crud_modals/create/CRUDCreateModalComponent';
 
 @Component({

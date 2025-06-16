@@ -1,8 +1,6 @@
-import Vue from 'vue';
 import Component from 'vue-class-component';
 import { Inject, Prop, Watch } from 'vue-property-decorator';
 
-import './CanvasDiagram.scss';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import NumSegment from '../../../../../../../shared/modules/DataRender/vos/NumSegment';
 import GPTAssistantAPIFunctionVO from '../../../../../../../shared/modules/GPT/vos/GPTAssistantAPIFunctionVO';
@@ -10,18 +8,19 @@ import IDistantVOBase from '../../../../../../../shared/modules/IDistantVOBase';
 import OseliaRunFunctionCallVO from '../../../../../../../shared/modules/Oselia/vos/OseliaRunFunctionCallVO';
 import OseliaRunTemplateVO from '../../../../../../../shared/modules/Oselia/vos/OseliaRunTemplateVO';
 import OseliaRunVO from '../../../../../../../shared/modules/Oselia/vos/OseliaRunVO';
+import { reflect } from '../../../../../../../shared/tools/ObjectHandler';
 import RangeHandler from '../../../../../../../shared/tools/RangeHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import { ModuleDAOAction } from '../../../../dao/store/DaoStore';
-import { ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
+import VueComponentBase from '../../../../VueComponentBase';
 import CRUDCreateModalComponent from '../../table_widget/crud_modals/create/CRUDCreateModalComponent';
 import AddMenu from './AddMenu/AddMenu';
+import './CanvasDiagram.scss';
 import DiagramBlock from './DiagramBlock/DiagramBlock';
 import DiagramDataService from './DiagramDataService/DiagramDataService';
 import DiagramLayout, { BlockPosition, LinkDrawInfo } from './DiagramLayout/DiagramLayout';
 import DiagramLink from './DiagramLink/DiagramLink';
-import VueComponentBase from '../../../../VueComponentBase';
-import { reflect } from '../../../../../../../shared/tools/ObjectHandler';
+import { ModuleModalsAndBasicPageComponentsHolderGetter } from '../../../../modals_and_basic_page_components_holder/ModalsAndBasicPageComponentsHolderStore';
 
 /**
  * Structure pour le menu "+"
@@ -60,6 +59,9 @@ export interface StateIconInfo {
 })
 export default class CanvasDiagram extends VueComponentBase {
     @Inject('storeNamespace') readonly storeNamespace!: string;
+
+    @ModuleModalsAndBasicPageComponentsHolderGetter
+    private get_Crudcreatemodalcomponent: CRUDCreateModalComponent;
 
     // --------------------------------------------------------------------------
     // PROPS
@@ -155,10 +157,6 @@ export default class CanvasDiagram extends VueComponentBase {
      */
     get hasData(): boolean {
         return !!this.items && Object.keys(this.items).length > 0;
-    }
-
-    get get_Crudcreatemodalcomponent(): CRUDCreateModalComponent {
-        return this.vuexGet<CRUDCreateModalComponent>(reflect<this>().get_Crudcreatemodalcomponent);
     }
 
 

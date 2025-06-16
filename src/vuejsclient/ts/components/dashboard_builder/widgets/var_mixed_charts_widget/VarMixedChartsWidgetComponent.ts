@@ -5,7 +5,7 @@ import { Inject, Prop, Watch } from 'vue-property-decorator';
 import ContextFilterVOHandler from '../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ContextFilterVOManager from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 import ContextFilterVO, { filter } from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
-import ContextQueryVO, { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../../../../shared/modules/ContextFilter/vos/SortByVO';
 
 import ModuleTableController from '../../../../../../shared/modules/DAO/ModuleTableController';
@@ -31,7 +31,7 @@ import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseV
 
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import Filters from '../../../../../../shared/tools/Filters';
-import ObjectHandler, { field_names, reflect } from '../../../../../../shared/tools/ObjectHandler';
+import ObjectHandler, { reflect } from '../../../../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../../../../shared/tools/RangeHandler';
 
@@ -39,7 +39,6 @@ import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/Tr
 import { IChartOptions } from '../../../Var/components/mixed-chart/VarMixedChartComponent';
 import VueComponentBase from '../../../VueComponentBase';
 
-import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import DashboardBuilderWidgetsController from '../DashboardBuilderWidgetsController';
 import ValidationFiltersWidgetController from '../validation_filters_widget/ValidationFiltersWidgetController';
 import VarWidgetComponent from '../var_widget/VarWidgetComponent';

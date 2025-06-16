@@ -13,13 +13,12 @@ import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vo
 import TimeSegment from '../../../../../../shared/modules/DataRender/vos/TimeSegment';
 import EventifyPerfReportVO from '../../../../../../shared/modules/Eventify/vos/perfs/EventifyPerfReportVO';
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
+import { reflect } from '../../../../../../shared/tools/ObjectHandler';
 import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../../VueComponentBase';
-import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import './PerfReportGraphWidgetComponent.scss';
-import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
-import { reflect } from '../../../../../../shared/tools/ObjectHandler';
 
 @Component({
     template: require('./PerfReportGraphWidgetComponent.pug'),

@@ -20,13 +20,12 @@ import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsT
 import VarsController from '../../../../../../../shared/modules/Var/VarsController';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import LocaleManager from '../../../../../../../shared/tools/LocaleManager';
-import { field_names } from '../../../../../../../shared/tools/ObjectHandler';
+import { field_names, reflect } from '../../../../../../../shared/tools/ObjectHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import WeightHandler from '../../../../../../../shared/tools/WeightHandler';
 import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/DroppableVoFieldsStore';
-import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
 import './TableWidgetOptionsComponent.scss';
 import TableWidgetColumnOptionsComponent from './column/TableWidgetColumnOptionsComponent';
@@ -43,9 +42,6 @@ import TableWidgetColumnOptionsComponent from './column/TableWidgetColumnOptions
 export default class TableWidgetOptionsComponent extends VueComponentBase {
     @Inject('storeNamespace') readonly storeNamespace!: string;
 
-    @ModuleDashboardPageGetter
-    private get_dashboard_api_type_ids: string[];
-
     @Prop({ default: null })
     private dashboard: DashboardVO;
 
@@ -54,9 +50,6 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
 
     @ModuleDroppableVoFieldsAction
     private set_selected_fields: (selected_fields: { [api_type_id: string]: { [field_id: string]: boolean } }) => void;
-
-    @ModuleDashboardPageAction
-    private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
 
     private next_update_options: TableWidgetOptionsVO = null;
     private throttled_update_options = ThrottleHelper.declare_throttle_without_args(
@@ -115,6 +108,9 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         return this.get_dashboard_api_type_ids;
     }
 
+    get get_dashboard_api_type_ids(): string[] {
+        return this.vuexGet<string[]>(reflect<this>().get_dashboard_api_type_ids);
+    }
 
     get cb_bulk_actions_options(): string[] {
         if ((!this.page_widget) || (!this.widget_options)) {
@@ -632,6 +628,10 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     }
     public vuexAct<A>(action: string, payload?: A) {
         return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    }
+
+    public set_page_widget(page_widget: DashboardPageWidgetVO) {
+        return this.vuexAct(reflect<this>().set_page_widget, page_widget);
     }
 
     private filter_visible_label(dfo: DataFilterOption): string {

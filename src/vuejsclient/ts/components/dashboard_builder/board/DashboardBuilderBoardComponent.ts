@@ -14,12 +14,12 @@ import DashboardWidgetVO from '../../../../../shared/modules/DashboardBuilder/vo
 import FieldFiltersVO from '../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import VOsTypesManager from '../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
+import { field_names, reflect } from '../../../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../../../shared/tools/PromiseTools';
 import ThrottleHelper from '../../../../../shared/tools/ThrottleHelper';
 import InlineTranslatableText from '../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../VueComponentBase';
 import DashboardCopyWidgetComponent from '../copy_widget/DashboardCopyWidgetComponent';
-import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../page/DashboardPageStore';
 import DashboardBuilderWidgetsController from '../widgets/DashboardBuilderWidgetsController';
 import ChecklistItemModalComponent from '../widgets/checklist_widget/checklist_item_modal/ChecklistItemModalComponent';
 import FavoritesFiltersModalComponent from '../widgets/favorites_filters_widget/modal/FavoritesFiltersModalComponent';
@@ -28,7 +28,6 @@ import CRUDCreateModalComponent from '../widgets/table_widget/crud_modals/create
 import CRUDUpdateModalComponent from '../widgets/table_widget/crud_modals/update/CRUDUpdateModalComponent';
 import './DashboardBuilderBoardComponent.scss';
 import DashboardBuilderBoardItemComponent from './item/DashboardBuilderBoardItemComponent';
-import { field_names, reflect } from '../../../../../shared/tools/ObjectHandler';
 
 @Component({
     template: require('./DashboardBuilderBoardComponent.pug'),
@@ -36,12 +35,7 @@ import { field_names, reflect } from '../../../../../shared/tools/ObjectHandler'
         Gridlayout: GridLayout,
         Griditem: GridItem,
         Dashboardbuilderboarditemcomponent: DashboardBuilderBoardItemComponent,
-        Crudupdatemodalcomponent: CRUDUpdateModalComponent,
-        Favoritesfiltersmodalcomponent: FavoritesFiltersModalComponent,
-        Crudcreatemodalcomponent: CRUDCreateModalComponent,
         Dashboardcopywidgetcomponent: DashboardCopyWidgetComponent,
-        Checklistitemmodalcomponent: ChecklistItemModalComponent,
-        Supervisionitemmodal: SupervisionItemModalComponent,
         Inlinetranslatabletext: InlineTranslatableText,
     }
 })
@@ -162,26 +156,6 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
         return this.vuexAct(reflect<this>().delete_page_widget, page_widget);
     }
 
-    public set_Checklistitemmodalcomponent(Checklistitemmodalcomponent: ChecklistItemModalComponent) {
-        return this.vuexAct(reflect<this>().set_Checklistitemmodalcomponent, Checklistitemmodalcomponent);
-    }
-
-    public set_Supervisionitemmodal(Supervisionitemmodal: SupervisionItemModalComponent) {
-        return this.vuexAct(reflect<this>().set_Supervisionitemmodal, Supervisionitemmodal);
-    }
-
-    public set_Favoritesfiltersmodalcomponent(Favoritesfiltersmodalcomponent: FavoritesFiltersModalComponent) {
-        return this.vuexAct(reflect<this>().set_Favoritesfiltersmodalcomponent, Favoritesfiltersmodalcomponent);
-    }
-
-    public set_Crudupdatemodalcomponent(Crudupdatemodalcomponent: CRUDUpdateModalComponent) {
-        return this.vuexAct(reflect<this>().set_Crudupdatemodalcomponent, Crudupdatemodalcomponent);
-    }
-
-    public set_Crudcreatemodalcomponent(Crudcreatemodalcomponent: CRUDCreateModalComponent) {
-        return this.vuexAct(reflect<this>().set_Crudcreatemodalcomponent, Crudcreatemodalcomponent);
-    }
-
     public set_Dashboardcopywidgetcomponent(Dashboardcopywidgetcomponent: DashboardCopyWidgetComponent) {
         return this.vuexAct(reflect<this>().set_Dashboardcopywidgetcomponent, Dashboardcopywidgetcomponent);
     }
@@ -226,11 +200,6 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
 
     private mounted() {
         DashboardBuilderWidgetsController.getInstance().add_widget_to_page_handler = this.add_widget_to_page.bind(this);
-        this.set_Checklistitemmodalcomponent(this.$refs['Checklistitemmodalcomponent'] as ChecklistItemModalComponent);
-        this.set_Supervisionitemmodal(this.$refs['Supervisionitemmodal'] as SupervisionItemModalComponent);
-        this.set_Favoritesfiltersmodalcomponent(this.$refs['Favoritesfiltersmodalcomponent'] as FavoritesFiltersModalComponent);
-        this.set_Crudupdatemodalcomponent(this.$refs['Crudupdatemodalcomponent'] as CRUDUpdateModalComponent);
-        this.set_Crudcreatemodalcomponent(this.$refs['Crudcreatemodalcomponent'] as CRUDCreateModalComponent);
         this.set_Dashboardcopywidgetcomponent(this.$refs['Dashboardcopywidgetcomponent'] as DashboardCopyWidgetComponent);
     }
 

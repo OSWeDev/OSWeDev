@@ -1,25 +1,24 @@
 import { cloneDeep } from 'lodash';
 import Component from 'vue-class-component';
 import { Inject, Prop, Watch } from 'vue-property-decorator';
+import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import ModuleTableController from '../../../../../../../shared/modules/DAO/ModuleTableController';
 import ModuleTableFieldVO from '../../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
+import DashboardGraphColorPaletteVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardGraphColorPaletteVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
+import VarPieChartWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VarPieChartWidgetOptionsVO';
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import TimeSegment from '../../../../../../../shared/modules/DataRender/vos/TimeSegment';
 import VarsController from '../../../../../../../shared/modules/Var/VarsController';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
-import ObjectHandler from '../../../../../../../shared/tools/ObjectHandler';
+import ObjectHandler, { reflect } from '../../../../../../../shared/tools/ObjectHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../../../VueComponentBase';
 import SingleVoFieldRefHolderComponent from '../../../options_tools/single_vo_field_ref_holder/SingleVoFieldRefHolderComponent';
-import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import WidgetFilterOptionsComponent from '../../var_widget/options/filters/WidgetFilterOptionsComponent';
 import './VarPieChartWidgetOptionsComponent.scss';
-import VarPieChartWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VarPieChartWidgetOptionsVO';
-import DashboardGraphColorPaletteVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardGraphColorPaletteVO';
-import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 
 @Component({
     template: require('./VarPieChartWidgetOptionsComponent.pug'),
@@ -34,12 +33,6 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
 
     @Prop({ default: null })
     private page_widget: DashboardPageWidgetVO;
-
-    @ModuleDashboardPageAction
-    private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
-
-    @ModuleDashboardPageGetter
-    private get_custom_filters: string[];
 
     /**
      * Copie des options (qui sera mise à jour via throttling)
@@ -153,6 +146,10 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
     // --------------------------------------------------------------------------
     // GETTERS divers
     // --------------------------------------------------------------------------
+
+    get get_custom_filters(): string[] {
+        return this.vuexGet<string[]>(reflect<this>().get_custom_filters);
+    }
 
     get dimension_vo_field_ref(): VOFieldRefVO {
         if ((!this.widget_options) || (!this.widget_options.dimension_vo_field_ref)) {
@@ -670,6 +667,10 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
     }
     public vuexAct<A>(action: string, payload?: A) {
         return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    }
+
+    public set_page_widget(page_widget: DashboardPageWidgetVO) {
+        return this.vuexAct(reflect<this>().set_page_widget, page_widget);
     }
 
     // --------------------------------------------------------------------------

@@ -1,5 +1,5 @@
 import Component from 'vue-class-component';
-import { Inject, Prop, Watch } from 'vue-property-decorator';
+import { Prop, Provide, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import SortByVO from '../../../../../shared/modules/ContextFilter/vos/SortByVO';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
@@ -18,6 +18,7 @@ import WeightHandler from '../../../../../shared/tools/WeightHandler';
 import InlineTranslatableText from '../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../VueComponentBase';
 import DashboardBuilderBoardComponent from '../board/DashboardBuilderBoardComponent';
+import DashboardPageStore from '../page/DashboardPageStore';
 import './DashboardViewerComponent.scss';
 
 @Component({
@@ -29,13 +30,16 @@ import './DashboardViewerComponent.scss';
 })
 export default class DashboardViewerComponent extends VueComponentBase {
 
-    @Inject('storeNamespace') readonly storeNamespace!: string;
-
     @Prop({ default: null })
     private dashboard_id: number;
 
     private dashboard: DashboardVO = null;
     private loading: boolean = true;
+
+    // namespace dynamique
+    // eslint-disable-next-line @typescript-eslint/member-ordering
+    @Provide('storeNamespace')
+    private readonly storeNamespace = `dashboardStore_${DashboardPageStore.__UID++}`;
 
     private pages: DashboardPageVO[] = [];
     private page: DashboardPageVO = null;
@@ -103,7 +107,7 @@ export default class DashboardViewerComponent extends VueComponentBase {
         return res;
     }
 
-    @Watch("dashboard", { immediate: true })
+    @Watch("dashboard")
     private async onchange_dashboard() {
         // We should load the shared_filters with the current dashboard
         await DashboardVOManager.load_shared_filters_with_dashboard(
@@ -119,7 +123,7 @@ export default class DashboardViewerComponent extends VueComponentBase {
      *  on pourrait vouloir garder les filtres communs aussi => non implémenté (il faut un switch et supprimer les filtres non applicables aux widgets du dashboard)
      *  et on pourrait vouloir garder tous les filtres => non implémenté (il faut un switch et simplement ne pas supprimer les filtres)
      */
-    @Watch("dashboard_id", { immediate: true })
+    @Watch("dashboard_id")
     private async onchange_dashboard_id() {
         this.loading = true;
 
@@ -205,6 +209,16 @@ export default class DashboardViewerComponent extends VueComponentBase {
         return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
     }
 
+    // registre/déréf module
+    public created() {
+        const instance = new DashboardPageStore();
+        this.$store.registerModule(this.storeNamespace, instance);
+
+        // Ne pas mettre en immediate true, le storeNamespace n'est pas encore créé
+        this.onchange_dashboard_id(); // Initialisation de la page dashboard
+    }
+
+
     public set_discarded_field_paths(discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } }) {
         return this.vuexAct(reflect<this>().set_discarded_field_paths, discarded_field_paths);
     }
@@ -239,6 +253,11 @@ export default class DashboardViewerComponent extends VueComponentBase {
 
     public set_active_field_filters(param: FieldFiltersVO) {
         return this.vuexAct(reflect<this>().set_active_field_filters, param);
+    }
+
+
+    private beforeDestroy() {
+        this.$store.unregisterModule(this.storeNamespace);
     }
 
 
