@@ -569,6 +569,10 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
             this.storeData(new_or_updated_vo);
         }
 
+        if (this.crud.postCreate) {
+            await this.crud.postCreate(this.newVO);
+        }
+
         // On renvoie le vo créé, donc le premier de la liste
         return new_and_updated_vos[0];
 
