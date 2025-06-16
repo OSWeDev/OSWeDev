@@ -135,6 +135,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_create_thread, this.create_thread.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_replay_function_call, this.replay_function_call.bind(this));
 
+        APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_notify_thread_loaded, this.notify_thread_loaded.bind(this));
         APIControllerWrapper.register_server_api_handler(this.name, reflect<ModuleOselia>().instantiate_oselia_run_from_event, this.instantiate_oselia_run_from_event.bind(this));
     }
 
@@ -987,6 +988,175 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         return JSON.stringify(assistant);
     }
 
+    /**
+     * Fonction qui liste tous les assistants disponibles ainsi que leurs fonctions spécifiques.
+     */
+    public async get_all_assistants_and_functions(): Promise<string> {
+        const res= {};
+
+        const assistants = await query(GPTAssistantAPIAssistantVO.API_TYPE_ID)
+            .select_vos<GPTAssistantAPIAssistantVO>();
+
+        for (const assistant of assistants) {
+            res[assistant.nom] = { description: assistant.description, functions: [] };
+
+            // On récupère les fonctions de l'assistant
+            const assistant_functions_ids = await query(GPTAssistantAPIAssistantFunctionVO.API_TYPE_ID)
+                .filter_by_id(assistant.id, GPTAssistantAPIAssistantVO.API_TYPE_ID)
+                .select_vos<GPTAssistantAPIAssistantFunctionVO>();
+
+            for (const assistant_function_id of assistant_functions_ids) {
+                const assistant_function : GPTAssistantAPIFunctionVO = await query(GPTAssistantAPIFunctionVO.API_TYPE_ID)
+                    .filter_by_id(assistant_function_id.id, GPTAssistantAPIFunctionVO.API_TYPE_ID)
+                    .select_vo<GPTAssistantAPIFunctionVO>();
+
+                const function_name = assistant_function.gpt_function_name;
+
+                const assistant_parameters: GPTAssistantAPIFunctionParamVO[] = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
+                    .filter_by_num_eq(field_names<GPTAssistantAPIFunctionParamVO>().function_id, assistant_function.id, GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
+                    .select_vos<GPTAssistantAPIFunctionParamVO>();
+                const function_description = assistant_function.gpt_function_description;
+                if (!res[assistant.nom].functions[function_name]) {
+                    const parameters = {};
+                    for (const assistant_parameter of assistant_parameters) {
+                        parameters[assistant_parameter.gpt_funcparam_name] = {
+                            description: assistant_parameter.gpt_funcparam_description,
+                            type: assistant_parameter.type,
+                            required: assistant_parameter.required,
+                        };
+                    }
+                    res[assistant.nom].functions[function_name] = {
+                        description: function_description,
+                        parameters: parameters
+                    };
+                }
+            }
+        }
+
+        return JSON.stringify(res);
+    }
+
+    /**
+     * Fonction qui permet d'appeler une fonction de l'assistant
+     * @param thread_id le thread qui gère la discussion avec l'assistant
+     * @param assistant_function_name le nom de la fonction à appeler
+     * @param assistant_function_parameters les paramètres de la fonction à appeler
+     * @return le résultat de l'appel de la fonction
+    **/
+    public async call_assistant_function(
+        thread_id: number,
+        assistant_function_name: string,
+        assistant_function_parameters: { [key: string]: any },
+    ): Promise<string> {
+        if (!thread_id) {
+            ConsoleHandler.error('call_assistant_function:Impossible de trouver le thread:' + thread_id);
+            return 'ERREUR TECHNIQUE: Impossible de trouver le thread. Il peut être pertinent de retenter un appel à la fonction';
+        }
+
+        if (!assistant_function_name) {
+            ConsoleHandler.error('call_assistant_function:Impossible de trouver le nom de la fonction:' + assistant_function_name);
+            return 'ERREUR: Impossible de trouver le nom de la fonction. Corriger et relancer la fonction';
+        }
+
+        if (!assistant_function_parameters) {
+            ConsoleHandler.error('call_assistant_function:Impossible de trouver les paramètres de la fonction:' + assistant_function_parameters);
+            return 'ERREUR: Impossible de trouver les paramètres de la fonction. Corriger et relancer la fonction';
+        }
+
+        const thread_vo = await query(GPTAssistantAPIThreadVO.API_TYPE_ID)
+            .filter_by_id(thread_id)
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIThreadVO>();
+
+        if (!thread_vo) {
+            ConsoleHandler.error('call_assistant_function:Impossible de trouver le thread:' + thread_id);
+            return 'ERREUR: Impossible de trouver le thread. Corriger et relancer la fonction';
+        }
+
+        const assistant = await query(GPTAssistantAPIAssistantVO.API_TYPE_ID)
+            .filter_by_id(thread_vo.current_oselia_assistant_id)
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIAssistantVO>();
+
+        if (!assistant) {
+            ConsoleHandler.error('call_assistant_function:Impossible de trouver l\'assistant:' + thread_vo.current_oselia_assistant_id);
+            return 'ERREUR: Impossible de trouver l\'assistant. Corriger et relancer la fonction';
+        }
+
+        const assistant_function = await query(GPTAssistantAPIFunctionVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<GPTAssistantAPIFunctionVO>().gpt_function_name, assistant_function_name, GPTAssistantAPIAssistantVO.API_TYPE_ID)
+            .exec_as_server()
+            .select_vos<GPTAssistantAPIAssistantFunctionVO>();
+
+        if (!assistant_function) {
+            ConsoleHandler.error('call_assistant_function:Impossible de trouver la fonction de l\'assistant:' + assistant_function_name);
+            return 'ERREUR: Impossible de trouver la fonction de l\'assistant. Corriger et relancer la fonction';
+        }
+
+        if (assistant_function.length > 1) {
+            ConsoleHandler.error('call_assistant_function:Plusieurs fonctions trouvées pour l\'assistant:' + assistant_function_name);
+            return 'ERREUR: Plusieurs fonctions trouvées pour l\'assistant. Corriger et relancer la fonction';
+        }
+        const assistant_function_id = assistant_function[0].id;
+        const assistant_function_parameters_vo: GPTAssistantAPIFunctionParamVO[] = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
+            .filter_by_id(assistant_function_id, GPTAssistantAPIFunctionVO.API_TYPE_ID)
+            .select_vos<GPTAssistantAPIFunctionParamVO>();
+
+        const assistant_function_parameters_values = {};
+
+        for (const assistant_function_parameter of assistant_function_parameters_vo) {
+            const parameter_name = assistant_function_parameter.gpt_funcparam_name;
+            if (assistant_function_parameters[parameter_name]) {
+                assistant_function_parameters_values[parameter_name] = assistant_function_parameters[parameter_name];
+            } else {
+                ConsoleHandler.error('call_assistant_function:Impossible de trouver le paramètre de la fonction:' + parameter_name);
+                return 'ERREUR: Impossible de trouver le paramètre de la fonction. Corriger et relancer la fonction';
+            }
+        }
+        const run_vo = new GPTAssistantAPIRunVO();
+        run_vo.assistant_id = assistant.id;
+        run_vo.thread_id = thread_vo.id;
+        run_vo.gpt_assistant_id = assistant.gpt_assistant_id;
+        run_vo.gpt_thread_id = thread_vo.gpt_thread_id;
+
+        const referrers = await query(OseliaReferrerVO.API_TYPE_ID)
+            .filter_by_id(thread_vo.id, GPTAssistantAPIThreadVO.API_TYPE_ID)
+            .exec_as_server()
+            .select_vo<OseliaReferrerVO>();
+
+        if (!referrers) {
+            ConsoleHandler.error('call_assistant_function:Impossible de trouver le referrer:' + thread_vo.id);
+            return 'ERREUR: Impossible de trouver le referrer. Corriger et relancer la fonction';
+        }
+
+        const { availableFunctions, availableFunctionsParameters }: {
+            availableFunctions: { [functionName: string]: GPTAssistantAPIFunctionVO },
+            availableFunctionsParameters: { [function_id: number]: GPTAssistantAPIFunctionParamVO[] }
+        } = await GPTAssistantAPIServerController.get_availableFunctions_and_availableFunctionsParameters(assistant, thread_vo.user_id, thread_vo.gpt_thread_id);
+
+        const availableFunctionsParametersByParamName: { [function_id: number]: { [param_name: string]: GPTAssistantAPIFunctionParamVO } } = {};
+        for (const i in availableFunctionsParameters) {
+            const function_id = parseInt(i);
+            availableFunctionsParametersByParamName[function_id] = {};
+            for (const j in availableFunctionsParameters[i]) {
+                const param = availableFunctionsParameters[i][j];
+                availableFunctionsParametersByParamName[function_id][param.gpt_funcparam_name] = param;
+            }
+        }
+
+        // GPTAssistantAPIServerController.do_function_call(
+        //     run_vo,
+        //     thread_vo,
+        //     referrers,
+        //     assistant_function,
+        //     new OseliaRunFunctionCallVO(),
+        //     assistant_function_name,
+        //     assistant_function_parameters_values,
+        // );
+
+    }
+
+
 
     /**
      * La méthode qui devient une fonction pour l'assistant et qui permet de définir les tâches à venir
@@ -1367,6 +1537,11 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         return ModuleOseliaServer.screen_track;
     }
 
+    private async notify_thread_loaded(client_tab_id: string, event_name: string, event_param?): Promise<void> {
+        const uid = StackContext.get('UID');
+        await PushDataServerController.notifyEvent(uid, client_tab_id, event_name, event_param);
+    }
+
     private async create_thread(
         req: Request,
         res: Response) {
@@ -1488,8 +1663,9 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         referrer_user_ott: string,
         openai_thread_id: string,
         openai_assistant_id: string,
+        parent_client_tab_id: string,
         req: Request,
-        res: Response
+        call_id:number,
     ): Promise<void> {
 
         /**
@@ -1502,7 +1678,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
 
         if (!user_referrer_ott) {
             ConsoleHandler.error('OTT not found:' + referrer_user_ott);
-            res.redirect('/f/oselia_referrer_not_found');
+            await ServerAPIController.send_redirect_if_headers_not_already_sent(call_id, '/f/oselia_referrer_not_found');
             return;
         }
 
@@ -1512,7 +1688,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
             .select_vo<OseliaUserReferrerVO>();
         if (!user_referrer) {
             ConsoleHandler.error('Referrer not found:user_referrer_id:' + user_referrer_ott.user_referrer_id);
-            res.redirect('/f/oselia_referrer_not_found');
+            await ServerAPIController.send_redirect_if_headers_not_already_sent(call_id, '/f/oselia_referrer_not_found');
             return;
         }
 
@@ -1527,7 +1703,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
 
         if (!referrer) {
             ConsoleHandler.error('Referrer not found:referrer_id:' + user_referrer.referrer_id);
-            res.redirect('/f/oselia_referrer_not_found');
+            await ServerAPIController.send_redirect_if_headers_not_already_sent(call_id, '/f/oselia_referrer_not_found');
             return;
         }
 
@@ -1545,8 +1721,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                 ['User not valid (archived, blocked or invalidated):' + user_referrer.referrer_user_uid],
                 referrer.triggers_hook_external_api_authentication_id
             );
-
-            res.redirect(referrer.failed_open_oselia_db_target_url);
+            await ServerAPIController.send_redirect_if_headers_not_already_sent(call_id, referrer.failed_open_oselia_db_target_url);
             return;
         }
 
@@ -1560,7 +1735,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                 await ModuleAccessPolicyServer.getInstance().login(user.id);
             }
 
-            res.redirect('/f/oselia_referrer_activation/' + referrer_user_ott + '/' + openai_thread_id + '/' + openai_assistant_id); //TODO FIXME créer la page dédiée
+            await ServerAPIController.send_redirect_if_headers_not_already_sent(call_id, '/f/oselia_referrer_activation/' + referrer_user_ott + '/' + openai_thread_id + '/' + openai_assistant_id); //TODO FIXME créer la page dédiée
             return;
         }
 
@@ -1613,7 +1788,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                     referrer.triggers_hook_external_api_authentication_id
                 );
 
-                res.redirect(referrer.failed_open_oselia_db_target_url);
+                await ServerAPIController.send_redirect_if_headers_not_already_sent(call_id, referrer.failed_open_oselia_db_target_url);
                 return;
             }
 
@@ -1637,9 +1812,9 @@ export default class ModuleOseliaServer extends ModuleServerBase {
             /**
              * Enfin, on redirige vers la page de discussion avec le paramètre qui va bien pour init le thread
              */
-            res.redirect('/f/oselia/' + thread.thread_vo.id);
+            await ServerAPIController.send_redirect_if_headers_not_already_sent(call_id, '/f/oselia/' + thread.thread_vo.id + '/' + parent_client_tab_id);
         } else {
-            res.redirect('/f/oselia/' + '_' + '/');
+            await ServerAPIController.send_redirect_if_headers_not_already_sent(call_id, '/f/oselia/' + '_' + '/' + parent_client_tab_id);
         }
     }
 

@@ -1,9 +1,13 @@
 import { Thread } from 'openai/resources/beta/threads/threads';
+import type { RawData } from 'ws';
+import { WebSocket, WebSocketServer } from 'ws';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
+import ICheckListItem from '../../../shared/modules/CheckList/interfaces/ICheckListItem';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../shared/modules/ContextFilter/vos/SortByVO';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import ModuleGPT from '../../../shared/modules/GPT/ModuleGPT';
 import GPTAssistantAPIAssistantVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIAssistantVO';
 import GPTAssistantAPIFileVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIFileVO';
 import GPTAssistantAPIFunctionParamVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIFunctionParamVO';
@@ -14,6 +18,9 @@ import GPTAssistantAPIThreadMessageContentTextVO from '../../../shared/modules/G
 import GPTAssistantAPIThreadMessageContentVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageContentVO';
 import GPTAssistantAPIThreadMessageVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageVO';
 import GPTAssistantAPIThreadVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadVO';
+import GPTRealtimeAPIFunctionParametersVO from '../../../shared/modules/GPT/vos/GPTRealtimeAPIFunctionParametersVO';
+import GPTRealtimeAPIFunctionVO from '../../../shared/modules/GPT/vos/GPTRealtimeAPIFunctionVO';
+import GPTRealtimeAPISessionVO from '../../../shared/modules/GPT/vos/GPTRealtimeAPISessionVO';
 import IModuleBase from '../../../shared/modules/IModuleBase';
 import ModulesManager from '../../../shared/modules/ModulesManager';
 import ModuleOselia from '../../../shared/modules/Oselia/ModuleOselia';
@@ -26,6 +33,8 @@ import OseliaThreadReferrerVO from '../../../shared/modules/Oselia/vos/OseliaThr
 import OseliaThreadRoleVO from '../../../shared/modules/Oselia/vos/OseliaThreadRoleVO';
 import OseliaThreadUserVO from '../../../shared/modules/Oselia/vos/OseliaThreadUserVO';
 import PerfReportController from '../../../shared/modules/PerfReport/PerfReportController';
+import ModuleProgramPlanBase from '../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
+import IPlanRDVCR from '../../../shared/modules/ProgramPlan/interfaces/IPlanRDVCR';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import { field_names } from '../../../shared/tools/ObjectHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
@@ -34,18 +43,33 @@ import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import ExternalAPIServerController from '../API/ExternalAPIServerController';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
+import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ModuleServerBase from '../ModuleServerBase';
 import ModuleVersionedServer from '../Versioned/ModuleVersionedServer';
 import ModuleGPTServer from './ModuleGPTServer';
 import GPTAssistantAPIServerSyncAssistantsController from './sync/GPTAssistantAPIServerSyncAssistantsController';
 import GPTAssistantAPIServerSyncRunsController from './sync/GPTAssistantAPIServerSyncRunsController';
 import GPTAssistantAPIServerSyncThreadMessagesController from './sync/GPTAssistantAPIServerSyncThreadMessagesController';
-
+/** Structure interne d'une conversation */
+interface ConversationContext {
+    openaiSocket: WebSocket;
+    clients: Set<WebSocket>;
+    buffered: any[];
+    cr_vo?: IPlanRDVCR;
+    prime_object?: ICheckListItem;
+    cr_field_titles?: string[];
+    current_user: UserVO;
+    current_thread_id: string;
+}
 export default class GPTAssistantAPIServerController {
 
     public static promise_pipeline_by_function: { [function_id: number]: PromisePipeline } = {};
-
     public static PERF_MODULE_NAME: string = 'gpt_assistant_api';
+    private static wss: any | null = null;
+    private static conversations: Map<string, ConversationContext> = new Map();
+    private static openaiSocket: any | null = null;
+    /** Maximum d'auditeurs avant le warning Node; ajusté dynamiquement */
+    private static readonly MAX_LISTENERS = 5;
 
     /**
      * Cette méthode a pour but de wrapper l'appel aux APIs OpenAI
@@ -78,6 +102,43 @@ export default class GPTAssistantAPIServerController {
         }
 
         throw new Error(`Failed after ${maxRetries} attempts`);
+    }
+
+    public static async get_availableFunctions_and_availableFunctionsParameters(
+        assistant_vo: GPTAssistantAPIAssistantVO,
+        user_id: number,
+        gpt_thread_id: string
+    ): Promise<{ availableFunctions: { [functionName: string]: GPTAssistantAPIFunctionVO }, availableFunctionsParameters: { [function_id: number]: GPTAssistantAPIFunctionParamVO[] } }> {
+
+        const availableFunctions: { [functionName: string]: GPTAssistantAPIFunctionVO } = {};
+        const availableFunctionsParameters: { [function_id: number]: GPTAssistantAPIFunctionParamVO[] } = {};
+        const functions: GPTAssistantAPIFunctionVO[] = await query(GPTAssistantAPIFunctionVO.API_TYPE_ID)
+            .filter_by_id(assistant_vo.id, GPTAssistantAPIAssistantVO.API_TYPE_ID).using(GPTAssistantAPIAssistantFunctionVO.API_TYPE_ID)
+            .exec_as_server()
+            .select_vos<GPTAssistantAPIFunctionVO>();
+        const functions_params: GPTAssistantAPIFunctionParamVO[] = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
+            .filter_by_id(assistant_vo.id, GPTAssistantAPIAssistantVO.API_TYPE_ID).using(GPTAssistantAPIAssistantFunctionVO.API_TYPE_ID).using(GPTAssistantAPIFunctionVO.API_TYPE_ID)
+            .set_sort(new SortByVO(GPTAssistantAPIFunctionParamVO.API_TYPE_ID, field_names<GPTAssistantAPIFunctionParamVO>().weight, true))
+            .exec_as_server()
+            .select_vos<GPTAssistantAPIFunctionParamVO>();
+
+        for (const i in functions_params) {
+            const function_param = functions_params[i];
+
+            if (!availableFunctionsParameters[function_param.function_id]) {
+                availableFunctionsParameters[function_param.function_id] = [];
+            }
+
+            availableFunctionsParameters[function_param.function_id].push(function_param);
+        }
+
+        for (const i in functions) {
+            const functionVO = functions[i];
+
+            availableFunctions[functionVO.gpt_function_name] = functionVO;
+        }
+
+        return { availableFunctions, availableFunctionsParameters };
     }
 
     // public static async get_file(file_id: string): Promise<{ file_gpt: FileObject, assistant_file_vo: GPTAssistantAPIFileVO }> {
@@ -1083,43 +1144,577 @@ export default class GPTAssistantAPIServerController {
         return new_messages;
     }
 
+    public static async postupdate_rdv_cr_vo_handle_pipe(vo: DAOUpdateVOHolder<any>) {
+        const convCtx = GPTAssistantAPIServerController.conversations.forEach(async (ctx) => {
+            if (ctx.cr_vo && ctx.cr_vo.id == vo.post_update_vo.id) {
+                ctx.cr_vo = vo.post_update_vo;
+                ctx.cr_field_titles = await ModuleProgramPlanBase.getInstance().getRDVCRType(vo.post_update_vo.rdv_id);
+                ctx.openaiSocket.send(JSON.stringify({
+                    type: 'conversation.item.create',
+                    item: {
+                        type: 'message',
+                        role: "system",
+                        "content": [
+                            {
+                                "type": "input_text",
+                                "text": "Le compte rendu vient d'être modifié par l'utilisateur"
+                            }
+                        ]
+                    },
+                }));
+            }
+        });
+    }
 
-    // /**
-    //  * Demander un run d'un assistant suite à un nouveau message
-    //  * @param session_id null pour une nouvelle session, id de la session au sens de l'API GPT
-    //  * @param conversation_id null pour un nouveau thread, sinon l'id du thread au sens de l'API GPT
-    //  * @param user_id contenu text du nouveau message
-    //  * @returns
-    //  */
-    // public static async connect_to_realtime_voice(
-    //     session_id: string,
-    //     conversation_id: string,
-    //     user_id: number): Promise<GPTRealtimeAPIConversationItemVO[]> {
-    //     try {
-    //         if(!session_id) {
-    //             // Création d'une nouvelle session
-    //             this.create_realtime_session();
-    //         }
-    //     } catch(error) {
-    //         ConsoleHandler.error('GPTAssistantAPIServerController.connect_to_realtime_voice: ' + error);
-    //     }
-    //     return;
-    // }
+    /**
+     * Demander un run d'un assistant suite à un nouveau message
+     * @param session_id null pour une nouvelle session, id de la session au sens de l'API GPT
+     * @param conversation_id null pour un nouveau thread, sinon l'id du thread au sens de l'API GPT
+     * @param user_id contenu text du nouveau message
+     * @returns
+     */
+    public static async connect_to_realtime_voice(
+        session_id: string,
+        conversation_id: string,
+        thread_id: string,
+        user_id: number): Promise<void> {
+        try {
+            let session: GPTRealtimeAPISessionVO = null;
+            if (!session_id || !conversation_id || !thread_id || !user_id) {
+                ConsoleHandler.error('GPTAssistantAPIServerController.connect_to_realtime_voice: Invalid parameters');
+                return;
+            }
 
-    // private static async create_realtime_session(): Promise<GPTRealtimeAPISessionVO> {
-    //     try {
-    //         const session = new GPTRealtimeAPISessionVO();
-    //         session.object = "realtime.session";
-    //         session.model = "gpt-4o-realtime-preview-2024-10-01";
-    //         session.modalities = ["text", "voice"];
-    //         session.voice = "alloy";
-    //         session.instructions = "";
-    //         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(session);
-    //     } catch(error) {
+            if (session_id) {
+                session = await query(GPTRealtimeAPISessionVO.API_TYPE_ID)
+                    .filter_by_id(parseInt(session_id))
+                    .exec_as_server()
+                    .select_vo<GPTRealtimeAPISessionVO>();
+            }
+            await this.create_realtime_session(session, conversation_id, thread_id, user_id);
+        } catch (error) {
+            ConsoleHandler.error('GPTAssistantAPIServerController.connect_to_realtime_voice: ' + error);
+        }
+        return;
+    }
 
-    //     }
-    //     return;
-    // }
+    /**
+     * Initialise (si besoin) le serveur WebSocket local **et** la socket OpenAI pour la conversation.
+     * @param conversationId identifiant logique de la conversation – un seul par socket OpenAI
+     */
+    private static async create_realtime_session(session: GPTRealtimeAPISessionVO, conversationId: string, thread_id: string, user_id: number): Promise<void> {
+        try {
+            let session_functions: GPTRealtimeAPIFunctionVO[] = [];
+            let params_by_function_id: Record<number, GPTRealtimeAPIFunctionParametersVO[]> = {};
+            if (!session) {
+                ConsoleHandler.error('GPTAssistantAPIServerController.create_realtime_session: Invalid session');
+                return;
+            } else {
+                session_functions = await query(GPTRealtimeAPIFunctionVO.API_TYPE_ID)
+                    .filter_by_num_eq(field_names<GPTRealtimeAPIFunctionVO>().session_id, session.id)
+                    .exec_as_server()
+                    .select_vos<GPTRealtimeAPIFunctionVO>();
+                const functionIds = session_functions.map(f => f.id);
+
+                const sessionFunctionParams: GPTRealtimeAPIFunctionParametersVO[] = [];
+                for (const func of session_functions) {
+                    sessionFunctionParams.push(...await query(GPTRealtimeAPIFunctionParametersVO.API_TYPE_ID)
+                        .filter_by_num_eq(field_names<GPTRealtimeAPIFunctionParametersVO>().function_id, func.id)
+                        .exec_as_server()
+                        .select_vos<GPTRealtimeAPIFunctionParametersVO>());
+                }
+
+                // test unitaires
+                if (sessionFunctionParams.length === 0) {
+                    ConsoleHandler.error('GPTAssistantAPIServerController.create_realtime_session: No function parameters found for session ' + session.id);
+                } else {
+
+                    params_by_function_id =
+                        sessionFunctionParams.reduce((acc, p) => {
+                            (acc[p.function_id] ||= []).push(p);
+                            return acc;
+                        }, {} as Record<number, GPTRealtimeAPIFunctionParametersVO[]>);
+                }
+            }
+            /* ────────────────────────────────────────────────────────────────
+            0)  Récupère l’utilisateur courant pour l’injecter dans le contexte
+            ──────────────────────────────────────────────────────────────────*/
+            const current_user = await query(UserVO.API_TYPE_ID)
+                .filter_by_id(user_id)
+                .set_limit(1)
+                .select_vo<UserVO>();
+            // 1) ----------------------------------------------------------------------
+            //    Création du WebSocketServer local (une seule instance)
+            if (!this.wss) {
+                const PORT = Number(ConfigurationService.node_configuration.port) + 10;
+                this.wss = new WebSocketServer({ port: PORT });
+                if (ConfigurationService.node_configuration.debug_oselia_realtime) {
+                    ConsoleHandler.log(`WebSocket Server en écoute sur ws://localhost:${PORT}`);
+                }
+                // —> Connexion d’un client navigateur / app
+                this.wss.on('connection', (clientSocket: WebSocket) => {
+                    let joinedConversationId: string | null = null;
+
+                    /**
+               * Message reçu du client
+               * → JSON : relais vers OpenAI
+               * → Binaire : buffer audio PCM16 24 kHz mono
+               */
+                    clientSocket.on('message', async (data: RawData) => {
+                        try {
+                            const str = data.toString('utf8');
+                            const msg = JSON.parse(str);
+                            if (ConfigurationService.node_configuration.debug_oselia_realtime) {
+                                ConsoleHandler.log('Client → Server :', msg);
+                            }
+                            // — Handshake : le client indique la conversation qu’il rejoint
+                            if (!joinedConversationId && msg?.conversation_id) {
+                                joinedConversationId = msg.conversation_id;
+                                const convCtx = GPTAssistantAPIServerController.conversations.get(joinedConversationId);
+                                if (!convCtx) {
+                                    ConsoleHandler.error(`Conversation inconnue : ${joinedConversationId}`);
+                                    clientSocket.close();
+                                    return;
+                                }
+                                convCtx.clients.add(clientSocket);
+                                convCtx.current_thread_id = thread_id;
+                                /* replay tous les messages manqués */
+                                for (const bufferedMsg of convCtx.buffered) {
+                                    clientSocket.send(JSON.stringify(bufferedMsg));
+                                }
+                                convCtx.buffered.length = 0;
+                                clientSocket.send(JSON.stringify({
+                                    type: 'connected_to_conversation',
+                                    msg: 'Vous êtes connecté à la conversation.'
+                                }));
+                                return;
+                            }
+
+                            // — Après handshake : relais texte → OpenAI
+                            if (joinedConversationId) {
+                                const convCtx = GPTAssistantAPIServerController.conversations.get(joinedConversationId)!;
+                                if (msg.type === 'cr_data') {
+                                    if (msg.cr_vo) {
+                                        convCtx.cr_vo = msg.cr_vo;
+                                        convCtx.cr_field_titles = await ModuleProgramPlanBase.getInstance()
+                                            .getRDVCRType(msg.cr_vo.rdv_id);
+                                    }
+                                } else if (msg.type === 'prime_object') {
+                                    if (msg.prime_object) {
+                                        convCtx.prime_object = msg.prime_object;
+                                    }
+                                } else if (convCtx.openaiSocket.readyState === WebSocket.OPEN) {
+                                    convCtx.openaiSocket.send(str);
+                                }
+                            }
+                        } catch (_) {
+                            // — Binaire (audio) ---------------------------------------------------
+                            if (joinedConversationId) {
+                                const convCtx = GPTAssistantAPIServerController.conversations.get(joinedConversationId)!;
+                                if (convCtx.openaiSocket.readyState === WebSocket.OPEN) {
+                                    const payload = {
+                                        type: 'input_audio_buffer.append',
+                                        audio: (data as Buffer).toString('base64'), // PCM 16 bits / 24 kHz mono
+                                    } as const;
+                                    convCtx.openaiSocket.send(JSON.stringify(payload));
+                                }
+                            }
+                        }
+                    });
+
+                    // — Fermeture côté client ----------------------------------------------
+                    clientSocket.on('close', () => {
+                        if (joinedConversationId) {
+                            const convCtx = GPTAssistantAPIServerController.conversations.get(joinedConversationId);
+                            if (convCtx) {
+                                convCtx.clients.delete(clientSocket);
+                                if (convCtx.clients.size === 0) {
+                                    // Dernier participant : on ferme la socket OpenAI
+                                    if (convCtx.openaiSocket.readyState === WebSocket.OPEN) convCtx.openaiSocket.close();
+                                    this.conversations.delete(joinedConversationId);
+                                }
+                            }
+                        }
+                    });
+                });
+            }
+
+            // 2) ----------------------------------------------------------------------
+            //    Conversation déjà initialisée ?
+            if (this.conversations.has(conversationId)) {
+                const oldCtx = this.conversations.get(conversationId)!;
+                for (const c of oldCtx.clients) c.close();
+                oldCtx.openaiSocket.close();
+                this.conversations.delete(conversationId);
+            }
+
+            // 3) ----------------------------------------------------------------------
+            //    Ouverture de la socket OpenAI pour cette conversation
+            const openaiSocket = new WebSocket(
+                'wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2025-06-03',
+                {
+                    headers: {
+                        Authorization: `Bearer ${ConfigurationService.node_configuration.open_api_api_key}`,
+                        'OpenAI-Beta': 'realtime=v1',
+                    },
+                },
+            );
+
+            const convCtx: ConversationContext = {
+                openaiSocket,
+                clients: new Set<WebSocket>(),
+                buffered: [],
+                current_user,
+                current_thread_id: thread_id,
+            } as const;
+            this.conversations.set(conversationId, convCtx);
+
+            openaiSocket.setMaxListeners(this.MAX_LISTENERS);
+
+            // ——————————————————————————————————————————
+            //  OPENAI → SERVER
+            // ——————————————————————————————————————————
+
+            /**
+           * Génère un ID unique côté serveur pour les items créés
+           */
+            const newItemId = () => `srv_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+
+            /**
+           * Envoie un item function_call_output + relance la génération
+           */
+            const sendFunctionCallOutput = (
+                callId: string,
+                previousItemId: string,
+                output: any,
+            ) => {
+                openaiSocket.send(JSON.stringify({
+                    type: 'conversation.item.create',
+                    previous_item_id: previousItemId,
+                    item: {
+                        id: newItemId(),
+                        type: 'function_call_output',
+                        call_id: callId,
+                        output: JSON.stringify(output ?? null),
+                    },
+                }));
+
+                // ► relance la génération (texte + audio suivant les préférences)
+                openaiSocket.send(JSON.stringify({ type: 'response.create', response: { modalities: ['text', 'audio'] } }));
+            };
+            const tools: {
+                type: string,
+                name: string,
+                description: string,
+                parameters: {
+                    type: string,
+                    properties: object,
+                    required: string[],
+                }
+            }[] = [];
+
+            for (const func of session_functions) {
+                tools.push({
+                    type: 'function',
+                    name: func.name,
+                    description: func.description,
+                    parameters: Object.keys(params_by_function_id).length > 0 ? {
+                        type: 'object',
+                        properties: params_by_function_id[func.id].reduce((acc, param) => {
+                            acc[param.name] = {
+                                type: GPTRealtimeAPIFunctionParametersVO.TYPE_TO_OPENAI[param.type],
+                                description: param.description,
+                            };
+                            return acc;
+                        }, {} as Record<string, { type: string; description: string }>),
+                        required: params_by_function_id[func.id].filter(p => p.required).map(p => p.name),
+                    } : {
+                        type: 'object',
+                        properties: {},
+                        required: [],
+                    },
+                });
+            }
+            // — Socket OPEN ------------------------------------------------------------
+            openaiSocket.once('open', () => {
+                const sessionUpdate = {
+                    type: 'session.update',
+                    session: {
+                        modalities: session.modalities ? session.modalities : ['text', 'audio'],
+                        output_audio_format: session.output_audio_format ? session.output_audio_format : 'pcm16',
+                        input_audio_transcription: { model: session.input_audio_transcription_model ? session.input_audio_transcription_model : 'whisper-1' },
+                        input_audio_format: session.input_audio_format ? session.input_audio_format : 'pcm16',
+                        turn_detection: {
+                            type: session.turn_detection_type ? session.turn_detection_type : 'server_vad',
+                            threshold: session.turn_detection_threshold ? session.turn_detection_threshold : 0.5,
+                            silence_duration_ms: session.turn_detection_silence_duration_ms ? session.turn_detection_silence_duration_ms : 400,
+                            prefix_padding_ms: session.turn_detection_prefix_padding_ms ? session.turn_detection_prefix_padding_ms : 150,
+                            create_response: true,
+                            interrupt_response: true,
+                        },
+                        voice: session.voice ? session.voice : 'shimmer',
+                        instructions: session.instructions ? session.instructions : 'Vous êtes un assistant virtuel.',
+                        tools: [...tools],
+                        tool_choice: 'auto',
+                        speed: 1.2,
+                    },
+                } as const;
+
+                openaiSocket.send(JSON.stringify(sessionUpdate));
+            });
+
+            // ——————————————————————————————————————————
+            //  Gestion des messages venant d’OpenAI
+            // ——————————————————————————————————————————
+            openaiSocket.on('message', async (data: RawData) => {
+                const { clients } = convCtx;
+
+                // 1) — Essaye de parser en JSON
+                let msg: any = null;
+                try {
+                    msg = JSON.parse(data.toString('utf8'));
+                } catch {
+                    // Binaire → on broadcast tel quel
+                    for (const c of clients) if (c.readyState === WebSocket.OPEN) c.send(data, { binary: true });
+                    return;
+                }
+
+                // --- AUCUN client connecté : on stocke et on sort ---
+                if (convCtx.clients.size === 0) {
+                    convCtx.buffered.push(msg ?? data);   // on garde aussi le binaire
+                    return;
+                }
+                if (ConfigurationService.node_configuration.debug_oselia_realtime) {
+                    ConsoleHandler.log('OpenAI → Server :', msg);
+                }
+                if (convCtx.clients.size === 0) {
+                    convCtx.buffered.push(msg);
+                    return;
+                }
+
+                if (msg?.type === 'input_audio_buffer.speech_started') {
+                    // ► Dis aux clients de couper le son immédiatement
+                    for (const c of clients) if (c.readyState === WebSocket.OPEN) {
+                        c.send(JSON.stringify({ type: 'stop_audio_playback' }));
+                    }
+                    return;
+                }
+                // 2) — Output audio (base64)
+                if (msg?.type === 'output_audio_buffer' && msg.audio) {
+                    const raw = Buffer.from(msg.audio, 'base64');
+                    for (const c of clients) if (c.readyState === WebSocket.OPEN) c.send(raw, { binary: true });
+                    return;
+                }
+
+                // 3) — Session prête : on fais jouer aux utilisateurs un son
+                if (msg?.type === 'session.updated') {
+                    for (const c of clients) if (c.readyState === WebSocket.OPEN) {
+                        c.send(JSON.stringify({ type: 'oselia_listening' }));
+                    }
+                    return;
+                }
+
+                // 4) — APPels de fonctions ------------------------------------------------
+                if (msg?.type === 'response.output_item.done' && msg.item?.type === 'function_call') {
+                    // ---------------------------------------------------------------------------
+                    // Récupération sûre des arguments de l’appel de fonction
+                    // ---------------------------------------------------------------------------
+                    const { name: fnName, arguments: rawArgs, call_id: callId, id: itemId } = msg.item;
+
+                    /**
+                     * Parse JSON de façon robuste :
+                     * - si `rawArgs` est déjà un objet → on le renvoie tel quel ;
+                     * - si c’est une string, on tente un JSON.parse ;
+                     * - en cas d’échec, on log et on retourne `{}` pour éviter le crash.
+                     */
+                    const args: Record<string, any> = (() => {
+                        if (rawArgs == null) return {};
+
+                        // Cas : OpenAI renvoie parfois directement un objet (rare, mais déjà vu)
+                        if (typeof rawArgs === 'object') return rawArgs as Record<string, any>;
+
+                        if (typeof rawArgs === 'string') {
+                            try {
+                                return JSON.parse(rawArgs);
+                            } catch (e) {
+                                ConsoleHandler.error(
+                                    `Impossible de parser les arguments de la fonction «${fnName}» : ${rawArgs}`,
+                                    e
+                                );
+                                return {};            // on continue sans planter
+                            }
+                        }
+
+                        // Type inattendu
+                        ConsoleHandler.warn(`Type inattendu pour arguments de ${fnName} :`, typeof rawArgs);
+                        return {};
+                    })();
+
+                    let output: unknown = null;
+                    const confidence_error_msg = "Confiance trop faible dans la demande, pose les questions qu'il te manquerait pour être sûr.";
+                    try {
+                        switch (fnName) {
+                            case 'edit_cr_word': {
+                                if (args.confidence && args.confidence < 100) {
+                                    output = { error: confidence_error_msg };
+                                    break;
+                                }
+                                output = await ModuleGPT.getInstance().edit_cr_word(
+                                    args.new_content,
+                                    args.section,
+                                    convCtx.cr_vo,
+                                    convCtx.cr_field_titles,
+                                );
+                                break;
+                            }
+                            case 'get_cr_field_titles': {
+                                if (args.confidence && args.confidence < 100) {
+                                    output = { error: confidence_error_msg };
+                                    break;
+                                }
+                                output = convCtx.cr_field_titles ?? [];
+                                break;
+                            }
+                            case 'get_current_cr_field': {
+                                if (args.confidence && args.confidence < 100) {
+                                    output = { error: confidence_error_msg };
+                                    break;
+                                }
+                                const cr_titles = convCtx.cr_field_titles ? convCtx.cr_field_titles.map(str => str.trim()).filter(str => str.length > 0) : [];
+                                const idx = cr_titles?.indexOf(args.section) ?? -1;
+                                output = idx >= 0 ? (convCtx.cr_vo as any)?.html_contents[idx] : null;
+                                break;
+                            }
+                            case 'get_current_user_name': {
+                                if (args.confidence && args.confidence < 100) {
+                                    output = { error: confidence_error_msg };
+                                    break;
+                                }
+                                output = convCtx.current_user?.name ?? null;
+                                break;
+                            }
+                            case 'get_current_consultant': {
+                                if (args.confidence && args.confidence < 100) {
+                                    output = { error: confidence_error_msg };
+                                    break;
+                                }
+                                const name = convCtx.cr_vo ? await ModuleProgramPlanBase.getInstance().getCurrentConsultant(convCtx.cr_vo) : null;
+                                output = name;
+                                break;
+                            }
+                            case 'get_all_consultants': {
+                                if (args.confidence && args.confidence < 100) {
+                                    output = { error: confidence_error_msg };
+                                    break;
+                                }
+                                const consultants_names = await ModuleProgramPlanBase.getInstance()
+                                    .getAllConsultantsName();
+                                output = consultants_names;
+                                break;
+                            }
+                            case 'set_current_consultant': {
+                                if (args.confidence && args.confidence < 100) {
+                                    output = { error: confidence_error_msg };
+                                    break;
+                                }
+                                const list_of_consultants = await ModuleProgramPlanBase.getInstance()
+                                    .getAllConsultantsName();
+                                if (args.consultant_name && !list_of_consultants.includes(args.consultant_name)) {
+                                    output = { error: `Le consultant ${args.consultant_name} n'existe pas dans la liste des consultants. Il faut strictement un consultant existant de cette liste.` };
+                                    break;
+                                }
+                                output = await ModuleProgramPlanBase.getInstance()
+                                    .setConsultantName(
+                                        convCtx.cr_vo,
+                                        args.consultant_name
+                                    );
+                                break;
+                            }
+                            case 'set_first_etape': {
+
+                                output = await ModuleProgramPlanBase.getInstance()
+                                    .setFirstEtape(convCtx.prime_object);
+                                break;
+                            }
+                            case 'set_second_etape': {
+
+                                output = await ModuleProgramPlanBase.getInstance()
+                                    .setSecondEtape(convCtx.prime_object);
+                                break;
+                            }
+                            case 'set_third_etape': {
+
+                                output = await ModuleProgramPlanBase.getInstance()
+                                    .setThirdEtape(convCtx.prime_object);
+                                break;
+                            }
+                            case 'set_fourth_etape': {
+
+                                output = await ModuleProgramPlanBase.getInstance()
+                                    .setFourthEtape(convCtx.prime_object);
+                                break;
+                            }
+                            default:
+                                output = { error: `Fonction inconnue : ${fnName}` };
+                        }
+                    } catch (err) {
+                        ConsoleHandler.error(err);
+                        output = { error: String(err) };
+                    }
+
+                    // —> On envoie la sortie & on relance la génération
+                    sendFunctionCallOutput(callId, itemId, output);
+                    return;
+                }
+
+                // 5) — Item utilisateur créé (par OpenAI)
+                if (msg?.type === 'conversation.item.created' && msg.item?.role === 'user') {
+                    // En mode server_vad, OpenAI gère la création de la réponse ;
+                    // on relaie seulement l’évènement au(x) client(s)
+                    for (const c of clients) if (c.readyState === WebSocket.OPEN) {
+                        c.send(JSON.stringify(msg));
+                    }
+                    return;
+                }
+
+                // 6) Transcription audio
+                if (msg?.type === 'response.audio_transcript.done' && msg.transcript) {
+                    this.send_transcription_to_thread(
+                        convCtx.current_thread_id,
+                        msg.transcript,
+                        convCtx.current_user.id,
+                        true
+                    );
+                }
+
+                if (msg?.type === 'conversation.item.input_audio_transcription.completed') {
+                    this.send_transcription_to_thread(
+                        convCtx.current_thread_id,
+                        msg.transcript,
+                        convCtx.current_user.id,
+                    );
+                }
+
+                // 7) — Tout le reste : broadcast JSON tel quel
+                for (const c of clients) if (c.readyState === WebSocket.OPEN) c.send(JSON.stringify(msg));
+            });
+
+            // ——————————————————————————————————————————
+            //  Fermeture / Erreur socket OpenAI
+            // ——————————————————————————————————————————
+            openaiSocket.on('close', () => {
+                for (const c of convCtx.clients) if (c.readyState === WebSocket.OPEN) c.close();
+                this.conversations.delete(conversationId);
+            });
+
+            openaiSocket.on('error', (err) => {
+                ConsoleHandler.error(`OpenAI socket error [${conversationId}] : ${err}`);
+                openaiSocket.close();
+            });
+        } catch (error) {
+            ConsoleHandler.error('create_realtime_session : ' + error);
+        }
+    }
 
     private static async resync_thread_messages(thread_vo: GPTAssistantAPIThreadVO) {
         try {
@@ -1129,6 +1724,63 @@ export default class GPTAssistantAPIServerController {
         } catch (error) {
             ConsoleHandler.error('GPTAssistantAPIServerController.resync_thread_messages: ' + error);
         }
+    }
+
+    private static async send_transcription_to_thread(
+        thread_id: string,
+        transcription: string,
+        user_id: number,
+        from_oselia?: boolean
+    ) {
+        if (!transcription || transcription.length === 0) {
+            return;
+        }
+
+        const thread_vo: GPTAssistantAPIThreadVO = await query(GPTAssistantAPIThreadVO.API_TYPE_ID)
+            .filter_by_id(parseInt(thread_id))
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIThreadVO>();
+
+        if (!thread_vo) {
+            ConsoleHandler.error('send_transcription_to_thread: Thread not found');
+            return;
+        }
+
+
+        const last_thread_msg: GPTAssistantAPIThreadMessageVO = await query(GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
+            .filter_by_num_eq(field_names<GPTAssistantAPIThreadMessageVO>().thread_id, thread_vo.id)
+            .filter_is_false(field_names<GPTAssistantAPIThreadMessageVO>().archived)
+            .set_sort(new SortByVO(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().weight, true))
+            .set_limit(1)
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIThreadMessageVO>();
+
+        const asking_message_vo = new GPTAssistantAPIThreadMessageVO();
+        asking_message_vo.date = Dates.now();
+        asking_message_vo.gpt_thread_id = thread_vo.gpt_thread_id;
+        asking_message_vo.thread_id = thread_vo.id;
+        asking_message_vo.weight = last_thread_msg ? last_thread_msg.weight + 1 : 0;
+        if (from_oselia) {
+            asking_message_vo.role = GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_ASSISTANT;
+        } else {
+            asking_message_vo.role = GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_USER;
+        }
+        asking_message_vo.user_id = user_id ? user_id : thread_vo.user_id;
+        asking_message_vo.is_ready = false;
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(asking_message_vo);
+
+        const message_content = new GPTAssistantAPIThreadMessageContentVO();
+        message_content.thread_message_id = asking_message_vo.id;
+        message_content.content_type_text = new GPTAssistantAPIThreadMessageContentTextVO();
+        message_content.content_type_text.value = transcription;
+        message_content.gpt_thread_message_id = asking_message_vo.gpt_id;
+        message_content.type = GPTAssistantAPIThreadMessageContentVO.TYPE_TEXT;
+        message_content.weight = 0;
+        message_content.hidden = false;
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(message_content);
+
+        asking_message_vo.is_ready = true;
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(asking_message_vo);
     }
 
     private static async close_thread_oselia(thread_vo: GPTAssistantAPIThreadVO) {
@@ -1155,7 +1807,7 @@ export default class GPTAssistantAPIServerController {
         hide_content: boolean = false
     ): Promise<GPTAssistantAPIThreadMessageVO> {
         let has_image_file: boolean = false;
-        let has_sound_file: boolean = false;
+        const has_sound_file: boolean = false;
         let asking_message_vo: GPTAssistantAPIThreadMessageVO = null;
         const files_images: FileVO[] = [];
         if (new_msg_content_text || (new_msg_files && new_msg_files.length)) {
@@ -1539,47 +2191,6 @@ export default class GPTAssistantAPIServerController {
         return res;
     }
 
-    private static async get_availableFunctions_and_availableFunctionsParameters(
-        assistant_vo: GPTAssistantAPIAssistantVO,
-        user_id: number,
-        gpt_thread_id: string
-    ): Promise<{ availableFunctions: { [functionName: string]: GPTAssistantAPIFunctionVO }, availableFunctionsParameters: { [function_id: number]: GPTAssistantAPIFunctionParamVO[] } }> {
-
-        const availableFunctions: { [functionName: string]: GPTAssistantAPIFunctionVO } = {};
-        const availableFunctionsParameters: { [function_id: number]: GPTAssistantAPIFunctionParamVO[] } = {};
-        const functions: GPTAssistantAPIFunctionVO[] = await GPTAssistantAPIServerSyncAssistantsController.get_assistant_functions(assistant_vo);
-
-        if (!functions || !functions.length) {
-            return { availableFunctions, availableFunctionsParameters };
-        }
-
-        const functions_params: GPTAssistantAPIFunctionParamVO[] = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
-            .filter_by_ids(functions.map((f) => f.id), GPTAssistantAPIFunctionVO.API_TYPE_ID)
-            .set_sorts([
-                new SortByVO(GPTAssistantAPIFunctionParamVO.API_TYPE_ID, field_names<GPTAssistantAPIFunctionParamVO>().weight, true),
-                new SortByVO(GPTAssistantAPIFunctionParamVO.API_TYPE_ID, field_names<GPTAssistantAPIFunctionParamVO>().id, true) // dans le doute en cas d'erreur sur les poids
-            ])
-            .exec_as_server()
-            .select_vos<GPTAssistantAPIFunctionParamVO>();
-
-        for (const i in functions_params) {
-            const function_param = functions_params[i];
-
-            if (!availableFunctionsParameters[function_param.function_id]) {
-                availableFunctionsParameters[function_param.function_id] = [];
-            }
-
-            availableFunctionsParameters[function_param.function_id].push(function_param);
-        }
-
-        for (const i in functions) {
-            const functionVO = functions[i];
-
-            availableFunctions[functionVO.gpt_function_name] = functionVO;
-        }
-
-        return { availableFunctions, availableFunctionsParameters };
-    }
 
     private static async call_function_and_perf_report(
         oselia_function: GPTAssistantAPIFunctionVO,

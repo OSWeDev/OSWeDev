@@ -1,8 +1,12 @@
-import { Component, Prop } from 'vue-property-decorator';
+import { Component, Prop, Watch } from 'vue-property-decorator';
 import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import EventsController from '../../../../../../shared/modules/Eventify/EventsController';
+import EventifyEventInstanceVO from '../../../../../../shared/modules/Eventify/vos/EventifyEventInstanceVO';
+import EventifyEventListenerInstanceVO from '../../../../../../shared/modules/Eventify/vos/EventifyEventListenerInstanceVO';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
+import ModuleOselia from '../../../../../../shared/modules/Oselia/ModuleOselia';
 import IPlanEnseigne from '../../../../../../shared/modules/ProgramPlan/interfaces/IPlanEnseigne';
 import IPlanFacilitator from '../../../../../../shared/modules/ProgramPlan/interfaces/IPlanFacilitator';
 import IPlanManager from '../../../../../../shared/modules/ProgramPlan/interfaces/IPlanManager';
@@ -22,13 +26,17 @@ import ProgramPlanTools from '../../ProgramPlanTools';
 import { ModuleProgramPlanAction, ModuleProgramPlanGetter } from '../../store/ProgramPlanStore';
 import ProgramPlanComponentModalTargetInfos from '../target_infos/ProgramPlanComponentModalTargetInfos';
 import "./ProgramPlanComponentModalCR.scss";
+import OseliaRealtimeController from '../../../dashboard_builder/widgets/oselia_thread_widget/OseliaRealtimeController';
+import EnvHandler from '../../../../../../shared/tools/EnvHandler';
+import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import ModuleGPT from '../../../../../../shared/modules/GPT/ModuleGPT';
 const debounce = require('lodash/debounce');
 
 @Component({
     template: require('./ProgramPlanComponentModalCR.pug'),
     components: {
         field: VueFieldComponent,
-        Programplancomponentmodaltargetinfos: ProgramPlanComponentModalTargetInfos
+        Programplancomponentmodaltargetinfos: ProgramPlanComponentModalTargetInfos,
     }
 })
 export default class ProgramPlanComponentModalCR extends VueComponentBase {
@@ -96,8 +104,13 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
 
     // Modal
     private newcr_seemore: boolean = false;
+    private cr_html_content: string = null;
 
     private edited_cr: IPlanRDVCR = null;
+    private oselia_opened: boolean = false;
+    private debounced_update_cr_action = debounce(this.update_cr_action, 1000);
+    private POLICY_CAN_USE_REALTIME: boolean = false;
+    private in_edit_inline: boolean = false;
 
     get custom_cr_create_component() {
         return this.program_plan_controller.customCRCreateComponent;
@@ -111,7 +124,6 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
         return this.program_plan_controller.customCRUpdateComponent;
     }
 
-    private debounced_update_cr_action = debounce(this.update_cr_action, 1000);
 
     get target(): IPlanTarget {
         if ((!this.selected_rdv) || (!this.selected_rdv.target_id)) {
@@ -285,12 +297,47 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
         return (res && res.length) ? res : null;
     }
 
+    get oselia_blocked(): boolean {
+        return EnvHandler.block_oselia_on_cr;
+    }
+
+    @Watch('oselia_opened')
+    private onOseliaOpened() {
+        if (!this.POLICY_CAN_USE_REALTIME) {
+            return;
+        }
+        if (this.oselia_opened) {
+            OseliaRealtimeController.getInstance().connect_to_realtime(this.selected_rdv_cr);
+        } else {
+            OseliaRealtimeController.getInstance().disconnect_to_realtime();
+        }
+    }
+
     private editCR(cr) {
+        if (this.oselia_opened) {
+            this.in_edit_inline = !this.in_edit_inline;
+            return;
+        }
         this.edited_cr = cr;
     }
 
     private cancelEditCR() {
         this.edited_cr = null;
+    }
+
+    private async mounted() {
+        const get_oselia_realtime_close = EventifyEventListenerInstanceVO.new_listener(
+            ModuleOselia.EVENT_OSELIA_CLOSE_REALTIME,
+            (event: EventifyEventInstanceVO) => {
+                this.oselia_opened = event.param as boolean;
+            },
+        );
+        EventsController.register_event_listener(get_oselia_realtime_close);
+        this.POLICY_CAN_USE_REALTIME = await ModuleAccessPolicy.getInstance().testAccess(ModuleGPT.POLICY_USE_OSELIA_REALTIME_IN_CR);
+    }
+
+    private switchOpenOselia() {
+        this.oselia_opened = !this.oselia_opened;
     }
 
     /**
@@ -416,6 +463,9 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
                 }
             ]
         });
+    }
+    private async use_edit_inline(edit_inline: boolean = false) {
+        this.in_edit_inline = edit_inline;
     }
 
     private async update_cr_action(cr: IPlanRDVCR, autosave: boolean) {
@@ -544,5 +594,9 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
                 }
             ]
         });
+    }
+
+    private async set_cr_html_content(html_content) {
+        this.cr_html_content = html_content;
     }
 }

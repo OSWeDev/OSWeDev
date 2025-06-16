@@ -433,6 +433,26 @@ $button-hover-shadow: none;
         .thread_container {
             padding: $padding-0 !important;
 
+            .oselia_chat_btn_closed {
+                background-color: #e3e3eb;
+                font-size: 18px;
+                border-radius: 8px;
+                box-sizing: border-box;
+                border: none;
+                padding: 8px;
+                margin-right: 0.2em;
+
+                &.opened::after {
+                    content: "";
+                    position: absolute;
+                    top: -5px;
+                    left: -5px;
+                    border-radius: 8px;
+                    background-color: rgba(0, 36, 84, 0.3);
+                    animation: pulse 1.2s infinite ease-in-out;
+                }
+            }
+
             .thread_messages {
 
                 .thread_message {

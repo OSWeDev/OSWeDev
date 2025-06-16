@@ -301,6 +301,10 @@ export default class EnvParamsVO implements IDistantVOBase {
 
     // BLOCK_TEAMS_MESSAGES?: boolean;
     public block_teams_messages: boolean;
+    public block_oselia_on_cr: boolean;
+    public block_oselia_realtime: boolean;
+    public block_oselia_on_bonus: boolean;
+    public debug_oselia_realtime: boolean;
 
     // logo_path?: string;
     public logo_path: string;

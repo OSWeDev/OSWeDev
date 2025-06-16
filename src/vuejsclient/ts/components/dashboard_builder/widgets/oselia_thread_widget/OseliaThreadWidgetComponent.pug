@@ -258,6 +258,10 @@
                                     button.fa-solid.fa-bug(v-on:click='switch_show_hidden_messages')
                                 template(v-else)
                                     button.fa-solid.fa-bug-slash(v-on:click='switch_show_hidden_messages')
+                            .oselia_chat_btn_closed.fa-duotone.fa-vacuum-robot(v-if="!oselia_blocked && POLICY_CAN_USE_REALTIME" :class="{ 'opened': use_realtime_voice }" @click='switchOpenRealtime()')
+
+                            
+                                
                                 
                         .thread_message_input_send
                             template(v-if='get_too_many_assistants')
@@ -379,6 +383,12 @@
                                             .image_upload_menu_item(v-on:click='open_link_image')
                                                 i.fa-duotone.fa-images
                                                 | {{ label('oselia_thread_widget_component.image_upload_menu_item.link') }}
+                                //- Oseliarealtimebutton(
+                                //-     :has_access_to_thread='has_access_to_thread'
+                                //-     :gpt_thread_id='thread ? (thread.gpt_thread_id ? thread.gpt_thread_id : null) : null'
+                                //- )
+                                
+
 
                                 .thread_message_expand
                                     button.fa-solid.fa-up-right-and-down-left-from-center(v-on:click='expand_window')
@@ -388,6 +398,7 @@
                                         button.fa-solid.fa-bug(v-on:click='switch_show_hidden_messages')
                                     template(v-else)
                                         button.fa-solid.fa-bug-slash(v-on:click='switch_show_hidden_messages')
+                                .oselia_chat_btn_closed.fa-duotone.fa-vacuum-robot(v-if="!oselia_blocked && POLICY_CAN_USE_REALTIME" :class="{ 'opened': use_realtime_voice }" @click='switchOpenRealtime()')
 
                                     
                             .thread_message_input_send

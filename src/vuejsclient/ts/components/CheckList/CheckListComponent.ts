@@ -180,6 +180,7 @@ export default class CheckListComponent extends VueComponentBase {
         this.debounced_loading();
     }
 
+ 
     @Watch("$route")
     private async onrouteChange() {
 
@@ -201,6 +202,10 @@ export default class CheckListComponent extends VueComponentBase {
                 });
             }
         });
+    }
+
+    private beforeDestroy() {
+        this.unregister_all_vo_event_callbacks();
     }
 
     private close_modal() {

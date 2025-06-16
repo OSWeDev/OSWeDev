@@ -140,6 +140,11 @@ export default class EnvParam implements IEnvParam {
     public debug_add_var_columns_values_for_xlsx_datas?: boolean = false;
 
     public block_teams_messages?: boolean = true;
+    public block_oselia_on_cr?: boolean = true;
+    public block_oselia_on_bonus?: boolean = true;
+    public block_oselia_realtime?: boolean = true;
+
+    public debug_oselia_realtime?: boolean = false;
 
     public create_event_perf_report?: boolean = false;
     public activate_module_perf_throttle_queries?: boolean = false;

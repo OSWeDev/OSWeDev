@@ -15,7 +15,7 @@ export default class GPTAssistantAPIThreadVO implements IDistantVOBase {
 
     public gpt_thread_id: string;
     public current_default_assistant_id: number;
-
+    public realtime_activated: boolean;
     /**
      * Le thread parent. Par exemple on peut choisir de splitt une tâche depuis un run sur le thread A, et créer les threads B et C nouveaux pour les lancer en //. Dans ce cas, le thread est B par exemple mais le parent_thread_id est A
      */

@@ -9,6 +9,30 @@
     .crsandnew {
         margin-top: 10px;
 
+        .oselia_chat_btn_closed {
+            width: 75px;
+            height: 37px;
+            cursor: pointer;
+            background: url(/public/vuejsclient/img/logo_oselia_icon.png) no-repeat center center;
+            background-color: rgba(255, 255, 255, 0);
+            background-size: cover;
+            float: right;
+            margin-right: 10px;
+            position: relative;
+
+            &.opened::after {
+                content: "";
+                position: absolute;
+                top: -5px;
+                left: -5px;
+                width: 85px;
+                height: 47px;
+                border-radius: 8px;
+                background-color: rgba(0, 36, 84, 0.3);
+                animation: pulse 1.2s infinite ease-in-out;
+            }
+        }
+
         label input {
             margin-left: 1em;
         }
@@ -17,8 +41,31 @@
     .newcr,
     .updatecr {
 
+        .oselia_chat_btn_closed {
+            width: 75px;
+            height: 37px;
+            cursor: pointer;
+            background: url(/public/vuejsclient/img/logo_oselia_icon.png) no-repeat center center;
+            background-color: rgba(255, 255, 255, 0);
+            background-size: cover;
+            float: right;
+            margin-right: 10px;
+            position: relative;
+
+            &.opened::after {
+                content: "";
+                position: absolute;
+                top: -5px;
+                left: -5px;
+                width: 85px;
+                height: 47px;
+                border-radius: 8px;
+                background-color: rgba(0, 36, 84, 0.3);
+                animation: pulse 1.2s infinite ease-in-out;
+            }
+        }
+
         max-height: auto;
-        overflow: hidden;
 
         textarea {
             width: 100%;
@@ -64,6 +111,26 @@
         color: initial;
         margin-bottom: 12px;
         text-align: left;
+
+        i.closing {
+            position: relative; // nécessaire pour le pseudo-élément
+            color: $danger_color; // même rouge que la corbeille
+            transform: rotate(90deg); // tourne la croix pour la différencier
+            transition: color .3s, transform .3s;
+
+            &::after {
+                // halo animé
+                content: '';
+                position: absolute;
+                top: -8px;
+                left: -8px;
+                width: 32px;
+                height: 32px;
+                border-radius: 50%;
+                background: rgba($danger_color, .15);
+                animation: pulse 1s infinite ease-in-out;
+            }
+        }
 
         pre {
             white-space: pre-wrap;
@@ -120,5 +187,19 @@
         right: 12px;
         top: 12px;
         cursor: pointer;
+    }
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        transform: scale(0.8);
+        opacity: 0.6;
+    }
+
+    50% {
+        transform: scale(1);
+        opacity: 1;
     }
 }

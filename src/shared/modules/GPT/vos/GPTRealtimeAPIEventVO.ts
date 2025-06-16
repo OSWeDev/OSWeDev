@@ -8,8 +8,6 @@ export default class GPTRealtimeAPIEventVO implements IDistantVOBase {
 
     // The unique ID of the event.
     public static event_id: string;
-    public id: number;
-    public _type: string = GPTRealtimeAPIEventVO.API_TYPE_ID;
     public static FROM_OPENAI_EVENT_TYPE_MAP: { [key: string]: number } = {
         "session.update": 0,
         "input_audio_buffer.append": 1,
@@ -33,5 +31,7 @@ export default class GPTRealtimeAPIEventVO implements IDistantVOBase {
         3: "function",
         4: "tool",
     };
+    public id: number;
+    public _type: string = GPTRealtimeAPIEventVO.API_TYPE_ID;
     public type: number;
 }

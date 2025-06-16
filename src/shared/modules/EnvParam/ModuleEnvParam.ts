@@ -327,6 +327,11 @@ export default class ModuleEnvParam extends Module {
 
         // BLOCK_TEAMS_MESSAGES ?: boolean;
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().block_teams_messages, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Bloquer les messages Teams', true);
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().block_oselia_on_cr, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Bloquer Oselia sur les CR', true);
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().block_oselia_on_bonus, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Bloquer Oselia sur les bonus', true);
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().block_oselia_realtime, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Bloquer Oselia Realtime', true);
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_oselia_realtime, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug Oselia Realtime', false, true, false);
+
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().logo_path, ModuleTableFieldVO.FIELD_TYPE_string, 'URL du logo');
 
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_openai_sync, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug OpenAI Sync', true, true, true);

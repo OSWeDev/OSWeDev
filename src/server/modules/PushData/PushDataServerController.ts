@@ -468,6 +468,23 @@ export default class PushDataServerController {
         return notification;
     }
 
+    private static getEventNotif(user_id: number, client_tab_id: string, event_name: string, event_param?: any): NotificationVO {
+        if (!event_name) {
+            return null;
+        }
+
+        const notification: NotificationVO = new NotificationVO();
+
+        notification.notification_type = NotificationVO.TYPE_NOTIF_EVENT;
+        notification.read = true;
+        notification.user_id = user_id;
+        notification.client_tab_id = client_tab_id;
+        notification.auto_read_if_connected = true;
+        notification.event_name = event_name;
+        notification.event_param_json = (event_param !== undefined) ? JSON.stringify(event_param) : null;
+        return notification;
+    }
+
     /**
      * DELETE ME Post suppression StackContext: Does not need StackContext
      * WARN : Only on main thread (express).
@@ -1116,6 +1133,17 @@ export default class PushDataServerController {
                 reject('No Prompt received');
             }
         });
+    }
+
+    @RunsOnMainThread(null)
+    public static async notifyEvent(user_id: number, client_tab_id: string, event_name: string, event_param?: any): Promise<void> {
+
+        const notification: NotificationVO = PushDataServerController.getEventNotif(user_id, client_tab_id, event_name, event_param);
+        if (!notification) {
+            return;
+        }
+
+        await PushDataServerController.notify(notification);
     }
 
     @RunsOnMainThread(null)

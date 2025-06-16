@@ -110,6 +110,7 @@ export default class OseliaRunGraphWidgetComponent extends VueComponentBase {
     // -------------------------------------------------------------------------
     public selectedItem: string | null = null;
     public selectedItemRunInfo: OseliaRunFunctionCallVO | null = null;
+    public display_mode: 'runs' | 'templates' = 'templates';
 
     /**
      * items : c’est ce qui est réellement passé au CanvasDiagram (dictionnaire d’items).
@@ -117,11 +118,16 @@ export default class OseliaRunGraphWidgetComponent extends VueComponentBase {
     private items: { [id: string]: OseliaRunTemplateVO | OseliaRunVO } = {};
 
     private showAutofitButton: boolean = false;
+    private showSelectionPanelButton: boolean = false;
+    private showSelectionPanel: boolean = false;
 
     private updatedItem: OseliaRunTemplateVO | OseliaRunVO = null;
     private reDraw: boolean = false;
     private localThreadId: number = null;
     private executeAutofit: boolean = false;
+    private run_choices: OseliaRunVO[] = [];
+    private template_choices: OseliaRunTemplateVO[] = [];
+    private type_of_item_displayed: 'template' | 'run' | 'none' = 'none';
 
 
 
@@ -141,9 +147,28 @@ export default class OseliaRunGraphWidgetComponent extends VueComponentBase {
     get showClearButton(): boolean {
         return Object.keys(this.items).length > 0;
     }
+
+    get isRunDiagram(): boolean {
+        return this.display_mode === 'runs' || this.is_single_run_found;
+    }
     // -------------------------------------------------------------------------
     // WATCHERS
     // -------------------------------------------------------------------------
+    @Watch('display_mode')
+    private onDisplayModeChange(newVal: 'runs' | 'templates', oldVal: 'runs' | 'templates') {
+        this.applyDisplayMode();
+        if (newVal != oldVal) {
+            this.clearAll();
+        }
+        this.reDraw = !this.reDraw;
+    }
+
+    @Watch('items')
+    private onItemsChange() {
+        // On notifie le store des items
+        this.type_of_item_displayed = Object.values(this.items).every(item => item._type === OseliaRunTemplateVO.API_TYPE_ID) ? 'template' : (Object.values(this.items).every(item => item._type === OseliaRunVO.API_TYPE_ID) ? 'run' : 'none');
+    }
+
     @Watch('choices_of_item', { immediate: true, deep: true })
     private async onChoicesOfItemChange() {
         // Si on est en mode single run, on n’utilise pas le vieux mécanisme
@@ -164,7 +189,7 @@ export default class OseliaRunGraphWidgetComponent extends VueComponentBase {
                 this.showPlusButton = false;
                 this.has_agent = true;
 
-            } else if (this.choices_of_item.length !== 0) {
+            } else if (this.choices_of_item.length !== 0 && Object.values(this.items).length === 0) {
                 // Ancienne logique : plus d’un item => show panel
                 this.has_agent = true;
                 if (this.choices_of_item.length >= 1) {
@@ -207,79 +232,52 @@ export default class OseliaRunGraphWidgetComponent extends VueComponentBase {
         leading: true,
     })
     private async chargeChoices() {
-        // ---------------------------------------------------------------------
-        // 1) On essaie d’abord de récupérer les OseliaRunVO
-        //    avec les filtres actifs (comme pour les templates)
-        // ---------------------------------------------------------------------
+        const active_filters = FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters);
+        const context_filters = ContextFilterVOManager.get_context_filters_from_active_field_filters(active_filters);
+
+        let runs: OseliaRunVO[] = [];
         if (this.localThreadId != null) {
-            // => On a un thread_id => on charge les runs de ce thread
-            const found_runs = await query(OseliaRunVO.API_TYPE_ID)
+            runs = await query(OseliaRunVO.API_TYPE_ID)
                 .filter_by_num_eq('thread_id', this.localThreadId)
                 .select_vos<OseliaRunVO>();
-
-            if (found_runs.length === 1) {
-                // => On a trouvé exactement un run => on l’affiche
-                this.is_single_run_found = true;
-                this.single_run = found_runs[0];
-                await this.buildItemsFromSingleRun();
-                return;
-            } else {
-                this.localThreadId = null;
-                await this.chargeChoices();
-                return;
-            }
         } else {
-            const active_filters = FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters);
-            const context_filters = ContextFilterVOManager.get_context_filters_from_active_field_filters(active_filters);
-
-            const found_runs = await query(OseliaRunVO.API_TYPE_ID)
+            runs = await query(OseliaRunVO.API_TYPE_ID)
                 .add_filters(context_filters)
                 .select_vos<OseliaRunVO>();
+        }
+        const uniqueRunsMap: { [name: string]: OseliaRunVO } = {};
+        for (const r of runs) {
+            if (!uniqueRunsMap[r.name] || uniqueRunsMap[r.name].id < r.id) {
+                uniqueRunsMap[r.name] = r;
+            }
+        }
+        this.run_choices = Object.values(uniqueRunsMap);
 
-            if (found_runs.length === 1) {
-                // => On a EXACTEMENT 1 run => on adopte la nouvelle logique
-                this.is_single_run_found = true;
-                this.single_run = found_runs[0];
-
-                // On construit nos items depuis ce run unique
-                await this.buildItemsFromSingleRun();
-
-                // await this.register_vo_updates_on_list(
-                //     OseliaRunVO.API_TYPE_ID,
-                //     reflect<OseliaRunGraphWidgetComponent>().choices_of_item,
-                //     context_filters,
-                // );
-                return;
-            } else {
-                // Si on avait un run unique avant, on le supprime
-                if (this.is_single_run_found) {
-                    this.is_single_run_found = false;
-                    this.single_run = null;
-                    this.items = {};
-                    if (this.selectedItem) {
-                        this.selectedItem = null;
-                        this.selectedItemRunInfo = null;
-                    }
-                }
-                this.choices_of_item = await query(OseliaRunTemplateVO.API_TYPE_ID)
-                    .add_filters(
-                        [
-                            filter(OseliaRunTemplateVO.API_TYPE_ID,
-                                field_names<OseliaRunTemplateVO>().run_type)
-                                .by_num_eq(OseliaRunVO.RUN_TYPE_AGENT)
-                        ])
-                    .select_vos<OseliaRunTemplateVO>();
-                for (const item of this.choices_of_item) {
-                    if (this.items[item.id]) {
-                        if (this.choices_of_item.findIndex((i) => i.id == item.id) != -1) {
-                            this.choices_of_item.splice(this.choices_of_item.findIndex((i) => i.id == item.id), 1);
-                        }
-                    }
+        this.template_choices = await query(OseliaRunTemplateVO.API_TYPE_ID)
+            .add_filters([
+                filter(OseliaRunTemplateVO.API_TYPE_ID,
+                    field_names<OseliaRunTemplateVO>().run_type)
+                    .by_num_eq(OseliaRunVO.RUN_TYPE_AGENT)
+            ])
+            .select_vos<OseliaRunTemplateVO>();
+        if (this.run_choices.length === 1 && this.type_of_item_displayed === 'none') {
+            this.is_single_run_found = true;
+            this.display_mode = 'runs';
+            this.single_run = this.run_choices[0];
+            await this.buildItemsFromSingleRun();
+        } else {
+            if (this.is_single_run_found) {
+                this.is_single_run_found = false;
+                this.single_run = null;
+                this.items = {};
+                if (this.selectedItem) {
+                    this.selectedItem = null;
+                    this.selectedItemRunInfo = null;
                 }
             }
-
-            return;
+            this.applyDisplayMode();
         }
+        return;
     }
 
     // Accès dynamiques Vuex
@@ -346,13 +344,41 @@ export default class OseliaRunGraphWidgetComponent extends VueComponentBase {
                     }
                 }
             }
+        } else if (itemAdded._type == OseliaRunVO.API_TYPE_ID) {
+            const runItem = itemAdded as OseliaRunVO;
+            if (runItem.run_type === OseliaRunVO.RUN_TYPE_AGENT) {
+                const children = await query(OseliaRunVO.API_TYPE_ID)
+                    .filter_by_num_eq('parent_run_id', runItem.id)
+                    .select_vos<OseliaRunVO>();
+                for (const child of children) {
+                    if (this.choices_of_item.findIndex((item) => item.id == child.id) !== -1) {
+                        this.choices_of_item.splice(this.choices_of_item.findIndex((item) => item.id == child.id), 1);
+                    }
+                    this.$set(this.items, String(child.id), child);
+                    if (child.run_type === OseliaRunVO.RUN_TYPE_AGENT) {
+                        await this.addRunChildrenRecursively(child.id);
+                    }
+                }
+            }
         }
         this.$set(this.items, itemId, itemAdded);
-        if (this.choices_of_item.findIndex((item) => item.id == Number(itemId)) != -1) {
-            this.choices_of_item.splice(this.choices_of_item.findIndex((item) => item.id == Number(itemId)), 1);
+        if (itemAdded._type == OseliaRunTemplateVO.API_TYPE_ID) {
+            const idx = this.choices_of_item.findIndex((item) => item.id == Number(itemId));
+            if (idx != -1) {
+                this.choices_of_item.splice(idx, 1);
+            }
+        } else if (itemAdded._type == OseliaRunVO.API_TYPE_ID) {
+            const idx = this.choices_of_item.findIndex((item) => item.id == Number(itemId));
+            if (idx != -1) {
+                this.choices_of_item.splice(idx, 1);
+            }
         }
     }
 
+
+    public setDisplayMode(mode: 'runs' | 'templates') {
+        this.display_mode = mode;
+    }
 
     public removeItem(itemId: string) {
         if (!this.items[itemId]) {
@@ -398,6 +424,8 @@ export default class OseliaRunGraphWidgetComponent extends VueComponentBase {
             this.selectedItemRunInfo = runInfo;
         }
         this.selectedItem = itemId;
+        this.showSelectionPanelButton = true;
+        this.showSelectionPanel = false;
         this.showAddPanel = false;
     }
 
@@ -485,6 +513,11 @@ export default class OseliaRunGraphWidgetComponent extends VueComponentBase {
         }
     }
 
+    private async activateShowSelectionPanel() {
+        this.showSelectionPanelButton = !this.showSelectionPanelButton;
+        this.showSelectionPanel = !this.showSelectionPanelButton;
+    }
+
     private async addTemplateChildrenRecursively(agentTemplateId: number) {
         // On récupère l’objet complet
         const agentTemplate = this.items[agentTemplateId] as OseliaRunTemplateVO;
@@ -508,7 +541,9 @@ export default class OseliaRunGraphWidgetComponent extends VueComponentBase {
             }
         }
     }
-
+    private applyDisplayMode() {
+        this.choices_of_item = this.display_mode === 'runs' ? this.run_choices : this.template_choices;
+    }
     // -------------------------------------------------------------------------
     // beforeDestroy
     // -------------------------------------------------------------------------

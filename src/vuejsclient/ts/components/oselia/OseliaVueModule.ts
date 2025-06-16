@@ -21,19 +21,28 @@ export default class OseliaVueModule extends VueModuleBase {
         this.routes.push(
             this.get_route_oselia_referrer_not_found(),
             this.get_route_oselia_referrer_activation(),
-            this.get_route_oselia(),
+            ...this.get_routes_oselia(),
         );
     }
 
-    private get_route_oselia(): RouteConfig {
-        return {
+    private get_routes_oselia(): RouteConfig[] {
+        return [{
             path: '/oselia/:thread_vo_id/',
             name: 'oselia',
             component: () => import('./oselia_db/OseliaDBComponent'),
             props: (route) => ({
                 thread_vo_id: parseInt(route.params.thread_vo_id),
+                parent_client_tab_id: null,
             })
-        };
+        },        {
+            path: '/oselia/:thread_vo_id/:parent_client_tab_id/',
+            name: 'oselia',
+            component: () => import('./oselia_db/OseliaDBComponent'),
+            props: (route) => ({
+                thread_vo_id: parseInt(route.params.thread_vo_id),
+                parent_client_tab_id: route.params.parent_client_tab_id,
+            })
+        }];
     }
 
 

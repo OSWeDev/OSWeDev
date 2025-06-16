@@ -6,7 +6,7 @@ import GPTAssistantAPIThreadVO from '../../../../../shared/modules/GPT/vos/GPTAs
 import ModuleOselia from '../../../../../shared/modules/Oselia/ModuleOselia';
 import ModuleParams from '../../../../../shared/modules/Params/ModuleParams';
 import { reflect } from '../../../../../shared/tools/ObjectHandler';
-import { ModuleOseliaGetter } from '../../dashboard_builder/widgets/oselia_thread_widget/OseliaStore';
+import { ModuleOseliaAction, ModuleOseliaGetter } from '../../dashboard_builder/widgets/oselia_thread_widget/OseliaStore';
 import VueComponentBase from '../../VueComponentBase';
 import './OseliaDBComponent.scss';
 
@@ -22,8 +22,14 @@ export default class OseliaDBComponent extends VueComponentBase {
     @Prop({ default: null })
     private thread_vo_id: number;
 
+    @Prop({ default: null })
+    private parent_client_tab_id: string;
+
     @ModuleOseliaGetter
     private get_oselia_first_loading_done: boolean;
+
+    @ModuleOseliaAction
+    private set_parent_client_tab_id: (parent_client_tab_id: string) => void;
 
     private oselia_db_id: number = null;
 
@@ -44,6 +50,9 @@ export default class OseliaDBComponent extends VueComponentBase {
     }
 
     private async mounted() {
+
+        this.set_parent_client_tab_id(this.parent_client_tab_id);
+
         this.oselia_db_id = await ModuleParams.getInstance().getParamValueAsInt(ModuleOselia.OSELIA_DB_ID_PARAM_NAME, null, 10000);
         if (!this.oselia_db_id) {
             this.$router.push({

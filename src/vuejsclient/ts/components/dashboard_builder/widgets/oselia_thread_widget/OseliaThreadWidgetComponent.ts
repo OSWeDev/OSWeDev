@@ -20,18 +20,23 @@ import EventifyEventListenerConfVO from "../../../../../../shared/modules/Eventi
 import FileVO from '../../../../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleGPT from '../../../../../../shared/modules/GPT/ModuleGPT';
+import GPTAssistantAPIAssistantFunctionVO from "../../../../../../shared/modules/GPT/vos/GPTAssistantAPIAssistantFunctionVO";
 import GPTAssistantAPIAssistantVO from '../../../../../../shared/modules/GPT/vos/GPTAssistantAPIAssistantVO';
+import GPTAssistantAPIFunctionParamVO from "../../../../../../shared/modules/GPT/vos/GPTAssistantAPIFunctionParamVO";
 import GPTAssistantAPIFunctionVO from '../../../../../../shared/modules/GPT/vos/GPTAssistantAPIFunctionVO';
 import GPTAssistantAPIThreadMessageVO from '../../../../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageVO';
 import GPTAssistantAPIThreadVO from '../../../../../../shared/modules/GPT/vos/GPTAssistantAPIThreadVO';
+import GPTRealtimeAPIFunctionParametersVO from "../../../../../../shared/modules/GPT/vos/GPTRealtimeAPIFunctionParametersVO";
+import GPTRealtimeAPIFunctionVO from "../../../../../../shared/modules/GPT/vos/GPTRealtimeAPIFunctionVO";
+import GPTRealtimeAPISessionVO from "../../../../../../shared/modules/GPT/vos/GPTRealtimeAPISessionVO";
 import ModuleOselia from '../../../../../../shared/modules/Oselia/ModuleOselia';
-import OseliaController from '../../../../../../shared/modules/Oselia/OseliaController';
 import OseliaRunFunctionCallVO from '../../../../../../shared/modules/Oselia/vos/OseliaRunFunctionCallVO';
 import OseliaRunVO from '../../../../../../shared/modules/Oselia/vos/OseliaRunVO';
 import OseliaThreadCacheVO from '../../../../../../shared/modules/Oselia/vos/OseliaThreadCacheVO';
 import ModuleParams from '../../../../../../shared/modules/Params/ModuleParams';
 import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
+import EnvHandler from "../../../../../../shared/tools/EnvHandler";
 import { field_names, reflect } from '../../../../../../shared/tools/ObjectHandler';
 import { all_promises } from "../../../../../../shared/tools/PromiseTools";
 import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
@@ -45,10 +50,12 @@ import MailIDEventsComponent from '../../../mail_id_events/MailIDEventsComponent
 import OseliaRunGraphWidgetComponent from '../oselia_run_graph_widget/OseliaRunGraphWidgetComponent';
 import TablePaginationComponent from '../table_widget/pagination/TablePaginationComponent';
 import OseliaLeftPanelComponent from './OseliaLeftPanel/OseliaLeftPanelComponent';
+import OseliaRealtimeController from "./OseliaRealtimeController";
 import OseliaRunArboComponent from './OseliaRunArbo/OseliaRunArboComponent';
 import { ModuleOseliaAction, ModuleOseliaGetter } from './OseliaStore';
 import OseliaThreadMessageComponent from './OseliaThreadMessage/OseliaThreadMessageComponent';
 import './OseliaThreadWidgetComponent.scss';
+
 @Component({
     template: require('./OseliaThreadWidgetComponent.pug'),
     components: {
@@ -60,7 +67,7 @@ import './OseliaThreadWidgetComponent.scss';
         Oselialeftpanelcomponent: OseliaLeftPanelComponent,
         VueJsonPretty,
         Oseliarunarbocomponent: OseliaRunArboComponent,
-        Oseliarungraphwidgetcomponent: OseliaRunGraphWidgetComponent
+        Oseliarungraphwidgetcomponent: OseliaRunGraphWidgetComponent,
     }
 })
 export default class OseliaThreadWidgetComponent extends VueComponentBase {
@@ -72,7 +79,8 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     public get_can_run_assistant: boolean;
     @ModuleOseliaGetter
     public get_oselia_first_loading_done: boolean;
-
+    @ModuleOseliaGetter
+    public get_parent_client_tab_id: string;
     @ModuleOseliaGetter
     public get_show_hidden_messages: boolean;
     @ModuleOseliaAction
@@ -124,8 +132,10 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     public thread_messages: GPTAssistantAPIThreadMessageVO[] = [];
     public thread: GPTAssistantAPIThreadVO = null;
     public oselia_runs: OseliaRunVO[] = [];
+    public realtime_session: GPTRealtimeAPISessionVO = null;
+    public is_loading_thread: boolean = true;
+    public use_realtime_voice: boolean = false;
     private has_access_to_thread: boolean = false;
-    private is_loading_thread: boolean = true;
     private assistant_is_busy: boolean = false;
     private current_thread_id: number = null;
     private assistant: GPTAssistantAPIAssistantVO = null;
@@ -141,10 +151,11 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     private wait_for_data: boolean = false;
     private dashboard_export_id: number = null;
     private is_creating_thread: boolean = false;
+    private realtime_on: boolean = false;
     private send_message_create: boolean = false;
+    private POLICY_CAN_USE_REALTIME: boolean = false;
     // private is_recording_voice: boolean = false;
     // private voice_record: MediaRecorder = null;
-    private use_realtime_voice: boolean = false;
     private has_access_to_debug: boolean = false;
 
     private expand_thread_cached_datas: boolean = false;
@@ -162,6 +173,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     private already_read_message_ids: { [message_id: number]: boolean } = {};
     private thread_already_read_message_ids_initialised: boolean = false;
 
+    private incomingAudioChunks: Uint8Array[] = [];
     private functions_by_id: { [id: number]: GPTAssistantAPIFunctionVO } = {};
 
     private throttle_load_thread = ThrottleHelper.declare_throttle_without_args(
@@ -187,70 +199,14 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         return this.vuexGet<string[]>(reflect<this>().get_dashboard_api_type_ids);
     }
 
+    get oselia_blocked(): boolean {
+        return EnvHandler.block_oselia_realtime;
+    }
 
     get file_system_url() {
         const { protocol, hostname, port } = window.location;
         return `${protocol}//${hostname}${(port ? `:${port}` : '')}/admin#/dashboard/view/`;
     }
-
-    // @Watch(reflect<OseliaThreadWidgetComponent>().thread_messages, { deep: true })
-    // private on_change_thread_messages() {
-    //     this.push_new_audio_summaries();
-    // }
-
-    // @Throttle({
-    //     param_type: EventifyEventListenerConfVO.PARAM_TYPE_NONE,
-    //     throttle_ms: 1000,
-    // })
-    // private async push_new_audio_summaries() {
-    //     // Dans tous les cas, si un message arrive avec un fichier audio, on le marque comme lu (qu'il soit lancé ou pas)
-    //     // Si on est en mode audio, et qu'on a un nouveau message qui contient un audio, et qu'on l'a pas encore joué, on le pousse dans la playlist
-
-    //     if (!this.thread_messages || this.thread_messages.length == 0) {
-    //         return;
-    //     }
-
-    //     for (const i in this.thread_messages) {
-    //         const thread_message = this.thread_messages[i];
-
-    //         // Si c'est le premier chargement, on stocke juste les paths/message_ids pour se dire qu'on veut pas les lire ceux-là, on lira que les nouveaux après
-    //         if (!this.thread_already_read_message_ids_initialised) {
-    //             this.already_read_message_ids[thread_message.id] = true;
-    //             continue;
-    //         }
-
-    //         if (this.already_read_message_ids[thread_message.id]) {
-    //             continue;
-    //         }
-
-    //         if ((!thread_message.autogen_voice_summary) || (!thread_message.autogen_tts_id)) {
-    //             continue;
-    //         }
-
-    //         const voice_summary = await query(FileVO.API_TYPE_ID)
-    //             .filter_by_id(thread_message.autogen_tts_id)
-    //             .select_vo<FileVO>();
-    //         if (!voice_summary) {
-    //             continue;
-    //         }
-
-    //         const audio = new Audio(voice_summary.path);
-    //         try {
-    //             await audio.play();
-    //         } catch (error) {
-    //             ConsoleHandler.error(error);
-    //         }
-
-    //         this.audio_message_summary_playlist_paths.push(voice_summary.path);
-    //     }
-
-    //     this.thread_already_read_message_ids_initialised = true;
-    // }
-
-    // @Watch(reflect<OseliaThreadWidgetComponent>().audio_message_summary_playlist_paths, { deep: true })
-    // private on_change_audio_message_summary_playlist_paths() {
-    //     this.read_next_audio_summary();
-    // }
 
     @Throttle({
         param_type: EventifyEventListenerConfVO.PARAM_TYPE_NONE,
@@ -346,13 +302,30 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     }
 
     @Watch(reflect<OseliaThreadWidgetComponent>().thread, { immediate: true })
-    private async onchange_thread(new_thread, old_thread) {
-
+    private async onchange_thread(new_thread: GPTAssistantAPIThreadVO, old_thread: GPTAssistantAPIThreadVO) {
         if (!(new_thread && old_thread && (new_thread.id == old_thread.id))) {
             this.thread_already_read_message_ids_initialised = false;
         }
 
+        if (!new_thread) {
+            await this.unregister_all_vo_event_callbacks();
+            this.current_thread_id = null;
+            return;
+        }
+
+        if (!!old_thread && (old_thread.id === new_thread.id)) {
+            return;
+        }
         this.throttle_register_thread();
+    }
+
+    @Watch(reflect<OseliaThreadWidgetComponent>().thread_messages, { deep: true })
+    private on_thread_messages_change(new_messages: GPTAssistantAPIThreadMessageVO[], old_messages: GPTAssistantAPIThreadMessageVO[]) {
+        if (!old_messages || (new_messages.length > old_messages.length)) {
+            this.$nextTick(() => {
+                this.scroll_to_bottom();
+            });
+        }
     }
 
     @Watch(reflect<OseliaThreadWidgetComponent>().data_received)
@@ -376,54 +349,100 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         }
     }
 
-    // @Watch('oselia_runs', { deep: true })
-    // private async on_update_oselia_runs() {
-    //     this.check_next_audio_summary();
-    // }
 
-    // @Throttle({
-    //     param_type: EventifyEventListenerConfVO.PARAM_TYPE_NONE,
-    //     throttle_ms: 100,
-    // })
-    // private async check_next_audio_summary() {
+    @Watch(reflect<OseliaThreadWidgetComponent>().is_loading_thread, { immediate: true })
+    private async on_is_loading_thread_change() {
+        if (!this.get_parent_client_tab_id) {
+            return;
+        }
 
-    //     if (!this.auto_play_new_run_audio_summaries) {
-    //         if (this.oselia_runs && this.oselia_runs.length > 0) {
-    //             this.last_run_id_checked_for_audio_summary = Math.max(...this.oselia_runs.map((run) => run.id));
-    //         } else {
-    //             this.last_run_id_checked_for_audio_summary = null;
-    //         }
-    //         return;
-    //     }
+        const param = "{\"is_loading\": " + this.is_loading_thread + "}";
+        await ModuleOselia.getInstance().notify_thread_loaded(this.get_parent_client_tab_id, ModuleOselia.EVENT_OSELIA_LOADED_FRAME, param);
+    }
 
-    //     if (this.oselia_runs?.length > 0) {
-    //         for (const run of this.oselia_runs) {
-    //             if (run.id <= this.last_run_id_checked_for_audio_summary) {
-    //                 continue;
-    //             }
+    @Watch(reflect<OseliaThreadWidgetComponent>().use_realtime_voice, { immediate: true })
+    private async on_use_realtime_voice_change() {
+        const controller = await OseliaRealtimeController.getInstance();
+        if (this.use_realtime_voice && this.POLICY_CAN_USE_REALTIME) {
+            let used_assistant = null;
+            // On peut utiliser le realtime
+            if (!this.thread) {
+                const new_thread: number = await ModuleOselia.getInstance().create_thread();
 
-    //             if (!run.voice_summary_id) {
-    //                 continue;
-    //             }
+                if (new_thread) {
+                    this.set_active_field_filter({
+                        field_id: field_names<GPTAssistantAPIThreadVO>().id,
+                        vo_type: GPTAssistantAPIThreadVO.API_TYPE_ID,
+                        active_field_filter: filter(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().id).by_id(new_thread)
+                    });
+                    const context_query_select: ContextQueryVO = query(GPTAssistantAPIThreadVO.API_TYPE_ID)
+                        .using(this.get_dashboard_api_type_ids)
+                        .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
+                            FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters)
+                        ));
+                    const thread = await context_query_select.select_vo<GPTAssistantAPIThreadVO>();
+                    used_assistant = thread.current_default_assistant_id;
+                } else {
+                    return;
+                }
+            } else {
+                used_assistant = this.currently_selected_assistant ? this.currently_selected_assistant : this.assistant;
+            }
+            if (!this.realtime_session) {
+                if (!used_assistant) {
+                    ConsoleHandler.error("No assistant selected for the realtime session.");
+                    return;
+                }
+                this.realtime_session = new GPTRealtimeAPISessionVO();
+                this.realtime_session.instructions = used_assistant.instructions;
+                this.realtime_session.name = used_assistant.nom;
+                this.realtime_session.created_at = Dates.now();
+                const assistant_assistant_functions = await query(GPTAssistantAPIAssistantFunctionVO.API_TYPE_ID)
+                    .filter_by_num_eq(field_names<GPTAssistantAPIAssistantFunctionVO>().assistant_id, used_assistant.id)
+                    .select_vos<GPTAssistantAPIAssistantFunctionVO>();
+                const assistant_functions: GPTAssistantAPIFunctionVO[] = [];
+                for (const assistant_function of assistant_assistant_functions) {
+                    const functions = await query(GPTAssistantAPIFunctionVO.API_TYPE_ID)
+                        .filter_by_id(assistant_function.function_id)
+                        .select_vos<GPTAssistantAPIFunctionVO>();
+                    assistant_functions.push(...functions);
+                }
+                const assistant_parameters: GPTAssistantAPIFunctionParamVO[] = [];
+                for (const assistant_function of assistant_functions) {
+                    const params = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
+                        .filter_by_num_eq(field_names<GPTAssistantAPIFunctionParamVO>().function_id, assistant_function.id)
+                        .select_vos<GPTAssistantAPIFunctionParamVO>();
+                    assistant_parameters.push(...params);
+                }
 
-    //             const voice_summary = await query(FileVO.API_TYPE_ID)
-    //                 .filter_by_id(run.voice_summary_id)
-    //                 .select_vo<FileVO>();
-    //             if (!voice_summary) {
-    //                 continue;
-    //             }
-
-    //             this.last_run_id_checked_for_audio_summary = run.id;
-    //             const audio = new Audio(voice_summary.path);
-    //             try {
-    //                 await audio.play();
-    //             } catch (error) {
-    //                 ConsoleHandler.error(error);
-    //             }
-    //         }
-    //     }
-    // }
-
+                for (const func of assistant_functions) {
+                    const new_func = new GPTRealtimeAPIFunctionVO();
+                    new_func.name = func.gpt_function_name;
+                    new_func.description = func.gpt_function_description;
+                    new_func.session_id = this.realtime_session.id;
+                    for (const param of assistant_parameters) {
+                        if (param.function_id === func.id) {
+                            const new_param = new GPTRealtimeAPIFunctionParametersVO();
+                            new_param.name = param.gpt_funcparam_name;
+                            new_param.description = param.gpt_funcparam_description;
+                            new_param.type = param.type;
+                            new_param.default_json_value = param.default_json_value;
+                            new_param.required = param.required;
+                            new_param.function_id = new_func.id;
+                            await ModuleDAO.getInstance().insertOrUpdateVO(new_param);
+                        }
+                    }
+                    await ModuleDAO.getInstance().insertOrUpdateVO(new_func);
+                }
+                this.realtime_session.id = (await ModuleDAO.getInstance().insertOrUpdateVO(this.realtime_session)).id;
+            }
+            controller.session_overload_object = this.realtime_session;
+            await controller.connect_to_realtime();
+        } else {
+            // On ne peut pas utiliser le realtime
+            controller.disconnect_to_realtime();
+        }
+    }
 
     // Accès dynamiques Vuex
     public vuexGet<T>(getter: string): T {
@@ -436,7 +455,6 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     public set_active_field_filter(param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) {
         return this.vuexAct(reflect<this>().set_active_field_filter, param);
     }
-
 
     private select_thread_id(thread_id: number) {
         this.set_active_field_filter({
@@ -466,16 +484,21 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         this.set_show_hidden_messages(!this.get_show_hidden_messages);
     }
 
+    private switchOpenRealtime() {
+        this.use_realtime_voice = !this.use_realtime_voice;
+    }
+
     private async mounted() {
+        this.POLICY_CAN_USE_REALTIME = await ModuleAccessPolicy.getInstance().testAccess(ModuleGPT.POLICY_USE_OSELIA_REALTIME_IN_CR);
 
         await all_promises([
             (async () => {
                 this.selectable_assistants = await query(GPTAssistantAPIAssistantVO.API_TYPE_ID)
                     .select_vos<GPTAssistantAPIAssistantVO>();
             })(),
-            (async () => {
-                this.use_realtime_voice = await ModuleParams.getInstance().getParamValueAsBoolean(OseliaController.PARAM_NAME_UNBLOCK_REALTIME_API, false, 120000);
-            })(),
+            // (async () => {
+            //     this.use_realtime_voice = await ModuleParams.getInstance().getParamValueAsBoolean(OseliaController.PARAM_NAME_UNBLOCK_REALTIME_API, false, 120000);
+            // })(),
             (async () => {
                 this.has_access_to_debug = await ModuleAccessPolicy.getInstance().testAccess(ModuleOselia.POLICY_BO_ACCESS);
             })(),
@@ -521,6 +544,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
             this.sub_threads = [];
             this.function_calls = [];
             this.oselia_runs = [];
+            this.realtime_session = null;
             this.assistant = null;
             this.currently_selected_assistant = this.assistant;
             this.is_loading_thread = false;
@@ -636,77 +660,6 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         }
     }
 
-    // private async start_voice_record() {
-    //     const audioChunks = [];
-
-    //     if (!this.is_recording_voice) {
-    //         // Commencer l'enregistrement vocal
-    //         try {
-    //             // await ModuleGPT.getInstance().connect_to_realtime_voice(null,null,this.data_user.id);
-    //             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    //             this.voice_record = new MediaRecorder(stream);
-
-    //             if (!this.voice_record) {
-    //                 return;
-    //             }
-
-    //             this.voice_record.start();
-
-    //             // Collecte des données à chaque fois que des données sont disponibles
-    //             this.voice_record.ondataavailable = (e) => {
-    //                 audioChunks.push(e.data);
-    //             };
-
-    //             // Lorsque l'enregistrement est arrêté, créez le fichier audio et jouez-le
-    //             this.voice_record.onstop = () => {
-    //                 const blob = new Blob(audioChunks, { type: 'audio/mpeg-3' });
-    //                 // Téléverser le fichier une fois qu'il est créé
-    //                 const file = new File([blob], "audio.mp3", { type: "audio/mpeg-3" });
-    //                 this.do_upload_file(null, file);
-    //             };
-    //         } catch (err) {
-    //             console.error("Error accessing microphone", err);
-    //         }
-    //     } else {
-    //         // Arrêter l'enregistrement vocal
-    //         if (this.voice_record && this.voice_record.state === "recording") {
-    //             this.voice_record.stop();  // Cela déclenche l'événement 'onstop' ci-dessus
-    //         }
-    //     }
-
-    //     this.is_recording_voice = !this.is_recording_voice;
-    // }
-
-    // private async do_upload_file(fileHandle?: FileSystemFileHandle, files?: File) {
-    //     let file: File;
-    //     if (files) {
-    //         file = files;
-    //     } else {
-    //         file = await fileHandle.getFile();
-    //     }
-    //     // Upload inspiré de feedback handler
-    //     const formData = new FormData();
-    //     const file_name = 'oselia_file_' + VueAppController.getInstance().data_user.id + '_' + Dates.now() + '.' + file.name.split('.').pop();
-    //     formData.append('file', file, file_name);
-
-    //     await AjaxCacheClientController.getInstance().post(
-    //         null,
-    //         '/ModuleFileServer/upload',
-    //         [FileVO.API_TYPE_ID],
-    //         formData,
-    //         null,
-    //         null,
-    //         false,
-    //         30000).then(async () => {
-    //             // Upload via insert or update
-    //             const new_file = new FileVO();
-    //             new_file.path = ModuleFile.FILES_ROOT + 'upload/' + file_name;
-    //             const resnew_file: InsertOrDeleteQueryResult = await ModuleDAO.instance.insertOrUpdateVO(new_file); // Renvoie un InsertOrDeleteQueryResult qui contient l'id cherché
-    //             new_file.id = resnew_file.id;
-    //             this.thread_files.push({ ['.' + file.name.split('.').pop()]: new_file });
-    //         });
-    // }
-
     private async handle_hover() {
         alert("hover");
     }
@@ -758,8 +711,11 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
             return;
         }
 
-        if (this.current_thread_id == this.thread.id) {
-            return;
+        // Une fois que tout est chargé, on lance la connexion au websocket si on a realtime de lancé
+        if (this.thread.realtime_activated) {
+            console.log("realtime_activated", this.thread.realtime_activated);
+        } else {
+            console.log("realtime_activated", this.thread.realtime_activated);
         }
 
         // TODO FIXME : de JNE à MLE : à revoir, on peut pas mettre des trucs comme ça en dur et on a le droit d'avoir plusieurs rôles ...
@@ -1174,7 +1130,6 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
 
             // Commencer l'enregistrement vocal
             try {
-                // await ModuleGPT.getInstance().connect_to_realtime_voice(null,null,this.data_user.id);
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 this.media_recorder = new MediaRecorder(stream);
 

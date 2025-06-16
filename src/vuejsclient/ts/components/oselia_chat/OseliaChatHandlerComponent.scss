@@ -33,7 +33,22 @@
         border-radius: 1em;
         box-shadow: 5px 5px 10px #CCC;
         background: white;
+
+        transform: translateX(150%); // caché par défaut
+        transition: transform .3s cubic-bezier(.34, 1.56, .64, 1),
+            box-shadow .3s;
+
+        &.opened {
+            // ajoute / retire cette classe au clic
+            transform: translateX(0);
+        }
+
+        &.closing {
+            // ajoute / retire cette classe au clic
+            transform: translateX(150%);
+        }
     }
+
 }
 
 .oselia_chat_handler {
@@ -43,30 +58,194 @@
 
     .oselia_chat_btn_closed,
     .oselia_chat_btn_opening,
-    .oselia_chat_btn_opened {
-        // position: fixed;
-        // bottom: 20px;
-        // right: 20px;
+    .oselia_chat_btn_recording .oselia_chat_btn_opened {
         width: 80px;
         height: 80px;
         border: none;
         cursor: pointer;
         background-color: white;
         border-radius: 50px;
-        z-index: 9999;
-        box-shadow: 10px 5px 11px #939393;
+        margin-right: 15px;
     }
 
     .oselia_chat_btn_closed,
     .oselia_chat_btn_opened {
-        background: url(/vuejsclient/public/img/logo_oselia_fb.png) no-repeat center center;
+        position: static;
+        background: url(/public/vuejsclient/img/logo_oselia_fb.png) no-repeat center center;
         background-color: white;
         background-size: contain;
+    }
+
+
+    .oselia_chat_btn_closed.loading::after {
+        content: "";
+        position: sticky;
+        inset: 0;
+        background: inherit;
+        border-radius: inherit;
+        animation: shake 0.8s ease-in-out infinite;
+        pointer-events: none;
+        margin-right: 15px;
+        width: 80px;
+        height: 80px;
+        display: block;
+        bottom: 20px;
     }
 
     .oselia_chat_btn_opening i {
         margin-left: 20px;
         margin-top: 20px;
         font-size: 42px;
+    }
+
+    .oselia_chat_btn_recording {
+        cursor: pointer;
+        position: relative;
+        background-color: #002454;
+        border: none;
+        color: white;
+        padding: 12px 20px;
+        overflow: hidden;
+        align-items: end;
+        justify-content: center;
+        font-weight: 600;
+        width: 100px;
+        height: 80px;
+        border-radius: 50%;
+        top: 50%;
+        transform: translateY(-50%);
+        gap: 4px;
+        flex-direction: column;
+        display: flex;
+        right: 0px;
+        z-index: -1;
+
+        .wave {
+            width: 6px;
+            height: 6px;
+            background-color: white;
+            border-radius: 50%;
+            opacity: 0;
+            transform: scale(1);
+            animation: wave 1.2s infinite ease-in-out;
+            position: relative;
+        }
+    }
+
+    .stop-cross {
+        display: none;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 38px;
+        font-weight: 700;
+        color: white;
+        line-height: 1;
+        pointer-events: none;
+    }
+
+    /* --- MODE STOP (hover) ------------------------------------------ */
+    .oselia_chat_btn_closed.stop-mode {
+        background-color: #ff0024;
+        background-image: none;
+
+        .oselia_chat_btn_recording {
+            display: none;
+        }
+
+        .stop-cross {
+            display: inline-block;
+            left: 36%;
+            top: 25%;
+            position: relative;
+            animation: pulse-red-mini 1.5s infinite;
+        }
+    }
+
+}
+
+.oselia_chat_handler.iframe-hover {
+
+    .oselia_chat_btn_closed.stop-mode {
+        background: url(/public/vuejsclient/img/logo_oselia_fb.png) no-repeat center center;
+        background-color: white;
+        background-size: contain;
+        width: 80px;
+        height: 80px;
+        border: none;
+        cursor: pointer;
+        border-radius: 50px;
+        position: static;
+        margin-right: 15px;
+    }
+
+    .stop-cross {
+        display: none !important;
+    }
+
+    .oselia_chat_btn_recording {
+        display: block !important;
+    }
+}
+
+@keyframes wave {
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 0.5;
+    }
+
+    50% {
+        transform: scale(2.5);
+        opacity: 0;
+    }
+}
+
+@keyframes pulse-red-mini {
+
+    0%,
+    100% {
+        transform: scale(.8);
+    }
+
+    50% {
+        transform: scale(1);
+    }
+}
+
+@keyframes shake {
+
+    0%,
+    100% {
+        transform: translateX(0) rotate(0);
+    }
+
+    15% {
+        transform: translateX(-2px) rotate(-2deg);
+    }
+
+    30% {
+        transform: translateX(2px) rotate(2deg);
+    }
+
+    45% {
+        transform: translateX(-1px) rotate(-1deg);
+    }
+
+    60% {
+        transform: translateX(1px) rotate(1deg);
+    }
+
+    75% {
+        transform: translateX(-.5px) rotate(-.5deg);
+    }
+}
+
+// Respecte les préférences d’accessibilité
+@media (prefers-reduced-motion: reduce) {
+    .oselia_chat_btn_closed.loading {
+        animation: none;
     }
 }

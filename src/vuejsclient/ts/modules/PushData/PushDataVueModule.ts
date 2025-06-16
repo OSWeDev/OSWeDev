@@ -6,6 +6,8 @@ import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQuery
 import TimeSegment from "../../../../shared/modules/DataRender/vos/TimeSegment";
 import ModuleEnvParam from "../../../../shared/modules/EnvParam/ModuleEnvParam";
 import EnvParamsVO from "../../../../shared/modules/EnvParam/vos/EnvParamsVO";
+import EventsController from "../../../../shared/modules/Eventify/EventsController";
+import EventifyEventInstanceVO from "../../../../shared/modules/Eventify/vos/EventifyEventInstanceVO";
 import EventifyEventListenerConfVO from "../../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO";
 import FileVO from "../../../../shared/modules/File/vos/FileVO";
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
@@ -96,6 +98,8 @@ export default class PushDataVueModule extends VueModuleBase {
     }
 
 
+
+
     @Throttle({
         param_type: EventifyEventListenerConfVO.PARAM_TYPE_STACK,
         throttle_ms: 100,
@@ -123,6 +127,7 @@ export default class PushDataVueModule extends VueModuleBase {
         const TYPE_NOTIF_VO_CREATED: NotificationVO[] = [];
         const TYPE_NOTIF_VO_UPDATED: NotificationVO[] = [];
         const TYPE_NOTIF_VO_DELETED: NotificationVO[] = [];
+        const TYPE_NOTIF_EVENT: NotificationVO[] = [];
 
         for (const i in notifications) {
             const notification = notifications[i];
@@ -171,6 +176,9 @@ export default class PushDataVueModule extends VueModuleBase {
                 case NotificationVO.TYPE_NOTIF_VO_DELETED:
                     TYPE_NOTIF_VO_DELETED.push(notification);
                     break;
+                case NotificationVO.TYPE_NOTIF_EVENT:
+                    TYPE_NOTIF_EVENT.push(notification);
+                    break;
             }
         }
 
@@ -216,6 +224,10 @@ export default class PushDataVueModule extends VueModuleBase {
 
         if (TYPE_NOTIF_VO_DELETED && TYPE_NOTIF_VO_DELETED.length) {
             await this.notifications_handler_TYPE_NOTIF_VO_DELETED(TYPE_NOTIF_VO_DELETED);
+        }
+
+        if (TYPE_NOTIF_EVENT && TYPE_NOTIF_EVENT.length) {
+            await this.notifications_handler_TYPE_NOTIF_EVENT(TYPE_NOTIF_EVENT);
         }
     }
 
@@ -385,6 +397,9 @@ export default class PushDataVueModule extends VueModuleBase {
             self.notifications_handler([notification]);
         });
 
+        this.socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_EVENT], async function (notification: NotificationVO) {
+            self.notifications_handler([notification]);
+        });
         // TODO: Handle other notif types
     }
 
@@ -535,6 +550,27 @@ export default class PushDataVueModule extends VueModuleBase {
         }
 
         AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved(Object.keys(vos_types));
+    }
+
+    private async notifications_handler_TYPE_NOTIF_EVENT(notifications: NotificationVO[]) {
+        for (const i in notifications) {
+            const notification = notifications[i];
+
+            if (!notification.event_name) {
+                continue;
+            }
+
+            let param = null;
+            if (notification.event_param_json) {
+                try {
+                    param = JSON.parse(notification.event_param_json);
+                } catch (error) {
+                    ConsoleHandler.error(error);
+                }
+            }
+
+            EventsController.emit_event(EventifyEventInstanceVO.new_event(notification.event_name, param));
+        }
     }
 
     private async notifications_handler_TYPE_NOTIF_VO_DELETED(notifications: NotificationVO[]) {

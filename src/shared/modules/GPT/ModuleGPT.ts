@@ -22,6 +22,7 @@ import OseliaUserPromptVO from '../Oselia/vos/OseliaUserPromptVO';
 import VersionedVOController from '../Versioned/VersionedVOController';
 import APIGPTAskAssistantParam, { APIGPTAskAssistantParamStatic } from './api/APIGPTAskAssistantParam';
 import APIGPTGenerateResponseParam, { APIGPTGenerateResponseParamStatic } from './api/APIGPTGenerateResponseParam';
+import APIRealtimeVoiceConnectParam, { APIRealtimeVoiceConnectParamStatic } from './api/APIRealtimeVoiceConnectParam';
 import APIGPTTranscribeParam, { APIGPTTranscribeParamStatic } from './api/APIGPTTranscribeParam';
 import GPTAssistantAPIAssistantFunctionVO from './vos/GPTAssistantAPIAssistantFunctionVO';
 import GPTAssistantAPIAssistantVO from './vos/GPTAssistantAPIAssistantVO';
@@ -46,12 +47,19 @@ import GPTAssistantAPIVectorStoreFileVO from './vos/GPTAssistantAPIVectorStoreFi
 import GPTAssistantAPIVectorStoreVO from './vos/GPTAssistantAPIVectorStoreVO';
 import GPTCompletionAPIConversationVO from './vos/GPTCompletionAPIConversationVO';
 import GPTCompletionAPIMessageVO from './vos/GPTCompletionAPIMessageVO';
+import GPTRealtimeAPISessionVO from './vos/GPTRealtimeAPISessionVO';
+import IPlanRDVCR from '../ProgramPlan/interfaces/IPlanRDVCR';
+import APIGPTEditCRWord, { APIGPTEditCRWordStatic } from './api/APIGPTEditCRWord';
+import GPTRealtimeAPIFunctionVO from './vos/GPTRealtimeAPIFunctionVO';
+import GPTRealtimeAPIFunctionParametersVO from './vos/GPTRealtimeAPIFunctionParametersVO';
+import APIGPTInsertComprehendedText from './api/APIGPTInsertComprehendedText';
 
 export default class ModuleGPT extends Module {
 
     public static MODULE_NAME: string = 'GPT';
 
     public static PARAM_NAME_MODEL_ID: string = 'PARAM_NAME_MODEL_ID';
+    public static ASSISTANT_REALTIME_NAME: string = 'assistant_realtime';
 
     /**
      * @deprecated use Assistants instead => cheaper / faster / better control. Will be removed soon
@@ -69,7 +77,8 @@ export default class ModuleGPT extends Module {
     public static POLICY_FO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleGPT.MODULE_NAME + ".FO_ACCESS";
     public static POLICY_ask_assistant = AccessPolicyTools.POLICY_UID_PREFIX + ModuleGPT.MODULE_NAME + ".ask_assistant";
     public static POLICY_rerun = AccessPolicyTools.POLICY_UID_PREFIX + ModuleGPT.MODULE_NAME + ".rerun";
-
+    public static POLICY_USE_OSELIA_REALTIME: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleGPT.MODULE_NAME + '.USE_OSELIA_REALTIME';
+    public static POLICY_USE_OSELIA_REALTIME_IN_CR: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleGPT.MODULE_NAME + '.USE_OSELIA_REALTIME_IN_CR';
     /**
      * @deprecated use Assistants instead => cheaper / faster / better control. Will be removed soon
      */
@@ -105,20 +114,21 @@ export default class ModuleGPT extends Module {
     public transcribe_file: (file_vo_id: number, auto_commit_auto_input: boolean, gpt_assistant_id: string, gpt_thread_id: string, user_id: number) => Promise<string> = APIControllerWrapper.sah_optimizer<APIGPTTranscribeParam, string>(this.name, reflect<this>().transcribe_file);
 
     public summerize: (thread_id: number) => Promise<FileVO> = APIControllerWrapper.sah_optimizer<NumberParamVO, FileVO>(this.name, reflect<this>().summerize);
-
-    // /**
-    //  * Demander un run d'un assistant suite à un nouveau message
-    //  * @param session_id null pour une nouvelle session, id de la session au sens de l'API GPT
-    //  * @param conversation_id null pour un nouveau thread, sinon l'id du thread au sens de l'API GPT
-    //  * @param user_id contenu text du nouveau message
-    //  * @returns
-    //  */
-    // public connect_to_realtime_voice: (
-    //     session_id: string,
-    //     conversation_id: string,
-    //     user_id: number,
-
-    // ) => Promise<GPTRealtimeAPIConversationItemVO[]> = APIControllerWrapper.sah<APIRealtimeVoiceConnectParam, GPTRealtimeAPIConversationItemVO[]>(ModuleGPT.APINAME_connect_to_realtime_voice);
+    public insert_comprehended_text : (target_thread_id: string, comprehension: string, user_id: number) => Promise<void> = APIControllerWrapper.sah_optimizer<APIGPTInsertComprehendedText, void>(this.name, reflect<this>().insert_comprehended_text);
+    public edit_cr_word: (new_content: string, section: string, cr_vo: IPlanRDVCR, cr_field_titles: string[]) => Promise<unknown> = APIControllerWrapper.sah_optimizer<APIGPTEditCRWord, unknown>(this.name, reflect<this>().edit_cr_word);
+    /**
+     * Demander un run d'un assistant suite à un nouveau message
+     * @param session_id null pour une nouvelle session, id de la session au sens de l'API GPT
+     * @param conversation_id null pour un nouveau thread, sinon l'id du thread au sens de l'API GPT
+     * @param user_id contenu text du nouveau message
+     * @returns
+     */
+    public connect_to_realtime_voice: (
+        session_id: string,
+        conversation_id: string,
+        thread_id: string,
+        user_id: number,
+    ) => void = APIControllerWrapper.sah_optimizer<APIRealtimeVoiceConnectParam, void>(this.name, reflect<this>().connect_to_realtime_voice);
 
     /**
      * Re-run un run d'un assistant suite à un nouveau message par exemple ou pour essayer d'avoir une réponse plus pertinente
@@ -181,6 +191,29 @@ export default class ModuleGPT extends Module {
             NumberParamVOStatic,
         ));
 
+        APIControllerWrapper.registerApi(PostAPIDefinition.new<APIGPTEditCRWord, void>(
+            ModuleGPT.POLICY_USE_OSELIA_REALTIME,
+            this.name,
+            reflect<this>().edit_cr_word,
+            null,
+            APIGPTEditCRWordStatic,
+        ));
+
+        APIControllerWrapper.registerApi(PostAPIDefinition.new<APIGPTInsertComprehendedText, void>(
+            ModuleGPT.POLICY_USE_OSELIA_REALTIME,
+            this.name,
+            reflect<this>().insert_comprehended_text,
+            null,
+            APIGPTInsertComprehendedText,
+        ));
+
+        APIControllerWrapper.registerApi(PostAPIDefinition.new<APIRealtimeVoiceConnectParam, void>(
+            ModuleGPT.POLICY_USE_OSELIA_REALTIME,
+            this.name,
+            reflect<this>().connect_to_realtime_voice,
+            null,
+            APIRealtimeVoiceConnectParamStatic,
+        ));
         /**
          * Depuis la synchro auto en cas de données manquantes, on peut impacter tout type de données en fait sur une ask_assistant...
          */
@@ -275,6 +308,9 @@ export default class ModuleGPT extends Module {
         this.initializeGPTAssistantAPIThreadMessageContentTextVO();
         this.initializeGPTAssistantAPIThreadMessageContentImageFileVO();
         this.initializeGPTAssistantAPIThreadMessageContentImageURLVO();
+        this.initializeGPTRealtimeAPISessionVO();
+        this.initializeGPTRealtimeAPIFunctionVO();
+        this.initializeGPTRealtimeAPIFunctionParametersVO();
 
         this.initialize_OseliaThreadMessageFeedbackVO();
         this.initialize_OseliaThreadFeedbackVO();
@@ -550,6 +586,7 @@ export default class ModuleGPT extends Module {
         ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().parent_thread_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Thread parent', false)
             .set_many_to_one_target_moduletable_name(GPTAssistantAPIThreadVO.API_TYPE_ID);
 
+        ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().realtime_activated, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Realtime Activé', false, true, false);
         ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().oselia_is_running, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Osélia en cours de réflexion', true, true, false);
         ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().archived, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Archivé', true, true, false);
         ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().created_at, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de création', false).set_segmentation_type(TimeSegment.TYPE_SECOND);
@@ -791,9 +828,61 @@ export default class ModuleGPT extends Module {
     }
 
     private initializeGPTAssistantAPIThreadMessageContentImageURLVO() {
-        ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageContentImageURLVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageContentImageURLVO>().url, ModuleTableFieldVO.FIELD_TYPE_string, 'URL', true);
+        ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageContentImageURLVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageContentImageURLVO>().url, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'URL', true);
         ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageContentImageURLVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageContentImageURLVO>().detail, ModuleTableFieldVO.FIELD_TYPE_string, 'Détail', true);
 
         ModuleTableController.create_new(this.name, GPTAssistantAPIThreadMessageContentImageURLVO, null, 'GPT Assistant API - Thread Message Content - Image URL');
+    }
+
+    private initializeGPTRealtimeAPISessionVO() {
+
+        ModuleTableFieldController.create_new(GPTRealtimeAPISessionVO.API_TYPE_ID, field_names<GPTRealtimeAPISessionVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
+        ModuleTableFieldController.create_new(GPTRealtimeAPISessionVO.API_TYPE_ID, field_names<GPTRealtimeAPISessionVO>().input_audio_format, ModuleTableFieldVO.FIELD_TYPE_string, 'Format de l\'entrée audio', false, true, 'pcm16');
+        ModuleTableFieldController.create_new(GPTRealtimeAPISessionVO.API_TYPE_ID, field_names<GPTRealtimeAPISessionVO>().input_audio_transcription_model, ModuleTableFieldVO.FIELD_TYPE_string, 'Modèle de transcription de l\'entrée audio', false, true, 'whisper-1');
+        ModuleTableFieldController.create_new(GPTRealtimeAPISessionVO.API_TYPE_ID, field_names<GPTRealtimeAPISessionVO>().input_audio_transcription_language, ModuleTableFieldVO.FIELD_TYPE_string, 'Langue de transcription de l\'entrée audio', false, true, 'fr');
+        ModuleTableFieldController.create_new(GPTRealtimeAPISessionVO.API_TYPE_ID, field_names<GPTRealtimeAPISessionVO>().instructions, ModuleTableFieldVO.FIELD_TYPE_string, 'Instructions', false);
+        ModuleTableFieldController.create_new(GPTRealtimeAPISessionVO.API_TYPE_ID, field_names<GPTRealtimeAPISessionVO>().max_response_output_tokens, ModuleTableFieldVO.FIELD_TYPE_int, 'Maximum de tokens par réponses', false);
+        ModuleTableFieldController.create_new(GPTRealtimeAPISessionVO.API_TYPE_ID, field_names<GPTRealtimeAPISessionVO>().modalities, ModuleTableFieldVO.FIELD_TYPE_string_array, 'Modalités', false);
+        ModuleTableFieldController.create_new(GPTRealtimeAPISessionVO.API_TYPE_ID, field_names<GPTRealtimeAPISessionVO>().output_audio_format, ModuleTableFieldVO.FIELD_TYPE_string, 'Format de la sortie audio', false, true, 'pcm16');
+        ModuleTableFieldController.create_new(GPTRealtimeAPISessionVO.API_TYPE_ID, field_names<GPTRealtimeAPISessionVO>().temperature, ModuleTableFieldVO.FIELD_TYPE_float, 'Température', false, true, 0.8);
+        ModuleTableFieldController.create_new(GPTRealtimeAPISessionVO.API_TYPE_ID, field_names<GPTRealtimeAPISessionVO>().tool_choice, ModuleTableFieldVO.FIELD_TYPE_string, 'Choix des outils', false, true, 'auto');
+        ModuleTableFieldController.create_new(GPTRealtimeAPISessionVO.API_TYPE_ID, field_names<GPTRealtimeAPISessionVO>().tools, ModuleTableFieldVO.FIELD_TYPE_string_array, 'Outils', false);
+        ModuleTableFieldController.create_new(GPTRealtimeAPISessionVO.API_TYPE_ID, field_names<GPTRealtimeAPISessionVO>().turn_detection_prefix_padding_ms, ModuleTableFieldVO.FIELD_TYPE_int, 'Temps d\'attente avant détection', false, true, 150);
+        ModuleTableFieldController.create_new(GPTRealtimeAPISessionVO.API_TYPE_ID, field_names<GPTRealtimeAPISessionVO>().turn_detection_silence_duration_ms, ModuleTableFieldVO.FIELD_TYPE_int, 'Durée du silence', false, true, 400);
+        ModuleTableFieldController.create_new(GPTRealtimeAPISessionVO.API_TYPE_ID, field_names<GPTRealtimeAPISessionVO>().turn_detection_threshold, ModuleTableFieldVO.FIELD_TYPE_float, 'Seuil d\'activation', false, true , 0.5);
+        ModuleTableFieldController.create_new(GPTRealtimeAPISessionVO.API_TYPE_ID, field_names<GPTRealtimeAPISessionVO>().turn_detection_type, ModuleTableFieldVO.FIELD_TYPE_string, 'Type d\'activation', false);
+        ModuleTableFieldController.create_new(GPTRealtimeAPISessionVO.API_TYPE_ID, field_names<GPTRealtimeAPISessionVO>().voice, ModuleTableFieldVO.FIELD_TYPE_string, 'Modèle de voix', false, true, 'shimmer');
+        ModuleTableFieldController.create_new(GPTRealtimeAPISessionVO.API_TYPE_ID, field_names<GPTRealtimeAPISessionVO>().client_secret_expires_at, ModuleTableFieldVO.FIELD_TYPE_string, 'Secret Client - Expiration', false);
+        ModuleTableFieldController.create_new(GPTRealtimeAPISessionVO.API_TYPE_ID, field_names<GPTRealtimeAPISessionVO>().client_secret_value, ModuleTableFieldVO.FIELD_TYPE_string, 'Secret Client - Valeur', false);
+
+        ModuleTableController.create_new(this.name, GPTRealtimeAPISessionVO, null, 'GPT Session Object');
+    }
+
+    private initializeGPTRealtimeAPIFunctionVO() {
+        const session_id = ModuleTableFieldController.create_new(GPTRealtimeAPIFunctionVO.API_TYPE_ID, field_names<GPTRealtimeAPIFunctionVO>().session_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Session', true);
+        ModuleTableFieldController.create_new(GPTRealtimeAPIFunctionVO.API_TYPE_ID, field_names<GPTRealtimeAPIFunctionVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom de la fonction', true);
+        ModuleTableFieldController.create_new(GPTRealtimeAPIFunctionVO.API_TYPE_ID, field_names<GPTRealtimeAPIFunctionVO>().description, ModuleTableFieldVO.FIELD_TYPE_string, 'Description de la fonction', false);
+
+        session_id.set_many_to_one_target_moduletable_name(GPTRealtimeAPISessionVO.API_TYPE_ID);
+        ModuleTableController.create_new(this.name, GPTRealtimeAPIFunctionVO, null, 'GPT Session Function');
+    }
+
+    private initializeGPTRealtimeAPIFunctionParametersVO() {
+        const function_id = ModuleTableFieldController.create_new(GPTRealtimeAPIFunctionParametersVO.API_TYPE_ID, field_names<GPTRealtimeAPIFunctionParametersVO>().function_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Fonction', true);
+        ModuleTableFieldController.create_new(GPTRealtimeAPIFunctionParametersVO.API_TYPE_ID, field_names<GPTRealtimeAPIFunctionParametersVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom du paramètre', true);
+        ModuleTableFieldController.create_new(GPTRealtimeAPIFunctionParametersVO.API_TYPE_ID, field_names<GPTRealtimeAPIFunctionParametersVO>().description, ModuleTableFieldVO.FIELD_TYPE_string, 'Description', false);
+        ModuleTableFieldController.create_new(GPTRealtimeAPIFunctionParametersVO.API_TYPE_ID, field_names<GPTRealtimeAPIFunctionParametersVO>().type, ModuleTableFieldVO.FIELD_TYPE_enum, 'Type', true, true, GPTRealtimeAPIFunctionParametersVO.TYPE_STRING).setEnumValues(GPTRealtimeAPIFunctionParametersVO.TYPE_LABELS);
+        ModuleTableFieldController.create_new(GPTRealtimeAPIFunctionParametersVO.API_TYPE_ID, field_names<GPTRealtimeAPIFunctionParametersVO>().required, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Requis', true, true, true);
+        ModuleTableFieldController.create_new(GPTRealtimeAPIFunctionParametersVO.API_TYPE_ID, field_names<GPTRealtimeAPIFunctionParametersVO>().not_in_function_params, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Ne pas passer à la fonction (par exemple paramètre d\'URL uniquement)', true, true, false);
+        ModuleTableFieldController.create_new(GPTRealtimeAPIFunctionParametersVO.API_TYPE_ID, field_names<GPTRealtimeAPIFunctionParametersVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true, true, 0);
+        ModuleTableFieldController.create_new(GPTRealtimeAPIFunctionParametersVO.API_TYPE_ID, field_names<GPTRealtimeAPIFunctionParametersVO>().string_enum, ModuleTableFieldVO.FIELD_TYPE_string_array, 'Options string enum', false);
+        ModuleTableFieldController.create_new(GPTRealtimeAPIFunctionParametersVO.API_TYPE_ID, field_names<GPTRealtimeAPIFunctionParametersVO>().number_enum, ModuleTableFieldVO.FIELD_TYPE_float_array, 'Options numebr enum', false);
+        ModuleTableFieldController.create_new(GPTRealtimeAPIFunctionParametersVO.API_TYPE_ID, field_names<GPTRealtimeAPIFunctionParametersVO>().object_fields, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Champs (type objet)', false);
+        ModuleTableFieldController.create_new(GPTRealtimeAPIFunctionParametersVO.API_TYPE_ID, field_names<GPTRealtimeAPIFunctionParametersVO>().array_items_type, ModuleTableFieldVO.FIELD_TYPE_enum, 'Type des éléments (type array)', false).setEnumValues(GPTRealtimeAPIFunctionParametersVO.TYPE_LABELS);
+        ModuleTableFieldController.create_new(GPTRealtimeAPIFunctionParametersVO.API_TYPE_ID, field_names<GPTRealtimeAPIFunctionParametersVO>().default_json_value, ModuleTableFieldVO.FIELD_TYPE_string, 'Valeur par défaut (JSON)', false);
+        ModuleTableFieldController.create_new(GPTRealtimeAPIFunctionParametersVO.API_TYPE_ID, field_names<GPTRealtimeAPIFunctionParametersVO>().archived, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Archivé', true, true, false);
+
+        function_id.set_many_to_one_target_moduletable_name(GPTRealtimeAPIFunctionVO.API_TYPE_ID);
+        ModuleTableController.create_new(this.name, GPTRealtimeAPIFunctionParametersVO, null, 'GPT Session Function Parameters');
     }
 }

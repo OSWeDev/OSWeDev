@@ -1,6 +1,27 @@
-.oselia_chat_handler(v-if="isActive")
-    .openclose_oselia_chat_handler_module_wrapper
-        .oselia_chat_btn_closed(@click='openClick()')
-        
-        template(v-if="oselia_url && is_open")
-            iframe(:src="oselia_url" id="OseliaContainer")
+.oselia_chat_handler(:class="{'iframe-hover': isHoveringIframe}")
+    template(v-if="isActive")
+        .openclose_oselia_chat_handler_module_wrapper
+            // bouton d’ouverture/fermeture
+            .oselia_chat_btn_closed(
+                @click="mainButtonClick"                    
+                @mouseenter="toggleStopHover(true)"          
+                @mouseleave="toggleStopHover(false)"         
+                :class="{'stop-mode': connection_established && isStopHover, 'loading'  : iframe_is_loading}"
+                :style="connection_established ? {} : { 'box-shadow': '10px 5px 11px #939393' }"
+            )
+                .oselia_chat_btn_closed_icon
+
+                // --- État « connecté » : on affiche les 3 vagues
+                template(v-if='connection_established')
+                    .oselia_chat_btn_recording(
+                        @click="stopClick" 
+                    )
+                        span.wave(style="animation-delay:0s;  right:-10px;")
+                        span.wave(style="animation-delay:.2s; right:-12px;")
+                        span.wave(style="animation-delay:.4s; right:-10px;")
+                   
+                span.stop-cross ×
+
+                // --- Iframe Oselia visible uniquement quand ouvert + URL dispo
+                template(v-if="oselia_url && (is_open || is_closing)")
+                    iframe(:src="oselia_url" id="OseliaContainer" :class="{'opened': iframe_loaded, 'closing': is_closing}")

@@ -83,6 +83,10 @@ import GPTAssistantAPIServerSyncThreadsController from './sync/GPTAssistantAPISe
 import GPTAssistantAPIServerSyncVectorStoreFileBatchesController from './sync/GPTAssistantAPIServerSyncVectorStoreFileBatchesController';
 import GPTAssistantAPIServerSyncVectorStoreFilesController from './sync/GPTAssistantAPIServerSyncVectorStoreFilesController';
 import GPTAssistantAPIServerSyncVectorStoresController from './sync/GPTAssistantAPIServerSyncVectorStoresController';
+import ModuleProgramPlanBase from '../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
+import IPlanRDVCR from '../../../shared/modules/ProgramPlan/interfaces/IPlanRDVCR';
+import GPTAssistantAPIThreadMessageContentTextVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageContentTextVO';
+import SortByVO from '../../../shared/modules/ContextFilter/vos/SortByVO';
 
 export default class ModuleGPTServer extends ModuleServerBase {
 
@@ -263,7 +267,9 @@ export default class ModuleGPTServer extends ModuleServerBase {
         APIControllerWrapper.register_server_api_handler(ModuleGPT.getInstance().name, reflect<ModuleGPT>().get_tts_file, this.get_tts_file.bind(this));
         APIControllerWrapper.register_server_api_handler(ModuleGPT.getInstance().name, reflect<ModuleGPT>().transcribe_file, this.transcribe_file.bind(this));
         APIControllerWrapper.register_server_api_handler(ModuleGPT.getInstance().name, reflect<ModuleGPT>().summerize, this.summerize.bind(this));
-        // APIControllerWrapper.registerServerApiHandler(ModuleGPT.APINAME_connect_to_realtime_voice, this.connect_to_realtime_voice.bind(this));
+        APIControllerWrapper.register_server_api_handler(ModuleGPT.getInstance().name, reflect<ModuleGPT>().edit_cr_word, this.edit_cr_word.bind(this));
+        APIControllerWrapper.register_server_api_handler(ModuleGPT.getInstance().name, reflect<ModuleGPT>().insert_comprehended_text, this.insert_comprehended_text.bind(this));
+        APIControllerWrapper.register_server_api_handler(ModuleGPT.getInstance().name, reflect<ModuleGPT>().connect_to_realtime_voice, this.connect_to_realtime_voice.bind(this));
 
         ManualTasksController.getInstance().registered_manual_tasks_by_name[ModuleGPT.MANUAL_TASK_NAME_sync_openai_datas] = this.sync_openai_datas;
     }
@@ -377,20 +383,21 @@ export default class ModuleGPTServer extends ModuleServerBase {
         );
     }
 
-    // /**
-    //  * Demander un run d'un assistant suite à un nouveau message
-    //  * @param session_id null pour une nouvelle session, id de la session au sens de l'API GPT
-    //  * @param conversation_id null pour un nouveau thread, sinon l'id du thread au sens de l'API GPT
-    //  * @param user_id contenu text du nouveau message
-    //  * @returns
-    //  */
-    // public async connect_to_realtime_voice(
-    //     session_id: string,
-    //     conversation_id: string,
-    //     user_id: number
-    // ): Promise<GPTRealtimeAPIConversationItemVO[]> {
-    //     return await GPTAssistantAPIServerController.connect_to_realtime_voice(session_id, conversation_id, user_id);
-    // }
+    /**
+     * Demander un run d'un assistant suite à un nouveau message
+     * @param session_id null pour une nouvelle session, id de la session au sens de l'API GPT
+     * @param conversation_id null pour un nouveau thread, sinon l'id du thread au sens de l'API GPT
+     * @param user_id contenu text du nouveau message
+     * @returns
+     */
+    public async connect_to_realtime_voice(
+        session_id: string,
+        conversation_id: string,
+        thread_id: string,
+        user_id: number,
+    ): Promise<void> {
+        return await GPTAssistantAPIServerController.connect_to_realtime_voice(session_id, conversation_id, thread_id, user_id);
+    }
 
     public async assistant_function_get_vo_type_description_controller(
         thread_vo: GPTAssistantAPIThreadVO,
@@ -512,6 +519,10 @@ export default class ModuleGPTServer extends ModuleServerBase {
          */
         postCreateTrigger.registerHandler(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, this, this.postcreate_ThreadMessageVO_handle_pipe);
         postCreateTrigger.registerHandler(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID, this, this.postcreate_ThreadMessageContentVO_handle_pipe);
+
+        if(ModuleProgramPlanBase.getInstance().rdv_cr_type_id){
+            postUpdateTrigger.registerHandler(ModuleProgramPlanBase.getInstance().rdv_cr_type_id, GPTAssistantAPIServerController, GPTAssistantAPIServerController.postupdate_rdv_cr_vo_handle_pipe);
+        }
 
         if (!ConfigurationService.node_configuration.open_api_api_key) {
             ConsoleHandler.warn('OPEN_API_API_KEY is not set in configuration');
@@ -642,8 +653,8 @@ export default class ModuleGPTServer extends ModuleServerBase {
                 .filter_by_id(run.thread_id)
                 .exec_as_server()
                 .update_vos<GPTAssistantAPIThreadVO>({
-                    oselia_is_running: false,
-                });
+                oselia_is_running: false,
+            });
         }
         await ModuleDAOServer.instance.insertOrUpdateVOs_as_server(runs);
 
@@ -735,6 +746,22 @@ export default class ModuleGPTServer extends ModuleServerBase {
         POLICY_generate_response = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_generate_response, DefaultTranslationVO.create_new({
             'fr-fr': 'API: generate_response'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+
+        let POLICY_USE_OSELIA_REALTIME: AccessPolicyVO = new AccessPolicyVO();
+        POLICY_USE_OSELIA_REALTIME.group_id = group.id;
+        POLICY_USE_OSELIA_REALTIME.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        POLICY_USE_OSELIA_REALTIME.translatable_name = ModuleGPT.POLICY_USE_OSELIA_REALTIME;
+        POLICY_USE_OSELIA_REALTIME = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_USE_OSELIA_REALTIME, DefaultTranslationVO.create_new({
+            'fr-fr': 'API: use oselia realtime voice'
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+
+        let POLICY_USE_OSELIA_REALTIME_IN_CR: AccessPolicyVO = new AccessPolicyVO();
+        POLICY_USE_OSELIA_REALTIME_IN_CR.group_id = group.id;
+        POLICY_USE_OSELIA_REALTIME_IN_CR.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        POLICY_USE_OSELIA_REALTIME_IN_CR.translatable_name = ModuleGPT.POLICY_USE_OSELIA_REALTIME_IN_CR;
+        POLICY_USE_OSELIA_REALTIME_IN_CR = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_USE_OSELIA_REALTIME_IN_CR, DefaultTranslationVO.create_new({
+            'fr-fr': 'API: use oselia realtime voice in CR'
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
     }
 
     public registerAccessHooks(): void {
@@ -825,8 +852,8 @@ export default class ModuleGPTServer extends ModuleServerBase {
 
     private async api_response_handler(conversation: GPTCompletionAPIConversationVO, result: any): Promise<GPTCompletionAPIMessageVO> {
         try {
-            let responseText = result?.choices?.length ? result.choices.shift().message.content : null;
-            let responseMessage: GPTCompletionAPIMessageVO = new GPTCompletionAPIMessageVO();
+            const responseText = result?.choices?.length ? result.choices.shift().message.content : null;
+            const responseMessage: GPTCompletionAPIMessageVO = new GPTCompletionAPIMessageVO();
             responseMessage.date = Dates.now();
             responseMessage.content = responseText;
             responseMessage.role_type = GPTCompletionAPIMessageVO.GPTMSG_ROLE_TYPE_ASSISTANT;
@@ -1091,6 +1118,122 @@ export default class ModuleGPTServer extends ModuleServerBase {
 
     private async summerize(thread_vo: number): Promise<FileVO> {
         throw new Error('Not implemented');
+    }
+
+    private async insert_comprehended_text(target_thread_id: string, comprehension: string, user_id: number): Promise<void> {
+        if (!target_thread_id || !comprehension || !user_id) {
+            ConsoleHandler.error('insertComprehendedText: Invalid parameters');
+            return;
+        }
+        const thread_vo: GPTAssistantAPIThreadVO = await query(GPTAssistantAPIThreadVO.API_TYPE_ID)
+            .filter_by_id(parseInt(target_thread_id))
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIThreadVO>();
+
+        if (!thread_vo) {
+            ConsoleHandler.error('insertComprehendedText: Thread not found');
+            return;
+        }
+
+        const current_user = await query(UserVO.API_TYPE_ID).filter_by_id(user_id).set_limit(1).select_vo<UserVO>();
+        if (!current_user) {
+            ConsoleHandler.error('insertComprehendedText: User not found');
+            return;
+        }
+
+        const last_thread_msg: GPTAssistantAPIThreadMessageVO = await query(GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
+            .filter_by_num_eq(field_names<GPTAssistantAPIThreadMessageVO>().thread_id, thread_vo.id)
+            .filter_is_false(field_names<GPTAssistantAPIThreadMessageVO>().archived)
+            .set_sort(new SortByVO(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().weight, true))
+            .set_limit(1)
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIThreadMessageVO>();
+
+        const asking_message_vo = new GPTAssistantAPIThreadMessageVO();
+        asking_message_vo.date = Dates.now();
+        asking_message_vo.gpt_thread_id = thread_vo.gpt_thread_id;
+        asking_message_vo.thread_id = thread_vo.id;
+        asking_message_vo.weight = last_thread_msg ? last_thread_msg.weight + 1 : 0;
+        asking_message_vo.role = GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_USER;
+        asking_message_vo.user_id = user_id ? user_id : thread_vo.user_id;
+        asking_message_vo.is_ready = false;
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(asking_message_vo);
+
+        const message_content = new GPTAssistantAPIThreadMessageContentVO();
+        message_content.thread_message_id = asking_message_vo.id;
+        message_content.content_type_text = new GPTAssistantAPIThreadMessageContentTextVO();
+        message_content.content_type_text.value = comprehension;
+        message_content.gpt_thread_message_id = asking_message_vo.gpt_id;
+        message_content.type = GPTAssistantAPIThreadMessageContentVO.TYPE_TEXT;
+        message_content.weight = 0;
+        message_content.hidden = false;
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(message_content);
+
+        const content_name = new GPTAssistantAPIThreadMessageContentVO();
+        content_name.thread_message_id = asking_message_vo.id;
+        content_name.content_type_text = new GPTAssistantAPIThreadMessageContentTextVO();
+        content_name.content_type_text.value = '<name:' + current_user.name + '>';
+        content_name.gpt_thread_message_id = asking_message_vo.gpt_id;
+        content_name.type = GPTAssistantAPIThreadMessageContentVO.TYPE_TEXT;
+        content_name.weight = 0;
+        content_name.hidden = true;
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(content_name);
+
+        const content_email = new GPTAssistantAPIThreadMessageContentVO();
+        content_email.thread_message_id = asking_message_vo.id;
+        content_email.content_type_text = new GPTAssistantAPIThreadMessageContentTextVO();
+        content_email.content_type_text.value = '<email:' + current_user.email + '>';
+        content_email.gpt_thread_message_id = asking_message_vo.gpt_id;
+        content_email.type = GPTAssistantAPIThreadMessageContentVO.TYPE_TEXT;
+        content_email.weight = 0;
+        content_email.hidden = true;
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(content_email);
+
+        const content_phone = new GPTAssistantAPIThreadMessageContentVO();
+        content_phone.thread_message_id = asking_message_vo.id;
+        content_phone.content_type_text = new GPTAssistantAPIThreadMessageContentTextVO();
+        content_phone.content_type_text.value = '<phone:' + current_user.phone + '>';
+        content_phone.gpt_thread_message_id = asking_message_vo.gpt_id;
+        content_phone.type = GPTAssistantAPIThreadMessageContentVO.TYPE_TEXT;
+        content_phone.weight = 0;
+        content_phone.hidden = true;
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(content_phone);
+
+        const content_user_id = new GPTAssistantAPIThreadMessageContentVO();
+        content_user_id.thread_message_id = asking_message_vo.id;
+        content_user_id.content_type_text = new GPTAssistantAPIThreadMessageContentTextVO();
+        content_user_id.content_type_text.value = '<user_id:' + user_id.toString() + '>';
+        content_user_id.gpt_thread_message_id = asking_message_vo.gpt_id;
+        content_user_id.type = GPTAssistantAPIThreadMessageContentVO.TYPE_TEXT;
+        content_user_id.weight = 0;
+        content_user_id.hidden = true;
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(content_user_id);
+
+        asking_message_vo.is_ready = true;
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(asking_message_vo);
+    }
+
+    /**
+     * Met à jour une section spécifique avec un nouveau contenu HTML.
+     *
+     * @param new_content - Nouveau contenu HTML à insérer (peut inclure listes, gras, etc.).
+     * @param section - Nom de la section à modifier.
+     * @param cr_vo - Instance de IPlanRDVCR représentant le CR à modifier.
+     * @param cr_field_titles - Titres des champs du CR pour identifier la section.
+     * @return Promise<unknown> - Résultat de l'opération d'édition.
+     */
+    private async edit_cr_word(new_content: string, section: string, cr_vo: IPlanRDVCR,cr_field_titles: string[]): Promise<unknown> {
+        if (!ModuleProgramPlanBase.getInstance().rdv_cr_type_id) {
+            ConsoleHandler.error('edit_cr_word: No RDV CR type ID configured');
+            return;
+        }
+
+        return await ModuleProgramPlanBase.getInstance().editCRSectionContent(
+            new_content,
+            section,
+            cr_vo,
+            cr_field_titles,
+        );
     }
 
     private async postcreate_ThreadMessageVO_handle_pipe(msg: GPTAssistantAPIThreadMessageVO) {

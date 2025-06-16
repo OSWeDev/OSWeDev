@@ -1,5 +1,6 @@
 import VueJsonPretty from 'vue-json-pretty';
 import { Component, Prop, Watch } from 'vue-property-decorator';
+import './SelectionPanel.scss';
 import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import GPTAssistantAPIAssistantVO from '../../../../../../../shared/modules/GPT/vos/GPTAssistantAPIAssistantVO';

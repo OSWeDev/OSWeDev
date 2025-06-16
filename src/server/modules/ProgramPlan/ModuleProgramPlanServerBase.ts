@@ -23,6 +23,7 @@ import IPlanRDVPrep from '../../../shared/modules/ProgramPlan/interfaces/IPlanRD
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import { field_names } from '../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import TimeSegmentHandler from '../../../shared/tools/TimeSegmentHandler';
@@ -1002,4 +1003,5 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
 
         return true;
     }
+
 }

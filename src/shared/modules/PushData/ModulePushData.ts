@@ -112,7 +112,8 @@ export default class ModulePushData extends Module {
             ModuleTableFieldController.create_new(NotificationVO.API_TYPE_ID, field_names<NotificationVO>().notif_route, ModuleTableFieldVO.FIELD_TYPE_string, 'Route pour redirection', false),
             ModuleTableFieldController.create_new(NotificationVO.API_TYPE_ID, field_names<NotificationVO>().notif_route_params_name, ModuleTableFieldVO.FIELD_TYPE_string_array, 'Paramètres d\'URL', false),
             ModuleTableFieldController.create_new(NotificationVO.API_TYPE_ID, field_names<NotificationVO>().notif_route_params_values, ModuleTableFieldVO.FIELD_TYPE_string_array, 'Valeurs des paramètres d\'URL', false),
-
+            ModuleTableFieldController.create_new(NotificationVO.API_TYPE_ID, field_names<NotificationVO>().event_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom d\'événement ', false),
+            ModuleTableFieldController.create_new(NotificationVO.API_TYPE_ID, field_names<NotificationVO>().event_param_json, ModuleTableFieldVO.FIELD_TYPE_string, 'Paramètres d\'événement', false, true, null),
             ModuleTableFieldController.create_new(NotificationVO.API_TYPE_ID, field_names<NotificationVO>().room_id, ModuleTableFieldVO.FIELD_TYPE_string, 'Room ID', false),
             ModuleTableFieldController.create_new(NotificationVO.API_TYPE_ID, field_names<NotificationVO>().redirect_uri, ModuleTableFieldVO.FIELD_TYPE_string, 'URI de redirection', false),
         ];

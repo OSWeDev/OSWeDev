@@ -125,7 +125,8 @@ export default class DiagramLayout {
 
     public static layoutRunDiagram(
         items: { [id: string]: OseliaRunVO | OseliaRunFunctionCallVO },
-        adjacency: { [id: string]: string[] }
+        adjacency: { [id: string]: string[] },
+        expandedRuns: { [id: string]: boolean }
     ): {
             blockPositions: { [id: string]: BlockPosition };
             drawnLinks: LinkDrawInfo[];
@@ -148,7 +149,8 @@ export default class DiagramLayout {
                 adjacency,
                 items,
                 blockPositions,
-                resultsLinks
+                resultsLinks,
+                expandedRuns
             );
         }
 
@@ -170,7 +172,8 @@ export default class DiagramLayout {
         adjacency: { [id: string]: string[] },
         items: { [id: string]: OseliaRunVO | OseliaRunFunctionCallVO },
         positions: { [id: string]: BlockPosition },
-        links: LinkDrawInfo[]
+        links: LinkDrawInfo[],
+        expandedRuns: { [id: string]: boolean }
     ): number {
         // Dimensions par bloc
         const w = 200, h = 40;
@@ -226,30 +229,27 @@ export default class DiagramLayout {
 
         // On place chaque call en-dessous du RUN
         let localY = startY + h + verticalSpacing;
-        for (const cId of callIds) {
-            // Place le Call à x = 300 par ex, sous le run
-            const callX = 100;
-            positions[cId] = {
-                x: callX,
-                y: localY,
-                w,
-                h
-            };
-
-            // Tracer un lien run -> call
-            const callCenterX = callX + w / 2;
-            const callCenterY = localY + h / 2;
-            links.push({
-                sourceItemId: runId,
-                targetItemId: cId,
-                pathPoints: this.createElbowPoints(
-                    runCenterX, runCenterY,
-                    callCenterX, callCenterY
-                )
-            });
-
-            // Descendre pour le prochain call
-            localY += h + verticalSpacing;
+        if (expandedRuns[runId] !== false) {
+            for (const cId of callIds) {
+                const callX = 100;
+                positions[cId] = {
+                    x: callX,
+                    y: localY,
+                    w,
+                    h
+                };
+                const callCenterX = callX + w / 2;
+                const callCenterY = localY + h / 2;
+                links.push({
+                    sourceItemId: runId,
+                    targetItemId: cId,
+                    pathPoints: this.createElbowPoints(
+                        runCenterX, runCenterY,
+                        callCenterX, callCenterY
+                    )
+                });
+                localY += h + verticalSpacing;
+            }
         }
 
         // On renvoie la position en Y où on s’est arrêté pour empiler d’éventuels autres runs

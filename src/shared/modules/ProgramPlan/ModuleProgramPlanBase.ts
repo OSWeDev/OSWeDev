@@ -43,6 +43,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
 
     public static rdv_date_compute_function_uid: string = 'ModuleProgramPlanBase.rdv_date_compute_function_uid';
     public static facilitator_name_compute_function_uid: string = 'ModuleProgramPlanBase.facilitator_name_compute_function_uid';
+    private static instance: ModuleProgramPlanBase;
     public getRDVsOfProgramSegment: (program_id: number, timeSegment: TimeSegment) => Promise<IPlanRDV[]> = APIControllerWrapper.sah(this.APINAME_GET_RDVS_OF_PROGRAM_SEGMENT);
     public getCRsOfProgramSegment: (program_id: number, timeSegment: TimeSegment) => Promise<IPlanRDVCR[]> = APIControllerWrapper.sah(this.APINAME_GET_CRS_OF_PROGRAM_SEGMENT);
     public getPrepsOfProgramSegment: (program_id: number, timeSegment: TimeSegment) => Promise<IPlanRDVPrep[]> = APIControllerWrapper.sah(this.APINAME_GET_PREPS_OF_PROGRAM_SEGMENT);
@@ -77,8 +78,9 @@ export default abstract class ModuleProgramPlanBase extends Module {
         public target_group_contact_type_id: string,
 
         specificImportPath: string) {
-
         super(name, reflexiveClassName, specificImportPath);
+        ModuleProgramPlanBase.instance = null;
+        ModuleProgramPlanBase.instance = this;
 
         this.initialize_later();
     }
@@ -115,6 +117,10 @@ export default abstract class ModuleProgramPlanBase extends Module {
     get RDV_STATE_CONFIRMED(): number { return 1; }
     get RDV_STATE_PREP_OK(): number { return 2; }
     get RDV_STATE_CR_OK(): number { return 3; }
+
+    public static getInstance(): ModuleProgramPlanBase {
+        return ModuleProgramPlanBase.instance;
+    }
 
     public initialize() {
 
@@ -822,6 +828,21 @@ export default abstract class ModuleProgramPlanBase extends Module {
         target_group_id.set_many_to_one_target_moduletable_name(this.target_group_type_id);
         contact_id.set_many_to_one_target_moduletable_name(this.contact_type_id);
     }
+
+
+    //#region CR
+    abstract getRDVCRType(rdv_id: number): Promise<string[]>;
+    abstract getAllConsultantsName(): Promise<{ name: string, user_id: number }[]>;
+    abstract editCRSectionContent(new_content: string, section: string, cr_vo, cr_field_titles): Promise<void>;
+    abstract setConsultantName(cr_vo, name: string): Promise<void>;
+    abstract getCurrentConsultant(cr_vo): Promise<string>;
+    //#endregion
+    //#region Primes
+    abstract setFirstEtape(checklist_id): Promise<void>;
+    abstract setSecondEtape(checklist_id): Promise<void>;
+    abstract setThirdEtape(checklist_id): Promise<void>;
+    abstract setFourthEtape(checklist_id): Promise<void>;
+    //#endregion
 
     protected abstract callInitializePlanProgramCategory();
     protected abstract callInitializePlanContactType();

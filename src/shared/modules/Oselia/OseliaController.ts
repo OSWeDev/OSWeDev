@@ -13,7 +13,7 @@ export default class OseliaController {
     public static PARAM_NAME_UNBLOCK_REALTIME_API: string = 'OseliaController.unblock_realtime_api';
 
     public static async get_referrer_id(url: string): Promise<number> {
-        const vos: OseliaChatVO[] = await query(OseliaChatVO.API_TYPE_ID).select_vos<OseliaChatVO>()
+        const vos: OseliaChatVO[] = await query(OseliaChatVO.API_TYPE_ID).select_vos<OseliaChatVO>();
         for (const i in vos) {
             const chat_instance: OseliaChatVO = vos[i];
             if (new RegExp(chat_instance.regex).test(url)) {
@@ -39,10 +39,10 @@ export default class OseliaController {
             }
             const imageCapture = new (window as any).ImageCapture(track);
             // Capture de l'image du flux vidéo
-            let imageBitmap = await imageCapture.grabFrame();
+            const imageBitmap = await imageCapture.grabFrame();
 
             // Création du canvas et dessin de l'image capturée
-            let canvas = document.createElement("canvas");
+            const canvas = document.createElement("canvas");
             canvas.width = imageBitmap.width;
             canvas.height = imageBitmap.height;
             canvas.getContext("2d").drawImage(imageBitmap, 0, 0);

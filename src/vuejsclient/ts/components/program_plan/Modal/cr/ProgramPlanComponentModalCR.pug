@@ -7,10 +7,11 @@
                     .row
                         .col-sm-12
                             i.fa-solid.fa-trash(aria-hidden="true", @click="delete_cr(selected_rdv_cr)" v-if='can_edit')
-                            i.fa-solid.fa-pencil(aria-hidden="true", @click="editCR(selected_rdv_cr)" v-if='can_edit')
+                            i.fa-solid.fa-pencil(aria-hidden="true", @click="editCR(selected_rdv_cr)" v-if='can_edit' :class="[in_edit_inline ? 'fa-xmark closing' : 'fa-pencil']")
+                            .oselia_chat_btn_closed(v-if="!oselia_blocked && POLICY_CAN_USE_REALTIME" :class="{ 'opened': oselia_opened }" @click='switchOpenOselia()')
                     .row
                         .col-sm-12
-                            .custom_cr_read_component(:is="custom_cr_read_component" :rdv='selected_rdv' :cr='selected_rdv_cr')
+                            .custom_cr_read_component(:is="custom_cr_read_component" :edit_inline="in_edit_inline" :rdv='selected_rdv'  :oselia_opened='oselia_opened' :cr='selected_rdv_cr' :set_cr_html_content="set_cr_html_content" @update_cr="update_cr" @use_edit_inline="use_edit_inline")
                     
     .row(v-if="selected_rdv && selected_rdv.id && canaddcr")
         .col-sm-12.newcr
