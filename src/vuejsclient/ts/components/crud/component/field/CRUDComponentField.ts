@@ -728,6 +728,11 @@ export default class CRUDComponentField extends VueComponentBase
             // TODO FIXME is_translatable_label => link vers la trad ! beaucoup de fun encore là
         }
 
+        // Si on a des options à filtrer, on les ajoute
+        if (this.field.select_options_enabled?.length) {
+            context_query.filter_by_ids(this.field.select_options_enabled);
+        }
+
         // On ignore les fields de ref qui ne sont pas celui qu'on est en train de gérer
         for (const i in this_fields) {
             const field = this_fields[i];
