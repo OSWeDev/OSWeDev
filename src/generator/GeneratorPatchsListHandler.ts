@@ -132,6 +132,8 @@ import Patch20250228DeleteDuplicateGraphVO from './patchs/premodules/Patch202502
 import Patch20250304DropArchivesConfVO from './patchs/premodules/Patch20250304TruncateArchivesConfVO';
 import Patch20250507InitLastOseliaRunID from './patchs/premodules/Patch20250507InitLastOseliaRunID';
 import Patch20250507OseliaRunTemplateNames from './patchs/premodules/Patch20250507OseliaRunTemplateNames';
+import Patch20250617AddRightsModuleTableAndFields from './patchs/postmodules/Patch20250617AddRightsModuleTableAndFields';
+import Patch20250617MigrationCRUDDBLink from './patchs/postmodules/Patch20250617MigrationCRUDDBLink';
 
 export default class GeneratorPatchsListHandler {
 
@@ -290,5 +292,8 @@ export default class GeneratorPatchsListHandler {
 
         Patch20250512AddOseliaFunction_OSELIA_get_langs.getInstance(),
         Patch20250512OSELIA_ActivateFunction_getLangs_OnAssistant_SuperviseurTraduction.getInstance(),
+
+        Patch20250617AddRightsModuleTableAndFields.getInstance(),
+        Patch20250617MigrationCRUDDBLink.getInstance(),
     ];
 }

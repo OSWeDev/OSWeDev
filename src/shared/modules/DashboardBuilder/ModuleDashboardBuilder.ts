@@ -66,6 +66,12 @@ export default class ModuleDashboardBuilder extends Module {
 
     public static POLICY_DBB_CAN_EDIT_PAGES = AccessPolicyTools.POLICY_UID_PREFIX + ModuleDashboardBuilder.MODULE_NAME + ".DBB_CAN_EDIT_PAGES";
 
+    public static POLICY_DBB_CAN_UPDATE_CRUD_TYPE = AccessPolicyTools.POLICY_UID_PREFIX + ModuleDashboardBuilder.MODULE_NAME + ".DBB_CAN_UPDATE_CRUD_TYPE";
+    public static POLICY_DBB_CAN_UPDATE_OPTION_FORMULAIRE = AccessPolicyTools.POLICY_UID_PREFIX + ModuleDashboardBuilder.MODULE_NAME + ".DBB_CAN_UPDATE_OPTION_FORMULAIRE";
+    public static POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_CREATE = AccessPolicyTools.POLICY_UID_PREFIX + ModuleDashboardBuilder.MODULE_NAME + ".DBB_CAN_UPDATE_IS_TEMPLATE_CREATE";
+    public static POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_READ = AccessPolicyTools.POLICY_UID_PREFIX + ModuleDashboardBuilder.MODULE_NAME + ".DBB_CAN_UPDATE_IS_TEMPLATE_READ";
+    public static POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_UPDATE = AccessPolicyTools.POLICY_UID_PREFIX + ModuleDashboardBuilder.MODULE_NAME + ".DBB_CAN_UPDATE_IS_TEMPLATE_UPDATE";
+
     public static APINAME_START_EXPORT_FAVORITES_FILTERS_DATATABLE: string = "start_export_favorites_filters_datatable";
 
     private static instance: ModuleDashboardBuilder = null;

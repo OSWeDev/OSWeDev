@@ -150,11 +150,9 @@
         template(v-else)
             .row(v-if='show_select_vos && dashboard && dashboard.id && POLICY_DBB_ACCESS_ONGLET_TABLE')
                 
-                .col-sm-3.crud_db_link 
+                .col-sm-3.crud_db_link_wrapper
                     Cruddblinkcomponent(
                         :dashboard='dashboard' 
-                        :tables_by_table_name='tables_by_table_name'
-                        :all_tables_by_table_name='all_tables_by_table_name'
                         @addTable='addTable'
                     )
 

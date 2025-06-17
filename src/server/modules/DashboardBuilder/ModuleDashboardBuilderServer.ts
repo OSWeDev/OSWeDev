@@ -3929,7 +3929,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         ));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
-            { 'fr-fr': "Ce DashBoard est un template pour le type de données" },
+            { 'fr-fr': "Sélectionner un type de données pour faire de ce dashboard un template de formulaire de saisie ou de consultation pour ce type de données :" },
             'crud_db_link.crud_db_link_api_type_id.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
@@ -4194,6 +4194,74 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         POLICY_DBB_CAN_EDIT_PAGES_bo_access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleDashboardBuilder.POLICY_BO_ACCESS).id;
         POLICY_DBB_CAN_EDIT_PAGES_bo_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
 
+
+        let POLICY_DBB_CAN_UPDATE_CRUD_TYPE: AccessPolicyVO = new AccessPolicyVO();
+        POLICY_DBB_CAN_UPDATE_CRUD_TYPE.group_id = group.id;
+        POLICY_DBB_CAN_UPDATE_CRUD_TYPE.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        POLICY_DBB_CAN_UPDATE_CRUD_TYPE.translatable_name = ModuleDashboardBuilder.POLICY_DBB_CAN_UPDATE_CRUD_TYPE;
+        POLICY_DBB_CAN_UPDATE_CRUD_TYPE = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_DBB_CAN_UPDATE_CRUD_TYPE, DefaultTranslationVO.create_new({
+            'fr-fr': 'Peut modifier le type de données lié au DB dans le DBB'
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        let POLICY_DBB_CAN_UPDATE_CRUD_TYPE_bo_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
+        POLICY_DBB_CAN_UPDATE_CRUD_TYPE_bo_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+        POLICY_DBB_CAN_UPDATE_CRUD_TYPE_bo_access_dependency.src_pol_id = POLICY_DBB_CAN_UPDATE_CRUD_TYPE.id;
+        POLICY_DBB_CAN_UPDATE_CRUD_TYPE_bo_access_dependency.depends_on_pol_id = POLICY_DBB_ACCESS_ONGLET_TABLE.id;
+        POLICY_DBB_CAN_UPDATE_CRUD_TYPE_bo_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
+
+
+        let POLICY_DBB_CAN_UPDATE_OPTION_FORMULAIRE: AccessPolicyVO = new AccessPolicyVO();
+        POLICY_DBB_CAN_UPDATE_OPTION_FORMULAIRE.group_id = group.id;
+        POLICY_DBB_CAN_UPDATE_OPTION_FORMULAIRE.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        POLICY_DBB_CAN_UPDATE_OPTION_FORMULAIRE.translatable_name = ModuleDashboardBuilder.POLICY_DBB_CAN_UPDATE_OPTION_FORMULAIRE;
+        POLICY_DBB_CAN_UPDATE_OPTION_FORMULAIRE = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_DBB_CAN_UPDATE_OPTION_FORMULAIRE, DefaultTranslationVO.create_new({
+            'fr-fr': 'Peut modifier l\'option formulaire du DB dans le DBB'
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        let POLICY_DBB_CAN_UPDATE_OPTION_FORMULAIRE_bo_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
+        POLICY_DBB_CAN_UPDATE_OPTION_FORMULAIRE_bo_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+        POLICY_DBB_CAN_UPDATE_OPTION_FORMULAIRE_bo_access_dependency.src_pol_id = POLICY_DBB_CAN_UPDATE_OPTION_FORMULAIRE.id;
+        POLICY_DBB_CAN_UPDATE_OPTION_FORMULAIRE_bo_access_dependency.depends_on_pol_id = POLICY_DBB_ACCESS_ONGLET_TABLE.id;
+        POLICY_DBB_CAN_UPDATE_OPTION_FORMULAIRE_bo_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
+
+
+
+        let POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_CREATE: AccessPolicyVO = new AccessPolicyVO();
+        POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_CREATE.group_id = group.id;
+        POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_CREATE.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_CREATE.translatable_name = ModuleDashboardBuilder.POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_CREATE;
+        POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_CREATE = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_CREATE, DefaultTranslationVO.create_new({
+            'fr-fr': 'Peut modifier l\'option "est le template de création" du type de données lié au DB dans le DBB'
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        let POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_CREATE_bo_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
+        POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_CREATE_bo_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+        POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_CREATE_bo_access_dependency.src_pol_id = POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_CREATE.id;
+        POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_CREATE_bo_access_dependency.depends_on_pol_id = POLICY_DBB_ACCESS_ONGLET_TABLE.id;
+        POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_CREATE_bo_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
+
+        let POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_READ: AccessPolicyVO = new AccessPolicyVO();
+        POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_READ.group_id = group.id;
+        POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_READ.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_READ.translatable_name = ModuleDashboardBuilder.POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_READ;
+        POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_READ = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_READ, DefaultTranslationVO.create_new({
+            'fr-fr': 'Peut modifier l\'option "est le template de consultation" du type de données lié au DB dans le DBB'
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        let POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_READ_bo_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
+        POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_READ_bo_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+        POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_READ_bo_access_dependency.src_pol_id = POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_READ.id;
+        POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_READ_bo_access_dependency.depends_on_pol_id = POLICY_DBB_ACCESS_ONGLET_TABLE.id;
+        POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_READ_bo_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
+
+        let POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_UPDATE: AccessPolicyVO = new AccessPolicyVO();
+        POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_UPDATE.group_id = group.id;
+        POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_UPDATE.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_UPDATE.translatable_name = ModuleDashboardBuilder.POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_UPDATE;
+        POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_UPDATE = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_UPDATE, DefaultTranslationVO.create_new({
+            'fr-fr': 'Peut modifier l\'option "est le template de modification" du type de données lié au DB dans le DBB'
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        let POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_UPDATE_bo_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
+        POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_UPDATE_bo_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+        POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_UPDATE_bo_access_dependency.src_pol_id = POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_UPDATE.id;
+        POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_UPDATE_bo_access_dependency.depends_on_pol_id = POLICY_DBB_ACCESS_ONGLET_TABLE.id;
+        POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_UPDATE_bo_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
     }
 
     /**

@@ -50,6 +50,7 @@ import MaxGraphMapper from './tables_graph/graph_mapper/MaxGraphMapper';
 import DashboardBuilderWidgetsComponent from './widgets/DashboardBuilderWidgetsComponent';
 import DashboardBuilderWidgetsController from './widgets/DashboardBuilderWidgetsController';
 import IExportableWidgetOptions from './widgets/IExportableWidgetOptions';
+import CrudDBLinkComponent from './crud_db_link/CrudDBLinkComponent';
 
 @Component({
     template: require('./DashboardBuilderComponent.pug'),
@@ -62,6 +63,7 @@ import IExportableWidgetOptions from './widgets/IExportableWidgetOptions';
         Dashboardmenuconfcomponent: DashboardMenuConfComponent,
         Dashboardsharedfilterscomponent: DashboardSharedFiltersComponent,
         Moduletablescomponent: ModuleTablesComponent,
+        Cruddblinkcomponent: CrudDBLinkComponent,
     },
 })
 export default class DashboardBuilderComponent extends VueComponentBase {

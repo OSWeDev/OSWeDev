@@ -34,7 +34,11 @@ import { ClientTable } from "vue-tables-2";
 import 'vue2-dropzone/dist/vue2Dropzone.min.css';
 import Datepicker from 'vuejs-datepicker';
 import ModuleAccessPolicy from "../shared/modules/AccessPolicy/ModuleAccessPolicy";
+import { query } from "../shared/modules/ContextFilter/vos/ContextQueryVO";
 import ModuleTableController from "../shared/modules/DAO/ModuleTableController";
+import ModuleTableFieldController from "../shared/modules/DAO/ModuleTableFieldController";
+import ModuleTableFieldVO from "../shared/modules/DAO/vos/ModuleTableFieldVO";
+import ModuleTableVO from "../shared/modules/DAO/vos/ModuleTableVO";
 import DatatableField from '../shared/modules/DAO/vos/datatable/DatatableField';
 import Dates from "../shared/modules/FormatDatesNombres/Dates/Dates";
 import Module from '../shared/modules/Module';
@@ -60,16 +64,16 @@ import AlertsListContainerComponent from "./ts/components/alert/AlertsListContai
 import ConsoleLogLogger from './ts/components/console_logger/ConsoleLogLogger';
 import DroppableVoFieldsController from "./ts/components/dashboard_builder/droppable_vo_fields/DroppableVoFieldsController";
 import DocumentStore from './ts/components/document_handler/store/DocumentStore';
+import ModalsAndBasicPageComponentsHolderStore from "./ts/components/modals_and_basic_page_components_holder/ModalsAndBasicPageComponentsHolderStore";
 import MultipleSelectFilterComponent from './ts/components/multiple_select_filter/MultipleSelectFilterComponent';
 import UserNotifsMarkerComponent from './ts/components/notification/components/UserNotifsMarker/UserNotifsMarkerComponent';
+import SupervisionDashboardStore from "./ts/components/supervision/dashboard/SupervisionDashboardStore";
+import SurveyStore from "./ts/components/survey/store/SurveyStore";
 import IVueModule from './ts/modules/IVueModule';
 import PushDataVueModule from './ts/modules/PushData/PushDataVueModule';
 import StatsVueModule from "./ts/modules/Stats/StatsVueModule";
 import VueModuleBase from './ts/modules/VueModuleBase';
 import AppVuexStoreManager from './ts/store/AppVuexStoreManager';
-import ModalsAndBasicPageComponentsHolderStore from "./ts/components/modals_and_basic_page_components_holder/ModalsAndBasicPageComponentsHolderStore";
-import SupervisionDashboardStore from "./ts/components/supervision/dashboard/SupervisionDashboardStore";
-import SurveyStore from "./ts/components/survey/store/SurveyStore";
 
 // const loadComponent = async (component) => {
 //     try {
@@ -120,9 +124,11 @@ export default abstract class VueAppBase {
             Vue.config.devtools = true;
         }
 
-        promises.push((async () => {
-            await this.appController.initialize();
-        })());
+        promises.push(
+            this.appController.initialize(),
+            this.load_all_module_table_ids(),
+            this.load_all_module_table_field_ids(),
+        );
 
         await all_promises(promises);
 
@@ -599,6 +605,49 @@ export default abstract class VueAppBase {
         }
     }
 
+    private async load_all_module_table_ids() {
+        const moduletables = await query(ModuleTableVO.API_TYPE_ID)
+            .select_vos<ModuleTableVO>();
+
+        for (const i in moduletables) {
+            const moduletable = moduletables[i];
+            // On ne récupère que l'id pour le moment
+
+            if (!ModuleTableController.module_tables_by_vo_type[moduletable.vo_type]) {
+                ModuleTableController.module_tables_by_vo_type[moduletable.vo_type] = moduletable;
+            } else {
+                ModuleTableController.module_tables_by_vo_type[moduletable.vo_type].id = moduletable.id;
+            }
+
+            ModuleTableController.module_tables_by_vo_id[moduletable.id] = ModuleTableController.module_tables_by_vo_type[moduletable.vo_type];
+        }
+    }
+
+    private async load_all_module_table_field_ids() {
+        const moduletablefields = await query(ModuleTableFieldVO.API_TYPE_ID)
+            .select_vos<ModuleTableFieldVO>();
+
+        for (const i in moduletablefields) {
+            const moduletablefield = moduletablefields[i];
+            // On ne récupère que l'id pour le moment
+            if (!ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[moduletablefield.module_table_vo_type]) {
+                ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[moduletablefield.module_table_vo_type] = {};
+            }
+            if (ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[moduletablefield.module_table_vo_type][moduletablefield.field_name]) {
+                ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[moduletablefield.module_table_vo_type][moduletablefield.field_name].id = moduletablefield.id;
+            } else {
+                ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[moduletablefield.module_table_vo_type][moduletablefield.field_name] = moduletablefield;
+            }
+
+            if (!ModuleTableFieldController.module_table_fields_by_vo_id_and_field_id[moduletablefield.module_table_id]) {
+                ModuleTableFieldController.module_table_fields_by_vo_id_and_field_id[moduletablefield.module_table_id] = {};
+            }
+            ModuleTableFieldController.module_table_fields_by_vo_id_and_field_id[moduletablefield.module_table_id][moduletablefield.id] = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[moduletablefield.module_table_vo_type][moduletablefield.field_name];
+        }
+    }
+
+
     protected abstract createVueMain(): VueComponentBase;
     protected abstract initializeVueAppModulesDatas(): Promise<any>;
+
 }

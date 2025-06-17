@@ -25,7 +25,7 @@ export default class CrudDBLinkComponent extends VueComponentBase {
 
     public selected_vo_type: string = null;
 
-    public vo_type_options: string[];
+    public vo_type_options: string[] = [];
 
     public option_formulaire: boolean = false;
     public option_template_create: boolean = false;
@@ -80,10 +80,8 @@ export default class CrudDBLinkComponent extends VueComponentBase {
     })
     private async push_confs_to_db() {
 
-        await all_promises([
-            this.update_dashboard_vo(),
-            this.update_crud_db_link_vo(),
-        ]);
+        await this.update_dashboard_vo();
+        await this.update_crud_db_link_vo();
     }
 
     public async created() {
@@ -221,13 +219,22 @@ export default class CrudDBLinkComponent extends VueComponentBase {
             if (this.option_template_create && (crud_db_link_vo.template_create_db_ref_id != this.dashboard.id)) {
                 crud_db_link_vo.template_create_db_ref_id = this.dashboard.id;
                 need_update = true;
+            } else if (!this.option_template_create && (crud_db_link_vo.template_create_db_ref_id == this.dashboard.id)) {
+                crud_db_link_vo.template_create_db_ref_id = null;
+                need_update = true;
             }
             if (this.option_template_read && (crud_db_link_vo.template_read_db_ref_id != this.dashboard.id)) {
                 crud_db_link_vo.template_read_db_ref_id = this.dashboard.id;
                 need_update = true;
+            } else if (!this.option_template_read && (crud_db_link_vo.template_read_db_ref_id == this.dashboard.id)) {
+                crud_db_link_vo.template_read_db_ref_id = null;
+                need_update = true;
             }
             if (this.option_template_update && (crud_db_link_vo.template_update_db_ref_id != this.dashboard.id)) {
                 crud_db_link_vo.template_update_db_ref_id = this.dashboard.id;
+                need_update = true;
+            } else if (!this.option_template_update && (crud_db_link_vo.template_update_db_ref_id == this.dashboard.id)) {
+                crud_db_link_vo.template_update_db_ref_id = null;
                 need_update = true;
             }
 
