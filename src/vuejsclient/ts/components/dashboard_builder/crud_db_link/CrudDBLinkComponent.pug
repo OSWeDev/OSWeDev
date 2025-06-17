@@ -1,0 +1,66 @@
+.crud_db_link
+    .crud_db_link_api_type_id
+        .input_label {{ label('crud_db_link.crud_db_link_api_type_id') }}
+
+        .input_wrapper
+            multiselect(
+                :preselect-first="false"
+                :multiple="false"
+                v-model="selected_vo_type"
+                :placeholder="label('crud_db_link.crud_db_link_api_type_id.placeholder')"
+                :options="vo_type_options"
+                :custom-label="vo_type_label"
+                :allow-empty="true",
+                autocomplete="off"
+
+                :searchable="true"
+                :internal-search="true"
+
+                id="crud_db_link_api_type_id"
+
+                :select-label='label("multiselect.selectLabel")'
+                :select-group-label='label("multiselect.selectGroupLabel")'
+                :selected-label='label("multiselect.selectedLabel")'
+                :deselect-label='label("multiselect.deselectLabel")'
+                :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                )
+
+    .switch_option_formulaire(v-if='selected_vo_type')
+        .input_label {{ label('crud_db_link.switch_option_formulaire') }}
+        
+        toggle-button(
+            @change="switch_option_formulaire" 
+            :value="option_formulaire" 
+            :sync="true"
+            :width="100"
+            :labels="{checked: label('crud_db_link.switch_option_formulaire.on'), unchecked: label('crud_db_link.switch_option_formulaire.off')}")
+
+    .switch_option_template_create(v-if='selected_vo_type')
+        .input_label {{ label('crud_db_link.switch_option_template_create') }}
+        
+        toggle-button(
+            @change="switch_option_template_create" 
+            :value="option_template_create" 
+            :sync="true"
+            :width="100"
+            :labels="{checked: label('crud_db_link.switch_option_template_create.on'), unchecked: label('crud_db_link.switch_option_template_create.off')}")
+
+    .switch_option_template_read(v-if='selected_vo_type')
+        .input_label {{ label('crud_db_link.switch_option_template_read') }}
+        
+        toggle-button(
+            @change="switch_option_template_read" 
+            :value="option_template_read" 
+            :sync="true"
+            :width="100"
+            :labels="{checked: label('crud_db_link.switch_option_template_read.on'), unchecked: label('crud_db_link.switch_option_template_read.off')}")
+
+    .switch_option_template_update(v-if='selected_vo_type')
+        .input_label {{ label('crud_db_link.switch_option_template_update') }}
+        
+        toggle-button(
+            @change="switch_option_template_update" 
+            :value="option_template_update" 
+            :sync="true"
+            :width="100"
+            :labels="{checked: label('crud_db_link.switch_option_template_update.on'), unchecked: label('crud_db_link.switch_option_template_update.off')}")

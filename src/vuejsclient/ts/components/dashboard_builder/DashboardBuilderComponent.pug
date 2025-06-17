@@ -19,7 +19,7 @@
                             .name
                                 Inlinetranslatabletext(:code_text="dashboard_name_code_text" :is_editable="true")
 
-                        .col-sm-4
+                        .col-sm-4(v-if='POLICY_DBB_CAN_SWITCH_DB')
                             .selector
                                 multiselect(
                                     :preselect-first="false"
@@ -47,15 +47,15 @@
                                 )
 
                         .col-sm-2
-                            .btn-success.copy_dashboard(v-if="can_use_clipboard")
+                            .btn-success.copy_dashboard(v-if="can_use_clipboard && POLICY_DBB_CAN_EXPORT_IMPORT_JSON && dashboard && dashboard.id")
                                 i.fa-duotone.fa-download.fa-fw.btn_icon(aria-hidden="true" @click="copy_dashboard" v-tooltip='label("dashboard_builder.copy_dashboard")')
-                            .btn-warning.replace_dashboard(v-if="can_use_clipboard")
+                            .btn-warning.replace_dashboard(v-if="can_use_clipboard && POLICY_DBB_CAN_EXPORT_IMPORT_JSON && dashboard && dashboard.id")
                                 i.fa-duotone.fa-upload.fa-fw.btn_icon(aria-hidden="true" @click="paste_dashboard(dashboard)" v-tooltip='label("dashboard_builder.replace_dashboard")')
-                            .btn-danger.delete_dashboard
+                            .btn-danger.delete_dashboard(v-if='POLICY_DBB_CAN_DELETE_DB && dashboard && dashboard.id')
                                 i.fa-duotone.fa-trash.fa-fw.btn_icon(aria-hidden="true" @click="confirm_delete_dashboard" v-tooltip='label("dashboard_builder.delete_dashboard")')
-                            .btn-primary.create_dashboard
+                            .btn-primary.create_dashboard(v-if='POLICY_DBB_CAN_CREATE_NEW_DB')
                                 i.fa-duotone.fa-plus.fa-fw.btn_icon(aria-hidden="true" @click="create_new_dashboard" v-tooltip='label("dashboard_builder.create_dashboard")')
-                            .btn-primary.create_dashboard_from(v-if="can_use_clipboard")
+                            .btn-primary.create_dashboard_from(v-if="can_use_clipboard && POLICY_DBB_CAN_EXPORT_IMPORT_JSON")
                                 i.fa-duotone.fa-upload.fa-fw.btn_icon(aria-hidden="true" @click="paste_dashboard(null)" v-tooltip='label("dashboard_builder.create_dashboard_from")')
 
 
@@ -72,13 +72,13 @@
 
                 template(v-else)
                     .row.steps
-                        .col-sm-3
+                        .col-sm-3(v-if='POLICY_DBB_ACCESS_ONGLET_TABLE')
                             .step.select_vos(@click='select_vos' :class="{'selected' : show_select_vos}") {{ label('dashboard_builder.select_vos') }}
-                        .col-sm-3
+                        .col-sm-3(v-if='POLICY_DBB_ACCESS_ONGLET_WIDGETS')
                             .step.build_page(v-if='can_build_page' @click='build_page' :class="{'selected' : show_build_page}") {{ label('dashboard_builder.build_page') }}
-                        .col-sm-3
+                        .col-sm-3(v-if='POLICY_DBB_ACCESS_ONGLET_MENUS')
                             .step.menu_conf(v-if='can_build_page' @click='menu_conf' :class="{'selected' : show_menu_conf}") {{ label('dashboard_builder.menu_conf') }}
-                        .col-sm-3 
+                        .col-sm-3(v-if='POLICY_DBB_ACCESS_ONGLET_FILTRES_PARTAGES')
                             .step.shared_filters(v-if='can_build_page' @click='select_shared_filters' :class="{'selected' : show_shared_filters}") {{ label('dashboard_builder.shared_filters') }}
 
                     .pages
@@ -89,9 +89,9 @@
                         template(v-for='(page_, pagei) in pages')
                             .page
 
-                                .btn-secondary.move_page(v-if='pagei > 0')
+                                .btn-secondary.move_page(v-if='POLICY_DBB_CAN_EDIT_PAGES && (pagei > 0)')
                                     i.fa-duotone.fa-square-left.fa-fw.btn_icon(aria-hidden="true" @click="move_page_left(page_, pagei)")
-                                .btn-secondary.move_page(v-if='pagei < (pages.length-1)')
+                                .btn-secondary.move_page(v-if='POLICY_DBB_CAN_EDIT_PAGES && (pagei < (pages.length-1))')
                                     i.fa-duotone.fa-square-right.fa-fw.btn_icon(aria-hidden="true" @click="move_page_right(page_, pagei)")
 
                                 .btn-primary.select(v-if='page && (page_.id != page.id)')
@@ -99,7 +99,7 @@
                                 .btn-success.selected(v-else)
                                     i.fa-duotone.fa-check-circle.fa-fw(aria-hidden="true" v-tooltip.top='label("dashboard_builder.pages.tooltip_selected_page")')
                                 .name
-                                    Inlinetranslatabletext(:code_text="pages_name_code_text[pagei]" :is_editable="true")
+                                    Inlinetranslatabletext(:code_text="pages_name_code_text[pagei]" :is_editable="POLICY_DBB_CAN_EDIT_PAGES")
                                 .hide_navigation(:class='{"disabled" : !parseInt(pagei.toString()), "not_disabled": !!parseInt(pagei.toString())}')
                                     template(v-if='parseInt(pagei.toString()) != 0')
                                         template(v-if='page_.hide_navigation')
@@ -130,10 +130,10 @@
                                                     :labels="{checked: label('dashboard_viewer.collapse_filters'), unchecked: label('dashboard_viewer.collapse_filters')}" 
                                                 )
 
-                                .btn-danger.delete 
+                                .btn-danger.delete(v-if='POLICY_DBB_CAN_EDIT_PAGES')
                                     i.fa-duotone.fa-trash.fa-fw.btn_icon(aria-hidden="true" @click="confirm_delete_page(page_)" v-tooltip.top='label("dashboard_builder.pages.tooltip_delete_page")')
 
-                        .btn-primary.create_dashboard_page
+                        .btn-primary.create_dashboard_page(v-if='POLICY_DBB_CAN_EDIT_PAGES')
                             i.fa-duotone.fa-plus.fa-fw.btn_icon(aria-hidden="true" @click="create_dashboard_page" v-tooltip.top='label("dashboard_builder.pages.tooltip_create_dashboard_page")')
 
         template(v-if='!page')
@@ -148,8 +148,17 @@
                             | {{ label('dashboard_builder.loading_failed') }}
 
         template(v-else)
-            .row(v-if='show_select_vos && dashboard && dashboard.id')
-                .col-sm-12.tables_graph_wrapper 
+            .row(v-if='show_select_vos && dashboard && dashboard.id && POLICY_DBB_ACCESS_ONGLET_TABLE')
+                
+                .col-sm-3.crud_db_link 
+                    Cruddblinkcomponent(
+                        :dashboard='dashboard' 
+                        :tables_by_table_name='tables_by_table_name'
+                        :all_tables_by_table_name='all_tables_by_table_name'
+                        @addTable='addTable'
+                    )
+
+                .col-sm-9.tables_graph_wrapper(v-if="POLICY_DBB_ACCESS_ONGLET_TABLE_TABLES_GRAPH")
                     //- Tablesgraphcomponent(
                     //-     :key='"Tablesgraphcomponent__" + dashboard.id' 
                     //-     :dashboard='dashboard' 
@@ -169,7 +178,8 @@
                     )
 
 
-            .fields_wrapper(v-if='show_build_page' :class='{"collapsed":collapsed_fields_wrapper}')
+            .fields_wrapper(v-if='show_build_page && POLICY_DBB_ACCESS_ONGLET_WIDGETS' :class='{"collapsed":collapsed_fields_wrapper}')
+
                 .collapse_fields_wrapper(@click='reverse_collapse_fields_wrapper' :class='{"collapsed":collapsed_fields_wrapper}')
                     i.fa-duotone.fa-square-caret-right.fa-fw(aria-hidden="true" v-if='!collapsed_fields_wrapper')
                     i.fa-duotone.fa-square-caret-left.fa-fw(aria-hidden="true" v-if='collapsed_fields_wrapper')
@@ -187,7 +197,7 @@
                     )
                     Droppablevofieldscomponent(:dashboard='dashboard')
 
-            .row(v-if='show_build_page')
+            .row(v-if='show_build_page && POLICY_DBB_ACCESS_ONGLET_WIDGETS')
                 .col-sm-12.builder_wrapper
                     Dashboardbuilderboardcomponent(
                         ref='Dashboardbuilderboardcomponent'
@@ -202,10 +212,10 @@
                         @removed_widget_from_page='removed_widget_from_page'
                     )
 
-            .row(v-if='show_menu_conf')
+            .row(v-if='show_menu_conf && POLICY_DBB_ACCESS_ONGLET_MENUS')
                 .col-sm-12.menu_conf_wrapper 
                     Dashboardmenuconfcomponent(:dashboard='dashboard')
 
-            .row(v-if='show_shared_filters')
+            .row(v-if='show_shared_filters && POLICY_DBB_ACCESS_ONGLET_FILTRES_PARTAGES')
                 .col-sm-12.shared_filters_wrapper 
                     Dashboardsharedfilterscomponent(:dashboard='dashboard')

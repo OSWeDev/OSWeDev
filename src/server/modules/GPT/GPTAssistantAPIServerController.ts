@@ -8,6 +8,7 @@ import SortByVO from '../../../shared/modules/ContextFilter/vos/SortByVO';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleGPT from '../../../shared/modules/GPT/ModuleGPT';
+import GPTAssistantAPIAssistantFunctionVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIAssistantFunctionVO';
 import GPTAssistantAPIAssistantVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIAssistantVO';
 import GPTAssistantAPIFileVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIFileVO';
 import GPTAssistantAPIFunctionParamVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIFunctionParamVO';

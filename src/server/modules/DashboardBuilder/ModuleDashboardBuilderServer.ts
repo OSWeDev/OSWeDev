@@ -3,13 +3,22 @@ import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAcces
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
+import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
+import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import DAOController from '../../../shared/modules/DAO/DAOController';
+import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import ModuleTableController from '../../../shared/modules/DAO/ModuleTableController';
 import ModuleDashboardBuilder from '../../../shared/modules/DashboardBuilder/ModuleDashboardBuilder';
+import DBBConfVO from '../../../shared/modules/DashboardBuilder/vos/DBBConfVO';
 import DashboardGraphVORefVO from '../../../shared/modules/DashboardBuilder/vos/DashboardGraphVORefVO';
 import DashboardPageWidgetVO from '../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../shared/modules/DashboardBuilder/vos/DashboardVO';
+import DashboardWidgetVO from '../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
+import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
+import { reflect } from '../../../shared/tools/ObjectHandler';
+import RangeHandler from '../../../shared/tools/RangeHandler';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
@@ -3919,6 +3928,63 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'oselia_run_graph_widget_component.add_panel.search_placeholder.___LABEL___'
         ));
 
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Ce DashBoard est un template pour le type de données" },
+            'crud_db_link.crud_db_link_api_type_id.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Sélectionner un type de données" },
+            'crud_db_link.crud_db_link_api_type_id.placeholder.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Activer le formulaire" },
+            'crud_db_link.switch_option_formulaire.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Oui" },
+            'crud_db_link.switch_option_formulaire.on.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Non" },
+            'crud_db_link.switch_option_formulaire.off.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Template de création du type de données" },
+            'crud_db_link.switch_option_template_create.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Oui" },
+            'crud_db_link.switch_option_template_create.on.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Non" },
+            'crud_db_link.switch_option_template_create.off.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Template de consultation du type de données" },
+            'crud_db_link.switch_option_template_read.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Oui" },
+            'crud_db_link.switch_option_template_read.on.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Non" },
+            'crud_db_link.switch_option_template_read.off.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Template de modification du type de données" },
+            'crud_db_link.switch_option_template_update.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Oui" },
+            'crud_db_link.switch_option_template_update.on.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Non" },
+            'crud_db_link.switch_option_template_update.off.___LABEL___'
+        ));
+
         const preCTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCTrigger.registerHandler(DashboardPageWidgetVO.API_TYPE_ID, this, this.onCDashboardPageWidgetVO);
         preCTrigger.registerHandler(DashboardVO.API_TYPE_ID, this, this.onCDashboardVO);
@@ -3933,6 +3999,17 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             ModuleDashboardBuilder.APINAME_START_EXPORT_FAVORITES_FILTERS_DATATABLE,
             this.start_export_favorites_filters_datatable.bind(this)
         );
+        APIControllerWrapper.register_server_api_handler(
+            this.name,
+            reflect<this>().get_all_valid_api_type_ids,
+            this.get_all_valid_api_type_ids.bind(this)
+        );
+        APIControllerWrapper.register_server_api_handler(
+            this.name,
+            reflect<this>().get_all_valid_widget_ids,
+            this.get_all_valid_widget_ids.bind(this)
+        );
+
     }
 
     /**
@@ -3952,19 +4029,6 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'fr-fr': 'Dashboards'
         }));
 
-        let bo_access: AccessPolicyVO = new AccessPolicyVO();
-        bo_access.group_id = group.id;
-        bo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
-        bo_access.translatable_name = ModuleDashboardBuilder.POLICY_BO_ACCESS;
-        bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, DefaultTranslationVO.create_new({
-            'fr-fr': 'Administration des Dashboards'
-        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
-        let admin_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
-        admin_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
-        admin_access_dependency.src_pol_id = bo_access.id;
-        admin_access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleAccessPolicy.POLICY_BO_ACCESS).id;
-        admin_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
-
         let fo_access: AccessPolicyVO = new AccessPolicyVO();
         fo_access.group_id = group.id;
         fo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
@@ -3977,6 +4041,234 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         front_access_dependency.src_pol_id = fo_access.id;
         front_access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleAccessPolicy.POLICY_FO_ACCESS).id;
         front_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(front_access_dependency);
+
+        let bo_access: AccessPolicyVO = new AccessPolicyVO();
+        bo_access.group_id = group.id;
+        bo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        bo_access.translatable_name = ModuleDashboardBuilder.POLICY_BO_ACCESS;
+        bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, DefaultTranslationVO.create_new({
+            'fr-fr': 'Administration des Dashboards'
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        let admin_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
+        admin_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+        admin_access_dependency.src_pol_id = bo_access.id;
+        admin_access_dependency.depends_on_pol_id = fo_access.id;
+        admin_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
+
+
+        let POLICY_DBB_ACCESS_ONGLET_TABLE: AccessPolicyVO = new AccessPolicyVO();
+        POLICY_DBB_ACCESS_ONGLET_TABLE.group_id = group.id;
+        POLICY_DBB_ACCESS_ONGLET_TABLE.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        POLICY_DBB_ACCESS_ONGLET_TABLE.translatable_name = ModuleDashboardBuilder.POLICY_DBB_ACCESS_ONGLET_TABLE;
+        POLICY_DBB_ACCESS_ONGLET_TABLE = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_DBB_ACCESS_ONGLET_TABLE, DefaultTranslationVO.create_new({
+            'fr-fr': 'Accès à l\'onglet Tables du DBB'
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        let POLICY_DBB_ACCESS_ONGLET_TABLE_bo_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
+        POLICY_DBB_ACCESS_ONGLET_TABLE_bo_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+        POLICY_DBB_ACCESS_ONGLET_TABLE_bo_access_dependency.src_pol_id = POLICY_DBB_ACCESS_ONGLET_TABLE.id;
+        POLICY_DBB_ACCESS_ONGLET_TABLE_bo_access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleDashboardBuilder.POLICY_BO_ACCESS).id;
+        POLICY_DBB_ACCESS_ONGLET_TABLE_bo_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
+
+        let POLICY_DBB_ACCESS_ONGLET_WIDGETS: AccessPolicyVO = new AccessPolicyVO();
+        POLICY_DBB_ACCESS_ONGLET_WIDGETS.group_id = group.id;
+        POLICY_DBB_ACCESS_ONGLET_WIDGETS.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        POLICY_DBB_ACCESS_ONGLET_WIDGETS.translatable_name = ModuleDashboardBuilder.POLICY_DBB_ACCESS_ONGLET_WIDGETS;
+        POLICY_DBB_ACCESS_ONGLET_WIDGETS = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_DBB_ACCESS_ONGLET_WIDGETS, DefaultTranslationVO.create_new({
+            'fr-fr': 'Accès à l\'onglet Widgets du DBB'
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        let POLICY_DBB_ACCESS_ONGLET_WIDGETS_bo_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
+        POLICY_DBB_ACCESS_ONGLET_WIDGETS_bo_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+        POLICY_DBB_ACCESS_ONGLET_WIDGETS_bo_access_dependency.src_pol_id = POLICY_DBB_ACCESS_ONGLET_WIDGETS.id;
+        POLICY_DBB_ACCESS_ONGLET_WIDGETS_bo_access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleDashboardBuilder.POLICY_BO_ACCESS).id;
+        POLICY_DBB_ACCESS_ONGLET_WIDGETS_bo_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
+
+
+        let POLICY_DBB_ACCESS_ONGLET_MENUS: AccessPolicyVO = new AccessPolicyVO();
+        POLICY_DBB_ACCESS_ONGLET_MENUS.group_id = group.id;
+        POLICY_DBB_ACCESS_ONGLET_MENUS.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        POLICY_DBB_ACCESS_ONGLET_MENUS.translatable_name = ModuleDashboardBuilder.POLICY_DBB_ACCESS_ONGLET_MENUS;
+        POLICY_DBB_ACCESS_ONGLET_MENUS = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_DBB_ACCESS_ONGLET_MENUS, DefaultTranslationVO.create_new({
+            'fr-fr': 'Accès à l\'onglet Menus du DBB'
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        let POLICY_DBB_ACCESS_ONGLET_MENUS_bo_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
+        POLICY_DBB_ACCESS_ONGLET_MENUS_bo_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+        POLICY_DBB_ACCESS_ONGLET_MENUS_bo_access_dependency.src_pol_id = POLICY_DBB_ACCESS_ONGLET_MENUS.id;
+        POLICY_DBB_ACCESS_ONGLET_MENUS_bo_access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleDashboardBuilder.POLICY_BO_ACCESS).id;
+        POLICY_DBB_ACCESS_ONGLET_MENUS_bo_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
+
+
+        let POLICY_DBB_ACCESS_ONGLET_FILTRES_PARTAGES: AccessPolicyVO = new AccessPolicyVO();
+        POLICY_DBB_ACCESS_ONGLET_FILTRES_PARTAGES.group_id = group.id;
+        POLICY_DBB_ACCESS_ONGLET_FILTRES_PARTAGES.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        POLICY_DBB_ACCESS_ONGLET_FILTRES_PARTAGES.translatable_name = ModuleDashboardBuilder.POLICY_DBB_ACCESS_ONGLET_FILTRES_PARTAGES;
+        POLICY_DBB_ACCESS_ONGLET_FILTRES_PARTAGES = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_DBB_ACCESS_ONGLET_FILTRES_PARTAGES, DefaultTranslationVO.create_new({
+            'fr-fr': 'Accès à l\'onglet Filtres Partagés du DBB'
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        let POLICY_DBB_ACCESS_ONGLET_FILTRES_PARTAGES_bo_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
+        POLICY_DBB_ACCESS_ONGLET_FILTRES_PARTAGES_bo_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+        POLICY_DBB_ACCESS_ONGLET_FILTRES_PARTAGES_bo_access_dependency.src_pol_id = POLICY_DBB_ACCESS_ONGLET_FILTRES_PARTAGES.id;
+        POLICY_DBB_ACCESS_ONGLET_FILTRES_PARTAGES_bo_access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleDashboardBuilder.POLICY_BO_ACCESS).id;
+        POLICY_DBB_ACCESS_ONGLET_FILTRES_PARTAGES_bo_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
+
+
+        let POLICY_DBB_ACCESS_ONGLET_TABLE_TABLES_GRAPH: AccessPolicyVO = new AccessPolicyVO();
+        POLICY_DBB_ACCESS_ONGLET_TABLE_TABLES_GRAPH.group_id = group.id;
+        POLICY_DBB_ACCESS_ONGLET_TABLE_TABLES_GRAPH.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        POLICY_DBB_ACCESS_ONGLET_TABLE_TABLES_GRAPH.translatable_name = ModuleDashboardBuilder.POLICY_DBB_ACCESS_ONGLET_TABLE_TABLES_GRAPH;
+        POLICY_DBB_ACCESS_ONGLET_TABLE_TABLES_GRAPH = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_DBB_ACCESS_ONGLET_TABLE_TABLES_GRAPH, DefaultTranslationVO.create_new({
+            'fr-fr': 'Accès au graphique des Tables dans l\'onglet Tables du DBB'
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        let POLICY_DBB_ACCESS_ONGLET_TABLE_TABLES_GRAPH_bo_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
+        POLICY_DBB_ACCESS_ONGLET_TABLE_TABLES_GRAPH_bo_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+        POLICY_DBB_ACCESS_ONGLET_TABLE_TABLES_GRAPH_bo_access_dependency.src_pol_id = POLICY_DBB_ACCESS_ONGLET_TABLE_TABLES_GRAPH.id;
+        POLICY_DBB_ACCESS_ONGLET_TABLE_TABLES_GRAPH_bo_access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleDashboardBuilder.POLICY_BO_ACCESS).id;
+        POLICY_DBB_ACCESS_ONGLET_TABLE_TABLES_GRAPH_bo_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
+
+
+        let POLICY_DBB_CAN_EXPORT_IMPORT_JSON: AccessPolicyVO = new AccessPolicyVO();
+        POLICY_DBB_CAN_EXPORT_IMPORT_JSON.group_id = group.id;
+        POLICY_DBB_CAN_EXPORT_IMPORT_JSON.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        POLICY_DBB_CAN_EXPORT_IMPORT_JSON.translatable_name = ModuleDashboardBuilder.POLICY_DBB_CAN_EXPORT_IMPORT_JSON;
+        POLICY_DBB_CAN_EXPORT_IMPORT_JSON = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_DBB_CAN_EXPORT_IMPORT_JSON, DefaultTranslationVO.create_new({
+            'fr-fr': 'Peut exporter/importer des dashboards au format JSON'
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        let POLICY_DBB_CAN_EXPORT_IMPORT_JSON_bo_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
+        POLICY_DBB_CAN_EXPORT_IMPORT_JSON_bo_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+        POLICY_DBB_CAN_EXPORT_IMPORT_JSON_bo_access_dependency.src_pol_id = POLICY_DBB_CAN_EXPORT_IMPORT_JSON.id;
+        POLICY_DBB_CAN_EXPORT_IMPORT_JSON_bo_access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleDashboardBuilder.POLICY_BO_ACCESS).id;
+        POLICY_DBB_CAN_EXPORT_IMPORT_JSON_bo_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
+
+
+        let POLICY_DBB_CAN_CREATE_NEW_DB: AccessPolicyVO = new AccessPolicyVO();
+        POLICY_DBB_CAN_CREATE_NEW_DB.group_id = group.id;
+        POLICY_DBB_CAN_CREATE_NEW_DB.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        POLICY_DBB_CAN_CREATE_NEW_DB.translatable_name = ModuleDashboardBuilder.POLICY_DBB_CAN_CREATE_NEW_DB;
+        POLICY_DBB_CAN_CREATE_NEW_DB = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_DBB_CAN_CREATE_NEW_DB, DefaultTranslationVO.create_new({
+            'fr-fr': 'Peut créer un nouveau DB dans le DBB'
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        let POLICY_DBB_CAN_CREATE_NEW_DB_bo_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
+        POLICY_DBB_CAN_CREATE_NEW_DB_bo_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+        POLICY_DBB_CAN_CREATE_NEW_DB_bo_access_dependency.src_pol_id = POLICY_DBB_CAN_CREATE_NEW_DB.id;
+        POLICY_DBB_CAN_CREATE_NEW_DB_bo_access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleDashboardBuilder.POLICY_BO_ACCESS).id;
+        POLICY_DBB_CAN_CREATE_NEW_DB_bo_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
+
+
+        let POLICY_DBB_CAN_DELETE_DB: AccessPolicyVO = new AccessPolicyVO();
+        POLICY_DBB_CAN_DELETE_DB.group_id = group.id;
+        POLICY_DBB_CAN_DELETE_DB.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        POLICY_DBB_CAN_DELETE_DB.translatable_name = ModuleDashboardBuilder.POLICY_DBB_CAN_DELETE_DB;
+        POLICY_DBB_CAN_DELETE_DB = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_DBB_CAN_DELETE_DB, DefaultTranslationVO.create_new({
+            'fr-fr': 'Peut supprimer un DB dans le DBB'
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        let POLICY_DBB_CAN_DELETE_DB_bo_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
+        POLICY_DBB_CAN_DELETE_DB_bo_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+        POLICY_DBB_CAN_DELETE_DB_bo_access_dependency.src_pol_id = POLICY_DBB_CAN_DELETE_DB.id;
+        POLICY_DBB_CAN_DELETE_DB_bo_access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleDashboardBuilder.POLICY_BO_ACCESS).id;
+        POLICY_DBB_CAN_DELETE_DB_bo_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
+
+
+        let POLICY_DBB_CAN_SWITCH_DB: AccessPolicyVO = new AccessPolicyVO();
+        POLICY_DBB_CAN_SWITCH_DB.group_id = group.id;
+        POLICY_DBB_CAN_SWITCH_DB.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        POLICY_DBB_CAN_SWITCH_DB.translatable_name = ModuleDashboardBuilder.POLICY_DBB_CAN_SWITCH_DB;
+        POLICY_DBB_CAN_SWITCH_DB = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_DBB_CAN_SWITCH_DB, DefaultTranslationVO.create_new({
+            'fr-fr': 'Peut changer de DB dans le DBB'
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        let POLICY_DBB_CAN_SWITCH_DB_bo_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
+        POLICY_DBB_CAN_SWITCH_DB_bo_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+        POLICY_DBB_CAN_SWITCH_DB_bo_access_dependency.src_pol_id = POLICY_DBB_CAN_SWITCH_DB.id;
+        POLICY_DBB_CAN_SWITCH_DB_bo_access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleDashboardBuilder.POLICY_BO_ACCESS).id;
+        POLICY_DBB_CAN_SWITCH_DB_bo_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
+
+
+        let POLICY_DBB_CAN_EDIT_PAGES: AccessPolicyVO = new AccessPolicyVO();
+        POLICY_DBB_CAN_EDIT_PAGES.group_id = group.id;
+        POLICY_DBB_CAN_EDIT_PAGES.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        POLICY_DBB_CAN_EDIT_PAGES.translatable_name = ModuleDashboardBuilder.POLICY_DBB_CAN_EDIT_PAGES;
+        POLICY_DBB_CAN_EDIT_PAGES = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_DBB_CAN_EDIT_PAGES, DefaultTranslationVO.create_new({
+            'fr-fr': 'Peut modifier les pages du DB dans le DBB'
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        let POLICY_DBB_CAN_EDIT_PAGES_bo_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
+        POLICY_DBB_CAN_EDIT_PAGES_bo_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+        POLICY_DBB_CAN_EDIT_PAGES_bo_access_dependency.src_pol_id = POLICY_DBB_CAN_EDIT_PAGES.id;
+        POLICY_DBB_CAN_EDIT_PAGES_bo_access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleDashboardBuilder.POLICY_BO_ACCESS).id;
+        POLICY_DBB_CAN_EDIT_PAGES_bo_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
+
+    }
+
+    /**
+     * ATTENTION ya quand même un truc un peu spécial avec ce fonctionnement :
+     * Si on a le rôle A et que A a pas de conf, on a accès à tout
+     * Si on a le rôle A et B et que A a pas de conf mais B oui, on a accès que aux éléments de la conf B, donc on a perdu des accès en ajoutant un rôle...
+     * On pourrait tester tous les rôles individuellement, mais du coup on aurait un toujours a minima le rôle du compte + le rôle connecté, et faudrait toujours une conf sur le rôle
+     * connecté, probablement vide, pour éviter que tous aient accès à tout... donc c'est pas fou non plus. Je pense que pour l'usage actuel c'est la bonne solution à voir dans le temps.
+     */
+    public async get_all_valid_api_type_ids(): Promise<string[]> {
+        // On charge les confs de dbbs en lien avec les rôles du user
+        const roles: RoleVO[] = await ModuleAccessPolicyServer.getInstance().getMyRoles();
+        if (!roles || roles.length === 0) {
+            return [];
+        }
+
+        const confs: DBBConfVO[] = await query(DBBConfVO.API_TYPE_ID)
+            .exec_as_server()
+            .filter_by_ids(roles.map((r: RoleVO) => r.id), RoleVO.API_TYPE_ID)
+            .select_vos<DBBConfVO>();
+
+        // Si ya pas de conf on active toutes les tables
+        if (!confs || confs.length === 0) {
+            return Object.keys(ModuleTableController.module_tables_by_vo_type);
+        }
+
+        // Sinon active les tables citées
+        const valid_moduletable_id_ranges: NumRange[] = [];
+        for (const conf of confs) {
+            if (conf && conf.valid_moduletable_id_ranges && conf.valid_moduletable_id_ranges.length > 0) {
+                valid_moduletable_id_ranges.push(...conf.valid_moduletable_id_ranges);
+            }
+        }
+
+        // Puis on filtre les table en fonction des droits d'accès à chaque type de données
+        const res: string[] = [];
+        RangeHandler.foreach_ranges_sync(valid_moduletable_id_ranges, (moduletable_id: number) => {
+            if (AccessPolicyServerController.checkAccessSync(DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, ModuleTableController.module_tables_by_vo_id[moduletable_id].vo_type), true)) {
+                res.push(ModuleTableController.module_tables_by_vo_id[moduletable_id].vo_type);
+            }
+        });
+
+        return res;
+    }
+
+    public async get_all_valid_widget_ids(): Promise<number[]> {
+        // On charge les confs de dbbs en lien avec les rôles du user
+        const roles: RoleVO[] = await ModuleAccessPolicyServer.getInstance().getMyRoles();
+        if (!roles || roles.length === 0) {
+            return [];
+        }
+
+        const confs: DBBConfVO[] = await query(DBBConfVO.API_TYPE_ID)
+            .exec_as_server()
+            .filter_by_ids(roles.map((r: RoleVO) => r.id), RoleVO.API_TYPE_ID)
+            .select_vos<DBBConfVO>();
+
+        // Si ya pas de conf on active tous les widgets
+        if (!confs || confs.length === 0) {
+
+            const all_widgets: DashboardWidgetVO[] = await query(DashboardWidgetVO.API_TYPE_ID)
+                .exec_as_server()
+                .select_vos<DashboardWidgetVO>();
+            return all_widgets.map((w: DashboardWidgetVO) => w.id);
+        }
+
+        // Sinon active les widgets cités
+        const valid_widget_id_ranges: NumRange[] = [];
+        for (const conf of confs) {
+            if (conf && conf.valid_widget_id_ranges && conf.valid_widget_id_ranges.length > 0) {
+                valid_widget_id_ranges.push(...conf.valid_widget_id_ranges);
+            }
+        }
+
+        return RangeHandler.get_array_from_ranges(valid_widget_id_ranges);
     }
 
     private async onCDashboardVO(e: DashboardVO): Promise<boolean> {

@@ -10,6 +10,16 @@ export default class DashboardVO implements IDistantVOBase, IWeightedItem {
 
     public id: number;
 
+    /**
+     * Pour les DBs qu'on désigne comme template de type de données
+     */
+    public moduletable_crud_template_ref_id: number;
+
+    /**
+     * Si un db est template de type de données, on peut en plus le paramétrer pour gérer un formulaire
+     */
+    public moduletable_crud_template_form: boolean;
+
     public cycle_tables: string[];
     public cycle_fields: { [voType: string]: string[] };
     public cycle_links: { [voType: string]: string[] };

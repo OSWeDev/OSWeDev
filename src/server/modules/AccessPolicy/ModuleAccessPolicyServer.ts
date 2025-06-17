@@ -1942,6 +1942,21 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         return false;
     }
 
+    public async getMyRoles(): Promise<RoleVO[]> {
+
+        if (!StackContext.get('IS_CLIENT')) {
+            return null;
+        }
+
+        const uid: number = StackContext.get('UID');
+
+        if (!uid) {
+            return null;
+        }
+
+        return await query(RoleVO.API_TYPE_ID).filter_by_id(uid, UserVO.API_TYPE_ID).exec_as_server().select_vos();
+    }
+
     public checkAccessByRoleIds(role_ids: number[]): boolean {
 
         if ((!ModuleAccessPolicy.getInstance().actif) || (!role_ids) || (!role_ids.length)) {
@@ -2026,22 +2041,6 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return AccessPolicyServerController.access_matrix_heritance_only;
         }
         return AccessPolicyServerController.getAccessMatrix(bool);
-    }
-
-    private async getMyRoles(): Promise<RoleVO[]> {
-
-        if (!StackContext.get('IS_CLIENT')) {
-            return null;
-        }
-
-        const uid: number = StackContext.get('UID');
-
-        if (!uid) {
-            return null;
-        }
-
-        return await
-            query(RoleVO.API_TYPE_ID).filter_by_id(uid, UserVO.API_TYPE_ID).exec_as_server().select_vos();
     }
 
     private async get_user_roles(uid: number): Promise<RoleVO[]> {

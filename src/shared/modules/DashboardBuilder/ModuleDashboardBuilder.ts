@@ -1,7 +1,10 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
-import { field_names } from '../../tools/ObjectHandler';
+import { field_names, reflect } from '../../tools/ObjectHandler';
 import APIControllerWrapper from '../API/APIControllerWrapper';
+import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
+import RolePolicyVO from '../AccessPolicy/vos/RolePolicyVO';
+import RoleVO from '../AccessPolicy/vos/RoleVO';
 import UserVO from '../AccessPolicy/vos/UserVO';
 import DAOController from '../DAO/DAOController';
 import ModuleDAO from '../DAO/ModuleDAO';
@@ -25,6 +28,7 @@ import TimeSegment from '../DataRender/vos/TimeSegment';
 import Module from '../Module';
 import VarConfVO from '../Var/vos/VarConfVO';
 import AdvancedDateFilterOptDescVO from './vos/AdvancedDateFilterOptDescVO';
+import DBBConfVO from './vos/DBBConfVO';
 import DashboardGraphColorPaletteVO from './vos/DashboardGraphColorPaletteVO';
 import DashboardGraphVORefVO from './vos/DashboardGraphVORefVO';
 import DashboardPageVO from './vos/DashboardPageVO';
@@ -34,10 +38,11 @@ import DashboardWidgetVO from './vos/DashboardWidgetVO';
 import FavoritesFiltersExportFrequencyVO from './vos/FavoritesFiltersExportFrequencyVO';
 import FavoritesFiltersExportParamsVO from './vos/FavoritesFiltersExportParamsVO';
 import FavoritesFiltersVO from './vos/FavoritesFiltersVO';
+import LinkDashboardAndApiTypeIdVO from './vos/LinkDashboardAndApiTypeIdVO';
 import SharedFiltersVO from './vos/SharedFiltersVO';
 import TableColumnDescVO from './vos/TableColumnDescVO';
 import VOFieldRefVO from './vos/VOFieldRefVO';
-import { CRUDDBLinkVO } from './vos/crud/CRUDDBLinkVO';
+import CRUDDBLinkVO from './vos/crud/CRUDDBLinkVO';
 
 export default class ModuleDashboardBuilder extends Module {
 
@@ -47,10 +52,28 @@ export default class ModuleDashboardBuilder extends Module {
     public static POLICY_BO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleDashboardBuilder.MODULE_NAME + ".BO_ACCESS";
     public static POLICY_FO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleDashboardBuilder.MODULE_NAME + ".FO_ACCESS";
 
+    public static POLICY_DBB_ACCESS_ONGLET_TABLE = AccessPolicyTools.POLICY_UID_PREFIX + ModuleDashboardBuilder.MODULE_NAME + ".DBB_ACCESS_ONGLET_TABLE";
+    public static POLICY_DBB_ACCESS_ONGLET_WIDGETS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleDashboardBuilder.MODULE_NAME + ".DBB_ACCESS_ONGLET_WIDGETS";
+    public static POLICY_DBB_ACCESS_ONGLET_MENUS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleDashboardBuilder.MODULE_NAME + ".DBB_ACCESS_ONGLET_MENUS";
+    public static POLICY_DBB_ACCESS_ONGLET_FILTRES_PARTAGES = AccessPolicyTools.POLICY_UID_PREFIX + ModuleDashboardBuilder.MODULE_NAME + ".DBB_ACCESS_ONGLET_FILTRES_PARTAGES";
+
+    public static POLICY_DBB_ACCESS_ONGLET_TABLE_TABLES_GRAPH = AccessPolicyTools.POLICY_UID_PREFIX + ModuleDashboardBuilder.MODULE_NAME + ".DBB_ACCESS_ONGLET_TABLE_TABLES_GRAPH";
+
+    public static POLICY_DBB_CAN_EXPORT_IMPORT_JSON = AccessPolicyTools.POLICY_UID_PREFIX + ModuleDashboardBuilder.MODULE_NAME + ".DBB_CAN_EXPORT_IMPORT_JSON";
+    public static POLICY_DBB_CAN_CREATE_NEW_DB = AccessPolicyTools.POLICY_UID_PREFIX + ModuleDashboardBuilder.MODULE_NAME + ".DBB_CAN_CREATE_NEW_DB";
+    public static POLICY_DBB_CAN_DELETE_DB = AccessPolicyTools.POLICY_UID_PREFIX + ModuleDashboardBuilder.MODULE_NAME + ".DBB_CAN_DELETE_DB";
+    public static POLICY_DBB_CAN_SWITCH_DB = AccessPolicyTools.POLICY_UID_PREFIX + ModuleDashboardBuilder.MODULE_NAME + ".DBB_CAN_SWITCH_DB";
+
+    public static POLICY_DBB_CAN_EDIT_PAGES = AccessPolicyTools.POLICY_UID_PREFIX + ModuleDashboardBuilder.MODULE_NAME + ".DBB_CAN_EDIT_PAGES";
+
     public static APINAME_START_EXPORT_FAVORITES_FILTERS_DATATABLE: string = "start_export_favorites_filters_datatable";
 
     private static instance: ModuleDashboardBuilder = null;
     public start_export_favorites_filters_datatable: () => Promise<void> = APIControllerWrapper.sah(ModuleDashboardBuilder.APINAME_START_EXPORT_FAVORITES_FILTERS_DATATABLE);
+
+    public get_all_valid_api_type_ids: () => Promise<string[]> = APIControllerWrapper.sah_optimizer(this.name, reflect<this>().get_all_valid_api_type_ids);
+    public get_all_valid_widget_ids: () => Promise<number[]> = APIControllerWrapper.sah_optimizer(this.name, reflect<this>().get_all_valid_widget_ids);
+
 
     private constructor() {
 
@@ -75,6 +98,20 @@ export default class ModuleDashboardBuilder extends Module {
             ModuleDashboardBuilder.APINAME_START_EXPORT_FAVORITES_FILTERS_DATATABLE,
             [FavoritesFiltersVO.API_TYPE_ID]
         ));
+
+        APIControllerWrapper.registerApi(GetAPIDefinition.new(
+            ModuleDashboardBuilder.POLICY_BO_ACCESS,
+            this.name,
+            reflect<ModuleDashboardBuilder>().get_all_valid_api_type_ids,
+            [ModuleTableVO.API_TYPE_ID, RolePolicyVO.API_TYPE_ID, DBBConfVO.API_TYPE_ID],
+        ));
+
+        APIControllerWrapper.registerApi(GetAPIDefinition.new(
+            ModuleDashboardBuilder.POLICY_BO_ACCESS,
+            this.name,
+            reflect<ModuleDashboardBuilder>().get_all_valid_widget_ids,
+            [DashboardWidgetVO.API_TYPE_ID, DBBConfVO.API_TYPE_ID],
+        ));
     }
 
     public initialize() {
@@ -94,6 +131,9 @@ export default class ModuleDashboardBuilder extends Module {
         this.init_TableColumnDescVO();
         this.init_AdvancedDateFilterOptDescVO();
 
+        // Deprecated, only for migration to CRUDDBLinkVO purpose
+        this.initialize_LinkDashboardAndApiTypeIdVO();
+
         this.initialize_ComponentDatatableFieldVO();
         this.initialize_ComputedDatatableFieldVO();
         this.initialize_CRUDActionsDatatableFieldVO();
@@ -109,16 +149,46 @@ export default class ModuleDashboardBuilder extends Module {
         this.initialize_DashboardGraphColorPaletteVO();
 
         this.initialize_CRUDDBLinkVO();
+
+        this.initialize_DBBConfVO();
     }
 
+    private initialize_DBBConfVO() {
+        ModuleTableFieldController.create_new(DBBConfVO.API_TYPE_ID, field_names<DBBConfVO>().role_id_ranges, ModuleTableFieldVO.FIELD_TYPE_refrange_array, 'Rôles concernés', true)
+            .set_many_to_one_target_moduletable_name(RoleVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(DBBConfVO.API_TYPE_ID, field_names<DBBConfVO>().valid_moduletable_id_ranges, ModuleTableFieldVO.FIELD_TYPE_refrange_array, 'Tables visibles', true)
+            .set_many_to_one_target_moduletable_name(ModuleTableVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(DBBConfVO.API_TYPE_ID, field_names<DBBConfVO>().valid_widget_id_ranges, ModuleTableFieldVO.FIELD_TYPE_refrange_array, 'Widgets visibles', true)
+            .set_many_to_one_target_moduletable_name(DashboardWidgetVO.API_TYPE_ID);
+
+        ModuleTableController.create_new(this.name, DBBConfVO, null, "Configuration de DashboardBuilder");
+    }
+
+    /**
+     * Deprecated, only for migration to CRUDDBLinkVO purpose
+     */
+    private initialize_LinkDashboardAndApiTypeIdVO() {
+        ModuleTableFieldController.create_new(LinkDashboardAndApiTypeIdVO.API_TYPE_ID, field_names<LinkDashboardAndApiTypeIdVO>().dashboard_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, "Dashboard", true)
+            .set_many_to_one_target_moduletable_name(DashboardPageVO.API_TYPE_ID);
+
+        ModuleTableFieldController.create_new(LinkDashboardAndApiTypeIdVO.API_TYPE_ID, field_names<LinkDashboardAndApiTypeIdVO>().api_type_id, ModuleTableFieldVO.FIELD_TYPE_string, 'Type de données', true).unique();
+
+        ModuleTableController.create_new(this.name, LinkDashboardAndApiTypeIdVO, null, "DBB Template pour un api type id");
+    }
+
+
     private initialize_CRUDDBLinkVO() {
-        ModuleTableFieldController.create_new(CRUDDBLinkVO.API_TYPE_ID, field_names<CRUDDBLinkVO>().crud_step_type, ModuleTableFieldVO.FIELD_TYPE_enum, 'Type d\'action sur l\'objet', true).setEnumValues(CRUDDBLinkVO.CRUD_STEP_TYPE_LABELS);
+        // ModuleTableFieldController.create_new(CRUDDBLinkVO.API_TYPE_ID, field_names<CRUDDBLinkVO>().crud_step_type, ModuleTableFieldVO.FIELD_TYPE_enum, 'Type d\'action sur l\'objet', true).setEnumValues(CRUDDBLinkVO.CRUD_STEP_TYPE_LABELS);
         ModuleTableFieldController.create_new(CRUDDBLinkVO.API_TYPE_ID, field_names<CRUDDBLinkVO>().moduletable_ref_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'ModuleTable', true)
             .set_many_to_one_target_moduletable_name(ModuleTableVO.API_TYPE_ID);
-        ModuleTableFieldController.create_new(CRUDDBLinkVO.API_TYPE_ID, field_names<CRUDDBLinkVO>().db_ref_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Dashboard', false)
+        ModuleTableFieldController.create_new(CRUDDBLinkVO.API_TYPE_ID, field_names<CRUDDBLinkVO>().template_create_db_ref_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Template - Création', false)
+            .set_many_to_one_target_moduletable_name(DashboardVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(CRUDDBLinkVO.API_TYPE_ID, field_names<CRUDDBLinkVO>().template_read_db_ref_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Template - Consultation', false)
+            .set_many_to_one_target_moduletable_name(DashboardVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(CRUDDBLinkVO.API_TYPE_ID, field_names<CRUDDBLinkVO>().template_update_db_ref_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Template - Modification', false)
             .set_many_to_one_target_moduletable_name(DashboardVO.API_TYPE_ID);
 
-        ModuleTableController.create_new(this.name, CRUDDBLinkVO, null, "CRUD DB Link");
+        ModuleTableController.create_new(this.name, CRUDDBLinkVO, null, "Templates des types de données");
     }
 
     private init_DashboardVO(): ModuleTableVO {
@@ -128,6 +198,10 @@ export default class ModuleDashboardBuilder extends Module {
         ModuleTableFieldController.create_new(DashboardVO.API_TYPE_ID, field_names<DashboardVO>().cycle_fields, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Champs de cycle', false);
         ModuleTableFieldController.create_new(DashboardVO.API_TYPE_ID, field_names<DashboardVO>().cycle_links, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Liens de cycle', false);
         ModuleTableFieldController.create_new(DashboardVO.API_TYPE_ID, field_names<DashboardVO>().has_cycle, ModuleTableFieldVO.FIELD_TYPE_boolean, 'A un cycle', true, true, false);
+
+        ModuleTableFieldController.create_new(DashboardVO.API_TYPE_ID, field_names<DashboardVO>().moduletable_crud_template_ref_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Template pour le type de données', false)
+            .set_many_to_one_target_moduletable_name(ModuleTableVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(DashboardVO.API_TYPE_ID, field_names<DashboardVO>().moduletable_crud_template_form, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Template de formulaire', true, true, false);
 
         const res = ModuleTableController.create_new(this.name, DashboardVO, null, "Dashboards");
         return res;

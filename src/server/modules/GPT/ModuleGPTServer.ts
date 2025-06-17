@@ -28,6 +28,7 @@ import GPTAssistantAPIFileVO from '../../../shared/modules/GPT/vos/GPTAssistantA
 import GPTAssistantAPIFunctionVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIFunctionVO';
 import GPTAssistantAPIRunStepVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIRunStepVO';
 import GPTAssistantAPIRunVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIRunVO';
+import GPTAssistantAPIThreadMessageContentTextVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageContentTextVO';
 import GPTAssistantAPIThreadMessageContentVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageContentVO';
 import GPTAssistantAPIThreadMessageVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageVO';
 import GPTAssistantAPIThreadVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadVO';
@@ -44,6 +45,8 @@ import OseliaRunVO from '../../../shared/modules/Oselia/vos/OseliaRunVO';
 import OseliaThreadUserVO from '../../../shared/modules/Oselia/vos/OseliaThreadUserVO';
 import OseliaUserMemVO from '../../../shared/modules/Oselia/vos/OseliaUserMemVO';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
+import ModuleProgramPlanBase from '../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
+import IPlanRDVCR from '../../../shared/modules/ProgramPlan/interfaces/IPlanRDVCR';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
@@ -83,10 +86,6 @@ import GPTAssistantAPIServerSyncThreadsController from './sync/GPTAssistantAPISe
 import GPTAssistantAPIServerSyncVectorStoreFileBatchesController from './sync/GPTAssistantAPIServerSyncVectorStoreFileBatchesController';
 import GPTAssistantAPIServerSyncVectorStoreFilesController from './sync/GPTAssistantAPIServerSyncVectorStoreFilesController';
 import GPTAssistantAPIServerSyncVectorStoresController from './sync/GPTAssistantAPIServerSyncVectorStoresController';
-import ModuleProgramPlanBase from '../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
-import IPlanRDVCR from '../../../shared/modules/ProgramPlan/interfaces/IPlanRDVCR';
-import GPTAssistantAPIThreadMessageContentTextVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageContentTextVO';
-import SortByVO from '../../../shared/modules/ContextFilter/vos/SortByVO';
 
 export default class ModuleGPTServer extends ModuleServerBase {
 
@@ -520,7 +519,7 @@ export default class ModuleGPTServer extends ModuleServerBase {
         postCreateTrigger.registerHandler(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, this, this.postcreate_ThreadMessageVO_handle_pipe);
         postCreateTrigger.registerHandler(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID, this, this.postcreate_ThreadMessageContentVO_handle_pipe);
 
-        if(ModuleProgramPlanBase.getInstance().rdv_cr_type_id){
+        if (ModuleProgramPlanBase.getInstance().rdv_cr_type_id) {
             postUpdateTrigger.registerHandler(ModuleProgramPlanBase.getInstance().rdv_cr_type_id, GPTAssistantAPIServerController, GPTAssistantAPIServerController.postupdate_rdv_cr_vo_handle_pipe);
         }
 
@@ -653,8 +652,8 @@ export default class ModuleGPTServer extends ModuleServerBase {
                 .filter_by_id(run.thread_id)
                 .exec_as_server()
                 .update_vos<GPTAssistantAPIThreadVO>({
-                oselia_is_running: false,
-            });
+                    oselia_is_running: false,
+                });
         }
         await ModuleDAOServer.instance.insertOrUpdateVOs_as_server(runs);
 
@@ -1222,7 +1221,7 @@ export default class ModuleGPTServer extends ModuleServerBase {
      * @param cr_field_titles - Titres des champs du CR pour identifier la section.
      * @return Promise<unknown> - Résultat de l'opération d'édition.
      */
-    private async edit_cr_word(new_content: string, section: string, cr_vo: IPlanRDVCR,cr_field_titles: string[]): Promise<unknown> {
+    private async edit_cr_word(new_content: string, section: string, cr_vo: IPlanRDVCR, cr_field_titles: string[]): Promise<unknown> {
         if (!ModuleProgramPlanBase.getInstance().rdv_cr_type_id) {
             ConsoleHandler.error('edit_cr_word: No RDV CR type ID configured');
             return;

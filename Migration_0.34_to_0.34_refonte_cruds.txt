@@ -1,6 +1,4 @@
-TODO => si ce fichier n'est pas vide, il faut passer en 0.35
-Pour le vider, on doit patcher les regexp déjà, et/ou patcher du codex ?
-
+* Modifs de code *
 ** Supprimer les lignes suivantes **
 AppVuexStoreManager.getInstance().registerModule(DashboardPageStore.getInstance());
 
@@ -115,3 +113,17 @@ APRES :
 
 
     ModalsAndBasicPageComponentsHolderComponent
+    
+* Patchs à faire *
+
+** Patcher les droits et les DBBConfVO au besoin (cf CMSBuilder) **
+        
+On migre la conf des droits POLICY_CMS_VERSION_BO_ACCESS, POLICY_CMS_VERSION_FO_ACCESS et POLICY_DBB_FILTERS_VISIBLE_ON_CMS vers les nouveaux droits + DBBConfVO
+
+POLICY_CMS_VERSION_BO_ACCESS => 
+Ceux qui ont le droit POLICY_CMS_VERSION_BO_ACCESS ont accès au CMS mais pas forcément au DBB avant ce qui sous-entend un filtrage des widgets pour eux
++ avoir accès à POLICY_DBB_ACCESS_ONGLET_TABLE && POLICY_DBB_ACCESS_ONGLET_WIDGETS && POLICY_BO_ACCESS
+
+POLICY_CMS_VERSION_FO_ACCESS => aucun impact ?
+
+POLICY_DBB_FILTERS_VISIBLE_ON_CMS => on doit ajouter les widgets de filtres je suppose dans la conf dbbconf A voir selon projets

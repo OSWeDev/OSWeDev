@@ -1,5 +1,6 @@
 import Component from 'vue-class-component';
 import { Prop, Provide, Watch } from 'vue-property-decorator';
+import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../../shared/modules/ContextFilter/vos/SortByVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
@@ -9,6 +10,7 @@ import InsertOrDeleteQueryResult from '../../../../shared/modules/DAO/vos/Insert
 import ModuleTableFieldVO from '../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import ModuleTableVO from '../../../../shared/modules/DAO/vos/ModuleTableVO';
 import DashboardBuilderController from '../../../../shared/modules/DashboardBuilder/DashboardBuilderController';
+import ModuleDashboardBuilder from '../../../../shared/modules/DashboardBuilder/ModuleDashboardBuilder';
 import DashboardBuilderBoardManager from '../../../../shared/modules/DashboardBuilder/manager/DashboardBuilderBoardManager';
 import DashboardPageVOManager from '../../../../shared/modules/DashboardBuilder/manager/DashboardPageVOManager';
 import DashboardPageWidgetVOManager from '../../../../shared/modules/DashboardBuilder/manager/DashboardPageWidgetVOManager';
@@ -97,6 +99,17 @@ export default class DashboardBuilderComponent extends VueComponentBase {
     private show_select_vos: boolean = true;
     private show_menu_conf: boolean = false;
 
+    private POLICY_DBB_ACCESS_ONGLET_TABLE: boolean = false;
+    private POLICY_DBB_ACCESS_ONGLET_WIDGETS: boolean = false;
+    private POLICY_DBB_ACCESS_ONGLET_MENUS: boolean = false;
+    private POLICY_DBB_ACCESS_ONGLET_FILTRES_PARTAGES: boolean = false;
+    private POLICY_DBB_ACCESS_ONGLET_TABLE_TABLES_GRAPH: boolean = false;
+    private POLICY_DBB_CAN_EXPORT_IMPORT_JSON: boolean = false;
+    private POLICY_DBB_CAN_CREATE_NEW_DB: boolean = false;
+    private POLICY_DBB_CAN_DELETE_DB: boolean = false;
+    private POLICY_DBB_CAN_SWITCH_DB: boolean = false;
+    private POLICY_DBB_CAN_EDIT_PAGES: boolean = false;
+
     private selected_widget: DashboardPageWidgetVO = null;
 
     private collapsed_fields_wrapper: boolean = true;
@@ -104,13 +117,11 @@ export default class DashboardBuilderComponent extends VueComponentBase {
 
     private can_use_clipboard: boolean = false;
 
+    private all_tables_by_table_name: { [table_name: string]: ModuleTableVO } = {};
+
     private throttle_on_dashboard_loaded = ThrottleHelper.declare_throttle_without_args(
         'DashboardBuilderComponent.throttle_on_dashboard_loaded',
         this.on_dashboard_loaded, 50);
-
-    get all_tables_by_table_name(): { [table_name: string]: ModuleTableVO } {
-        return ModuleTableController.module_tables_by_vo_type;
-    }
 
     get fields_by_table_name_and_field_name(): { [table_name: string]: { [field_name: string]: ModuleTableFieldVO } } {
         const res: { [table_name: string]: { [field_name: string]: ModuleTableFieldVO } } = {};
@@ -319,9 +330,43 @@ export default class DashboardBuilderComponent extends VueComponentBase {
     }
 
     // registre/déréf module
-    public created() {
+    public async created() {
         const instance = new DashboardPageStore();
         this.$store.registerModule(this.storeNamespace, instance);
+
+        await all_promises([
+            (async () => {
+                this.POLICY_DBB_ACCESS_ONGLET_TABLE = await ModuleAccessPolicy.getInstance().testAccess(ModuleDashboardBuilder.POLICY_DBB_ACCESS_ONGLET_TABLE);
+            })(),
+            (async () => {
+                this.POLICY_DBB_ACCESS_ONGLET_WIDGETS = await ModuleAccessPolicy.getInstance().testAccess(ModuleDashboardBuilder.POLICY_DBB_ACCESS_ONGLET_WIDGETS);
+            })(),
+            (async () => {
+                this.POLICY_DBB_ACCESS_ONGLET_MENUS = await ModuleAccessPolicy.getInstance().testAccess(ModuleDashboardBuilder.POLICY_DBB_ACCESS_ONGLET_MENUS);
+            })(),
+            (async () => {
+                this.POLICY_DBB_ACCESS_ONGLET_FILTRES_PARTAGES = await ModuleAccessPolicy.getInstance().testAccess(ModuleDashboardBuilder.POLICY_DBB_ACCESS_ONGLET_FILTRES_PARTAGES);
+            })(),
+            (async () => {
+                this.POLICY_DBB_ACCESS_ONGLET_TABLE_TABLES_GRAPH = await ModuleAccessPolicy.getInstance().testAccess(ModuleDashboardBuilder.POLICY_DBB_ACCESS_ONGLET_TABLE_TABLES_GRAPH);
+            })(),
+            (async () => {
+                this.POLICY_DBB_CAN_EXPORT_IMPORT_JSON = await ModuleAccessPolicy.getInstance().testAccess(ModuleDashboardBuilder.POLICY_DBB_CAN_EXPORT_IMPORT_JSON);
+            })(),
+            (async () => {
+                this.POLICY_DBB_CAN_CREATE_NEW_DB = await ModuleAccessPolicy.getInstance().testAccess(ModuleDashboardBuilder.POLICY_DBB_CAN_CREATE_NEW_DB);
+            })(),
+            (async () => {
+                this.POLICY_DBB_CAN_DELETE_DB = await ModuleAccessPolicy.getInstance().testAccess(ModuleDashboardBuilder.POLICY_DBB_CAN_DELETE_DB);
+            })(),
+            (async () => {
+                this.POLICY_DBB_CAN_SWITCH_DB = await ModuleAccessPolicy.getInstance().testAccess(ModuleDashboardBuilder.POLICY_DBB_CAN_SWITCH_DB);
+            })(),
+            (async () => {
+                this.POLICY_DBB_CAN_EDIT_PAGES = await ModuleAccessPolicy.getInstance().testAccess(ModuleDashboardBuilder.POLICY_DBB_CAN_EDIT_PAGES);
+            })(),
+            this.init_all_valid_tables(),
+        ]);
 
         // Ne pas mettre en immediate true, le storeNamespace n'est pas encore créé
         this.onchange_dashboard_id();
@@ -1323,5 +1368,22 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         this.add_api_type_id(table_name);
 
         return ref;
+    }
+
+    private async init_all_valid_tables() {
+
+        // On charge la conf pour les rôles du user
+        const valid_vo_types: string[] = await ModuleDashboardBuilder.getInstance().get_all_valid_api_type_ids();
+
+        if (!valid_vo_types || !valid_vo_types.length) {
+            this.all_tables_by_table_name = {};
+        }
+
+        const all_tables_by_table_name = {};
+        for (const i in valid_vo_types) {
+            const table_name = valid_vo_types[i];
+            all_tables_by_table_name[table_name] = ModuleTableController.module_tables_by_vo_type[table_name];
+        }
+        this.all_tables_by_table_name = all_tables_by_table_name;
     }
 }
