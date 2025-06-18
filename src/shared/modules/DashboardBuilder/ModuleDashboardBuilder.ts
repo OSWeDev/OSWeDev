@@ -185,7 +185,7 @@ export default class ModuleDashboardBuilder extends Module {
 
     private initialize_CRUDDBLinkVO() {
         // ModuleTableFieldController.create_new(CRUDDBLinkVO.API_TYPE_ID, field_names<CRUDDBLinkVO>().crud_step_type, ModuleTableFieldVO.FIELD_TYPE_enum, 'Type d\'action sur l\'objet', true).setEnumValues(CRUDDBLinkVO.CRUD_STEP_TYPE_LABELS);
-        ModuleTableFieldController.create_new(CRUDDBLinkVO.API_TYPE_ID, field_names<CRUDDBLinkVO>().moduletable_ref_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'ModuleTable', true)
+        ModuleTableFieldController.create_new(CRUDDBLinkVO.API_TYPE_ID, field_names<CRUDDBLinkVO>().moduletable_ref_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'ModuleTable', true).unique()
             .set_many_to_one_target_moduletable_name(ModuleTableVO.API_TYPE_ID);
         ModuleTableFieldController.create_new(CRUDDBLinkVO.API_TYPE_ID, field_names<CRUDDBLinkVO>().template_create_db_ref_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Template - Création', false)
             .set_many_to_one_target_moduletable_name(DashboardVO.API_TYPE_ID);

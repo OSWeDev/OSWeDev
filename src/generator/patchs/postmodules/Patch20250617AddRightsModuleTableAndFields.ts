@@ -34,6 +34,15 @@ export default class Patch20250617AddRightsModuleTableAndFields extends PostModu
             [roles_ids_by_name[ModuleAccessPolicy.ROLE_LOGGED]]
         );
         await this.activate_policies(
+            policies_ids_by_name[DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, ModuleTableVO.API_TYPE_ID)],
+            [roles_ids_by_name[ModuleAccessPolicy.ROLE_LOGGED]]
+        );
+
+        await this.activate_policies(
+            policies_ids_by_name[DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_LIST_LABELS, ModuleTableFieldVO.API_TYPE_ID)],
+            [roles_ids_by_name[ModuleAccessPolicy.ROLE_LOGGED]]
+        );
+        await this.activate_policies(
             policies_ids_by_name[DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, ModuleTableFieldVO.API_TYPE_ID)],
             [roles_ids_by_name[ModuleAccessPolicy.ROLE_LOGGED]]
         );

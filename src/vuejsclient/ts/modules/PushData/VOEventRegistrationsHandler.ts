@@ -2,10 +2,9 @@ import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import ModulePushData from '../../../../shared/modules/PushData/ModulePushData';
 import { StatThisMapKeys } from '../../../../shared/modules/Stats/annotations/StatThisMapKeys';
 import ObjectHandler from '../../../../shared/tools/ObjectHandler';
-import VueModuleBase from '../VueModuleBase';
 import VOEventRegistrationKey from "./VOEventRegistrationKey";
 
-export default class VOEventRegistrationsHandler extends VueModuleBase {
+export default class VOEventRegistrationsHandler {
 
     protected static VO_EVENTS_CB_ID: number = 0;
 

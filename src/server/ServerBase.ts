@@ -44,7 +44,6 @@ import BGThreadServerController from './modules/BGThread/BGThreadServerControlle
 import CronServerController from './modules/Cron/CronServerController';
 import ModuleDAOServer from './modules/DAO/ModuleDAOServer';
 import ExpressDBSessionsServerController from './modules/ExpressDBSessions/ExpressDBSessionsServerController';
-import ModuleFileServer from './modules/File/ModuleFileServer';
 import ForkServerController from './modules/Fork/ForkServerController';
 import ForkedTasksController from './modules/Fork/ForkedTasksController';
 import MaintenanceServerController from './modules/Maintenance/MaintenanceServerController';
@@ -71,6 +70,7 @@ import RunsOnBgThreadDataController from './modules/BGThread/annotations/RunsOnB
 import RunsOnMainThreadDataController from './modules/BGThread/annotations/RunsOnMainThread';
 import DBDisconnectionServerHandler from './modules/DAO/disconnection/DBDisconnectionServerHandler';
 import { fs_stream_zipped_archive } from './modules/File/ArchiveServerController';
+import FileServerController from './modules/File/FileServerController';
 import ForkMessageController from './modules/Fork/ForkMessageController';
 import IFork from './modules/Fork/interfaces/IFork';
 import PingForkMessage from './modules/Fork/messages/PingForkMessage';
@@ -787,11 +787,11 @@ export default abstract class ServerBase {
      */
     /* istanbul ignore next: hardly testable */
     protected async createMandatoryFolders() {
-        await ModuleFileServer.getInstance().makeSureThisFolderExists('./temp');
-        await ModuleFileServer.getInstance().makeSureThisFolderExists('./files');
-        await ModuleFileServer.getInstance().makeSureThisFolderExists('./sfiles');
-        await ModuleFileServer.getInstance().makeSureThisFolderExists('./files/upload');
-        await ModuleFileServer.getInstance().makeSureThisFolderExists('./logs');
+        await FileServerController.getInstance().makeSureThisFolderExists('./temp');
+        await FileServerController.getInstance().makeSureThisFolderExists('./files');
+        await FileServerController.getInstance().makeSureThisFolderExists('./sfiles');
+        await FileServerController.getInstance().makeSureThisFolderExists('./files/upload');
+        await FileServerController.getInstance().makeSureThisFolderExists('./logs');
     }
 
     /**

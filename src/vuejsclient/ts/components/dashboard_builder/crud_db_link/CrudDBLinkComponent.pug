@@ -23,7 +23,9 @@
                 :selected-label='label("multiselect.selectedLabel")'
                 :deselect-label='label("multiselect.deselectLabel")'
                 :deselect-group-label='label("multiselect.deselectGroupLabel")'
-                )
+
+                :disabled="!POLICY_DBB_CAN_UPDATE_CRUD_TYPE"
+            )
 
     .switch_option_formulaire(v-if='selected_vo_type')
         .input_label {{ label('crud_db_link.switch_option_formulaire') }}
@@ -33,9 +35,11 @@
             :value="option_formulaire" 
             :sync="true"
             :width="100"
-            :labels="{checked: label('crud_db_link.switch_option_formulaire.on'), unchecked: label('crud_db_link.switch_option_formulaire.off')}")
+            :labels="{checked: label('crud_db_link.switch_option_formulaire.on'), unchecked: label('crud_db_link.switch_option_formulaire.off')}"
+            :disabled="!POLICY_DBB_CAN_UPDATE_OPTION_FORMULAIRE"
+        )
 
-    .switch_option_template_create(v-if='selected_vo_type')
+    .switch_option_template_create(v-if='selected_vo_type && option_formulaire')
         .input_label {{ label('crud_db_link.switch_option_template_create') }}
         
         toggle-button(
@@ -43,7 +47,9 @@
             :value="option_template_create" 
             :sync="true"
             :width="100"
-            :labels="{checked: label('crud_db_link.switch_option_template_create.on'), unchecked: label('crud_db_link.switch_option_template_create.off')}")
+            :labels="{checked: label('crud_db_link.switch_option_template_create.on'), unchecked: label('crud_db_link.switch_option_template_create.off')}"
+            :disabled="!POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_CREATE"
+        )
 
     .switch_option_template_read(v-if='selected_vo_type')
         .input_label {{ label('crud_db_link.switch_option_template_read') }}
@@ -53,9 +59,11 @@
             :value="option_template_read" 
             :sync="true"
             :width="100"
-            :labels="{checked: label('crud_db_link.switch_option_template_read.on'), unchecked: label('crud_db_link.switch_option_template_read.off')}")
+            :labels="{checked: label('crud_db_link.switch_option_template_read.on'), unchecked: label('crud_db_link.switch_option_template_read.off')}"
+            :disabled="!POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_READ"
+        )
 
-    .switch_option_template_update(v-if='selected_vo_type')
+    .switch_option_template_update(v-if='selected_vo_type && option_formulaire')
         .input_label {{ label('crud_db_link.switch_option_template_update') }}
         
         toggle-button(
@@ -63,4 +71,6 @@
             :value="option_template_update" 
             :sync="true"
             :width="100"
-            :labels="{checked: label('crud_db_link.switch_option_template_update.on'), unchecked: label('crud_db_link.switch_option_template_update.off')}")
+            :labels="{checked: label('crud_db_link.switch_option_template_update.on'), unchecked: label('crud_db_link.switch_option_template_update.off')}"
+            :disabled="!POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_UPDATE"
+        )

@@ -46,6 +46,10 @@ export default class ModulesManager {
             moduleObj.actif = ModulesManager.preloaded_modules_is_actif[moduleObj.name];
         }
 
+        if (!moduleObj.actif) {
+            return;
+        }
+
         moduleObj.initialize();
         moduleObj.registerApis();
     }

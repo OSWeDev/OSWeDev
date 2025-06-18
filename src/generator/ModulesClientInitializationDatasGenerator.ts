@@ -59,6 +59,7 @@ export default class ModulesClientInitializationDatasGenerator {
         fileContent += "import APIControllerWrapper from 'oswedev/dist/shared/modules/API/APIControllerWrapper';\n";
         fileContent += "import ModuleTableController from 'oswedev/dist/shared/modules/DAO/ModuleTableController';\n";
         fileContent += "import ParamsManager from 'oswedev/dist/shared/modules/Params/ParamsManager';\n";
+        fileContent += "import ModulesManager from 'oswedev/dist/shared/modules/ModulesManager';\n";
 
         if (target != 'Test') {
             fileContent += "import ClientAPIController from 'oswedev/dist/vuejsclient/ts/modules/API/ClientAPIController';\n";
@@ -92,6 +93,8 @@ export default class ModulesClientInitializationDatasGenerator {
         fileContent += "    EnvHandler.zoom_auto = " + ((ConfigurationService.node_configuration.zoom_auto) ? 'true' : 'false') + ';\n';
         fileContent += "    EnvHandler.logo_path = '" + ConfigurationService.node_configuration.logo_path + "';\n";
 
+
+        fileContent += this.generateModulesCode(this.generate_preloaded_modules_is_actif, target);
 
         fileContent += this.generateModulesCode(this.generateModuleData, target);
 
@@ -157,6 +160,13 @@ export default class ModulesClientInitializationDatasGenerator {
     }
 
 
+    private generate_preloaded_modules_is_actif(module: Module) {
+        let fileContent = "";
+
+        fileContent = "    ModulesManager.preloaded_modules_is_actif['" + module.name + "'] = " + (module.actif ? "true" : "false") + ";\n";
+
+        return fileContent;
+    }
 
     private generateModuleData(module: Module) {
         let fileContent = "";

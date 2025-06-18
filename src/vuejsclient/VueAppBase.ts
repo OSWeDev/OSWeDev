@@ -74,6 +74,7 @@ import PushDataVueModule from './ts/modules/PushData/PushDataVueModule';
 import StatsVueModule from "./ts/modules/Stats/StatsVueModule";
 import VueModuleBase from './ts/modules/VueModuleBase';
 import AppVuexStoreManager from './ts/store/AppVuexStoreManager';
+import DataSynchroController from "./ts/modules/PushData/DataSynchroController";
 
 // const loadComponent = async (component) => {
 //     try {
@@ -89,6 +90,8 @@ export default abstract class VueAppBase {
 
     public vueInstance: VueComponentBase & Vue;
     public vueRouter: VueRouter;
+
+    public routes_aliases: RouteAli
 
     protected constructor(
         public appController: VueAppController,
@@ -347,12 +350,49 @@ export default abstract class VueAppBase {
             }),
         });
 
-        routerOptions.routes.push({
-            path: '*',
-            name: '404',
-            component: () => import('./ts/components/Error404/component/Error404Component'),
-        });
+        /**
+         * On change la logique de route par défaut pour gérer les aliases d'url.
+         */
+        // routerOptions.routes.push({
+        //     path: '*',
+        //     name: '404',
+        //     component: () => import('./ts/components/Error404/component/Error404Component'),
+        // });
 
+        // On ajoute les alias de routes : Attention à la mise à jour en temps réel, on lance donc une synchro et un watcher, qui doivent tourner en permanence pour assurer que les routes restent toujours completes
+        await DataSynchroController.register_vo_updates_on_list(
+            this,
+            ALias
+        )
+        TODO synchro des alias
+
+        routerOptions.routes.map(route => ({
+            ...route,
+            beforeEnter: async (to, from, next) => {
+                const response = await axios.get(`/api/alias/resolve?realPath=${encodeURIComponent(to.path)}`);
+                if (response.data && response.data.alias) {
+                    next({ path: '/' + response.data.alias, replace: true });
+                } else {
+                    next();
+                }
+            },
+        })),
+        {
+            path: '/:alias',
+            component: {
+                async created() {
+                    const alias = this.$route.params.alias;
+                    const response = await axios.get(`/api/alias/${encodeURIComponent(alias)}`);
+                    if (response.data && response.data.realPath) {
+                        this.$router.replace(response.data.realPath);
+                    } else {
+                        this.$router.replace('/404');
+                    }
+                },
+                render() { return null; },
+            },
+        },
+];
         this.vueRouter = new VueRouter(routerOptions);
 
         let nbTests = 20;
