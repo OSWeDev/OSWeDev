@@ -8,6 +8,7 @@ import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import ModuleTableVO from '../DAO/vos/ModuleTableVO';
 import IDistantVOBase from '../IDistantVOBase';
 import IVersionedVO from './interfaces/IVersionedVO';
+import TimeSegment from '../DataRender/vos/TimeSegment';
 
 export default class VersionedVOController implements IVOController {
 
@@ -48,8 +49,8 @@ export default class VersionedVOController implements IVOController {
         ModuleTableFieldController.create_new(moduleTable.vo_type, field_names<IVersionedVO>().version_author_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Créateur', false).hide_from_datatable()
             .set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
 
-        ModuleTableFieldController.create_new(moduleTable.vo_type, field_names<IVersionedVO>().version_edit_timestamp, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de modification', false);
-        ModuleTableFieldController.create_new(moduleTable.vo_type, field_names<IVersionedVO>().version_timestamp, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de création', false);
+        ModuleTableFieldController.create_new(moduleTable.vo_type, field_names<IVersionedVO>().version_edit_timestamp, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de modification', false).set_segmentation_type(TimeSegment.TYPE_SECOND);
+        ModuleTableFieldController.create_new(moduleTable.vo_type, field_names<IVersionedVO>().version_timestamp, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de création', false).set_segmentation_type(TimeSegment.TYPE_SECOND);
         ModuleTableFieldController.create_new(moduleTable.vo_type, field_names<IVersionedVO>().version_num, ModuleTableFieldVO.FIELD_TYPE_int, 'Numéro de version', false);
         ModuleTableFieldController.create_new(moduleTable.vo_type, field_names<IVersionedVO>().trashed, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Supprimé', false);
         ModuleTableFieldController.create_new(moduleTable.vo_type, field_names<IVersionedVO>().parent_id, ModuleTableFieldVO.FIELD_TYPE_int, 'Parent', false).index();
