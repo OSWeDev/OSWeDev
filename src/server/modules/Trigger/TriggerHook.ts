@@ -44,7 +44,7 @@ export default abstract class TriggerHook<Conditions, Params, Out> {
         return !!(conditionUID ? this.registered_handlers[conditionUID] : null);
     }
 
-    public registerHandler(conditions: Conditions, handler_bind_this: any, handler: (params: Params, exec_as_server?: boolean) => Promise<Out> | Out) {
+    public registerHandler(conditions: Conditions, handler_bind_this: any, handler: (params: Params, exec_as_server?: boolean) => Promise<Out> | Out): string {
         const conditionUID: string = conditions ? this.getConditionUID_from_Conditions(conditions) : TriggerHook.NO_CONDITION_UID;
 
         if (!this.registered_handlers[conditionUID]) {
@@ -52,6 +52,8 @@ export default abstract class TriggerHook<Conditions, Params, Out> {
         }
 
         this.registered_handlers[conditionUID].push(handler.bind(handler_bind_this));
+
+        return conditionUID;
     }
 
     public async trigger(conditions: Conditions, params: Params, exec_as_server: boolean = false): Promise<Out[]> {

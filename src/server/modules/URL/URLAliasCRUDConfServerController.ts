@@ -150,24 +150,12 @@ export default class URLAliasCRUDConfServerController extends ModuleServerBase {
                     }
 
                     if (url_alias_conf.url_alias_template_read) {
-                        const alias_read = new URLAliasVO();
-                        alias_read.alias_url = url_alias_conf.url_alias_template_read.replace(/:([a-zA-Z_]+)/g, (match, field_name) => {
-                            return (vo[field_name] != null) ? CRUDURLController.transliterate_field_value_to_url(vo[field_name]) : "_";
-                        });
-                        alias_read.initial_url = CRUDURLController.get_crud_read_url(moduletable.vo_type, vo.id);
-                        alias_read.url_alias_conf_id = url_alias_conf.id;
-                        alias_read.vo_id = vo.id; // On met l'id du vo pour le read
+                        const alias_read = CRUDURLController.get_vo_alias_url_for_read(url_alias_conf, vo);
                         res[alias_read.initial_url + '|' + alias_read.alias_url] = alias_read;
                     }
 
                     if (url_alias_conf.url_alias_template_update) {
-                        const alias_update = new URLAliasVO();
-                        alias_update.alias_url = url_alias_conf.url_alias_template_update.replace(/:([a-zA-Z_]+)/g, (match, field_name) => {
-                            return (vo[field_name] != null) ? CRUDURLController.transliterate_field_value_to_url(vo[field_name]) : "_";
-                        });
-                        alias_update.initial_url = CRUDURLController.get_crud_update_url(moduletable.vo_type, vo.id);
-                        alias_update.url_alias_conf_id = url_alias_conf.id;
-                        alias_update.vo_id = vo.id; // On met l'id du vo pour l'update
+                        const alias_update = CRUDURLController.get_vo_alias_url_for_update(url_alias_conf, vo);
                         res[alias_update.initial_url + '|' + alias_update.alias_url] = alias_update;
                     }
                 }

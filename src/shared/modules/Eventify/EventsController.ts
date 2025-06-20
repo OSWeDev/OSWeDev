@@ -378,6 +378,29 @@ export default class EventsController {
     }
 
     /**
+    * Méthode de simplification pour écouter un évènement sans throttle, on cb juste à chaque event sans attendre de résultat et donc en //
+    * @param event_name
+    * @param cb
+    */
+    public static on_every_event_cb(
+        event_name: string,
+        cb: (event: EventifyEventInstanceVO, listener: EventifyEventListenerInstanceVO) => Promise<unknown> | unknown,
+    ): EventifyEventListenerInstanceVO {
+
+        if (EventsController.log_events_names[event_name]) {
+            ConsoleHandler.log('on_every_event_throttle_cb "' + event_name + '"');
+        }
+
+        const listener: EventifyEventListenerInstanceVO = EventifyEventListenerInstanceVO.new_listener(event_name, cb);
+        listener.remaining_calls = 0;
+        listener.unlimited_calls = true;
+        listener.throttled = false;
+        EventsController.register_event_listener(listener);
+
+        return listener;
+    }
+
+    /**
      * Méthode de simplification pour écouter un évènement côté shared sans avoir à passer par les DAOs (ce qui n'empêche pas d'avoir une conf DAO par ailleurs, mais on ne link pas ici)
      * A chaque fois, en illimité, throttled, avec cooldown
      * @param event_name
