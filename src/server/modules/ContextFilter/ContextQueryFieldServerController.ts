@@ -70,6 +70,7 @@ export default class ContextQueryFieldServerController {
             case ModuleTableFieldVO.FIELD_TYPE_color:
             case ModuleTableFieldVO.FIELD_TYPE_file_field:
             case ModuleTableFieldVO.FIELD_TYPE_textarea:
+            case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
             case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
                 default_res.string_value = db_res;
                 break;

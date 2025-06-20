@@ -38,6 +38,7 @@ import ForkedTasksController from './ForkedTasksController';
 import IForkMessage from './interfaces/IForkMessage';
 import AliveForkMessage from './messages/AliveForkMessage';
 import LoadBalancedBGThreadBase from '../BGThread/LoadBalancedBGThreadBase';
+import TranslatableFieldController from '../../../shared/modules/DAO/TranslatableFieldController';
 
 export default abstract class ForkedProcessWrapperBase {
 
@@ -55,6 +56,7 @@ export default abstract class ForkedProcessWrapperBase {
 
     public constructor(modulesService: ModuleServiceBase, STATIC_ENV_PARAMS: { [env: string]: EnvParam }) {
 
+        TranslatableFieldController.thread_name = 'main';
         StackContextWrapper.instance = StackContext;
         RunsOnMainThreadDataController.exec_self_on_main_process_and_return_value_method = ForkedTasksController.exec_self_on_main_process_and_return_value.bind(ForkedTasksController);
         RunsOnBgThreadDataController.exec_self_on_bgthread_and_return_value_method = ForkedTasksController.exec_self_on_bgthread_and_return_value.bind(ForkedTasksController);

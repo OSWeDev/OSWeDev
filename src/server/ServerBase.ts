@@ -80,6 +80,7 @@ import ModulePushDataServer from './modules/PushData/ModulePushDataServer';
 import AsyncHookPromiseWatchController from './modules/Stats/AsyncHookPromiseWatchController';
 import TeamsAPIServerController from './modules/TeamsAPI/TeamsAPIServerController';
 import VarsDatasVoUpdateHandler from './modules/Var/VarsDatasVoUpdateHandler';
+import TranslatableFieldController from '../shared/modules/DAO/TranslatableFieldController';
 
 export default abstract class ServerBase {
 
@@ -111,6 +112,7 @@ export default abstract class ServerBase {
     /* istanbul ignore next: nothing to test here */
     protected constructor(modulesService: ModuleServiceBase, STATIC_ENV_PARAMS: { [env: string]: EnvParam }) {
 
+        TranslatableFieldController.thread_name = 'main';
         StackContextWrapper.instance = StackContext;
         RunsOnMainThreadDataController.exec_self_on_main_process_and_return_value_method = ForkedTasksController.exec_self_on_main_process_and_return_value.bind(ForkedTasksController);
         RunsOnBgThreadDataController.exec_self_on_bgthread_and_return_value_method = ForkedTasksController.exec_self_on_bgthread_and_return_value.bind(ForkedTasksController);

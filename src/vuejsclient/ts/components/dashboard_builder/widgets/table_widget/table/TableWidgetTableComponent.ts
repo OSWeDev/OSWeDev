@@ -1786,6 +1786,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                 case ModuleTableFieldVO.FIELD_TYPE_day:
                 case ModuleTableFieldVO.FIELD_TYPE_timewithouttimezone:
                 case ModuleTableFieldVO.FIELD_TYPE_month:
+                case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
                 case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
                 default:
                     throw new Error('Not implemented');
@@ -2017,6 +2018,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                 case ModuleTableFieldVO.FIELD_TYPE_day:
                 case ModuleTableFieldVO.FIELD_TYPE_timewithouttimezone:
                 case ModuleTableFieldVO.FIELD_TYPE_month:
+                case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
                 case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
                 default:
                     throw new Error('Not implemented');

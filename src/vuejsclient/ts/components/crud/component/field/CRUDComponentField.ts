@@ -654,6 +654,10 @@ export default class CRUDComponentField extends VueComponentBase
             throw new Error('CRUDComponentField.update_visible_options: Not implemented for translatable_text label field: ' + field_label.field_name);
         }
 
+        if (field_label.field_type == ModuleTableFieldVO.FIELD_TYPE_translatable_string) {
+            throw new Error('CRUDComponentField.update_visible_options: Not implemented for translatable_string label field: ' + field_label.field_name);
+        }
+
         const active_api_types: string[] = [this.field.moduleTable.vo_type, api_type_id];
         const this_fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[this.field.moduleTable.vo_type];
         const target_fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[target_table.vo_type];

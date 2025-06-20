@@ -89,6 +89,7 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                 case ModuleTableFieldVO.FIELD_TYPE_amount:
                     return amountFilter.read(field_value);
 
+                case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
                 case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
                     if (this.moduleTableField.translatable_params_field_name) {
                         let params = null;
@@ -379,6 +380,7 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                 case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
                     return field_value;
 
+                case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
                 case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
                     return field_value;
 

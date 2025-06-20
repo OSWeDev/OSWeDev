@@ -161,7 +161,7 @@ export default class DatatableComponentField extends VueComponentBase {
                 return this.explicit_html ? this.vo[this.field.datatable_field_uid + '__raw'] : this.vo[this.field.datatable_field_uid];
             }
 
-            if (this.field.field_type == ModuleTableFieldVO.FIELD_TYPE_translatable_text) {
+            if ((this.field.field_type == ModuleTableFieldVO.FIELD_TYPE_translatable_text) || (this.field.field_type == ModuleTableFieldVO.FIELD_TYPE_translatable_string)) {
                 if (!this.vo[this.field.datatable_field_uid + '__raw']) {
                     return null;
                 }
@@ -296,6 +296,7 @@ export default class DatatableComponentField extends VueComponentBase {
             case ModuleTableFieldVO.FIELD_TYPE_email:
             case ModuleTableFieldVO.FIELD_TYPE_string:
             case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
+            case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
             case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
             case ModuleTableFieldVO.FIELD_TYPE_password:
             case ModuleTableFieldVO.FIELD_TYPE_file_field:

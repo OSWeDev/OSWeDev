@@ -140,6 +140,7 @@ export default class ModuleTableFieldController {
             case ModuleTableFieldVO.FIELD_TYPE_color_array:
             case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
             case ModuleTableFieldVO.FIELD_TYPE_textarea:
+            case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
             case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
             case ModuleTableFieldVO.FIELD_TYPE_string_array:
             case ModuleTableFieldVO.FIELD_TYPE_tsrange:

@@ -56,6 +56,9 @@ export default class AssistantVoFieldDescription {
             case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
                 return 'json';
 
+            case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
+                return 'translatable_string'; // pas clair que ça serve à quelque chose ces types ésotériques, un throw c'est ptetre plus adapté en vrai....
+
             case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
                 return 'translatable_code_text';
 

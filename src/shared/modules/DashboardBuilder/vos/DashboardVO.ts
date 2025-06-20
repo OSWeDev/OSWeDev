@@ -10,6 +10,8 @@ export default class DashboardVO implements IDistantVOBase, IWeightedItem {
 
     public id: number;
 
+    public title: string;
+
     /**
      * Pour les DBs qu'on désigne comme template de type de données
      */

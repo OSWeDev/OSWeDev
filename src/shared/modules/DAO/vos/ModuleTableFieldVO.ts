@@ -64,7 +64,20 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
     public static FIELD_TYPE_day: string = 'day';
     public static FIELD_TYPE_timewithouttimezone: string = 'timewithouttimezone';
     public static FIELD_TYPE_month: string = 'month';
+
+    /**
+     * @deprecated use FIELD_TYPE_translatable_string instead now, which autogenerates the code, and simply ask for the text in the appropriate language
+     */
     public static FIELD_TYPE_translatable_text: string = 'translatable_text';
+
+    /**
+     * Nouvelle version du champs de texte traduit
+     * Code auto généré, et champs de trad directement, avec option pour choisir la langue pour traduire dans toutes les langues directement
+     * Version string :
+     * TODO version string[]
+     * TODO version HTML
+     */
+    public static FIELD_TYPE_translatable_string: string = 'translatable_string';
 
     public id: number;
     public _type: string = ModuleTableFieldVO.API_TYPE_ID;
@@ -197,6 +210,7 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
             (this.field_type == ModuleTableFieldVO.FIELD_TYPE_textarea) ||
             (this.field_type == ModuleTableFieldVO.FIELD_TYPE_html) ||
             (this.field_type == ModuleTableFieldVO.FIELD_TYPE_html_array) ||
+            (this.field_type == ModuleTableFieldVO.FIELD_TYPE_translatable_string) ||
             (this.field_type == ModuleTableFieldVO.FIELD_TYPE_translatable_text) ||
             (this.field_type == ModuleTableFieldVO.FIELD_TYPE_string_array) ||
             (this.field_type == ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj)
@@ -589,6 +603,7 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
             case ModuleTableFieldVO.FIELD_TYPE_string:
             case ModuleTableFieldVO.FIELD_TYPE_color:
             case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
+            case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
             case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
             case ModuleTableFieldVO.FIELD_TYPE_password:
             case ModuleTableFieldVO.FIELD_TYPE_file_field:
@@ -695,6 +710,7 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
             case ModuleTableFieldVO.FIELD_TYPE_color:
             case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
             case ModuleTableFieldVO.FIELD_TYPE_textarea:
+            case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
             case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
             case ModuleTableFieldVO.FIELD_TYPE_password:
             case ModuleTableFieldVO.FIELD_TYPE_file_field:

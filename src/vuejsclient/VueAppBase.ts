@@ -75,6 +75,8 @@ import StatsVueModule from "./ts/modules/Stats/StatsVueModule";
 import VueModuleBase from './ts/modules/VueModuleBase';
 import AppVuexStoreManager from './ts/store/AppVuexStoreManager';
 import DataSynchroController from "./ts/modules/PushData/DataSynchroController";
+import TranslatableFieldController from "../shared/modules/DAO/TranslatableFieldController";
+import AjaxCacheClientController from "./ts/modules/AjaxCache/AjaxCacheClientController";
 
 // const loadComponent = async (component) => {
 //     try {
@@ -106,6 +108,8 @@ export default abstract class VueAppBase {
     }
 
     public async runApp() {
+
+        TranslatableFieldController.thread_name = AjaxCacheClientController.getInstance().client_tab_id;
 
         $(document).on('click', function () {
             $('.ui-tooltip').remove();
