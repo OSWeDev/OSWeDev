@@ -27,6 +27,6 @@ export default class ModuleTableCompositePartialIndexVO implements IDistantVOBas
         if (this.overload_index_name_schema) {
             return this.overload_index_name_schema;
         }
-        return this.vo_type + '__' + this.field_names.join('_') + (this.context_filters ? ('__' + this.context_filters.map((cf) => cf.field_name + '_' + cf.filter_type).join('_')) : '');
+        return this.vo_type + '_' + '{table_name}' + '__' + this.field_names.join('_') + (this.context_filters ? ('__' + this.context_filters.map((cf) => cf.field_name + '_' + cf.filter_type).join('_')) : '');
     }
 }
