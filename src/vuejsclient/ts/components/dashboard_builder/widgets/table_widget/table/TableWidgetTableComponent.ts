@@ -711,7 +711,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
 
         const res: TableColumnDescVO[] = [];
         let sticky_left: number = 0;
-        let max_id: number = 0;
+        let max_id: number = Math.max(...options.columns.map((e) => e.id));
         let new_weight: number = 0;
 
         for (const i in options.columns) {
@@ -729,10 +729,6 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                 sticky_left += parseInt(column.column_width.toString());
                 this.has_sticky_cols = true;
                 this.last_sticky_col_id = column.id;
-            }
-
-            if (max_id < column.id) {
-                max_id = column.id;
             }
 
             if (FieldFiltersVOManager.is_column_filtered(column, this.filter_by_access_cache, this.get_active_field_filters, this.all_page_widgets_by_id)) {

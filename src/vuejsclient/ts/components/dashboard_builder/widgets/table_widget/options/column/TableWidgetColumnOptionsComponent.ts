@@ -178,6 +178,12 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
             if (this.column?.var_id) {
                 return 'VAR :var_id:' + this.column.var_id + ' :name: ' + this.t(VarsController.get_translatable_name_code_by_var_id(this.column.var_id));
             }
+            if (this.column?.column_dynamic_var) {
+                return 'COLUMN DYNAMIC VAR :' + this.column.column_dynamic_var;
+            }
+            if (this.column?.column_dynamic_component) {
+                return 'COLUMN DYNAMIC COMPONENT :' + this.column.column_dynamic_component;
+            }
             return null;
         }
 
