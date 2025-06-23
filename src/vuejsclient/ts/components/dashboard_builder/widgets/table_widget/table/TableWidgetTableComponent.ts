@@ -2873,8 +2873,8 @@ export default class TableWidgetTableComponent extends VueComponentBase {
 
         let export_name: string = 'Export-';
 
-        if (this.dashboard?.translatable_name_code_text) {
-            export_name += 'Dashboard-' + this.t(this.dashboard.translatable_name_code_text) + '-';
+        if (this.dashboard?.title) {
+            export_name += 'Dashboard-' + this.t(this.dashboard.title) + '-';
         }
 
         if (this.dashboard_page?.translatable_name_code_text) {

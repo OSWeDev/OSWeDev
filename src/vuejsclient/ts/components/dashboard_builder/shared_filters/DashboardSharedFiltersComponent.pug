@@ -21,7 +21,7 @@
                             .row
                                 .col-md-6
                                     .dashboard-page
-                                        .dashboard-page-name {{ get_translation_by_vo_field_ref_name_code_text(dashboard_page.translatable_name_code_text) }}
+                                        .dashboard-page-name {{ get_translation_by_vo_field_ref_name_code_text(dashboard_page.title) }}
                                 
                                 .col-md-6
                                     .page-sharable-filters-row(v-for="(option, translatable_label_code) in dashboard_pages_field_filters_map.find((dpff) => dpff.dashboard_page_id == dashboard_page.id)?.readable_field_filters")

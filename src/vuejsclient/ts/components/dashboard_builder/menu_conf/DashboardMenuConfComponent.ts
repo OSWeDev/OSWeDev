@@ -129,7 +129,7 @@ export default class DashboardMenuConfComponent extends VueComponentBase {
                 /**
                  * On se base sur la trad actuelle du dashboard
                  */
-                const db_translatable_text = await ModuleTranslation.getInstance().getTranslatableText(this.dashboard.translatable_name_code_text);
+                const db_translatable_text = await ModuleTranslation.getInstance().getTranslatableText(this.dashboard.title);
                 if (db_translatable_text) {
 
                     const translations: TranslationVO[] = await query(TranslationVO.API_TYPE_ID).filter_by_num_eq(field_names<TranslationVO>().text_id, db_translatable_text.id).select_vos<TranslationVO>();

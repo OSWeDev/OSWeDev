@@ -19,3 +19,8 @@
                     template(v-if='has_modif')
                         .update_trad
                             i.fa-solid.fa-floppy-disks.fa-fw(aria-hidden="true" @click="update_trad(text)")
+            LangSelectorComponent(
+                :update_self_lang='false'
+                :show_lang_label='false'
+                @lang_changed='lang_changed'
+            )

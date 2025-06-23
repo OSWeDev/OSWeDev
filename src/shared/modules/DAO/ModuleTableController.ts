@@ -3,6 +3,7 @@ import ConsoleHandler from "../../tools/ConsoleHandler";
 import MatroidIndexHandler from "../../tools/MatroidIndexHandler";
 import { reflect } from "../../tools/ObjectHandler";
 import { query } from "../ContextFilter/vos/ContextQueryVO";
+import SortByVO from "../ContextFilter/vos/SortByVO";
 import IDistantVOBase from "../IDistantVOBase";
 import IIsServerField from "../IIsServerField";
 import MatroidController from "../Matroid/MatroidController";
@@ -14,7 +15,6 @@ import ModuleTableCompositeUniqueKeyController from "./ModuleTableCompositeUniqu
 import ModuleTableFieldController from "./ModuleTableFieldController";
 import ModuleTableFieldVO from "./vos/ModuleTableFieldVO";
 import ModuleTableVO from "./vos/ModuleTableVO";
-import SortByVO from "../ContextFilter/vos/SortByVO";
 
 export default class ModuleTableController {
 
@@ -381,7 +381,11 @@ export default class ModuleTableController {
         for (const i in fields) {
             const field = fields[i];
 
-            vo[field.field_name] = ((vo[field.field_name] != null) ? vo[field.field_name] : field.get_field_default_value());
+            if (field.is_readonly || (vo[field.field_name] != null)) {
+                continue;
+            }
+
+            vo[field.field_name] = field.get_field_default_value();
         }
 
         return vo;

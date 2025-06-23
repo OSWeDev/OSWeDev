@@ -29,12 +29,12 @@ export default class DashboardVO implements IDistantVOBase, IWeightedItem {
 
     public weight: number;
 
-    get translatable_name_code_text(): string {
+    // get translatable_name_code_text(): string {
 
-        if (!this.id) {
-            return null;
-        }
+    //     if (!this.id) {
+    //         return null;
+    //     }
 
-        return DashboardBuilderController.DASHBOARD_NAME_CODE_PREFIX + this.id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
-    }
+    //     return DashboardBuilderController.DASHBOARD_NAME_CODE_PREFIX + this.id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
+    // }
 }

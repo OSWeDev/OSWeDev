@@ -93,11 +93,6 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
             true,
         ));
 
-        // On se rajoute les routes pour les crud_db_links et les cruds par défaut du coup aussi
-        
-        TODO synchro des routes de crudStore, basées sur la liste des cruddblink
-
-
         await this.initializeDefaultWidgets();
     }
 

@@ -15,9 +15,9 @@
                         .col-sm-2
                             .title {{ label('dashboard_builder.title') }}
 
-                        .col-sm-4
+                        .col-sm-4.dash_board_title_wrapper
                             .name
-                                Inlinetranslatabletext(:code_text="dashboard_name_code_text" :is_editable="true")
+                                Inlinetranslatabletext(:code_text="dashboard.title" :is_editable="true")
 
                         .col-sm-4(v-if='POLICY_DBB_CAN_SWITCH_DB')
                             .selector

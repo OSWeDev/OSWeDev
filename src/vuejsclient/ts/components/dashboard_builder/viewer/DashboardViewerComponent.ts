@@ -88,7 +88,7 @@ export default class DashboardViewerComponent extends VueComponentBase {
             return null;
         }
 
-        return this.dashboard.translatable_name_code_text ? this.dashboard.translatable_name_code_text : null;
+        return this.dashboard.title ? this.dashboard.title : null;
     }
 
     get pages_name_code_text(): string[] {

@@ -1,10 +1,10 @@
 import Component from 'vue-class-component';
-import { Watch } from 'vue-property-decorator';
+import { Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import ModuleTranslation from '../../../../shared/modules/Translation/ModuleTranslation';
 import LangVO from '../../../../shared/modules/Translation/vos/LangVO';
+import { reflect } from '../../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../../shared/tools/PromiseTools';
 import VueAppController from '../../../VueAppController';
 import VueComponentBase from '../VueComponentBase';
@@ -16,9 +16,15 @@ import './LangSelectorComponent.scss';
 })
 export default class LangSelectorComponent extends VueComponentBase {
 
-    private langs_by_ids: { [id: number]: LangVO } = {};
-    private hide: boolean = true;
-    private tmp_user_lang: LangVO = null;
+    @Prop({ default: true })
+    public update_self_lang: boolean;
+
+    @Prop({ default: true })
+    public show_lang_label: boolean;
+
+    public langs_by_ids: { [id: number]: LangVO } = {};
+    public hide: boolean = true;
+    public tmp_lang: LangVO = null;
 
     get langs(): LangVO[] {
         return Object.values(this.langs_by_ids);
@@ -29,6 +35,27 @@ export default class LangSelectorComponent extends VueComponentBase {
             return null;
         }
         return VueAppController.getInstance().data_user.lang_id;
+    }
+
+    @Watch(reflect<LangSelectorComponent>().tmp_lang)
+    private async on_change_tmp_lang() {
+
+        if (!this.tmp_lang) {
+            return;
+        }
+
+        if (this.update_self_lang) {
+            if (this.tmp_lang.id == this.user_lang_id) {
+                return;
+            }
+
+            this.snotify.info(this.label('lang_selector.encours'));
+            await ModuleAccessPolicy.getInstance().change_lang(this.tmp_lang.id);
+
+            location.reload();
+        } else {
+            this.$emit('lang_changed', this.tmp_lang);
+        }
     }
 
     public async mounted() {
@@ -59,30 +86,13 @@ export default class LangSelectorComponent extends VueComponentBase {
 
         await all_promises(promises);
 
-        // Si la langue a été forcée à une langue à laquelle on a pas accès, on affiche pas le composant
+        // Si la langue a été forcée à une langue à laquelle on a pas accès, on n'affiche pas le composant
         if (!self.langs_by_ids[this.user_lang_id]) {
             return;
         }
 
-        this.tmp_user_lang = self.langs_by_ids[this.user_lang_id];
+        this.tmp_lang = self.langs_by_ids[this.user_lang_id];
         this.hide = false;
-    }
-
-    @Watch('tmp_user_lang')
-    private async on_change_tmp_user_lang() {
-
-        if (!this.tmp_user_lang) {
-            return;
-        }
-
-        if (this.tmp_user_lang.id == this.user_lang_id) {
-            return;
-        }
-
-        this.snotify.info(this.label('lang_selector.encours'));
-        await ModuleAccessPolicy.getInstance().change_lang(this.tmp_user_lang.id);
-
-        location.reload();
     }
 
     private langLabel(lang: LangVO): string {
@@ -90,6 +100,6 @@ export default class LangSelectorComponent extends VueComponentBase {
             return '';
         }
 
-        return lang.code_lang;
+        return lang.code_flag;
     }
 }

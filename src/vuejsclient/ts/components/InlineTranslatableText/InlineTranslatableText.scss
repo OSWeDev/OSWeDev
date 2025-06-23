@@ -1,5 +1,12 @@
 .inline_translatable_text {
 
+    display: flex;
+
+    form>.editable_text {
+        height: -webkit-fill-available;
+        margin-right: 0.4em;
+    }
+
     .update_trad {
         display: inline-block;
         padding: 0.2em;

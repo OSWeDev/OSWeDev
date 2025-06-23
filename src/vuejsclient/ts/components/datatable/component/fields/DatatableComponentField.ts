@@ -29,12 +29,14 @@ import VueComponentBase from '../../../VueComponentBase';
 import FileDatatableFieldComponent from '../fields/file/file_datatable_field';
 import './DatatableComponentField.scss';
 import DBVarDatatableFieldComponent from './dashboard_var/db_var_datatable_field';
+import InlineTranslatableText from '../../../InlineTranslatableText/InlineTranslatableText';
 
 @Component({
     template: require('./DatatableComponentField.pug'),
     components: {
         Filedatatablefieldcomponent: FileDatatableFieldComponent,
-        Dbvardatatablefieldcomponent: DBVarDatatableFieldComponent
+        Dbvardatatablefieldcomponent: DBVarDatatableFieldComponent,
+        InlineTranslatableText: InlineTranslatableText,
     }
 })
 export default class DatatableComponentField extends VueComponentBase {

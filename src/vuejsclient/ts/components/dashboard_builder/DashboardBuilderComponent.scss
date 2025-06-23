@@ -3,6 +3,11 @@
 .dashboard_builder {
     margin-bottom: 500px;
 
+
+    .dash_board_title_wrapper .inline_translatable_text .multiselect {
+        padding: .4em;
+    }
+
     .is_loading,
     .loading_failed {
         width: auto;
@@ -19,7 +24,8 @@
         }
 
         .name {
-            input {
+
+            form input {
                 border: none;
                 padding: 0.5em;
                 width: 100%;
@@ -149,11 +155,11 @@
 
             .name {
                 display: inline-block;
+                margin-right: 0.5em;
 
-                input {
+                form input {
                     border: none;
                     padding: 0.5em;
-                    margin-right: 0.5em;
                 }
 
                 .is_updating {

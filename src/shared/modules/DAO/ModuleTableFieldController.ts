@@ -13,7 +13,6 @@ import TableFieldTypesManager from "../TableFieldTypes/TableFieldTypesManager";
 import DefaultTranslationVO from "../Translation/vos/DefaultTranslationVO";
 import ModuleTableController from "./ModuleTableController";
 import ModuleTableFieldVO from "./vos/ModuleTableFieldVO";
-import TranslatableTextVO from "../Translation/vos/TranslatableTextVO";
 
 export default class ModuleTableFieldController {
 
@@ -92,7 +91,6 @@ export default class ModuleTableFieldController {
         // Si le champs est de type translatable_string, on force la génération de code automatique :
         if (field_type == ModuleTableFieldVO.FIELD_TYPE_translatable_string) {
             res.set_field_default_dynamic_value('dao', 'get_new_translatable_field_auto_gen_code_text'); // En dur pour éviter une liaison/import au module
-            res.set_many_to_one_target_moduletable_name(TranslatableTextVO.API_TYPE_ID);
         }
 
         return res;

@@ -865,7 +865,7 @@ export default class SharedFiltersModalComponent extends VueComponentBase {
             return '';
         }
 
-        return dashboard.id + ' | ' + this.t(dashboard.translatable_name_code_text);
+        return dashboard.id + ' | ' + this.t(dashboard.title);
     }
 
     /**

@@ -40,6 +40,7 @@ import VueComponentBase from '../VueComponentBase';
 import ModuleTablesComponent from '../module_tables/ModuleTablesComponent';
 import './DashboardBuilderComponent.scss';
 import DashboardBuilderBoardComponent from './board/DashboardBuilderBoardComponent';
+import CrudDBLinkComponent from './crud_db_link/CrudDBLinkComponent';
 import DroppableVoFieldsComponent from './droppable_vo_fields/DroppableVoFieldsComponent';
 import { ModuleDroppableVoFieldsAction } from './droppable_vo_fields/DroppableVoFieldsStore';
 import DashboardMenuConfComponent from './menu_conf/DashboardMenuConfComponent';
@@ -50,7 +51,9 @@ import MaxGraphMapper from './tables_graph/graph_mapper/MaxGraphMapper';
 import DashboardBuilderWidgetsComponent from './widgets/DashboardBuilderWidgetsComponent';
 import DashboardBuilderWidgetsController from './widgets/DashboardBuilderWidgetsController';
 import IExportableWidgetOptions from './widgets/IExportableWidgetOptions';
-import CrudDBLinkComponent from './crud_db_link/CrudDBLinkComponent';
+import { basename } from 'path';
+import { ChatCompletionStream } from 'openai/lib/ChatCompletionStream';
+import VueAppController from '../../../VueAppController';
 
 @Component({
     template: require('./DashboardBuilderComponent.pug'),
@@ -169,13 +172,6 @@ export default class DashboardBuilderComponent extends VueComponentBase {
 
     get can_build_page() {
         return !!(this.get_dashboard_api_type_ids && this.get_dashboard_api_type_ids.length);
-    }
-    get dashboard_name_code_text(): string {
-        if (!this.dashboard) {
-            return null;
-        }
-
-        return this.dashboard.translatable_name_code_text ? this.dashboard.translatable_name_code_text : null;
     }
     get dashboards_options() {
 
@@ -387,7 +383,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
             return '';
         }
 
-        return dashboard.id + ' | ' + this.t(dashboard.translatable_name_code_text);
+        return dashboard.id + ' | ' + this.t(dashboard.title);
     }
 
     private async update_layout_widget(widget: DashboardPageWidgetVO) {
@@ -593,6 +589,26 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         const db = this.dashboard;
         export_vos.push(ModuleTableController.translate_vos_to_api(db));
 
+    TODO FIXME:
+        /**
+         * On doit généraliser l'export import de datas sur la base suivante :
+         *  - On prend un VO à exporter, et on exporte tous ses champs
+         *      - en particulier, si un champs est de type translatable_string, on exporte pas le code_text qui sera déduit à la reconstruction, mais on exporte les trads dans toutes les langues de l'appli :
+         *          {[code_langue:string]:translation:string}
+         *          à la reconstruction si la langue existe pas osef
+         *      - en particulier si un champs est une foreign key, on exporte l'id + les champs uniques, de manière à pouvoir faire un double check sur la nouvelle appli, et si on retrouve pas les correspondances de champs uniques, on peut chercher et si on trouve, on corrige l'id
+         *          par contre si pas de champs unique c'est l'id point barre.
+         *          On peut aussi définir lors de l'export que ce type de données doit aussi être exporté, par ce qu'il sera alors créé en même temps, et donc on l'exporte et on garde une ref interne à l'export (un id qui se mettra à jour à la création)
+         *          Pour définir les liaisons qu'on exporte en plus du VO de base, on sélectionne les fields, et on les met dans un tableau de conf. si on tombe sur un champs du tableau, on exporte la cible aussi
+         *          Valable pour les num ref ranges
+         *      - en particulier, si on a des vos qui références ce vo, alors puisqu'il s'agit d'une création dans le nouvel environnement, par défaut, on exporte aussi ces vos et on stocke la ref id en mode dynamique
+         *          exemple des pages de db sur les dbs. on veut aussi exporter les pages, et les page_widgets qui font référence à la page.
+         *          On peut vouloir ignorer peut-etre un type de contenu lié qui fait référence. on rajoute le champs de ref dans les champs ignoré, 
+         * et donc en param on a le vo à exporter, les fields qu'on veut suivre (quelle que soit la profondeur) et les fields qu'on veut pas suivre.
+         * idéalement faudrait un outil de visualisation des vos qui sont dans l'export pour être sûr de ce qu'on embarque (au moins des stats, X vos de ce types, X trads, ...)
+         *      
+         */
+
         const pages = await this.load_dashboard_pages_by_dashboard_id(
             this.dashboard.id,
             { refresh: true },
@@ -667,12 +683,17 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         const promises = [];
 
         // trad du db
-        if (db && db.translatable_name_code_text) {
+        if (db && db.title) {
+            TODO FIXME ya 2 choses qui vont pas là: !on doit exporter tous les champs de type translatable_string avec la même idée:
+            on embarque la trad de toutes les langues directement dans le champs / JSON du vo, et lors de la création
+            on génére un nouveau code autoinc pour le codetext(donc ça serrt à rien de le trimbaler à la base)
+            et ensuite on vient mettre le code dans le champs, et on crée les trads qu'on avait exportées.
+            logiquement ya plus rien à traiter à la main ici
             promises.push(this.get_exportable_translation(
                 langs,
                 translation_codes,
                 translations,
-                db.translatable_name_code_text, DashboardBuilderController.DASHBOARD_NAME_CODE_PREFIX + '{{IMPORT:' + db._type + ':' + db.id + '}}' + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION),
+                db.title, DashboardBuilderController.DASHBOARD_NAME_CODE_PREFIX + '{{IMPORT:' + db._type + ':' + db.id + '}}' + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION),
             );
         }
 
@@ -1030,7 +1051,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
     }
 
     private async create_new_dashboard() {
-        this.dashboard = new DashboardVO();
+        this.dashboard = new (ModuleTableController.vo_constructor_by_vo_type[DashboardVO.API_TYPE_ID])() as DashboardVO; // On passe par le moduletablecontroller comme ça on a les inits par défaut des champs aussi
         this.set_dashboard_api_type_ids([]);
 
         const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.instance.insertOrUpdateVO(
@@ -1054,10 +1075,30 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         }
 
         // On crée la trad
-        const code_lang = LocaleManager.getDefaultLocale();
-        const code_text = this.dashboard.translatable_name_code_text;
-        const translation = "Dashboard [" + this.dashboard.id + "]";
-        await TranslatableTextController.getInstance().save_translation(code_lang, code_text, translation);
+        // dans la création par défaut on a un nouveau code, reste à enrigistrer la nouvelle trad
+        const translation_code = new TranslatableTextVO();
+        translation_code.code_text = this.dashboard.title;
+        await ModuleDAO.getInstance().insertOrUpdateVO(translation_code);
+
+        if (!translation_code.id) {
+            ConsoleHandler.error('Error creating translation code for dashboard title');
+            this.snotify.error(this.label('DashboardBuilderComponent.create_new_dashboard.ko'));
+            this.dashboard = null;
+            return;
+        }
+
+        if (!VueAppController.getInstance().data_user_lang?.id) {
+            ConsoleHandler.error('User language ID not found');
+            this.snotify.error(this.label('DashboardBuilderComponent.create_new_dashboard.ko'));
+            this.dashboard = null;
+            return;
+        }
+
+        const translation = new TranslationVO();
+        translation.lang_id = VueAppController.getInstance().data_user_lang?.id;
+        translation.text_id = translation_code.id;
+        translation.translated = "Dashboard [" + this.dashboard.id + "]";
+        await ModuleDAO.getInstance().insertOrUpdateVO(translation);
 
         // On crée la première page du dashboard
         await this.create_dashboard_page();

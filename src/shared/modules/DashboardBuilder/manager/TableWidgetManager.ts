@@ -72,8 +72,8 @@ export default class TableWidgetManager {
 
         let export_name: string = 'Export-';
 
-        if (dashboard?.translatable_name_code_text) {
-            export_name += 'Dashboard-' + LocaleManager.t(dashboard.translatable_name_code_text) + '-';
+        if (dashboard?.title) {
+            export_name += 'Dashboard-' + LocaleManager.t(dashboard.title) + '-';
         }
 
         if (dashboard_page?.translatable_name_code_text) {

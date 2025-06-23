@@ -65,6 +65,7 @@ import CRUDCreateFormController from '../create/CRUDCreateFormController';
 import CRUDFormServices from '../CRUDFormServices';
 import CRUDUpdateFormComponent from '../update/CRUDUpdateFormComponent';
 import './CRUDComponentField.scss';
+import InlineTranslatableText from '../../../InlineTranslatableText/InlineTranslatableText';
 const debounce = require('lodash/debounce');
 
 @Component({
@@ -82,6 +83,7 @@ const debounce = require('lodash/debounce');
         Numrangeinputcomponent: NumRangeInputComponent,
         Crudupdateformcomponent: CRUDUpdateFormComponent,
         Crudcreateformcomponent: CRUDCreateFormComponent,
+        InlineTranslatableText: InlineTranslatableText,
     }
 })
 export default class CRUDComponentField extends VueComponentBase

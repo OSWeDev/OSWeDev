@@ -22,11 +22,11 @@ export default class Patch20250623InitTitresDashboards implements IGeneratorWork
 
     public async work(db: IDatabase<any>) {
 
-        // Cas des nouveaux projets : si la table module_dashboard_dashboard n'existe pas, on ne fait rien
-        const tableExists = await db.query("SELECT to_regclass('ref.module_dashboard_dashboard');");
+        // Cas des nouveaux projets : si la table module_dashboardbuilder_dashboard n'existe pas, on ne fait rien
+        const tableExists = await db.query("SELECT to_regclass('ref.module_dashboardbuilder_dashboard');");
 
         if (!tableExists || tableExists.length === 0 || !tableExists[0].to_regclass) {
-            ConsoleHandler.log('Patch20250623InitTitresDashboards: Table "module_dashboard_dashboard" does not exist. Skipping patch.');
+            ConsoleHandler.log('Patch20250623InitTitresDashboards: Table "module_dashboardbuilder_dashboard" does not exist. Skipping patch.');
             return;
         }
 
@@ -35,10 +35,10 @@ export default class Patch20250623InitTitresDashboards implements IGeneratorWork
         // 2 - Ajouter le champs titre dans la table et initialiser avec le code de trad actuel
 
         // En fait on checke d'abord l'existence de la colonne titre
-        const columnExists = await db.query("SELECT column_name FROM information_schema.columns WHERE table_name = 'module_dashboard_dashboard' AND column_name = 'title';");
+        const columnExists = await db.query("SELECT column_name FROM information_schema.columns WHERE table_name = 'module_dashboardbuilder_dashboard' AND column_name = 'title';");
 
         if (columnExists && columnExists.length > 0) {
-            ConsoleHandler.log('Patch20250623InitTitresDashboards: Column "title" already exists in "module_dashboard_dashboard". Skipping patch.');
+            ConsoleHandler.log('Patch20250623InitTitresDashboards: Column "title" already exists in "module_dashboardbuilder_dashboard". Skipping patch.');
             return;
         }
 
@@ -46,16 +46,16 @@ export default class Patch20250623InitTitresDashboards implements IGeneratorWork
         // title = 'dashboard.name.' + this.id + '.___LABEL___';
         // On doit tout faire en une seule requete puisque si not null et actuellement on a des datas en base, on doit avoir une valeur par défaut
         await db.query(`
-                ALTER TABLE ref.module_dashboard_dashboard 
+                ALTER TABLE ref.module_dashboardbuilder_dashboard 
                 ADD COLUMN title TEXT NOT NULL DEFAULT 'dashboard.name.0.___LABEL___';
             `);
         // Maintenant on met à jour les titres des dashboards existants
-        const dashboards = await db.query("SELECT id FROM ref.module_dashboard_dashboard;");
+        const dashboards = await db.query("SELECT id FROM ref.module_dashboardbuilder_dashboard;");
         if (dashboards && dashboards.length > 0) {
             for (const dashboard of dashboards) {
                 const id = dashboard.id;
                 const title = `dashboard.name.${id}.___LABEL___`;
-                await db.query("UPDATE ref.module_dashboard_dashboard SET title = $1 WHERE id = $2;", [title, id]);
+                await db.query("UPDATE ref.module_dashboardbuilder_dashboard SET title = $1 WHERE id = $2;", [title, id]);
             }
         }
 
@@ -63,7 +63,7 @@ export default class Patch20250623InitTitresDashboards implements IGeneratorWork
 
         // et on supprime la valeur par défaut du champs
         await db.query(`
-                ALTER TABLE ref.module_dashboard_dashboard 
+                ALTER TABLE ref.module_dashboardbuilder_dashboard 
                 ALTER COLUMN title DROP DEFAULT;
             `);
     }
