@@ -69,7 +69,6 @@ export default class VOsTypesHandler {
             case ModuleTableFieldVO.FIELD_TYPE_textarea:
             case ModuleTableFieldVO.FIELD_TYPE_string_array:
             case ModuleTableFieldVO.FIELD_TYPE_color_array:
-            case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
             case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
             case ModuleTableFieldVO.FIELD_TYPE_file_field:
                 return true;
@@ -86,6 +85,7 @@ export default class VOsTypesHandler {
             case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
             case ModuleTableFieldVO.FIELD_TYPE_amount:
             case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+            case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
             case ModuleTableFieldVO.FIELD_TYPE_numrange:
             case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
             case ModuleTableFieldVO.FIELD_TYPE_refrange_array:

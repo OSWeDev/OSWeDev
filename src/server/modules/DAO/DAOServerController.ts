@@ -170,7 +170,6 @@ export default class DAOServerController {
             case ModuleTableFieldVO.FIELD_TYPE_email:
             case ModuleTableFieldVO.FIELD_TYPE_string:
             case ModuleTableFieldVO.FIELD_TYPE_color:
-            case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
             case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
             case ModuleTableFieldVO.FIELD_TYPE_textarea:
                 if (intersector_range.range_type == TSRange.RANGE_TYPE) {
@@ -183,7 +182,8 @@ export default class DAOServerController {
             case ModuleTableFieldVO.FIELD_TYPE_image_ref:
             case ModuleTableFieldVO.FIELD_TYPE_file_ref:
             case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
-                // Si on vise un type int, on sait que si le max = min + 1 et segment type du range = int et max exclusiv on est cool, on peut passer par un = directement.
+            // Si on vise un type int, on sait que si le max = min + 1 et segment type du range = int et max exclusiv on est cool, on peut passer par un = directement.
+            case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
                 // Sinon on fait comme pour les float et autres, on prend >= ou > et <= ou < suivant inclusive ou inclusive
                 if ((intersector_range.segment_type == NumSegment.TYPE_INT) && (intersector_range.min_inclusiv && !intersector_range.max_inclusiv) && (intersector_range.min == (intersector_range.max - 1))) {
                     // TODO : généraliser le concept, là on spécifie un truc très particulier pour faire vite et efficace, mais ya d'autres cas qu'on peut optimiser de la sorte
@@ -294,7 +294,6 @@ export default class DAOServerController {
             case ModuleTableFieldVO.FIELD_TYPE_email:
             case ModuleTableFieldVO.FIELD_TYPE_string:
             case ModuleTableFieldVO.FIELD_TYPE_color:
-            case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
             case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
             case ModuleTableFieldVO.FIELD_TYPE_textarea:
                 if (filter_field_type == ModuleTableFieldVO.FIELD_TYPE_tsrange) {
@@ -307,6 +306,7 @@ export default class DAOServerController {
             case ModuleTableFieldVO.FIELD_TYPE_float:
             case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
             case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+            case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
             case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
             case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
             case ModuleTableFieldVO.FIELD_TYPE_image_ref:

@@ -15,6 +15,7 @@ import ModuleTableFieldController from "./ModuleTableFieldController";
 import ModuleTableFieldVO from "./vos/ModuleTableFieldVO";
 import ModuleTableVO from "./vos/ModuleTableVO";
 import SortByVO from "../ContextFilter/vos/SortByVO";
+import { all_promises } from "../../tools/PromiseTools";
 
 export default class ModuleTableController {
 
@@ -374,17 +375,19 @@ export default class ModuleTableController {
         } as { new(): T };
     }
 
-    public static apply_default_fields<T extends IDistantVOBase>(vo: T): T {
+    public static async apply_default_fields<T extends IDistantVOBase>(vo: T): T {
 
         const fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[vo._type];
 
+        const promises = [];
         for (const i in fields) {
             const field = fields[i];
 
-            if ((typeof vo[field.field_name] == 'undefined') && field.has_default && !!field.field_default_value) {
-                vo[field.field_name] = field.field_default_value.value;
-            }
+            promises.push((async () => {
+                vo[field.field_name] = ((vo[field.field_name] != null) ? vo[field.field_name] : await field.get_field_default_value());
+            })());
         }
+        await all_promises(promises);
 
         return vo;
     }
@@ -458,7 +461,9 @@ export default class ModuleTableController {
         }
     }
 
-    private static init_default_fields_to_moduletable_and_moduletablefield() {
+    private static async init_default_fields_to_moduletable_and_moduletablefield() {
+
+        const promises = [];
 
         for (const vo_type in ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name) {
             const fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[vo_type];
@@ -466,15 +471,21 @@ export default class ModuleTableController {
             for (const i in fields) {
                 const field = fields[i];
 
-                ModuleTableController.apply_default_fields(field);
+                promises.push((async () => {
+                    await ModuleTableController.apply_default_fields(field);
+                })());
             }
         }
 
         for (const i in ModuleTableController.module_tables_by_vo_type) {
             const table = ModuleTableController.module_tables_by_vo_type[i];
 
-            ModuleTableController.apply_default_fields(table);
+            promises.push((async () => {
+                await ModuleTableController.apply_default_fields(table);
+            })());
         }
+
+        await all_promises(promises);
     }
 
     private static init_default_trad_field_label_translatable_code() {

@@ -1260,6 +1260,7 @@ export default class VueComponentBase extends Vue
                 case ModuleTableFieldVO.FIELD_TYPE_image_ref:
                 case ModuleTableFieldVO.FIELD_TYPE_enum:
                 case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
                 case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
                 case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
                 case ModuleTableFieldVO.FIELD_TYPE_prct:
@@ -1280,7 +1281,6 @@ export default class VueComponentBase extends Vue
                 case ModuleTableFieldVO.FIELD_TYPE_string:
                 case ModuleTableFieldVO.FIELD_TYPE_color:
                 case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
-                case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
                 case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
                 case ModuleTableFieldVO.FIELD_TYPE_password:
                 case ModuleTableFieldVO.FIELD_TYPE_file_field:
@@ -1393,6 +1393,7 @@ export default class VueComponentBase extends Vue
                 case ModuleTableFieldVO.FIELD_TYPE_image_ref:
                 case ModuleTableFieldVO.FIELD_TYPE_enum:
                 case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
                 case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
                 case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
                 case ModuleTableFieldVO.FIELD_TYPE_prct:
@@ -1405,7 +1406,6 @@ export default class VueComponentBase extends Vue
                 case ModuleTableFieldVO.FIELD_TYPE_string:
                 case ModuleTableFieldVO.FIELD_TYPE_color:
                 case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
-                case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
                 case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
                 case ModuleTableFieldVO.FIELD_TYPE_password:
                 case ModuleTableFieldVO.FIELD_TYPE_file_field:

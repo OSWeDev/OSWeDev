@@ -140,7 +140,6 @@ export default class ModuleTableVO implements IDistantVOBase {
             case ModuleTableFieldVO.FIELD_TYPE_day:
             case ModuleTableFieldVO.FIELD_TYPE_timewithouttimezone:
             case ModuleTableFieldVO.FIELD_TYPE_month:
-            case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
             case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
             default:
                 return null;
@@ -163,6 +162,7 @@ export default class ModuleTableVO implements IDistantVOBase {
             case ModuleTableFieldVO.FIELD_TYPE_amount:
             case ModuleTableFieldVO.FIELD_TYPE_prct:
             case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+            case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
             case ModuleTableFieldVO.FIELD_TYPE_int_array:
             case ModuleTableFieldVO.FIELD_TYPE_float_array:
             case ModuleTableFieldVO.FIELD_TYPE_numrange_array:

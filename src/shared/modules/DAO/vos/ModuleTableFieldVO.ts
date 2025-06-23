@@ -1,6 +1,8 @@
 import ConsoleHandler from "../../../tools/ConsoleHandler";
 import TypesHandler from "../../../tools/TypesHandler";
 import IDistantVOBase from "../../IDistantVOBase";
+import Module from "../../Module";
+import ModulesManager from "../../ModulesManager";
 import TableFieldTypesManager from "../../TableFieldTypes/TableFieldTypesManager";
 import DefaultTranslationVO from "../../Translation/vos/DefaultTranslationVO";
 import ModuleTableController from "../ModuleTableController";
@@ -73,6 +75,7 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
     /**
      * Nouvelle version du champs de texte traduit
      * Code auto généré, et champs de trad directement, avec option pour choisir la langue pour traduire dans toutes les langues directement
+     * On est sur un lien vers le code de traduction, et pas sur un champ de texte qui contient le code de traduction
      * Version string :
      * TODO version string[]
      * TODO version HTML
@@ -171,6 +174,16 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
     public has_default: boolean;        //si valeur par defaut, false by default
     public field_default_value: { value: any };              //valeur par defaut, null by default
 
+    /**
+     * Pour des valeurs par défaut dynamiques (et donc pas applicables en base de données en l'état)
+     */
+    public field_default_dynamic_value_module_name: string;
+
+    /**
+     * On fait l'appel en async, ce qui permet de fournir des valeurs par défaut qui peuvent être une liaison vers un vo externe créé à la volée
+     */
+    public field_default_dynamic_value_function_name: string;
+
     public default_translation: DefaultTranslationVO;
 
     public is_unique: boolean; // false by default
@@ -210,15 +223,10 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
             (this.field_type == ModuleTableFieldVO.FIELD_TYPE_textarea) ||
             (this.field_type == ModuleTableFieldVO.FIELD_TYPE_html) ||
             (this.field_type == ModuleTableFieldVO.FIELD_TYPE_html_array) ||
-            (this.field_type == ModuleTableFieldVO.FIELD_TYPE_translatable_string) ||
             (this.field_type == ModuleTableFieldVO.FIELD_TYPE_translatable_text) ||
             (this.field_type == ModuleTableFieldVO.FIELD_TYPE_string_array) ||
             (this.field_type == ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj)
         );
-    }
-
-    get field_default(): any {
-        return this.field_default_value ? this.field_default_value.value : null;
     }
 
     /**
@@ -284,6 +292,39 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
         this.boolean_icon_true = boolean_icon_true;
         this.boolean_icon_false = boolean_icon_false;
         return this;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    public async get_field_default_value(): Promise<any> {
+
+        // On priorise la fonction async si il y en a une de définie
+        if (this.field_default_dynamic_value_module_name && this.field_default_dynamic_value_function_name) {
+
+            const module = ModulesManager.getModuleByNameAndRole(this.field_default_dynamic_value_module_name, Module.SharedModuleRoleName);
+
+            if (!module) {
+                ConsoleHandler.error('ModuleTableFieldVO.get_field_default_value: module not found for field ' + this.field_name + ' in module ' + this.module_table_vo_type);
+                return null;
+            }
+
+            const func = module[this.field_default_dynamic_value_function_name];
+
+            if (typeof func !== 'function') {
+                ConsoleHandler.error('ModuleTableFieldVO.get_field_default_value: function not found for field ' + this.field_name + ' in module ' + this.module_table_vo_type);
+                return null;
+            }
+
+            try {
+                // On appelle la fonction async
+                return await func();
+            } catch (error) {
+                ConsoleHandler.error('ModuleTableFieldVO.get_field_default_value: error while calling function ' + this.field_default_dynamic_value_function_name + ' in module ' + this.field_default_dynamic_value_module_name + ': ' + error);
+                return null;
+            }
+        }
+
+        // Si on n'a pas de fonction dynamique, on retourne la valeur par défaut statique
+        return this.field_default_value ? this.field_default_value.value : null;
     }
 
     /**
@@ -419,6 +460,17 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
         return this;
     }
 
+    public set_field_default_dynamic_value(
+        field_default_dynamic_value_module_name: string,
+        field_default_dynamic_value_function_name: string,
+    ): ModuleTableFieldVO {
+
+        this.field_default_dynamic_value_module_name = field_default_dynamic_value_module_name;
+        this.field_default_dynamic_value_function_name = field_default_dynamic_value_function_name;
+
+        return this;
+    }
+
     /**
      * @param enum_color_values An obj which for each key has as a value the code_text used for translation
      */
@@ -521,6 +573,7 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
             case ModuleTableFieldVO.FIELD_TYPE_file_ref:
             case ModuleTableFieldVO.FIELD_TYPE_image_ref:
             case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+            case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
                 return (db_type == "int8") || (db_type == "bigint") || (db_type == "integer");
 
             case ModuleTableFieldVO.FIELD_TYPE_tstz:
@@ -603,7 +656,6 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
             case ModuleTableFieldVO.FIELD_TYPE_string:
             case ModuleTableFieldVO.FIELD_TYPE_color:
             case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
-            case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
             case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
             case ModuleTableFieldVO.FIELD_TYPE_password:
             case ModuleTableFieldVO.FIELD_TYPE_file_field:
@@ -638,6 +690,7 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
             case ModuleTableFieldVO.FIELD_TYPE_file_ref:
             case ModuleTableFieldVO.FIELD_TYPE_image_ref:
             case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+            case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
             case ModuleTableFieldVO.FIELD_TYPE_tstz:
                 return "bigint";
 
@@ -710,7 +763,6 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
             case ModuleTableFieldVO.FIELD_TYPE_color:
             case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
             case ModuleTableFieldVO.FIELD_TYPE_textarea:
-            case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
             case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
             case ModuleTableFieldVO.FIELD_TYPE_password:
             case ModuleTableFieldVO.FIELD_TYPE_file_field:

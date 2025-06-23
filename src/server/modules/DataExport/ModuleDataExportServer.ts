@@ -1536,14 +1536,13 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             case ModuleTableFieldVO.FIELD_TYPE_email:
             case ModuleTableFieldVO.FIELD_TYPE_string:
             case ModuleTableFieldVO.FIELD_TYPE_color:
-            case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
             case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
             case ModuleTableFieldVO.FIELD_TYPE_password:
             case ModuleTableFieldVO.FIELD_TYPE_file_field:
             case ModuleTableFieldVO.FIELD_TYPE_image_field:
                 /**
                  * Si on a un type string, mais que la bdd renvoie un array, on join(',') pour avoir une string
-                 */
+                */
                 if (Array.isArray(src_vo[src_field_id])) {
                     dest_vo[dest_field_id] = src_vo[src_field_id].join(',');
                 } else {
@@ -1557,6 +1556,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             case ModuleTableFieldVO.FIELD_TYPE_file_ref:
             case ModuleTableFieldVO.FIELD_TYPE_image_ref:
             case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+            case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
             case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
             case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
             case ModuleTableFieldVO.FIELD_TYPE_int:

@@ -100,6 +100,7 @@ export default class ContextFilterVOManager {
             case ModuleTableFieldVO.FIELD_TYPE_amount:
             case ModuleTableFieldVO.FIELD_TYPE_prct:
             case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+            case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
                 context_filter.filter_type = ContextFilterVO.TYPE_NUMERIC_INTERSECTS;
                 context_filter.param_numranges = RangeHandler.get_ids_ranges_from_list([active_option.numeric_value]);
                 break;
@@ -116,7 +117,6 @@ export default class ContextFilterVOManager {
             case ModuleTableFieldVO.FIELD_TYPE_string:
             case ModuleTableFieldVO.FIELD_TYPE_color:
             case ModuleTableFieldVO.FIELD_TYPE_textarea:
-            case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
             case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
             case ModuleTableFieldVO.FIELD_TYPE_color_array:
             case ModuleTableFieldVO.FIELD_TYPE_string_array:

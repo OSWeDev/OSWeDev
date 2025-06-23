@@ -132,7 +132,6 @@ export default class ContextFilterServerController {
 
             case ContextFilterVO.TYPE_TEXT_CONTAINS_ALL_EXACT:
                 switch (field_type) {
-                    case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
                     case ModuleTableFieldVO.FIELD_TYPE_string:
                     case ModuleTableFieldVO.FIELD_TYPE_color:
                     case ModuleTableFieldVO.FIELD_TYPE_html:
@@ -189,6 +188,7 @@ export default class ContextFilterServerController {
                     case ModuleTableFieldVO.FIELD_TYPE_float:
                     case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
                     case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                    case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
                     case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
                     case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
                     case ModuleTableFieldVO.FIELD_TYPE_image_ref:
@@ -224,6 +224,7 @@ export default class ContextFilterServerController {
                     case ModuleTableFieldVO.FIELD_TYPE_float:
                     case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
                     case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                    case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
                     case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
                     case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
                     case ModuleTableFieldVO.FIELD_TYPE_image_ref:
@@ -269,7 +270,6 @@ export default class ContextFilterServerController {
                     case ModuleTableFieldVO.FIELD_TYPE_password:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
                     case ModuleTableFieldVO.FIELD_TYPE_string:
                     case ModuleTableFieldVO.FIELD_TYPE_color:
                     case ModuleTableFieldVO.FIELD_TYPE_html:
@@ -346,6 +346,7 @@ export default class ContextFilterServerController {
                     case ModuleTableFieldVO.FIELD_TYPE_float:
                     case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
                     case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                    case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
                     case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
                     case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
                     case ModuleTableFieldVO.FIELD_TYPE_image_ref:
@@ -387,7 +388,6 @@ export default class ContextFilterServerController {
                     case ModuleTableFieldVO.FIELD_TYPE_password:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
                     case ModuleTableFieldVO.FIELD_TYPE_string:
                     case ModuleTableFieldVO.FIELD_TYPE_color:
                     case ModuleTableFieldVO.FIELD_TYPE_html:
@@ -615,6 +615,7 @@ export default class ContextFilterServerController {
                     case ModuleTableFieldVO.FIELD_TYPE_float:
                     case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
                     case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                    case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
                     case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
                     case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
                     case ModuleTableFieldVO.FIELD_TYPE_image_ref:
@@ -691,7 +692,6 @@ export default class ContextFilterServerController {
                         }
                         break;
 
-                    case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
                     case ModuleTableFieldVO.FIELD_TYPE_string:
                     case ModuleTableFieldVO.FIELD_TYPE_color:
                     case ModuleTableFieldVO.FIELD_TYPE_html:
@@ -784,6 +784,7 @@ export default class ContextFilterServerController {
                     case ModuleTableFieldVO.FIELD_TYPE_float:
                     case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
                     case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                    case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
                     case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
                     case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
                     case ModuleTableFieldVO.FIELD_TYPE_image_ref:
@@ -866,7 +867,6 @@ export default class ContextFilterServerController {
                         }
                         break;
 
-                    case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
                     case ModuleTableFieldVO.FIELD_TYPE_string:
                     case ModuleTableFieldVO.FIELD_TYPE_color:
                     case ModuleTableFieldVO.FIELD_TYPE_html:
@@ -962,6 +962,7 @@ export default class ContextFilterServerController {
                     case ModuleTableFieldVO.FIELD_TYPE_float:
                     case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
                     case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                    case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
                     case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
                     case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
                     case ModuleTableFieldVO.FIELD_TYPE_image_ref:
@@ -1007,7 +1008,6 @@ export default class ContextFilterServerController {
                     case ModuleTableFieldVO.FIELD_TYPE_password:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
                     case ModuleTableFieldVO.FIELD_TYPE_string:
                     case ModuleTableFieldVO.FIELD_TYPE_color:
                     case ModuleTableFieldVO.FIELD_TYPE_html:
@@ -1114,6 +1114,7 @@ export default class ContextFilterServerController {
                     case ModuleTableFieldVO.FIELD_TYPE_float:
                     case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
                     case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                    case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
                     case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
                     case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
                     case ModuleTableFieldVO.FIELD_TYPE_image_ref:
@@ -1159,7 +1160,6 @@ export default class ContextFilterServerController {
                     case ModuleTableFieldVO.FIELD_TYPE_password:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
                     case ModuleTableFieldVO.FIELD_TYPE_string:
                     case ModuleTableFieldVO.FIELD_TYPE_color:
                     case ModuleTableFieldVO.FIELD_TYPE_html:
@@ -1266,6 +1266,7 @@ export default class ContextFilterServerController {
                     case ModuleTableFieldVO.FIELD_TYPE_float:
                     case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
                     case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                    case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
                     case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
                     case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
                     case ModuleTableFieldVO.FIELD_TYPE_image_ref:
@@ -1337,7 +1338,6 @@ export default class ContextFilterServerController {
                         }
                         break;
 
-                    case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
                     case ModuleTableFieldVO.FIELD_TYPE_string:
                     case ModuleTableFieldVO.FIELD_TYPE_color:
                     case ModuleTableFieldVO.FIELD_TYPE_html:
@@ -1435,6 +1435,7 @@ export default class ContextFilterServerController {
                     case ModuleTableFieldVO.FIELD_TYPE_float:
                     case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
                     case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                    case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
                     case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
                     case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
                     case ModuleTableFieldVO.FIELD_TYPE_image_ref:
@@ -1464,7 +1465,6 @@ export default class ContextFilterServerController {
                     case ModuleTableFieldVO.FIELD_TYPE_password:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
                     case ModuleTableFieldVO.FIELD_TYPE_string:
                     case ModuleTableFieldVO.FIELD_TYPE_html:
                     case ModuleTableFieldVO.FIELD_TYPE_color:
@@ -1551,6 +1551,7 @@ export default class ContextFilterServerController {
                     case ModuleTableFieldVO.FIELD_TYPE_float:
                     case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
                     case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                    case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
                     case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
                     case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
                     case ModuleTableFieldVO.FIELD_TYPE_image_ref:
@@ -1596,7 +1597,6 @@ export default class ContextFilterServerController {
                     case ModuleTableFieldVO.FIELD_TYPE_password:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
                     case ModuleTableFieldVO.FIELD_TYPE_string:
                     case ModuleTableFieldVO.FIELD_TYPE_html:
                     case ModuleTableFieldVO.FIELD_TYPE_file_field:
@@ -1688,6 +1688,7 @@ export default class ContextFilterServerController {
                     case ModuleTableFieldVO.FIELD_TYPE_float:
                     case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
                     case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                    case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
                     case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
                     case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
                     case ModuleTableFieldVO.FIELD_TYPE_image_ref:
@@ -1737,7 +1738,6 @@ export default class ContextFilterServerController {
                     case ModuleTableFieldVO.FIELD_TYPE_password:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
                     case ModuleTableFieldVO.FIELD_TYPE_string:
                     case ModuleTableFieldVO.FIELD_TYPE_html:
                     case ModuleTableFieldVO.FIELD_TYPE_file_field:
@@ -3102,6 +3102,7 @@ export default class ContextFilterServerController {
                     case ModuleTableFieldVO.FIELD_TYPE_float:
                     case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
                     case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                    case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
                     case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
                     case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
                     case ModuleTableFieldVO.FIELD_TYPE_image_ref:
@@ -3115,7 +3116,6 @@ export default class ContextFilterServerController {
                     case ModuleTableFieldVO.FIELD_TYPE_html:
                     case ModuleTableFieldVO.FIELD_TYPE_file_field:
                     case ModuleTableFieldVO.FIELD_TYPE_textarea:
-                    case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
                     case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
                     case ModuleTableFieldVO.FIELD_TYPE_email:
                     case ModuleTableFieldVO.FIELD_TYPE_password:
@@ -3255,6 +3255,7 @@ export default class ContextFilterServerController {
                     case ModuleTableFieldVO.FIELD_TYPE_float:
                     case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
                     case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                    case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
                     case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
                     case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
                     case ModuleTableFieldVO.FIELD_TYPE_image_ref:
@@ -3268,7 +3269,6 @@ export default class ContextFilterServerController {
                     case ModuleTableFieldVO.FIELD_TYPE_html:
                     case ModuleTableFieldVO.FIELD_TYPE_file_field:
                     case ModuleTableFieldVO.FIELD_TYPE_textarea:
-                    case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
                     case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
                     case ModuleTableFieldVO.FIELD_TYPE_email:
                     case ModuleTableFieldVO.FIELD_TYPE_password:
@@ -3300,6 +3300,7 @@ export default class ContextFilterServerController {
                     case ModuleTableFieldVO.FIELD_TYPE_float:
                     case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
                     case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                    case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
                     case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
                     case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
                     case ModuleTableFieldVO.FIELD_TYPE_image_ref:
@@ -3317,7 +3318,6 @@ export default class ContextFilterServerController {
                     case ModuleTableFieldVO.FIELD_TYPE_html:
                     case ModuleTableFieldVO.FIELD_TYPE_file_field:
                     case ModuleTableFieldVO.FIELD_TYPE_textarea:
-                    case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
                     case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
                     case ModuleTableFieldVO.FIELD_TYPE_email:
                     case ModuleTableFieldVO.FIELD_TYPE_password:

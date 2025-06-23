@@ -488,7 +488,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
             return false;
         }
 
-        return ((field.field_type == ModuleTableFieldVO.FIELD_TYPE_translatable_text) || (field.field_type == ModuleTableFieldVO.FIELD_TYPE_translatable_string));
+        return (field.field_type == ModuleTableFieldVO.FIELD_TYPE_translatable_text);
     }
 
     get base_filter(): string {
@@ -1787,6 +1787,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
             case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
             case ModuleTableFieldVO.FIELD_TYPE_amount:
             case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+            case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
             case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
             case ModuleTableFieldVO.FIELD_TYPE_prct:
             case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
@@ -1803,7 +1804,6 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
             case ModuleTableFieldVO.FIELD_TYPE_string:
             case ModuleTableFieldVO.FIELD_TYPE_file_field:
             case ModuleTableFieldVO.FIELD_TYPE_textarea:
-            case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
             case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
 
                 switch (advanced_filter.filter_type) {

@@ -1427,6 +1427,7 @@ export default class FieldValueFilterRefFieldWidgetComponent extends VueComponen
 
         switch (field.field_type) {
             case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+            case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
             case ModuleTableFieldVO.FIELD_TYPE_file_ref:
             case ModuleTableFieldVO.FIELD_TYPE_image_ref:
 
@@ -1464,7 +1465,6 @@ export default class FieldValueFilterRefFieldWidgetComponent extends VueComponen
             case ModuleTableFieldVO.FIELD_TYPE_string:
             case ModuleTableFieldVO.FIELD_TYPE_file_field:
             case ModuleTableFieldVO.FIELD_TYPE_textarea:
-            case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
             case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
             case ModuleTableFieldVO.FIELD_TYPE_enum:
             case ModuleTableFieldVO.FIELD_TYPE_int:
@@ -1961,7 +1961,7 @@ export default class FieldValueFilterRefFieldWidgetComponent extends VueComponen
             return false;
         }
 
-        return ((field.field_type == ModuleTableFieldVO.FIELD_TYPE_translatable_text) || (field.field_type == ModuleTableFieldVO.FIELD_TYPE_translatable_string));
+        return (field.field_type == ModuleTableFieldVO.FIELD_TYPE_translatable_text);
     }
 
     get base_filter(): string {

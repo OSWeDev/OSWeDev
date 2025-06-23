@@ -45,6 +45,7 @@ export default class ContextQueryFieldServerController {
             case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
             case ModuleTableFieldVO.FIELD_TYPE_amount:
             case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+            case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
             case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
             case ModuleTableFieldVO.FIELD_TYPE_prct:
             case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
@@ -70,7 +71,6 @@ export default class ContextQueryFieldServerController {
             case ModuleTableFieldVO.FIELD_TYPE_color:
             case ModuleTableFieldVO.FIELD_TYPE_file_field:
             case ModuleTableFieldVO.FIELD_TYPE_textarea:
-            case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
             case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
                 default_res.string_value = db_res;
                 break;

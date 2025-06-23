@@ -13,6 +13,8 @@ import TableFieldTypesManager from "../TableFieldTypes/TableFieldTypesManager";
 import DefaultTranslationVO from "../Translation/vos/DefaultTranslationVO";
 import ModuleTableController from "./ModuleTableController";
 import ModuleTableFieldVO from "./vos/ModuleTableFieldVO";
+import TranslatableFieldController from "./TranslatableFieldController";
+import TranslatableTextVO from "../Translation/vos/TranslatableTextVO";
 
 export default class ModuleTableFieldController {
 
@@ -88,6 +90,13 @@ export default class ModuleTableFieldController {
         }
         ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[vo_type][field_name] = field_label;
 
+        // Si le champs est de type translatable_string, on force la génération de code automatique :
+        if (field_type == ModuleTableFieldVO.FIELD_TYPE_translatable_string) {
+            res.set_field_default_dynamic_value('dao', get_new_translatable_field_auto_gen_code_text) // En dur pour éviter une liaison/import au module
+                = TranslatableFieldController.get_new_translatable_field_auto_gen_code_text;
+            res.set_many_to_one_target_moduletable_name(TranslatableTextVO.API_TYPE_ID);
+        }
+
         return res;
     }
 
@@ -130,6 +139,7 @@ export default class ModuleTableFieldController {
             case ModuleTableFieldVO.FIELD_TYPE_float:
             case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
             case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+            case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
             case ModuleTableFieldVO.FIELD_TYPE_geopoint:
             case ModuleTableFieldVO.FIELD_TYPE_int_array:
             case ModuleTableFieldVO.FIELD_TYPE_float_array:
@@ -140,7 +150,6 @@ export default class ModuleTableFieldController {
             case ModuleTableFieldVO.FIELD_TYPE_color_array:
             case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
             case ModuleTableFieldVO.FIELD_TYPE_textarea:
-            case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
             case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
             case ModuleTableFieldVO.FIELD_TYPE_string_array:
             case ModuleTableFieldVO.FIELD_TYPE_tsrange:
