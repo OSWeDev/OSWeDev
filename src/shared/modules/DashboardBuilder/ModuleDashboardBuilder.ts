@@ -200,7 +200,7 @@ export default class ModuleDashboardBuilder extends Module {
 
     private init_DashboardVO(): ModuleTableVO {
 
-        ModuleTableFieldController.create_new(DashboardVO.API_TYPE_ID, field_names<DashboardVO>().title, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Titre', true, true, TranslatableFieldController.get_new_translatable_field_auto_gen_code_text);
+        ModuleTableFieldController.create_new(DashboardVO.API_TYPE_ID, field_names<DashboardVO>().title, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Titre', true);
         ModuleTableFieldController.create_new(DashboardVO.API_TYPE_ID, field_names<DashboardVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true, true, 0);
         ModuleTableFieldController.create_new(DashboardVO.API_TYPE_ID, field_names<DashboardVO>().cycle_tables, ModuleTableFieldVO.FIELD_TYPE_string_array, 'Tables de cycle', false);
         ModuleTableFieldController.create_new(DashboardVO.API_TYPE_ID, field_names<DashboardVO>().cycle_fields, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Champs de cycle', false);

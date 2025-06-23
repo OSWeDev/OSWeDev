@@ -134,6 +134,7 @@ import Patch20250507InitLastOseliaRunID from './patchs/premodules/Patch20250507I
 import Patch20250507OseliaRunTemplateNames from './patchs/premodules/Patch20250507OseliaRunTemplateNames';
 import Patch20250617AddRightsModuleTableAndFields from './patchs/postmodules/Patch20250617AddRightsModuleTableAndFields';
 import Patch20250617MigrationCRUDDBLink from './patchs/postmodules/Patch20250617MigrationCRUDDBLink';
+import Patch20250623InitTitresDashboards from './patchs/premodules/Patch20250623InitTitresDashboards';
 
 export default class GeneratorPatchsListHandler {
 
@@ -185,6 +186,7 @@ export default class GeneratorPatchsListHandler {
         Patch20250507OseliaRunTemplateNames.getInstance(),
         Patch20250507InitLastOseliaRunID.getInstance(),
         Patch20240329AddManyuniqsconstraints.getInstance(),
+        Patch20250623InitTitresDashboards.getInstance(),
     ];
 
     public static post_modules_workers: IGeneratorWorker[] = [

@@ -16,6 +16,7 @@ import IMatroid from '../Matroid/interfaces/IMatroid';
 import Module from '../Module';
 import ModuleVO from '../ModuleVO';
 import ModuleTableController from './ModuleTableController';
+import TranslatableFieldController from './TranslatableFieldController';
 import APIDAOApiTypeAndMatroidsParamsVO, { APIDAOApiTypeAndMatroidsParamsVOStatic } from './vos/APIDAOApiTypeAndMatroidsParamsVO';
 import APIDAONamedParamVO, { APIDAONamedParamVOStatic } from './vos/APIDAONamedParamVO';
 import APIDAOParamsVO, { APIDAOParamsVOStatic } from './vos/APIDAOParamsVO';
@@ -354,6 +355,10 @@ export default class ModuleDAO extends Module {
             //            APIDefinition.API_RETURN_TYPE_NOTIF,
         )).exec_on_api_bgthread());
         // )));
+    }
+
+    public get_new_translatable_field_auto_gen_code_text(field: ModuleTableFieldVO): string {
+        return TranslatableFieldController.get_new_translatable_field_auto_gen_code_text(field);
     }
 
     public initialize() {

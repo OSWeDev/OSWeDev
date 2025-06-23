@@ -381,9 +381,7 @@ export default class ModuleTableController {
         for (const i in fields) {
             const field = fields[i];
 
-            if ((typeof vo[field.field_name] == 'undefined') && field.has_default && !!field.field_default_value) {
-                vo[field.field_name] = field.field_default_value.value;
-            }
+            vo[field.field_name] = ((vo[field.field_name] != null) ? vo[field.field_name] : field.get_field_default_value());
         }
 
         return vo;

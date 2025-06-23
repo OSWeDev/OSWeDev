@@ -1,6 +1,8 @@
 import ConsoleHandler from "../../../tools/ConsoleHandler";
 import TypesHandler from "../../../tools/TypesHandler";
 import IDistantVOBase from "../../IDistantVOBase";
+import Module from "../../Module";
+import ModulesManager from "../../ModulesManager";
 import TableFieldTypesManager from "../../TableFieldTypes/TableFieldTypesManager";
 import DefaultTranslationVO from "../../Translation/vos/DefaultTranslationVO";
 import ModuleTableController from "../ModuleTableController";
@@ -179,6 +181,17 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
      * Ajout pour expliquer le type de données, son usage, ... que ce soit pour les devs, les utilisateurs finaux, ou encore les assistants
      */
     public description: string;
+
+    /**
+     * Pour des valeurs par défaut dynamiques (et donc pas applicables en base de données en l'état)
+     */
+    public field_default_dynamic_value_module_name: string;
+
+    /**
+     * On fait l'appel en async, ce qui permet de fournir des valeurs par défaut qui peuvent être une liaison vers un vo externe créé à la volée
+     */
+    public field_default_dynamic_value_function_name: string;
+
 
     /**
      * @deprecated use ModuleTableController.module_tables_by_vo_type[this.module_table_vo_type]; instead
@@ -732,6 +745,50 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
         this.is_custom_computed = true;
         this.custom_computed_function_name = function_name;
         this.custom_computed_module_name = module_name;
+
+        return this;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    public get_field_default_value(): Promise<any> {
+
+        // On priorise la fonction si il y en a une de définie
+        if (this.field_default_dynamic_value_module_name && this.field_default_dynamic_value_function_name) {
+
+            const module = ModulesManager.getModuleByNameAndRole(this.field_default_dynamic_value_module_name, Module.SharedModuleRoleName);
+
+            if (!module) {
+                ConsoleHandler.error('ModuleTableFieldVO.get_field_default_value: module not found for field ' + this.field_name + ' in module ' + this.module_table_vo_type);
+                return null;
+            }
+
+            const func = module[this.field_default_dynamic_value_function_name];
+
+            if (typeof func !== 'function') {
+                ConsoleHandler.error('ModuleTableFieldVO.get_field_default_value: function not found for field ' + this.field_name + ' in module ' + this.module_table_vo_type);
+                return null;
+            }
+
+            try {
+                // On appelle la fonction
+                return func(this);
+            } catch (error) {
+                ConsoleHandler.error('ModuleTableFieldVO.get_field_default_value: error while calling function ' + this.field_default_dynamic_value_function_name + ' in module ' + this.field_default_dynamic_value_module_name + ': ' + error);
+                return null;
+            }
+        }
+
+        // Si on n'a pas de fonction dynamique, on retourne la valeur par défaut statique
+        return this.field_default_value ? this.field_default_value.value : null;
+    }
+
+    public set_field_default_dynamic_value(
+        field_default_dynamic_value_module_name: string,
+        field_default_dynamic_value_function_name: string,
+    ): ModuleTableFieldVO {
+
+        this.field_default_dynamic_value_module_name = field_default_dynamic_value_module_name;
+        this.field_default_dynamic_value_function_name = field_default_dynamic_value_function_name;
 
         return this;
     }

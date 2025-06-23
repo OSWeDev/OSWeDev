@@ -6,6 +6,13 @@ import IGeneratorWorker from '../../IGeneratorWorker';
 
 export default class Patch20231030ImagePathUnique implements IGeneratorWorker {
 
+    private static instance: Patch20231030ImagePathUnique = null;
+
+    private constructor() { }
+    get uid(): string {
+        return 'Patch20231030ImagePathUnique';
+    }
+
     // istanbul ignore next: nothing to test
     public static getInstance(): Patch20231030ImagePathUnique {
         if (!Patch20231030ImagePathUnique.instance) {
@@ -13,14 +20,6 @@ export default class Patch20231030ImagePathUnique implements IGeneratorWorker {
         }
         return Patch20231030ImagePathUnique.instance;
     }
-
-    private static instance: Patch20231030ImagePathUnique = null;
-
-    get uid(): string {
-        return 'Patch20231030ImagePathUnique';
-    }
-
-    private constructor() { }
 
     public async work(db: IDatabase<any>) {
         try {
