@@ -185,6 +185,15 @@ export default class SuiviCompetencesWidgetContainerComponent extends VueCompone
         return res;
     }
 
+    @Watch('get_active_field_filters', { deep: true })
+    private onchange_active_field_filters() {
+        if (!this.selected_rapport) {
+            return;
+        }
+
+        this.reload_filtered_groupes();
+    }
+
     @Watch('selected_rapport', { immediate: true })
     @Watch('show_details')
     @Watch('page_widget')
@@ -405,6 +414,7 @@ export default class SuiviCompetencesWidgetContainerComponent extends VueCompone
 
             let groupe_cloned: SuiviCompetencesGroupeResult = cloneDeep(groupe);
             groupe_cloned.sous_groupe = [];
+            let nb_elements: number = 0;
 
             for (let j in groupe.sous_groupe) {
                 let sous_groupe = groupe.sous_groupe[j];
@@ -428,11 +438,17 @@ export default class SuiviCompetencesWidgetContainerComponent extends VueCompone
                         }
 
                         sous_groupe_cloned.items.push(item);
+                        nb_elements++;
                     }
                 }
 
                 if (!sous_groupe_cloned.items?.length) {
                     continue;
+                }
+
+                // Si j'ai un sous groupe, je rajoute une ligne
+                if (sous_groupe_cloned.id) {
+                    nb_elements++;
                 }
 
                 groupe_cloned.sous_groupe.push(sous_groupe_cloned);
@@ -441,6 +457,8 @@ export default class SuiviCompetencesWidgetContainerComponent extends VueCompone
             if (!groupe_cloned.sous_groupe?.length) {
                 continue;
             }
+
+            groupe_cloned.nb_elements = nb_elements;
 
             res.push(groupe_cloned);
         }
