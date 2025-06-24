@@ -10,16 +10,23 @@ export default class ExportedJSONForeignKeyRefVO implements IDistantVOBase {
     public static REF_TYPE_ID: number = 1;
     public static REF_TYPE_UNIQUE_FIELD_TYPE_STRING: number = 2;
     public static REF_TYPE_UNIQUE_FIELD_TYPE_NUMBER: number = 3;
+    public static REF_TYPE_EXPORTED_VO_REF: number = 4;
     public static REF_TYPE_LABELS: { [enum_value: number]: string } = {
         [ExportedJSONForeignKeyRefVO.REF_TYPE_FULL_VO]: "ExportedJSONForeignKeyRefVO.REF_TYPE_FULL_VO",
         [ExportedJSONForeignKeyRefVO.REF_TYPE_ID]: "ExportedJSONForeignKeyRefVO.REF_TYPE_ID",
         [ExportedJSONForeignKeyRefVO.REF_TYPE_UNIQUE_FIELD_TYPE_STRING]: "ExportedJSONForeignKeyRefVO.REF_TYPE_UNIQUE_FIELD_TYPE_STRING",
         [ExportedJSONForeignKeyRefVO.REF_TYPE_UNIQUE_FIELD_TYPE_NUMBER]: "ExportedJSONForeignKeyRefVO.REF_TYPE_UNIQUE_FIELD_TYPE_NUMBER",
+        [ExportedJSONForeignKeyRefVO.REF_TYPE_EXPORTED_VO_REF]: "ExportedJSONForeignKeyRefVO.REF_TYPE_EXPORTED_VO_REF",
     };
 
 
     public id: number;
     public _type: string = ExportedJSONForeignKeyRefVO.API_TYPE_ID;
+
+    /**
+     * On stocke l'id source du VO exporté, pour les liaisons potentielles au sein de l'export
+     */
+    public source_vo_id: number;
 
     /**
      * La méthode d'export, issue de la conf : Full VO, uniquement l'id du VO, ou un champ unique du VO

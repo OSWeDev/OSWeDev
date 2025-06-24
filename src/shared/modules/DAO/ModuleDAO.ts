@@ -143,6 +143,8 @@ export default class ModuleDAO extends Module {
             return true;
         });
 
+    public get_computed_moduletable_field_uid: (vo_type: string) => Promise<string> = APIControllerWrapper.sah_optimizer(this.name, reflect<this>().get_computed_moduletable_field_uid);
+
     private constructor() {
 
         super("dao", ModuleDAO.MODULE_NAME);
@@ -177,6 +179,14 @@ export default class ModuleDAO extends Module {
             //            APIDefinition.API_RETURN_TYPE_NOTIF,
         )).exec_on_api_bgthread());
         // )));
+
+        APIControllerWrapper.registerApi(PostAPIDefinition.new<ModuleTableFieldVO, string>(
+            null,
+            this.name,
+            reflect<ModuleDAO>().get_computed_moduletable_field_uid,
+            null,
+        ));
+
         APIControllerWrapper.registerApi((PostAPIDefinition.new<IDistantVOBase[], any[]>(
             null,
             this.name,
@@ -458,7 +468,8 @@ export default class ModuleDAO extends Module {
 
     private init_ModuleTableFieldVO() {
 
-        const label_field = ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().field_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
+        const label_field = ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().uid, ModuleTableFieldVO.FIELD_TYPE_string, 'UID', true).unique().define_as_custom_computed(this.name, reflect<this>().get_computed_moduletable_field_uid);
+        ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().field_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
         ModuleTableController.create_new(this.name, ModuleTableFieldVO, label_field, "Format des champs de table");
 
         ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().secure_boolean_switch_only_server_side, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Sécurisé côté serveur', true, true, false);

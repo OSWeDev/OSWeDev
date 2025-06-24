@@ -693,6 +693,7 @@ export default abstract class VueAppBase {
                 ModuleTableFieldController.module_table_fields_by_vo_id_and_field_id[moduletablefield.module_table_id] = {};
             }
             ModuleTableFieldController.module_table_fields_by_vo_id_and_field_id[moduletablefield.module_table_id][moduletablefield.id] = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[moduletablefield.module_table_vo_type][moduletablefield.field_name];
+            ModuleTableFieldController.module_table_fields_by_field_id[moduletablefield.id] = ModuleTableFieldController.module_table_fields_by_vo_id_and_field_id[moduletablefield.module_table_id][moduletablefield.id];
         }
     }
 

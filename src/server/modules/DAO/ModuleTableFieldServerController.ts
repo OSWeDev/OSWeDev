@@ -284,6 +284,7 @@ export default class ModuleTableFieldServerController {
                     }
 
                     ModuleTableFieldController.module_table_fields_by_vo_id_and_field_id[db_table.id][merged_db_field.id] = merged_db_field;
+                    ModuleTableFieldController.module_table_fields_by_field_id[merged_db_field.id] = merged_db_field;
                 });
             }
         }

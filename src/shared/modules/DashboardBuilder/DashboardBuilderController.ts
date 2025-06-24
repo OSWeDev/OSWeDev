@@ -17,6 +17,8 @@ export default class DashboardBuilderController {
     public static VOFIELDREF_NAME_CODE_PREFIX: string = "dashboard.vofieldref.name.";
     public static TableColumnDesc_NAME_CODE_PREFIX: string = "dashboard.table_column_desc.name.";
 
+    public static DASHBOARD_EXPORT_TO_JSON_CONF_NAME: string = "DashboardBuilderController.ExportDBVOToJSONConf";
+
     public static DASHBOARD_VO_ACTION_ADD: string = "add";
     public static DASHBOARD_VO_ACTION_EDIT: string = "edit";
     public static DASHBOARD_VO_ACTION_DELETE: string = "delete";

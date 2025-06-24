@@ -24,8 +24,8 @@ import IExportableSheet from '../../../shared/modules/DataExport/interfaces/IExp
 import { XlsxCellFormatByFilterType } from '../../../shared/modules/DataExport/type/XlsxCellFormatByFilterType';
 import ExportContextQueryToXLSXQueryVO from '../../../shared/modules/DataExport/vos/ExportContextQueryToXLSXQueryVO';
 import ExportHistoricVO from '../../../shared/modules/DataExport/vos/ExportHistoricVO';
-import ExportVOToJSONConfVO from '../../../shared/modules/DataExport/vos/ExportVOToJSONConfVO';
-import ExportVOToJSONHistoricVO from '../../../shared/modules/DataExport/vos/ExportVOToJSONHistoricVO';
+import ExportVOsToJSONConfVO from '../../../shared/modules/DataExport/vos/ExportVOsToJSONConfVO';
+import ExportVOsToJSONHistoricVO from '../../../shared/modules/DataExport/vos/ExportVOsToJSONHistoricVO';
 import ExportVarIndicatorVO from '../../../shared/modules/DataExport/vos/ExportVarIndicatorVO';
 import ExportVarcolumnConfVO from '../../../shared/modules/DataExport/vos/ExportVarcolumnConfVO';
 import ExportLogVO from '../../../shared/modules/DataExport/vos/apis/ExportLogVO';
@@ -166,11 +166,12 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleDataExport.APINAME_ExportDataToMultiSheetsXLSXParamVO, this.export_data_to_multi_sheets_xlsx.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleDataExport.APINAME_ExportDataToMultiSheetsXLSXParamVOFile, this.export_data_to_multi_sheets_xslw_file.bind(this));
 
-        APIControllerWrapper.register_server_api_handler(this.name, reflect<this>().export_vo_to_json, this.export_vo_to_json);
-        APIControllerWrapper.register_server_api_handler(this.name, reflect<this>().export_vo_to_json_historic_vo_label_function, this.export_vo_to_json_historic_vo_label_function);
+        APIControllerWrapper.register_server_api_handler(this.name, reflect<this>().export_vos_to_json, this.export_vos_to_json);
+        APIControllerWrapper.register_server_api_handler(this.name, reflect<this>().import_vos_from_json, this.import_vos_from_json);
+        APIControllerWrapper.register_server_api_handler(this.name, reflect<this>().export_vos_to_json_historic_vo_label_function, this.export_vos_to_json_historic_vo_label_function);
     }
 
-    public async export_vo_to_json_historic_vo_label_function(export_vo_to_json_historic_vo: ExportVOToJSONHistoricVO): Promise<string> {
+    public async export_vos_to_json_historic_vo_label_function(export_vo_to_json_historic_vo: ExportVOsToJSONHistoricVO): Promise<string> {
         return export_vo_to_json_historic_vo.name + ' - ' + Dates.format_segment(export_vo_to_json_historic_vo.export_date, TimeSegment.TYPE_SECOND) + ' - ' + export_vo_to_json_historic_vo.source_app_name + ' - ' + export_vo_to_json_historic_vo.source_app_env + ' - ' + export_vo_to_json_historic_vo.export_user_email + ' - ' + export_vo_to_json_historic_vo.source_app_version + ' - ' + export_vo_to_json_historic_vo.export_user_email;
     }
 
@@ -181,44 +182,106 @@ export default class ModuleDataExportServer extends ModuleServerBase {
      * On renvoie un ExportVOToJSONHistoricVO qui contient les infos de l'export dont les données exportées, et c'est en appliquant JSON.stringify(historic) qu'on obtient l'export JSON
      * On renvoie l'historique pour permettre un affichage de l'historique ou un compte-rendu directement à l'endroit où on fait la demande
      */
-    public async export_vo_to_json(
-        vo: IDistantVOBase,
-        export_vo_to_json_conf: ExportVOToJSONConfVO,
-    ): Promise<ExportVOToJSONHistoricVO> {
+    public async export_vos_to_json(
+        vos: IDistantVOBase[],
+        export_vos_to_json_conf: ExportVOsToJSONConfVO,
+    ): Promise<ExportVOsToJSONHistoricVO> {
 
-        if (!export_vo_to_json_conf) {
-            ConsoleHandler.error('export_vo_to_json_conf is required');
+        try {
+
+            if (!export_vos_to_json_conf) {
+                ConsoleHandler.error('export_vo_to_json_conf is required');
+                return null;
+            }
+
+            // On commence par fixer la date
+            const export_historic = new ExportVOsToJSONHistoricVO();
+
+            export_historic.name = export_vos_to_json_conf.name;
+            export_historic.description = export_vos_to_json_conf.description;
+            export_historic.ref_fields_to_follow_id_ranges = RangeHandler.cloneArrayFrom(export_vos_to_json_conf.ref_fields_to_follow_id_ranges);
+            export_historic.unique_fields_to_use_id_ranges = RangeHandler.cloneArrayFrom(export_vos_to_json_conf.unique_fields_to_use_id_ranges);
+
+            export_historic.export_date = Dates.now();
+            export_historic.export_user_id = StackContext.get(reflect<IRequestStackContext>().UID);
+
+            const self_user = await ModuleAccessPolicyServer.getSelfUser();
+            export_historic.export_user_email = self_user.email;
+
+            export_historic.source_app_version = EnvHandler.version;
+            export_historic.source_app_env = ConfigurationService.nodeEnv;
+            export_historic.source_app_name = ConfigurationService.node_configuration.app_title;
+
+            export_historic.export_conf_id = export_vos_to_json_conf.id;
+
+            const exported_vos_ids_by_api_type_id: { [api_type_id: string]: { [id: number]: boolean } } = {};
+            export_historic.exported_data = await this.get_exported_vos_to_json(vos, export_vos_to_json_conf, exported_vos_ids_by_api_type_id);
+            export_historic.exported_vos_ids_by_api_type_id = exported_vos_ids_by_api_type_id;
+
+            await ModuleDAO.getInstance().insertOrUpdateVO(export_historic);
+
+            return export_historic;
+
+        } catch (error) {
+            ConsoleHandler.error('Error during export_vos_to_json', error);
             return null;
         }
-
-        // On commence par fixer la date
-        const export_historic = new ExportVOToJSONHistoricVO();
-
-        export_historic.name = export_vo_to_json_conf.name;
-        export_historic.description = export_vo_to_json_conf.description;
-        export_historic.ref_fields_to_follow_id_ranges = RangeHandler.cloneArrayFrom(export_vo_to_json_conf.ref_fields_to_follow_id_ranges);
-        export_historic.unique_fields_to_use_id_ranges = RangeHandler.cloneArrayFrom(export_vo_to_json_conf.unique_fields_to_use_id_ranges);
-
-        export_historic.export_date = Dates.now();
-        export_historic.export_user_id = StackContext.get(reflect<IRequestStackContext>().UID);
-
-        const self_user = await ModuleAccessPolicyServer.getSelfUser();
-        export_historic.export_user_email = self_user.email;
-
-        export_historic.source_app_version = EnvHandler.version;
-        export_historic.source_app_env = ConfigurationService.nodeEnv;
-        export_historic.source_app_name = ConfigurationService.node_configuration.app_title;
-
-        export_historic.export_conf_id = export_vo_to_json_conf.id;
-
-        const impacted_api_type_ids: string[] = [];
-        export_historic.exported_data = await this.get_exported_vo_to_json(vo, export_vo_to_json_conf, impacted_api_type_ids);
-        export_historic.impacted_api_type_ids = impacted_api_type_ids;
-
-        await ModuleDAO.getInstance().insertOrUpdateVO(export_historic);
-
-        return export_historic;
     }
+
+    /**
+     * Méthode générique d'import de VOs au format JSON
+     * Le premier VO réimporté peut être ciblé sur un ID pour réaliser un update au lieu d'un insère, les suivants sont toujours insérés pour le moment
+     */
+    public async import_vos_from_json(
+        exported_data_historic: ExportVOsToJSONHistoricVO,
+        import_first_elt_to_id: number,
+    ): Promise<boolean> {
+
+        let res: boolean = true;
+
+        try {
+
+            const exported_vos_json: string[] = JSON.parse(exported_data_historic.exported_data) as string[];
+            let is_first = true;
+            const table_de_correspondance_des_ids: { [vo_type: string]: { [vo_id_source: number]: number } } = {};
+            for (const i in exported_vos_json) {
+                const exported_vo_json = exported_vos_json[i];
+
+                const imported_vo = await ModuleTableController.translate_vos_from_exported_json(exported_vo_json, table_de_correspondance_des_ids);
+                const source_id = imported_vo.id;
+
+                // On doit décider de l'insertion ou de la mise à jour du VO importé
+                if (is_first && !!import_first_elt_to_id) {
+                    imported_vo.id = import_first_elt_to_id;
+                } else {
+                    imported_vo.id = null; // On laisse le DAO gérer l'insertion
+                }
+
+                if (!table_de_correspondance_des_ids[imported_vo._type]) {
+                    table_de_correspondance_des_ids[imported_vo._type] = {};
+                }
+
+                await ModuleDAO.getInstance().insertOrUpdateVO(imported_vo);
+
+                // On stocke la correspondance id source => nouvel id pour pouvoir le retrouver dans les refs
+                table_de_correspondance_des_ids[imported_vo._type][source_id] = imported_vo.id;
+
+                is_first = false;
+            }
+        } catch (error) {
+            ConsoleHandler.error('Error during import_vos_from_json', error);
+            exported_data_historic.import_error = error.message || error.toString();
+            res = false;
+        }
+
+        // On enregistre l'historique de l'import avec les infos à jour côté nouvel env
+        exported_data_historic.import_date = Dates.now();
+        exported_data_historic.import_user_id = StackContext.get(reflect<IRequestStackContext>().UID);
+        await ModuleDAO.getInstance().insertOrUpdateVO(exported_data_historic);
+
+        return res;
+    }
+
 
     public async exportDataToXLSX(
         filename: string,
@@ -2072,11 +2135,120 @@ export default class ModuleDataExportServer extends ModuleServerBase {
     //     return active_field_filters_cp;
     // }
 
-    private async get_exported_vo_to_json(
-        vo: IDistantVOBase,
-        export_vo_to_json_conf: ExportVOToJSONConfVO,
-        impacted_api_type_ids: string[],
-    ) {
-        todo
+    private async get_exported_vos_to_json(
+        vos: IDistantVOBase[],
+        export_vo_to_json_conf: ExportVOsToJSONConfVO,
+        exported_vos_ids_by_api_type_id: { [api_type_id: string]: { [id: number]: boolean } },
+    ): Promise<string> {
+
+
+        // On commence par exporter les vos demandés en JSON, et on récupère la liste des id par type de vo qui sont concernés par l'export
+        //  ce qui nous permet à la fois de remplir le impacted_api_type_ids mais aussi d'aller checker si on doit chercher des refs,
+        //  via les ref_fields_to_follow_id_ranges, à exporter en même temps que les vos
+        const exported_vos_json: string[] = [];
+
+        const unique_fields_to_use: { [api_type_id: string]: { [field_name: string]: ModuleTableFieldVO } } = {};
+        RangeHandler.foreach_ranges_sync(export_vo_to_json_conf.unique_fields_to_use_id_ranges, (module_table_field_id: number) => {
+
+            const moduletable_field: ModuleTableFieldVO = ModuleTableFieldController.module_table_fields_by_field_id[module_table_field_id];
+
+            if (!moduletable_field) {
+                throw new Error('ModuleDataExportServer.get_exported_vos_to_json: unique_fields_to_use_id_ranges: ' + module_table_field_id + ' not found');
+            }
+
+            if (!unique_fields_to_use[moduletable_field.module_table_vo_type]) {
+                unique_fields_to_use[moduletable_field.module_table_vo_type] = {};
+            }
+            unique_fields_to_use[moduletable_field.module_table_vo_type][moduletable_field.field_name] = moduletable_field;
+        });
+
+        const ref_fields_to_follow_by_field_source: { [api_type_id: string]: { [field_name: string]: ModuleTableFieldVO } } = {};
+        const ref_fields_to_follow_by_refield_target: { [targeted_api_type_id: string]: ModuleTableFieldVO } = {};
+        RangeHandler.foreach_ranges_sync(export_vo_to_json_conf.ref_fields_to_follow_id_ranges, (module_table_field_id: number) => {
+
+            const moduletable_field: ModuleTableFieldVO = ModuleTableFieldController.module_table_fields_by_field_id[module_table_field_id];
+
+            if (!moduletable_field) {
+                throw new Error('ModuleDataExportServer.get_exported_vos_to_json: ref_fields_to_follow_id_ranges: ' + module_table_field_id + ' not found');
+            }
+
+            if (!ref_fields_to_follow_by_field_source[moduletable_field.module_table_vo_type]) {
+                ref_fields_to_follow_by_field_source[moduletable_field.module_table_vo_type] = {};
+            }
+            ref_fields_to_follow_by_field_source[moduletable_field.module_table_vo_type][moduletable_field.field_name] = moduletable_field;
+            ref_fields_to_follow_by_refield_target[moduletable_field.foreign_ref_vo_type] = moduletable_field;
+        });
+
+        const already_checked_refs_to_exported_vos: { [api_type_id: string]: { [id: number]: boolean } } = {};
+        while (vos && vos.length) {
+            for (const i in vos) {
+                const vo = vos[i];
+
+                exported_vos_json.push(await ModuleTableController.translate_vos_to_exported_json(vo, unique_fields_to_use, ref_fields_to_follow_by_field_source, exported_vos_ids_by_api_type_id));
+            }
+
+            vos = [];
+
+            // Pour tous les vos qu'on a pas encore checkés, on va tenter de chercher des refs (via les fields à suivre qui pourraient référencer ces vos) et les exporter aussi
+            for (const exported_api_type_id in exported_vos_ids_by_api_type_id) {
+                const exported_ids: { [id: number]: boolean } = exported_vos_ids_by_api_type_id[exported_api_type_id];
+
+                if (!exported_ids) {
+                    continue;
+                }
+
+                // On ne check que les refs qu'on n'a pas déjà checkées et on ne garde que les ids pas checkés
+                if (!already_checked_refs_to_exported_vos[exported_api_type_id]) {
+                    already_checked_refs_to_exported_vos[exported_api_type_id] = {};
+                }
+                const already_checked_refs: { [id: number]: boolean } = already_checked_refs_to_exported_vos[exported_api_type_id];
+                const ids_to_check: number[] = [];
+
+                for (const id in exported_ids) {
+                    if (!already_checked_refs[id]) {
+                        ids_to_check.push(parseInt(id));
+                    }
+                }
+
+                if (ids_to_check.length === 0) {
+                    continue;
+                }
+
+                // On va chercher les refs pour ces ids
+                const ref_fields_to_follow: ModuleTableFieldVO[] = Object.values(ref_fields_to_follow_by_field_source[exported_api_type_id] ?? {});
+                if (ref_fields_to_follow.length === 0) {
+                    continue;
+                }
+
+                // On va chercher les vos qui sont référencés par ces refs
+                for (const k in ref_fields_to_follow) {
+                    const ref_field_to_follow: ModuleTableFieldVO = ref_fields_to_follow[k];
+
+                    switch (ref_field_to_follow.field_type) {
+                        case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                        case ModuleTableFieldVO.FIELD_TYPE_file_ref:
+                        case ModuleTableFieldVO.FIELD_TYPE_image_ref:
+
+                            const refs = await query(ref_field_to_follow.module_table_vo_type)
+                                .filter_by_num_has(ref_field_to_follow.field_name, ids_to_check)
+                                .select_vos();
+
+                            if (!refs || refs.length === 0) {
+                                continue;
+                            }
+
+                            // On ajoute les refs à exporter
+                            vos.push(...refs);
+
+                            break;
+
+                        default:
+                            throw new Error(`ModuleDataExportServer.get_exported_vos_to_json: ref_field_to_follow.field_type ${ref_field_to_follow.field_type} not implemented for export to JSON`);
+                    }
+                }
+            }
+        }
+
+        return JSON.stringify(exported_vos_json);
     }
 }

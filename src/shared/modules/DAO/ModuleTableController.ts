@@ -15,7 +15,6 @@ import ModuleTableCompositeUniqueKeyController from "./ModuleTableCompositeUniqu
 import ModuleTableFieldController from "./ModuleTableFieldController";
 import ModuleTableFieldVO from "./vos/ModuleTableFieldVO";
 import ModuleTableVO from "./vos/ModuleTableVO";
-import ExportVOToJSONConfVO from "../DataExport/vos/ExportVOToJSONConfVO";
 
 export default class ModuleTableController {
 
@@ -195,6 +194,8 @@ export default class ModuleTableController {
         ModuleTableController.table_label_function_field_ids_deps_by_vo_type[vo_type] = table_label_function_field_ids_deps;
     }
 
+    //#region Traduction des vos pour l'API
+
     /**
      * Permet de récupérer un clone dont les fields sont trasférable via l'api (en gros ça passe par un json.stringify).
      * Cela autorise l'usage en VO de fields dont les types sont incompatibles nativement avec json.stringify (moment par exemple qui sur un parse reste une string)
@@ -354,14 +355,21 @@ export default class ModuleTableController {
 
         return res;
     }
+    //#endregion
 
+    //#region Traduction des vos pour l'export JSON (exported_json)
     /**
      * Traduction du VO en JSON, dans le cadre d'un export format JSON
      * On va en particulier adapter dans ce cas la traduction des champs de type translatable_xxx
      * et on est en async aussi
      * @param e Le VO dont on veut une version exported_json
      */
-    public static async translate_vos_to_exported_json<T extends IDistantVOBase>(e: T, export_vo_to_json_conf: ExportVOToJSONConfVO): Promise<string> {
+    public static async translate_vos_to_exported_json<T extends IDistantVOBase>(
+        e: T,
+        unique_fields_to_use: { [vo_type: string]: { [field_name: string]: ModuleTableFieldVO } },
+        ref_fields_to_follow: { [vo_type: string]: { [field_name: string]: ModuleTableFieldVO } },
+        exported_vos_ids_by_api_type_id: { [api_type_id: string]: { [id: number]: boolean } },
+    ): Promise<string> {
         if (!e) {
             return null;
         }
@@ -375,6 +383,16 @@ export default class ModuleTableController {
         if (!fields) {
             return JSON.stringify(e);
         }
+
+        // Si on est en export, on n'export jamais 2 fois la même donnée, soit on l'a pas encore exportée et ok on l'exporte, soit on l'a déjà exportée et on fait une ref vers ce vo
+        if (!exported_vos_ids_by_api_type_id[e._type]) {
+            exported_vos_ids_by_api_type_id[e._type] = {};
+        }
+        if (exported_vos_ids_by_api_type_id[e._type][e.id]) {
+            throw new Error(`translate_vos_to_exported_json: NOT IMPLEMENTED: Le VO de type ${e._type} avec l'id ${e.id} a déjà été exporté, on ne peut pas l'exporter à nouveau.`);
+        }
+
+        exported_vos_ids_by_api_type_id[e._type][e.id] = true;
 
         // On se crée la base à JSON.stringify à la fin
         const res: T = {
@@ -417,7 +435,13 @@ export default class ModuleTableController {
             // const new_id = (fieldIdToAPIMap && translate_field_id) ? fieldIdToAPIMap[field.field_name] : field.field_name;
             // res[new_id] = ModuleTableFieldController.translate_field_to_api(e[field.field_name], field, translate_plain_obj_inside_fields_ids);
 
-            res[field.field_name] = await ModuleTableFieldController.translate_field_to_exported_json(e[field.field_name], field, export_vo_to_json_conf);
+            res[field.field_name] = await ModuleTableFieldController.translate_field_to_exported_json(
+                e[field.field_name],
+                field,
+                unique_fields_to_use,
+                ref_fields_to_follow,
+                exported_vos_ids_by_api_type_id,
+            );
         }
 
         return JSON.stringify(res);
@@ -426,7 +450,7 @@ export default class ModuleTableController {
     /**
      * On recrée le Vo à partir de l'exported_json, et au passage on recrée les trads des translatable_xxx
      */
-    public static async translate_vos_from_exported_json<T extends IDistantVOBase>(json: string): Promise<T> {
+    public static async translate_vos_from_exported_json<T extends IDistantVOBase>(json: string, table_de_correspondance_des_ids: { [vo_type: string]: { [vo_id_source: number]: number } }): Promise<T> {
         if (json == null) {
             return null;
         }
@@ -488,7 +512,7 @@ export default class ModuleTableController {
 
             // const old_id = fieldIdToAPIMap ? fieldIdToAPIMap[field.field_name] : field.field_name;
             // res[field.field_name] = ModuleTableFieldController.translate_field_from_api(e[old_id], field);
-            res[field.field_name] = await ModuleTableFieldController.translate_field_from_exported_json(parsed_e[field.field_name], field);
+            res[field.field_name] = await ModuleTableFieldController.translate_field_from_exported_json(parsed_e[field.field_name], field, table_de_correspondance_des_ids);
         }
 
         /// Dans TOUS les cas, le field is_server est forcé à FALSE quand on vient du client => pour le moment sur l'import de données on garde ce verrou
@@ -498,7 +522,7 @@ export default class ModuleTableController {
 
         return res;
     }
-
+    //#endregion
 
 
     /**

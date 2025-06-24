@@ -16,11 +16,11 @@ import DefaultTranslationVO from "../Translation/vos/DefaultTranslationVO";
 import LangVO from "../Translation/vos/LangVO";
 import TranslatableTextVO from "../Translation/vos/TranslatableTextVO";
 import TranslationVO from "../Translation/vos/TranslationVO";
+import VOsTypesManager from "../VO/manager/VOsTypesManager";
 import ModuleDAO from "./ModuleDAO";
 import ModuleTableController from "./ModuleTableController";
 import TranslatableFieldController from "./TranslatableFieldController";
 import ModuleTableFieldVO from "./vos/ModuleTableFieldVO";
-import ExportVOToJSONConfVO from "../DataExport/vos/ExportVOToJSONConfVO";
 
 export default class ModuleTableFieldController {
 
@@ -34,6 +34,7 @@ export default class ModuleTableFieldController {
      * Les fields des tables par id de vo et id de field
      */
     public static module_table_fields_by_vo_id_and_field_id: { [vo_id: number]: { [field_id: number]: ModuleTableFieldVO } } = {};
+    public static module_table_fields_by_field_id: { [field_id: number]: ModuleTableFieldVO } = {};
 
 
     public static create_new<T>(
@@ -416,7 +417,7 @@ export default class ModuleTableFieldController {
 
 
     //#region EXPORTED JSON translation methods
-    public static async translate_field_from_exported_json(e: unknown, field: ModuleTableFieldVO): Promise<unknown> {
+    public static async translate_field_from_exported_json(e: unknown, field: ModuleTableFieldVO, table_de_correspondance_des_ids: { [vo_type: string]: { [vo_id_source: number]: number } }): Promise<unknown> {
         if ((!field) || field.is_readonly) {
             throw new Error('Should not ask for readonly fields');
         }
@@ -465,7 +466,7 @@ export default class ModuleTableFieldController {
                     case ExportedJSONForeignKeyRefVO.REF_TYPE_FULL_VO:
                         // On a un vo complet, on le traduit from exported_json, on le crée en base et on plug l'id fraichement créé
                         if (exported_json_foreign_key_ref.vo_exported_json) {
-                            const translated_vo = await ModuleTableController.translate_vos_from_exported_json(exported_json_foreign_key_ref.vo_exported_json);
+                            const translated_vo = await ModuleTableController.translate_vos_from_exported_json(exported_json_foreign_key_ref.vo_exported_json, table_de_correspondance_des_ids);
                             if (!translated_vo) {
                                 throw new Error('translate_field_from_exported_json: REF_TYPE_FULL_VO but no translated_vo');
                             }
@@ -492,6 +493,30 @@ export default class ModuleTableFieldController {
                             return translated_vo.id;
                         } else {
                             throw new Error('translate_field_from_exported_json: REF_TYPE_UNIQUE_FIELD_TYPE_STRING but no unique_field_value_string');
+                        }
+                        break;
+
+                    case ExportedJSONForeignKeyRefVO.REF_TYPE_UNIQUE_FIELD_TYPE_NUMBER:
+                        // On a un champ d'unicité de type number, on select_vo par ce champ d'unicité, et on plug l'id du vo trouvé : si on trouve pas ou plusieurs : throw
+                        if (exported_json_foreign_key_ref.unique_field_value_number) {
+                            const translated_vo = await query(field.foreign_ref_vo_type)
+                                .filter_by_num_eq(exported_json_foreign_key_ref.unique_field_name, exported_json_foreign_key_ref.unique_field_value_number)
+                                .select_vo();
+                            if (!translated_vo) {
+                                throw new Error('translate_field_from_exported_json: REF_TYPE_UNIQUE_FIELD_TYPE_NUMBER but no translated_vo found');
+                            }
+                            return translated_vo.id;
+                        } else {
+                            throw new Error('translate_field_from_exported_json: REF_TYPE_UNIQUE_FIELD_TYPE_NUMBER but no unique_field_value_number');
+                        }
+                        break;
+
+                    case ExportedJSONForeignKeyRefVO.REF_TYPE_EXPORTED_VO_REF:
+                        // On a une ref simple vers un vo exporté, on doit reprendre le nouvel id dans la map de correspondance
+                        if (exported_json_foreign_key_ref.source_vo_id && table_de_correspondance_des_ids[exported_json_foreign_key_ref.source_vo_id]) {
+                            return table_de_correspondance_des_ids[exported_json_foreign_key_ref.source_vo_id];
+                        } else {
+                            throw new Error('translate_field_from_exported_json: REF_TYPE_EXPORTED_VO_REF but no source_vo_id or no table_de_correspondance_des_ids for source_vo_id: ' + exported_json_foreign_key_ref.source_vo_id);
                         }
                         break;
 
@@ -641,7 +666,7 @@ export default class ModuleTableFieldController {
                             if (!ObjectHandler.try_is_json(transi)) {
                                 new_array.push(transi);
                             } else {
-                                new_array.push(await ModuleTableController.translate_vos_from_exported_json(ObjectHandler.try_get_json(transi)));
+                                new_array.push(await ModuleTableController.translate_vos_from_exported_json(ObjectHandler.try_get_json(transi), table_de_correspondance_des_ids));
                             }
                         }
                         trans_ = new_array;
@@ -661,12 +686,12 @@ export default class ModuleTableFieldController {
                                 if (!ObjectHandler.try_is_json(transi)) {
                                     new_obj[i] = transi;
                                 } else {
-                                    new_obj[i] = await ModuleTableController.translate_vos_from_exported_json(ObjectHandler.try_get_json(transi));
+                                    new_obj[i] = await ModuleTableController.translate_vos_from_exported_json(ObjectHandler.try_get_json(transi), table_de_correspondance_des_ids);
                                 }
                             }
                             trans_ = new_obj;
                         } else {
-                            const translated_vos_from_exported_json = await ModuleTableController.translate_vos_from_exported_json(trans_);
+                            const translated_vos_from_exported_json = await ModuleTableController.translate_vos_from_exported_json(trans_, table_de_correspondance_des_ids);
 
                             // Si on a déjà un vo typé, on le garde - cas des varsdatas où on doit surtout pas utiliser un Object.assign derrière
                             if (translated_vos_from_exported_json && translated_vos_from_exported_json._type) {
@@ -697,7 +722,13 @@ export default class ModuleTableFieldController {
         }
     }
 
-    public static async translate_field_to_exported_json(e: any, field: ModuleTableFieldVO, export_vo_to_json_conf: ExportVOToJSONConfVO): Promise<any> {
+    public static async translate_field_to_exported_json(
+        e: any,
+        field: ModuleTableFieldVO,
+        unique_fields_to_use: { [vo_type: string]: { [field_name: string]: ModuleTableFieldVO } },
+        ref_fields_to_follow: { [vo_type: string]: { [field_name: string]: ModuleTableFieldVO } },
+        exported_vos_ids_by_api_type_id: { [api_type_id: string]: { [id: number]: boolean } },
+    ): Promise<any> {
         if ((!field) || (field.is_readonly)) {
             throw new Error('Should not ask for readonly fields');
         }
@@ -718,10 +749,125 @@ export default class ModuleTableFieldController {
             case ModuleTableFieldVO.FIELD_TYPE_file_ref:
             case ModuleTableFieldVO.FIELD_TYPE_image_ref:
                 // Suivant la conf, on crée la liaison qui va bien
-                TODO
+                if (!e) {
+                    return null;
+                }
+
+                // Si le vo fait partie de l'export, on fait juste une liaison avec cet id source et on recollera les morceaux plus tard
+                if (exported_vos_ids_by_api_type_id[field.foreign_ref_vo_type] &&
+                    exported_vos_ids_by_api_type_id[field.foreign_ref_vo_type][e]) {
+                    const ref_field_to_json = new ExportedJSONForeignKeyRefVO();
+                    ref_field_to_json.source_vo_id = e; // On garde l'id du vo source pour le suivi des références
+                    ref_field_to_json.ref_type = ExportedJSONForeignKeyRefVO.REF_TYPE_EXPORTED_VO_REF; // On indique qu'on a un exported vo ref
+                    return ref_field_to_json;
+                }
+
+                // On check déjà si on doit suivre le chemin et renvoyer tout le VO
+                if ((!!ref_fields_to_follow) && (!!ref_fields_to_follow[field.module_table_vo_type]) && (!!ref_fields_to_follow[field.module_table_vo_type][field.field_name])) {
+
+                    // On doit suivre le champ de référence, on va donc traduire le vo complet en exported_json
+                    const vo = await query(field.foreign_ref_vo_type)
+                        .filter_by_id(e)
+                        .select_vo();
+
+                    if (!vo) {
+                        throw new Error('translate_field_to_exported_json: foreign_key field has no vo for id: ' + e);
+                    }
+
+                    const translated_vo = await ModuleTableController.translate_vos_to_exported_json(vo, unique_fields_to_use, ref_fields_to_follow, exported_vos_ids_by_api_type_id);
+                    if (!translated_vo) {
+                        throw new Error('translate_field_to_exported_json: foreign_key field has no translated_vo');
+                    }
+
+                    const ref_field_to_json = new ExportedJSONForeignKeyRefVO();
+                    ref_field_to_json.ref_type = ExportedJSONForeignKeyRefVO.REF_TYPE_FULL_VO;
+                    ref_field_to_json.source_vo_id = vo.id; // On garde l'id du vo source pour le suivi des références
+                    ref_field_to_json.vo_exported_json = translated_vo;
+
+                    return ref_field_to_json;
+                }
+
+                // Sinon, on checke si on doit renvoyer un champs unique du vo à a la place de l'id
+                if ((!!unique_fields_to_use) && (!!unique_fields_to_use[field.module_table_vo_type]) && (!!unique_fields_to_use[field.module_table_vo_type][field.field_name])) {
+
+                    // Auquel cas on charge aussi le vo
+                    const vo = await query(field.foreign_ref_vo_type)
+                        .filter_by_id(e)
+                        .select_vo();
+
+                    if (!vo) {
+                        throw new Error('translate_field_to_exported_json: foreign_key field has no vo for id: ' + e);
+                    }
+
+                    if (!vo[field.field_name]) {
+                        throw new Error('translate_field_to_exported_json: foreign_key field has no translated_vo');
+                    }
+
+                    const ref_field_to_json = new ExportedJSONForeignKeyRefVO();
+                    ref_field_to_json.source_vo_id = vo.id; // On garde l'id du vo source pour le suivi des références
+
+                    switch (field.field_type) {
+                        case ModuleTableFieldVO.FIELD_TYPE_string:
+                            ref_field_to_json.ref_type = ExportedJSONForeignKeyRefVO.REF_TYPE_UNIQUE_FIELD_TYPE_STRING;
+                            ref_field_to_json.unique_field_value_string = vo[field.field_name];
+                            break;
+                        case ModuleTableFieldVO.FIELD_TYPE_int:
+                            ref_field_to_json.ref_type = ExportedJSONForeignKeyRefVO.REF_TYPE_UNIQUE_FIELD_TYPE_NUMBER;
+                            ref_field_to_json.unique_field_value_number = vo[field.field_name];
+                            break;
+                        default:
+                            throw new Error('translate_field_to_exported_json: Not implemented field_type for unique field: ' + field.field_type);
+                    }
+
+                    return ref_field_to_json;
+                }
+
+                // Sinon, on doit juste renvoyer l'id du vo
+                const ref_field_to_json = new ExportedJSONForeignKeyRefVO();
+                ref_field_to_json.source_vo_id = e; // On garde l'id du vo source pour le suivi des références
+                ref_field_to_json.ref_type = ExportedJSONForeignKeyRefVO.REF_TYPE_ID;
+                ref_field_to_json.vo_id = e; // On renvoie l'id du vo directement
+                return ref_field_to_json;
 
             case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
-                TODO
+                // On va chercher les trads correspondantes au code qui est dans le champs
+                //  et on les intègre dans le champs directement sous forme de map code_lang: translation
+                if (!e) {
+                    throw new Error('translate_field_to_exported_json: Translatable string field has no value');
+                }
+
+                const translations: TranslationVO[] = await query(TranslationVO.API_TYPE_ID)
+                    .filter_by_text_eq(field_names<TranslatableTextVO>().code_text, e)
+                    .select_vos<TranslationVO>();
+
+                if (!translations || translations.length == 0) {
+                    // Pas un souci
+                    return null;
+                }
+
+                const langs: LangVO[] = await query(LangVO.API_TYPE_ID)
+                    .set_max_age_ms(60 * 1000)
+                    .select_vos<LangVO>();
+                const langs_by_id: { [lang_id: string]: LangVO } = VOsTypesManager.vosArray_to_vosByIds(langs);
+                const res: { [code_lang: string]: string } = {};
+
+                for (const i in translations) {
+                    const translation = translations[i];
+
+                    if (!translation.lang_id) {
+                        throw new Error('translate_field_to_exported_json: Translatable string field has no lang_id for translation: ' + translation.translated);
+                    }
+
+                    const code_lang = langs_by_id[translation.lang_id]?.code_lang;
+
+                    if (!code_lang) {
+                        throw new Error('translate_field_to_exported_json: Translatable string field has no code_lang for lang_id: ' + translation.lang_id);
+                    }
+
+                    res[code_lang] = translation.translated;
+                }
+
+                return res;
 
 
             case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
@@ -743,7 +889,7 @@ export default class ModuleTableFieldController {
 
                 if (e && e._type) {
 
-                    const trans_plain_vo_obj = e ? await ModuleTableController.translate_vos_to_exported_json(e, export_vo_to_json_conf) : null;
+                    const trans_plain_vo_obj = e ? await ModuleTableController.translate_vos_to_exported_json(e, unique_fields_to_use, ref_fields_to_follow, exported_vos_ids_by_api_type_id) : null;
                     return trans_plain_vo_obj ? JSON.stringify(trans_plain_vo_obj) : null;
 
                 } else if ((!!e) && isArray(e)) {
@@ -758,7 +904,7 @@ export default class ModuleTableFieldController {
                         if ((typeof e_ === 'string') && ((!e_) || (e_.indexOf('{') < 0))) {
                             trans_array.push(e_);
                         } else {
-                            trans_array.push(await ModuleTableFieldController.translate_field_to_exported_json(e_, field, export_vo_to_json_conf));
+                            trans_array.push(await ModuleTableFieldController.translate_field_to_exported_json(e_, field, unique_fields_to_use, ref_fields_to_follow, exported_vos_ids_by_api_type_id));
                         }
                     }
                     return JSON.stringify(trans_array);

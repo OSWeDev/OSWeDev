@@ -4,11 +4,11 @@ import IDistantVOBase from "../../IDistantVOBase";
 /**
  * Particularité de ce VO on intègre les champs de la conf aussi directement pour l'avoir facilement dès le départ et décoder la partie vo_exporté avec la conf
  */
-export default class ExportVOToJSONHistoricVO implements IDistantVOBase {
-    public static API_TYPE_ID: string = "export_vo_to_json_historic";
+export default class ExportVOsToJSONHistoricVO implements IDistantVOBase {
+    public static API_TYPE_ID: string = "export_vos_to_json_historic";
 
     public id: number;
-    public _type: string = ExportVOToJSONHistoricVO.API_TYPE_ID;
+    public _type: string = ExportVOsToJSONHistoricVO.API_TYPE_ID;
 
     /**
      * Pour retrouver l'export par nom : name + app_source + env source + date + useremail + version source
@@ -26,11 +26,6 @@ export default class ExportVOToJSONHistoricVO implements IDistantVOBase {
     public description: string;
 
     /**
-     * Les api_type_ids impactés par cet import, pour faciliter l'invalidation des caches
-     */
-    public impacted_api_type_ids: string[];
-
-    /**
      * Les moduletablefields que l'on utilise à la place de l'id du même type
      * Par exemple pour les VarConfVO, on veut pas exporter un id pour lien de var, mais le nom de la var beaucoup plus fiable et significatif d'un environnement à l'autre, voir d'un projet à l'autre
      */
@@ -45,6 +40,21 @@ export default class ExportVOToJSONHistoricVO implements IDistantVOBase {
      *  mais exporter cette donnée hors du projet n'aurait aucun intéret...)
      */
     public ref_fields_to_follow_id_ranges: NumRange[];
+
+    /**
+     * Un array de vos (pour avoir l'ordre de création des vos exportés) qui est passé en JSON
+     */
+    public exported_data: string;
+
+    /**
+     * On garde la map des ids de vo source par type de donnée
+     * ce qui nous donne à la fois les api_type_ids impactés par cet import, pour faciliter l'invalidation des caches
+     * mais aussi les ids sources des vos qu'on est en train de créer pour permettre d'y faire référence sans problème dans les champs des vos exportés.
+     * On peut facilement refaire le lien du coup post création
+     */
+    public exported_vos_ids_by_api_type_id: { [api_type_id: string]: { [id: number]: boolean } };
+
+    //#region Historique d'Export
 
     /**
      * Lien vers la conf, dans l'environnement source, à reconstruire au besoin dans l'environnement cible
@@ -83,5 +93,39 @@ export default class ExportVOToJSONHistoricVO implements IDistantVOBase {
      */
     public export_user_id: number;
 
-    public exported_data: string;
+    //#endregion
+
+    //#region Historique d'Import
+
+    /**
+     * On stocke la date de l'import
+     */
+    public import_date: number;
+
+    /**
+     * On stocke le user email de l'import
+     */
+    public import_user_id: number;
+
+    /**
+     * On stocke l'erreur le cas échéant
+     */
+    public import_error: string;
+
+    /**
+     * On stocke l'appli dest de l'import
+     */
+    public dest_app_name: string;
+
+    /**
+     * On stocke l'environemment dest de l'import
+     */
+    public dest_app_env: string;
+
+    /**
+     * On stocke la version dest de l'import
+     */
+    public dest_app_version: string;
+
+    //#endregion
 }

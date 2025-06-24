@@ -1,11 +1,11 @@
 import NumRange from "../../DataRender/vos/NumRange";
 import IDistantVOBase from "../../IDistantVOBase";
 
-export default class ExportVOToJSONConfVO implements IDistantVOBase {
-    public static API_TYPE_ID: string = "export_vo_to_json_conf";
+export default class ExportVOsToJSONConfVO implements IDistantVOBase {
+    public static API_TYPE_ID: string = "export_vos_to_json_conf";
 
     public id: number;
-    public _type: string = ExportVOToJSONConfVO.API_TYPE_ID;
+    public _type: string = ExportVOsToJSONConfVO.API_TYPE_ID;
 
     /**
      * Pour retrouver la conf et la référencer dans l'appli sur les boutons d'export

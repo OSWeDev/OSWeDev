@@ -865,6 +865,16 @@ export default class ModuleDAOServer extends ModuleServerBase {
         APIControllerWrapper.register_server_api_handler(this.name, reflect<ModuleDAO>().delete_all_vos_triggers_ok, this.delete_all_vos_triggers_ok.bind(this));
 
         APIControllerWrapper.register_server_api_handler(this.name, reflect<ModuleDAO>().create_new_vo_and_refs, this.create_new_vo_and_refs.bind(this));
+
+        APIControllerWrapper.register_server_api_handler(this.name, reflect<ModuleDAO>().get_computed_moduletable_field_uid, this.get_computed_moduletable_field_uid);
+    }
+
+    public async get_computed_moduletable_field_uid(field: ModuleTableFieldVO): Promise<string> {
+        if (!field) {
+            return null;
+        }
+
+        return field.module_table_vo_type + '.' + field.field_name;
     }
 
     public async preload_segmented_known_database(t: ModuleTableVO) {

@@ -17,8 +17,8 @@ import VarConfVO from '../Var/vos/VarConfVO';
 import IExportableSheet from './interfaces/IExportableSheet';
 import ExportContextQueryToXLSXQueryVO from './vos/ExportContextQueryToXLSXQueryVO';
 import ExportHistoricVO from './vos/ExportHistoricVO';
-import ExportVOToJSONConfVO from './vos/ExportVOToJSONConfVO';
-import ExportVOToJSONHistoricVO from './vos/ExportVOToJSONHistoricVO';
+import ExportVOsToJSONConfVO from './vos/ExportVOsToJSONConfVO';
+import ExportVOsToJSONHistoricVO from './vos/ExportVOsToJSONHistoricVO';
 import ExportVarIndicatorVO from './vos/ExportVarIndicatorVO';
 import ExportVarcolumnConfVO from './vos/ExportVarcolumnConfVO';
 import ExportedJSONForeignKeyRefVO from './vos/ExportedJSONForeignKeyRefVO';
@@ -98,11 +98,16 @@ export default class ModuleDataExport extends Module {
         is_secured: boolean,
         file_access_policy_name: string) => Promise<FileVO> = APIControllerWrapper.sah(ModuleDataExport.APINAME_ExportDataToMultiSheetsXLSXParamVOFile);
 
-    public export_vo_to_json: (
-        vo: IDistantVOBase,
-        export_vo_to_json_conf: ExportVOToJSONConfVO,
-    ) => Promise<ExportVOToJSONHistoricVO> = APIControllerWrapper.sah_optimizer(this.name, reflect<this>().export_vo_to_json);
-    public export_vo_to_json_historic_vo_label_function: (vo: ExportVOToJSONHistoricVO) => Promise<string> = APIControllerWrapper.sah_optimizer(this.name, reflect<this>().export_vo_to_json_historic_vo_label_function);
+    public export_vos_to_json: (
+        vos: IDistantVOBase[],
+        export_vos_to_json_conf: ExportVOsToJSONConfVO,
+    ) => Promise<ExportVOsToJSONHistoricVO> = APIControllerWrapper.sah_optimizer(this.name, reflect<this>().export_vos_to_json);
+    public import_vos_from_json: (
+        exported_data_historic: ExportVOsToJSONHistoricVO,
+        import_first_elt_to_id: number,
+    ) => Promise<boolean> = APIControllerWrapper.sah_optimizer(this.name, reflect<this>().import_vos_from_json);
+
+    public export_vos_to_json_historic_vo_label_function: (historic: ExportVOsToJSONHistoricVO) => Promise<string> = APIControllerWrapper.sah_optimizer(this.name, reflect<this>().export_vos_to_json_historic_vo_label_function);
 
 
     private constructor() {
@@ -126,7 +131,7 @@ export default class ModuleDataExport extends Module {
         this.initializeExportVarIndicatorVO();
         this.initializeExportContextQueryToXLSXQueryVO();
 
-        this.initialize_ExportVOToJSONConfVO();
+        this.initialize_ExportVOsToJSONConfVO();
         this.initialize_ExportVOToJSONHistoricVO();
         this.initialize_ExportedJSONForeignKeyRefVO();
     }
@@ -167,18 +172,27 @@ export default class ModuleDataExport extends Module {
             ExportDataToXLSXParamVOStatic
         ));
 
-        APIControllerWrapper.registerApi(PostAPIDefinition.new<DefaultParamTranslatorVO<[vo: IDistantVOBase, export_vo_to_json_conf: ExportVOToJSONConfVO]>, string>(
+        APIControllerWrapper.registerApi(PostAPIDefinition.new<DefaultParamTranslatorVO<[vo: IDistantVOBase, export_vo_to_json_conf: ExportVOsToJSONConfVO]>, string>(
             ModuleAccessPolicy.POLICY_FO_ACCESS,
             this.name,
-            reflect<this>().export_vo_to_json,
-            [ExportVOToJSONHistoricVO.API_TYPE_ID],
+            reflect<this>().export_vos_to_json,
+            [ExportVOsToJSONHistoricVO.API_TYPE_ID],
             DefaultParamTranslatorVOStatic
         ));
 
-        APIControllerWrapper.registerApi(PostAPIDefinition.new<ExportVOToJSONHistoricVO, string>(
+        APIControllerWrapper.registerApi(PostAPIDefinition.new<DefaultParamTranslatorVO<[exported_data_historic: ExportVOsToJSONHistoricVO, import_first_elt_to_id: number]>, string>(
             ModuleAccessPolicy.POLICY_FO_ACCESS,
             this.name,
-            reflect<this>().export_vo_to_json_historic_vo_label_function,
+            reflect<this>().import_vos_from_json,
+            (value: DefaultParamTranslatorVO<[exported_data_historic: ExportVOsToJSONHistoricVO, import_first_elt_to_id: number]>) =>
+                Object.keys(value.params[0].exported_vos_ids_by_api_type_id),
+            DefaultParamTranslatorVOStatic
+        ));
+
+        APIControllerWrapper.registerApi(PostAPIDefinition.new<ExportVOsToJSONHistoricVO, string>(
+            ModuleAccessPolicy.POLICY_FO_ACCESS,
+            this.name,
+            reflect<this>().export_vos_to_json_historic_vo_label_function,
             null
         ));
 
@@ -197,40 +211,51 @@ export default class ModuleDataExport extends Module {
     }
 
 
-    private initialize_ExportVOToJSONConfVO(): void {
-        const name = ModuleTableFieldController.create_new(ExportVOToJSONConfVO.API_TYPE_ID, field_names<ExportVOToJSONConfVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': "Nom de la conf d'export" }), true);
-        ModuleTableFieldController.create_new(ExportVOToJSONConfVO.API_TYPE_ID, field_names<ExportVOToJSONConfVO>().description, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': "Description de la conf d'export" }), false);
-        ModuleTableFieldController.create_new(ExportVOToJSONConfVO.API_TYPE_ID, field_names<ExportVOToJSONConfVO>().unique_fields_to_use_id_ranges, ModuleTableFieldVO.FIELD_TYPE_refrange_array, DefaultTranslationVO.create_new({ 'fr-fr': "Champs uniques à utiliser à la place des ids" }), false)
+    private initialize_ExportVOsToJSONConfVO(): void {
+        const name = ModuleTableFieldController.create_new(ExportVOsToJSONConfVO.API_TYPE_ID, field_names<ExportVOsToJSONConfVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': "Nom de la conf d'export" }), true);
+        ModuleTableFieldController.create_new(ExportVOsToJSONConfVO.API_TYPE_ID, field_names<ExportVOsToJSONConfVO>().description, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': "Description de la conf d'export" }), false);
+        ModuleTableFieldController.create_new(ExportVOsToJSONConfVO.API_TYPE_ID, field_names<ExportVOsToJSONConfVO>().unique_fields_to_use_id_ranges, ModuleTableFieldVO.FIELD_TYPE_refrange_array, DefaultTranslationVO.create_new({ 'fr-fr': "Champs uniques à utiliser à la place des ids" }), false)
             .set_many_to_one_target_moduletable_name(ModuleTableFieldVO.API_TYPE_ID);
-        ModuleTableFieldController.create_new(ExportVOToJSONConfVO.API_TYPE_ID, field_names<ExportVOToJSONConfVO>().ref_fields_to_follow_id_ranges, ModuleTableFieldVO.FIELD_TYPE_refrange_array, DefaultTranslationVO.create_new({ 'fr-fr': "Champs à suivre pour l'export" }), false)
+        ModuleTableFieldController.create_new(ExportVOsToJSONConfVO.API_TYPE_ID, field_names<ExportVOsToJSONConfVO>().ref_fields_to_follow_id_ranges, ModuleTableFieldVO.FIELD_TYPE_refrange_array, DefaultTranslationVO.create_new({ 'fr-fr': "Champs à suivre pour l'export" }), false)
             .set_many_to_one_target_moduletable_name(ModuleTableFieldVO.API_TYPE_ID);
 
-        ModuleTableController.create_new(this.name, ExportVOToJSONConfVO, name, 'Configuration de l\'export de VO vers JSON');
+        ModuleTableController.create_new(this.name, ExportVOsToJSONConfVO, name, 'Configuration de l\'export de VO vers JSON');
     }
 
     private initialize_ExportVOToJSONHistoricVO(): void {
-        const label = ModuleTableFieldController.create_new(ExportVOToJSONHistoricVO.API_TYPE_ID, field_names<ExportVOToJSONHistoricVO>().label, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': "Label de l'export" }), true).define_as_custom_computed(this.name, reflect<this>().export_vo_to_json_historic_vo_label_function);
-        ModuleTableFieldController.create_new(ExportVOToJSONConfVO.API_TYPE_ID, field_names<ExportVOToJSONConfVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': "Nom de la conf d'export" }), true);
-        ModuleTableFieldController.create_new(ExportVOToJSONConfVO.API_TYPE_ID, field_names<ExportVOToJSONConfVO>().description, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': "Description de la conf d'export" }), false);
+        const label = ModuleTableFieldController.create_new(ExportVOsToJSONHistoricVO.API_TYPE_ID, field_names<ExportVOsToJSONHistoricVO>().label, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': "Label de l'export" }), true).define_as_custom_computed(this.name, reflect<this>().export_vos_to_json_historic_vo_label_function);
+        ModuleTableFieldController.create_new(ExportVOsToJSONConfVO.API_TYPE_ID, field_names<ExportVOsToJSONConfVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': "Nom de la conf d'export" }), true);
+        ModuleTableFieldController.create_new(ExportVOsToJSONConfVO.API_TYPE_ID, field_names<ExportVOsToJSONConfVO>().description, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': "Description de la conf d'export" }), false);
 
-        ModuleTableFieldController.create_new(ExportVOToJSONHistoricVO.API_TYPE_ID, field_names<ExportVOToJSONHistoricVO>().unique_fields_to_use_id_ranges, ModuleTableFieldVO.FIELD_TYPE_refrange_array, DefaultTranslationVO.create_new({ 'fr-fr': "Champs uniques à utiliser à la place des ids" }), false)
+        ModuleTableFieldController.create_new(ExportVOsToJSONHistoricVO.API_TYPE_ID, field_names<ExportVOsToJSONHistoricVO>().unique_fields_to_use_id_ranges, ModuleTableFieldVO.FIELD_TYPE_refrange_array, DefaultTranslationVO.create_new({ 'fr-fr': "Champs uniques à utiliser à la place des ids" }), false)
             .set_many_to_one_target_moduletable_name(ModuleTableFieldVO.API_TYPE_ID);
-        ModuleTableFieldController.create_new(ExportVOToJSONHistoricVO.API_TYPE_ID, field_names<ExportVOToJSONHistoricVO>().ref_fields_to_follow_id_ranges, ModuleTableFieldVO.FIELD_TYPE_refrange_array, DefaultTranslationVO.create_new({ 'fr-fr': "Champs à suivre pour l'export" }), false)
+        ModuleTableFieldController.create_new(ExportVOsToJSONHistoricVO.API_TYPE_ID, field_names<ExportVOsToJSONHistoricVO>().ref_fields_to_follow_id_ranges, ModuleTableFieldVO.FIELD_TYPE_refrange_array, DefaultTranslationVO.create_new({ 'fr-fr': "Champs à suivre pour l'export" }), false)
             .set_many_to_one_target_moduletable_name(ModuleTableFieldVO.API_TYPE_ID);
-        ModuleTableFieldController.create_new(ExportVOToJSONHistoricVO.API_TYPE_ID, field_names<ExportVOToJSONHistoricVO>().impacted_api_type_ids, ModuleTableFieldVO.FIELD_TYPE_string_array, DefaultTranslationVO.create_new({ 'fr-fr': "API type ids impactés" }), true);
+        ModuleTableFieldController.create_new(ExportVOsToJSONHistoricVO.API_TYPE_ID, field_names<ExportVOsToJSONHistoricVO>().exported_vos_ids_by_api_type_id, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, DefaultTranslationVO.create_new({ 'fr-fr': "ID des VOs exportés par API_TYPE_ID" }), true);
 
-        ModuleTableFieldController.create_new(ExportVOToJSONHistoricVO.API_TYPE_ID, field_names<ExportVOToJSONHistoricVO>().export_conf_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, DefaultTranslationVO.create_new({ 'fr-fr': "Conf d'export" }), true)
-            .set_many_to_one_target_moduletable_name(ExportVOToJSONConfVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(ExportVOsToJSONHistoricVO.API_TYPE_ID, field_names<ExportVOsToJSONHistoricVO>().export_conf_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, DefaultTranslationVO.create_new({ 'fr-fr': "Conf d'export" }), true)
+            .set_many_to_one_target_moduletable_name(ExportVOsToJSONConfVO.API_TYPE_ID);
 
-        ModuleTableFieldController.create_new(ExportVOToJSONHistoricVO.API_TYPE_ID, field_names<ExportVOToJSONHistoricVO>().source_app_name, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': "Application source" }), true);
-        ModuleTableFieldController.create_new(ExportVOToJSONHistoricVO.API_TYPE_ID, field_names<ExportVOToJSONHistoricVO>().source_app_env, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': "Environnement source" }), true);
-        ModuleTableFieldController.create_new(ExportVOToJSONHistoricVO.API_TYPE_ID, field_names<ExportVOToJSONHistoricVO>().source_app_version, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': "Version source" }), true);
-        ModuleTableFieldController.create_new(ExportVOToJSONHistoricVO.API_TYPE_ID, field_names<ExportVOToJSONHistoricVO>().export_date, ModuleTableFieldVO.FIELD_TYPE_tstz, DefaultTranslationVO.create_new({ 'fr-fr': "Date de l'export" }), true).set_segmentation_type(TimeSegment.TYPE_SECOND);
-        ModuleTableFieldController.create_new(ExportVOToJSONHistoricVO.API_TYPE_ID, field_names<ExportVOToJSONHistoricVO>().export_user_email, ModuleTableFieldVO.FIELD_TYPE_email, DefaultTranslationVO.create_new({ 'fr-fr': "Email de l'utilisateur ayant réalisé l\'export" }), true);
-        ModuleTableFieldController.create_new(ExportVOToJSONHistoricVO.API_TYPE_ID, field_names<ExportVOToJSONHistoricVO>().export_user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, DefaultTranslationVO.create_new({ 'fr-fr': "Utilisateur ayant réalisé l'export" }), true)
+        ModuleTableFieldController.create_new(ExportVOsToJSONHistoricVO.API_TYPE_ID, field_names<ExportVOsToJSONHistoricVO>().source_app_name, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': "Application source" }), true);
+        ModuleTableFieldController.create_new(ExportVOsToJSONHistoricVO.API_TYPE_ID, field_names<ExportVOsToJSONHistoricVO>().source_app_env, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': "Environnement source" }), true);
+        ModuleTableFieldController.create_new(ExportVOsToJSONHistoricVO.API_TYPE_ID, field_names<ExportVOsToJSONHistoricVO>().source_app_version, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': "Version source" }), true);
+        ModuleTableFieldController.create_new(ExportVOsToJSONHistoricVO.API_TYPE_ID, field_names<ExportVOsToJSONHistoricVO>().export_date, ModuleTableFieldVO.FIELD_TYPE_tstz, DefaultTranslationVO.create_new({ 'fr-fr': "Date de l'export" }), true).set_segmentation_type(TimeSegment.TYPE_SECOND);
+        ModuleTableFieldController.create_new(ExportVOsToJSONHistoricVO.API_TYPE_ID, field_names<ExportVOsToJSONHistoricVO>().export_user_email, ModuleTableFieldVO.FIELD_TYPE_email, DefaultTranslationVO.create_new({ 'fr-fr': "Email de l'utilisateur ayant réalisé l\'export" }), true);
+        ModuleTableFieldController.create_new(ExportVOsToJSONHistoricVO.API_TYPE_ID, field_names<ExportVOsToJSONHistoricVO>().export_user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, DefaultTranslationVO.create_new({ 'fr-fr': "Utilisateur ayant réalisé l'export" }), true)
             .set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
 
-        ModuleTableController.create_new(this.name, ExportVOToJSONConfVO, label, 'Export de VO vers JSON');
+        ModuleTableFieldController.create_new(ExportVOsToJSONHistoricVO.API_TYPE_ID, field_names<ExportVOsToJSONHistoricVO>().import_date, ModuleTableFieldVO.FIELD_TYPE_tstz, DefaultTranslationVO.create_new({ 'fr-fr': "Date de l'import" }), false).set_segmentation_type(TimeSegment.TYPE_SECOND);
+        ModuleTableFieldController.create_new(ExportVOsToJSONHistoricVO.API_TYPE_ID, field_names<ExportVOsToJSONHistoricVO>().import_user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, DefaultTranslationVO.create_new({ 'fr-fr': "Utilisateur ayant réalisé l'import" }), false)
+            .set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(ExportVOsToJSONHistoricVO.API_TYPE_ID, field_names<ExportVOsToJSONHistoricVO>().import_error, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': "Erreur de l'import" }), false);
+
+        ModuleTableFieldController.create_new(ExportVOsToJSONHistoricVO.API_TYPE_ID, field_names<ExportVOsToJSONHistoricVO>().dest_app_name, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': "Application cible" }), true);
+        ModuleTableFieldController.create_new(ExportVOsToJSONHistoricVO.API_TYPE_ID, field_names<ExportVOsToJSONHistoricVO>().dest_app_env, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': "Environnement cible" }), true);
+        ModuleTableFieldController.create_new(ExportVOsToJSONHistoricVO.API_TYPE_ID, field_names<ExportVOsToJSONHistoricVO>().dest_app_version, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': "Version cible" }), true);
+
+        ModuleTableFieldController.create_new(ExportVOsToJSONHistoricVO.API_TYPE_ID, field_names<ExportVOsToJSONHistoricVO>().exported_data, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': "Données exportées" }), true);
+
+        ModuleTableController.create_new(this.name, ExportVOsToJSONConfVO, label, 'Export de VO vers JSON');
     }
 
     private initializeExportHistoricVO(): void {

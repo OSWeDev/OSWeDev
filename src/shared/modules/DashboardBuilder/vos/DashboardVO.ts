@@ -1,7 +1,5 @@
 import IDistantVOBase from "../../../../shared/modules/IDistantVOBase";
 import IWeightedItem from "../../../tools/interfaces/IWeightedItem";
-import DefaultTranslationVO from "../../Translation/vos/DefaultTranslationVO";
-import DashboardBuilderController from "../DashboardBuilderController";
 
 export default class DashboardVO implements IDistantVOBase, IWeightedItem {
     public static API_TYPE_ID: string = "dashboard";

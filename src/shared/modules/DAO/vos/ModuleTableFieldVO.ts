@@ -85,6 +85,11 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
     public _type: string = ModuleTableFieldVO.API_TYPE_ID;
 
     /**
+     * Champs computed unique qui permet l'identification fiable d'un field en se basant sur vo_type.field_name
+     */
+    public uid: string;
+
+    /**
      * Ce paramètre garanti que si ce champ est de type boolean, il ne peut être transmis/passé en true que côté serveur
      * Si le client envoie via une API par exemple ce boolean à true, il sera automatiquement passé à false et loggé
      */

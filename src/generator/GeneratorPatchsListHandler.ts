@@ -135,6 +135,7 @@ import Patch20250507OseliaRunTemplateNames from './patchs/premodules/Patch202505
 import Patch20250617AddRightsModuleTableAndFields from './patchs/postmodules/Patch20250617AddRightsModuleTableAndFields';
 import Patch20250617MigrationCRUDDBLink from './patchs/postmodules/Patch20250617MigrationCRUDDBLink';
 import Patch20250623InitTitresDashboards from './patchs/premodules/Patch20250623InitTitresDashboards';
+import Patch20250624AddConfExportDBToJSON from './patchs/postmodules/Patch20250624AddConfExportDBToJSON';
 
 export default class GeneratorPatchsListHandler {
 
@@ -297,5 +298,7 @@ export default class GeneratorPatchsListHandler {
 
         Patch20250617AddRightsModuleTableAndFields.getInstance(),
         Patch20250617MigrationCRUDDBLink.getInstance(),
+
+        Patch20250624AddConfExportDBToJSON.getInstance(),
     ];
 }
