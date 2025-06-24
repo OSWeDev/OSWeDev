@@ -23,6 +23,7 @@ import GPTRealtimeAPIFunctionParametersVO from '../../../shared/modules/GPT/vos/
 import GPTRealtimeAPIFunctionVO from '../../../shared/modules/GPT/vos/GPTRealtimeAPIFunctionVO';
 import GPTRealtimeAPISessionVO from '../../../shared/modules/GPT/vos/GPTRealtimeAPISessionVO';
 import IModuleBase from '../../../shared/modules/IModuleBase';
+import Module from '../../../shared/modules/Module';
 import ModulesManager from '../../../shared/modules/ModulesManager';
 import ModuleOselia from '../../../shared/modules/Oselia/ModuleOselia';
 import OseliaReferrerExternalAPIVO from '../../../shared/modules/Oselia/vos/OseliaReferrerExternalAPIVO';
@@ -45,7 +46,6 @@ import ConfigurationService from '../../env/ConfigurationService';
 import ExternalAPIServerController from '../API/ExternalAPIServerController';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
-import ModuleServerBase from '../ModuleServerBase';
 import ModuleVersionedServer from '../Versioned/ModuleVersionedServer';
 import ModuleGPTServer from './ModuleGPTServer';
 import GPTAssistantAPIServerSyncAssistantsController from './sync/GPTAssistantAPIServerSyncAssistantsController';
@@ -784,7 +784,7 @@ export default class GPTAssistantAPIServerController {
             }
         }
 
-        const module_of_function_to_call = ModulesManager.getModuleByNameAndRole(function_vo.module_name, ModuleServerBase.SERVER_MODULE_ROLE_NAME);
+        const module_of_function_to_call = ModulesManager.getModuleByNameAndRole(function_vo.module_name, Module.ServerModuleRoleName);
         const function_to_call: () => Promise<any> = module_of_function_to_call[function_vo.module_function];
         const ordered_args: any[] = function_vo.ordered_function_params_from_GPT_arguments(function_vo, thread_vo, function_args, availableFunctionsParameters[function_vo.id]);
 

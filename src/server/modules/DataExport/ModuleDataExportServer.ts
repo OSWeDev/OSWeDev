@@ -8,6 +8,7 @@ import ModuleContextFilter from '../../../shared/modules/ContextFilter/ModuleCon
 import ContextFilterVOHandler from '../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import ModuleTableController from '../../../shared/modules/DAO/ModuleTableController';
 import ModuleTableFieldController from '../../../shared/modules/DAO/ModuleTableFieldController';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
@@ -23,6 +24,8 @@ import IExportableSheet from '../../../shared/modules/DataExport/interfaces/IExp
 import { XlsxCellFormatByFilterType } from '../../../shared/modules/DataExport/type/XlsxCellFormatByFilterType';
 import ExportContextQueryToXLSXQueryVO from '../../../shared/modules/DataExport/vos/ExportContextQueryToXLSXQueryVO';
 import ExportHistoricVO from '../../../shared/modules/DataExport/vos/ExportHistoricVO';
+import ExportVOToJSONConfVO from '../../../shared/modules/DataExport/vos/ExportVOToJSONConfVO';
+import ExportVOToJSONHistoricVO from '../../../shared/modules/DataExport/vos/ExportVOToJSONHistoricVO';
 import ExportVarIndicatorVO from '../../../shared/modules/DataExport/vos/ExportVarIndicatorVO';
 import ExportVarcolumnConfVO from '../../../shared/modules/DataExport/vos/ExportVarcolumnConfVO';
 import ExportLogVO from '../../../shared/modules/DataExport/vos/apis/ExportLogVO';
@@ -43,6 +46,7 @@ import ModuleVar from '../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import EnvHandler from '../../../shared/tools/EnvHandler';
 import FilterObj, { filter_by_name } from '../../../shared/tools/Filters';
 import LocaleManager from '../../../shared/tools/LocaleManager';
 import ObjectHandler, { field_names, reflect } from '../../../shared/tools/ObjectHandler';
@@ -161,6 +165,59 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleDataExport.APINAME_ExportDataToXLSXParamVOFile, this.exportDataToXLSXFile.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleDataExport.APINAME_ExportDataToMultiSheetsXLSXParamVO, this.export_data_to_multi_sheets_xlsx.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleDataExport.APINAME_ExportDataToMultiSheetsXLSXParamVOFile, this.export_data_to_multi_sheets_xslw_file.bind(this));
+
+        APIControllerWrapper.register_server_api_handler(this.name, reflect<this>().export_vo_to_json, this.export_vo_to_json);
+        APIControllerWrapper.register_server_api_handler(this.name, reflect<this>().export_vo_to_json_historic_vo_label_function, this.export_vo_to_json_historic_vo_label_function);
+    }
+
+    public async export_vo_to_json_historic_vo_label_function(export_vo_to_json_historic_vo: ExportVOToJSONHistoricVO): Promise<string> {
+        return export_vo_to_json_historic_vo.name + ' - ' + Dates.format_segment(export_vo_to_json_historic_vo.export_date, TimeSegment.TYPE_SECOND) + ' - ' + export_vo_to_json_historic_vo.source_app_name + ' - ' + export_vo_to_json_historic_vo.source_app_env + ' - ' + export_vo_to_json_historic_vo.export_user_email + ' - ' + export_vo_to_json_historic_vo.source_app_version + ' - ' + export_vo_to_json_historic_vo.export_user_email;
+    }
+
+    /**
+     * Méthode générique d'export de VOs au format JSON pour réimport dans une autre instance de l'application (ou dans la même)
+     * On se base sur la conf qui permet de savoir si on veut suivre des refs et donc intégrer les vos liés dans l'export
+     * ou si on ne garde que la ref à ces vos et dans ce cas, sous quelle forme (id / champs unique)
+     * On renvoie un ExportVOToJSONHistoricVO qui contient les infos de l'export dont les données exportées, et c'est en appliquant JSON.stringify(historic) qu'on obtient l'export JSON
+     * On renvoie l'historique pour permettre un affichage de l'historique ou un compte-rendu directement à l'endroit où on fait la demande
+     */
+    public async export_vo_to_json(
+        vo: IDistantVOBase,
+        export_vo_to_json_conf: ExportVOToJSONConfVO,
+    ): Promise<ExportVOToJSONHistoricVO> {
+
+        if (!export_vo_to_json_conf) {
+            ConsoleHandler.error('export_vo_to_json_conf is required');
+            return null;
+        }
+
+        // On commence par fixer la date
+        const export_historic = new ExportVOToJSONHistoricVO();
+
+        export_historic.name = export_vo_to_json_conf.name;
+        export_historic.description = export_vo_to_json_conf.description;
+        export_historic.ref_fields_to_follow_id_ranges = RangeHandler.cloneArrayFrom(export_vo_to_json_conf.ref_fields_to_follow_id_ranges);
+        export_historic.unique_fields_to_use_id_ranges = RangeHandler.cloneArrayFrom(export_vo_to_json_conf.unique_fields_to_use_id_ranges);
+
+        export_historic.export_date = Dates.now();
+        export_historic.export_user_id = StackContext.get(reflect<IRequestStackContext>().UID);
+
+        const self_user = await ModuleAccessPolicyServer.getSelfUser();
+        export_historic.export_user_email = self_user.email;
+
+        export_historic.source_app_version = EnvHandler.version;
+        export_historic.source_app_env = ConfigurationService.nodeEnv;
+        export_historic.source_app_name = ConfigurationService.node_configuration.app_title;
+
+        export_historic.export_conf_id = export_vo_to_json_conf.id;
+
+        const impacted_api_type_ids: string[] = [];
+        export_historic.exported_data = await this.get_exported_vo_to_json(vo, export_vo_to_json_conf, impacted_api_type_ids);
+        export_historic.impacted_api_type_ids = impacted_api_type_ids;
+
+        await ModuleDAO.getInstance().insertOrUpdateVO(export_historic);
+
+        return export_historic;
     }
 
     public async exportDataToXLSX(
@@ -2014,4 +2071,12 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
     //     return active_field_filters_cp;
     // }
+
+    private async get_exported_vo_to_json(
+        vo: IDistantVOBase,
+        export_vo_to_json_conf: ExportVOToJSONConfVO,
+        impacted_api_type_ids: string[],
+    ) {
+        todo
+    }
 }

@@ -3,23 +3,22 @@ import { Express } from 'express';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../shared/modules/ContextFilter/vos/SortByVO';
-import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import ModuleTableVO from '../../../shared/modules/DAO/vos/ModuleTableVO';
 import IRenderedData from '../../../shared/modules/DataRender/interfaces/IRenderedData';
 import ModuleDataRender from '../../../shared/modules/DataRender/ModuleDataRender';
 import DataRendererVO from '../../../shared/modules/DataRender/vos/DataRendererVO';
 import DataRenderingLogVO from '../../../shared/modules/DataRender/vos/DataRenderingLogVO';
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
+import Module from '../../../shared/modules/Module';
 import ModulesManager from '../../../shared/modules/ModulesManager';
-import ModuleTableVO from '../../../shared/modules/DAO/vos/ModuleTableVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
+import { field_names } from '../../../shared/tools/ObjectHandler';
 import TimeSegmentHandler from '../../../shared/tools/TimeSegmentHandler';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ModuleServerBase from '../ModuleServerBase';
-import ModuleServiceBase from '../ModuleServiceBase';
 import DataRenderModuleBase from './DataRenderModuleBase/DataRenderModuleBase';
-import { field_names } from '../../../shared/tools/ObjectHandler';
 
 export default class ModuleDataRenderServer extends ModuleServerBase {
 
@@ -106,7 +105,7 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
             return null;
         }
 
-        const rendererModule: DataRenderModuleBase = ModulesManager.getModuleByNameAndRole(dataRenderer.render_handler_module, ModuleServerBase.SERVER_MODULE_ROLE_NAME) as DataRenderModuleBase;
+        const rendererModule: DataRenderModuleBase = ModulesManager.getModuleByNameAndRole(dataRenderer.render_handler_module, Module.ServerModuleRoleName) as DataRenderModuleBase;
 
         const latest_data: IDistantVOBase & IRenderedData = await query(rendererModule.database.vo_type).set_sort(new SortByVO(rendererModule.database.vo_type, 'data_dateindex', false)).set_limit(1).select_vo<IDistantVOBase & IRenderedData>();
 

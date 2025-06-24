@@ -2,11 +2,9 @@
 import moment from 'moment';
 import ConsoleHandler from '../../tools/ConsoleHandler';
 import TypesHandler from '../../tools/TypesHandler';
-import ModuleTableController from '../DAO/ModuleTableController';
 import IRange from '../DataRender/interfaces/IRange';
 import EventsController from '../Eventify/EventsController';
 import EventifyEventInstanceVO from '../Eventify/vos/EventifyEventInstanceVO';
-import IDistantVOBase from '../IDistantVOBase';
 import Module from '../Module';
 import ModulesManager from '../ModulesManager';
 import IAPIController from './interfaces/IAPIController';
@@ -127,13 +125,19 @@ export default class APIControllerWrapper {
      * @param api_name
      * @param SERVER_HANDLER
      */
-    public static register_server_api_handler<T, U>(module_name: string, function_name: string, SERVER_HANDLER: (translated_param: T) => Promise<U>) {
+    public static register_server_api_handler<U>(module_name: string, function_name: string, SERVER_HANDLER: (...translated_params) => Promise<U>) {
         const api_name = APIControllerWrapper.get_api_name_from_module_function(module_name, function_name);
+        const module = ModulesManager.getModuleByNameAndRole(module_name, Module.ServerModuleRoleName);
 
         if (!APIControllerWrapper.registered_apis[api_name]) {
             throw new Error("Registering server API Handler on unknown API:" + api_name);
         }
-        APIControllerWrapper.registered_apis[api_name].SERVER_HANDLER = SERVER_HANDLER;
+
+        if (!module) {
+            throw new Error("Registering server API Handler on unknown module:" + module_name);
+        }
+
+        APIControllerWrapper.registered_apis[api_name].SERVER_HANDLER = SERVER_HANDLER.bind(module);
 
         EventsController.emit_event(EventifyEventInstanceVO.new_event(APIControllerWrapper.API_REGISTERED_EVENT + '_' + api_name));
     }

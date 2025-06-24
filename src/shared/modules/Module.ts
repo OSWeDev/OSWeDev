@@ -6,6 +6,7 @@ import ModulesManager from './ModulesManager';
 export default abstract class Module implements IModuleBase {
 
     public static SharedModuleRoleName: string = "SharedModule";
+    public static ServerModuleRoleName: string = "SERVER_MODULE_ROLE_NAME";
 
     /**
      * Local thread cache -----

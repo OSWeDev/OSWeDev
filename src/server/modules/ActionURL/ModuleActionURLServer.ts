@@ -10,6 +10,7 @@ import ContextFilterVOHandler from '../../../shared/modules/ContextFilter/handle
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import IUserData from '../../../shared/modules/DAO/interface/IUserData';
 import ModuleTableVO from '../../../shared/modules/DAO/vos/ModuleTableVO';
+import Module from '../../../shared/modules/Module';
 import ModulesManager from '../../../shared/modules/ModulesManager';
 import TeamsWebhookContentAdaptiveCardVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentAdaptiveCardVO';
 import TeamsWebhookContentAttachmentsVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentAttachmentsVO';
@@ -157,7 +158,7 @@ export default class ModuleActionURLServer extends ModuleServerBase {
             return false;
         }
 
-        const module_instance = ModulesManager.getModuleByNameAndRole(action_url.action_callback_module_name, ModuleServerBase.SERVER_MODULE_ROLE_NAME);
+        const module_instance = ModulesManager.getModuleByNameAndRole(action_url.action_callback_module_name, Module.ServerModuleRoleName);
 
         if (!module_instance) {
             ConsoleHandler.error('No module found for action_url:' + code + ': module_name:' + action_url.action_callback_module_name);

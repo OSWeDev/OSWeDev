@@ -3,6 +3,7 @@ import SortByVO from '../../../../shared/modules/ContextFilter/vos/SortByVO';
 import ModuleTableFieldController from '../../../../shared/modules/DAO/ModuleTableFieldController';
 import CustomComputedFieldInitVO from '../../../../shared/modules/DAO/vos/CustomComputedFieldInitVO';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
+import Module from '../../../../shared/modules/Module';
 import ModulesManager from '../../../../shared/modules/ModulesManager';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import { field_names } from '../../../../shared/tools/ObjectHandler';
@@ -10,7 +11,6 @@ import { all_promises } from '../../../../shared/tools/PromiseTools';
 import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
-import ModuleServerBase from '../../ModuleServerBase';
 
 export default class CustomComputedFieldBGThread implements IBGThread {
 
@@ -105,7 +105,7 @@ export default class CustomComputedFieldBGThread implements IBGThread {
                 for (const i in vos) {
                     const vo = vos[i];
 
-                    const module = ModulesManager.getModuleByNameAndRole(field.custom_computed_module_name, ModuleServerBase.SERVER_MODULE_ROLE_NAME);
+                    const module = ModulesManager.getModuleByNameAndRole(field.custom_computed_module_name, Module.ServerModuleRoleName);
 
                     if (!module) {
                         throw new Error("Impossible de trouver le module " + field.custom_computed_module_name + " pour le champ " + field.field_name);

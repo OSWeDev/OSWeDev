@@ -1,16 +1,19 @@
 /* istanbul ignore file: nothing to test */
 
-import { Application, Express } from 'express';
+import { Application } from 'express';
 import IModuleBase from '../../shared/modules/IModuleBase';
 import Module from '../../shared/modules/Module';
 import ModulesManager from '../../shared/modules/ModulesManager';
 
 export default abstract class ModuleServerBase implements IModuleBase {
 
+    /**
+     * @deprecated use Module.ServerModuleRoleName instead
+     */
     public static SERVER_MODULE_ROLE_NAME: string = "SERVER_MODULE_ROLE_NAME";
 
     constructor(public name: string) {
-        ModulesManager.registerModule(ModuleServerBase.SERVER_MODULE_ROLE_NAME, this);
+        ModulesManager.registerModule(Module.ServerModuleRoleName, this);
     }
 
     get actif(): boolean {

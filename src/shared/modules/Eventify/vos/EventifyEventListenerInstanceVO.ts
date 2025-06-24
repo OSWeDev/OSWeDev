@@ -1,9 +1,9 @@
 import ConsoleHandler from '../../../tools/ConsoleHandler';
 import Dates from '../../FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../IDistantVOBase';
+import Module from '../../Module';
 import ModulesManager from '../../ModulesManager';
 import EventsController from '../EventsController';
-import EventifyEventConfVO from './EventifyEventConfVO';
 import EventifyEventInstanceVO from './EventifyEventInstanceVO';
 import EventifyEventListenerConfVO from './EventifyEventListenerConfVO';
 
@@ -308,7 +308,7 @@ export default class EventifyEventListenerInstanceVO implements IDistantVOBase {
 
         if (this._cb == null) {
             try {
-                const m = ModulesManager.getModuleByNameAndRole(this.cb_module_name, "SERVER_MODULE_ROLE_NAME");
+                const m = ModulesManager.getModuleByNameAndRole(this.cb_module_name, Module.ServerModuleRoleName);
                 this._cb = m[this.cb_function_name].bind(m);
             } catch (error) {
                 ConsoleHandler.error('Error while getting cb for EventifyEventListenerInstanceVO ' + this.id + ' : ' + error);

@@ -15,6 +15,7 @@ import ModuleTableCompositeUniqueKeyController from "./ModuleTableCompositeUniqu
 import ModuleTableFieldController from "./ModuleTableFieldController";
 import ModuleTableFieldVO from "./vos/ModuleTableFieldVO";
 import ModuleTableVO from "./vos/ModuleTableVO";
+import ExportVOToJSONConfVO from "../DataExport/vos/ExportVOToJSONConfVO";
 
 export default class ModuleTableController {
 
@@ -353,6 +354,152 @@ export default class ModuleTableController {
 
         return res;
     }
+
+    /**
+     * Traduction du VO en JSON, dans le cadre d'un export format JSON
+     * On va en particulier adapter dans ce cas la traduction des champs de type translatable_xxx
+     * et on est en async aussi
+     * @param e Le VO dont on veut une version exported_json
+     */
+    public static async translate_vos_to_exported_json<T extends IDistantVOBase>(e: T, export_vo_to_json_conf: ExportVOToJSONConfVO): Promise<string> {
+        if (!e) {
+            return null;
+        }
+
+        const table = ModuleTableController.module_tables_by_vo_type[e._type];
+        if ((!e._type) || !table) {
+            return JSON.stringify(e);
+        }
+
+        const fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[e._type];
+        if (!fields) {
+            return JSON.stringify(e);
+        }
+
+        // On se crée la base à JSON.stringify à la fin
+        const res: T = {
+            _type: e._type,
+            id: e.id,
+        } as T;
+
+        // FIXME : Est-ce qu'on offusque les champs lors d'un export ? d'un côté ça évite de communiquer la structure, de l'autre la structure est publique, et on peut toujours la retrouver dans le code source / la base...
+        // Pour le coup en plus pour debug les exports / il est souvent utile de comprendre ce qui est dedans. et la lourdeur n'est pas tant un souci a priori. à voir si c'est pertinent
+        // // C'est aussi ici qu'on peut décider de renommer les fields__ en fonction de l'ordre dans la def de moduletable
+        // //  pour réduire au max l'objet envoyé, et l'offusquer un peu
+        // const fieldIdToAPIMap: { [field_id: string]: string } = ModuleTableController.field_name_to_api_map[e._type];
+
+        // /**
+        //  * Cas des matroids, on ignore les champs du matroid dans ce cas, on recréera le matroid de l'autre côté via l'index
+        //  *  et par contre on crée un field fictif _api_only_index avec l'index dedans
+        //  * => ça on peut pas en exported json, sinon on a le var_id obligatoirement et pas le var_name qu'on préfèrerait probablement embarquer dans l'export à la place de l'id... donc non si on veut des matroids on les exporte entièrement
+        //  */
+        // const ignore_fields: { [field_id: string]: boolean } = {};
+        // if (table.is_matroid_table) {
+        //     const ignore_fields_ = MatroidController.getMatroidFields(table.vo_type);
+        //     for (const i in ignore_fields_) {
+        //         const ignore_field_ = ignore_fields_[i];
+        //         ignore_fields[ignore_field_.field_name] = true;
+        //     }
+        //     res['_api_only_index'] = (e as unknown as VarDataBaseVO).index;
+        // }
+
+        for (const i in fields) {
+            const field = fields[i];
+
+            if (field.is_readonly) {
+                continue;
+            }
+
+            // if (ignore_fields[field.field_name]) {
+            //     continue;
+            // }
+
+            // const new_id = (fieldIdToAPIMap && translate_field_id) ? fieldIdToAPIMap[field.field_name] : field.field_name;
+            // res[new_id] = ModuleTableFieldController.translate_field_to_api(e[field.field_name], field, translate_plain_obj_inside_fields_ids);
+
+            res[field.field_name] = await ModuleTableFieldController.translate_field_to_exported_json(e[field.field_name], field, export_vo_to_json_conf);
+        }
+
+        return JSON.stringify(res);
+    }
+
+    /**
+     * On recrée le Vo à partir de l'exported_json, et au passage on recrée les trads des translatable_xxx
+     */
+    public static async translate_vos_from_exported_json<T extends IDistantVOBase>(json: string): Promise<T> {
+        if (json == null) {
+            return null;
+        }
+
+        // On commence par parser le json
+        let parsed_e: { [f in keyof T]: T[f] } = null;
+        try {
+            parsed_e = JSON.parse(json);
+        } catch (error) {
+            ConsoleHandler.error("translate_vos_from_exported_json: Erreur lors du parsing du JSON: " + error);
+            return null;
+        }
+
+        const table = ModuleTableController.module_tables_by_vo_type[parsed_e._type];
+        if ((!parsed_e._type) || !table) {
+            return parsed_e;
+        }
+
+        let res: T = new ModuleTableController.vo_constructor_by_vo_type[table.vo_type]() as T;
+        const fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[parsed_e._type];
+
+        if ((!fields) || (!res)) {
+            return cloneDeep(parsed_e);
+        }
+
+        res['_type'] = parsed_e._type;
+        res['id'] = parsed_e.id;
+
+        // // C'est aussi ici qu'on peut décider de renommer les fields__ en fonction de l'ordre dans la def de moduletable
+        // //  pour réduire au max l'objet envoyé, et l'offusquer un peu
+        // const fieldIdToAPIMap: { [field_name: string]: string } = ModuleTableController.field_name_to_api_map[e._type];
+
+        // /**
+        //  * Cas des matroids, on recrée le matroid de l'autre côté via l'index dans _api_only_index
+        //  */
+        // const ignore_fields: { [field_name: string]: boolean } = {};
+        // if (table.is_matroid_table && !!e['_api_only_index']) {
+        //     const a: T = MatroidIndexHandler.from_normalized_vardata(e['_api_only_index']) as unknown as T;
+        //     a._type = res._type;
+        //     a.id = res.id;
+        //     res = a;
+        //     const ignore_fields_ = MatroidController.getMatroidFields(table.vo_type);
+        //     for (const i in ignore_fields_) {
+        //         const ignore_field_ = ignore_fields_[i];
+        //         ignore_fields[ignore_field_.field_name] = true;
+        //     }
+        // }
+
+        for (const i in fields) {
+            const field = fields[i];
+
+            if (field.is_readonly) {
+                continue;
+            }
+
+            // if (ignore_fields[field.field_name]) {
+            //     continue;
+            // }
+
+            // const old_id = fieldIdToAPIMap ? fieldIdToAPIMap[field.field_name] : field.field_name;
+            // res[field.field_name] = ModuleTableFieldController.translate_field_from_api(e[old_id], field);
+            res[field.field_name] = await ModuleTableFieldController.translate_field_from_exported_json(parsed_e[field.field_name], field);
+        }
+
+        /// Dans TOUS les cas, le field is_server est forcé à FALSE quand on vient du client => pour le moment sur l'import de données on garde ce verrou
+        if (res[reflect<IIsServerField>().is_server]) {
+            res[reflect<IIsServerField>().is_server] = false;
+        }
+
+        return res;
+    }
+
+
 
     /**
      * On encapsule pour appliquer les valeurs par défaut définie dans le moduletablefield
