@@ -23,14 +23,9 @@ export default class ModuleFeedback extends Module {
     public static POLICY_BO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleFeedback.MODULE_NAME + '.BO_ACCESS';
     public static POLICY_FO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleFeedback.MODULE_NAME + '.FO_ACCESS';
 
+    public static ROUTE_NAME_FEEDBACK_FORM: string = 'feedback_form';
+
     public static APINAME_feedback: string = "feedback";
-    // istanbul ignore next: nothing to test
-    public static getInstance(): ModuleFeedback {
-        if (!ModuleFeedback.instance) {
-            ModuleFeedback.instance = new ModuleFeedback();
-        }
-        return ModuleFeedback.instance;
-    }
 
     private static instance: ModuleFeedback = null;
 
@@ -39,6 +34,14 @@ export default class ModuleFeedback extends Module {
     private constructor() {
         super("feedback", ModuleFeedback.MODULE_NAME);
         this.forceActivationOnInstallation();
+    }
+
+    // istanbul ignore next: nothing to test
+    public static getInstance(): ModuleFeedback {
+        if (!ModuleFeedback.instance) {
+            ModuleFeedback.instance = new ModuleFeedback();
+        }
+        return ModuleFeedback.instance;
     }
 
     public registerApis() {
