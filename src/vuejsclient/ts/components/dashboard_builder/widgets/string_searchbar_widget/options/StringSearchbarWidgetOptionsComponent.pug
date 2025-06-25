@@ -1,2 +1,85 @@
 .string_searchbar_widget_options_component
+    .page_widget_options(:id="'page_widget_options_' + page_widget.id" :key="'page_widget_options_' + page_widget.id")
+        .field_ref
+            .input_label {{ label('field_value_filter_widget_component.vo_field_ref') }}
+            .input_wrapper
+                Singlevofieldrefholdercomponent(
+                    :vo_field_ref="vo_field_ref" @remove_field_ref="remove_field_ref" @add_field_ref="add_field_ref"
+                    :page_widget_id='page_widget ? page_widget.id : null'
+                )
 
+        .autovalidate_advanced_filter
+            .input_label {{ label('field_value_filter_widget_component.autovalidate_advanced_filter') }}
+            .input_wrapper
+                toggle-button(
+                    @change="switch_autovalidate_advanced_filter"
+                    :value="autovalidate_advanced_filter"
+                    :sync="false"
+                    :width="60"
+                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
+                )
+
+        template(v-if="autovalidate_advanced_filter")
+            .active_field_on_autovalidate_advanced_filter
+                .input_label {{ label('field_value_filter_widget_component.active_field_on_autovalidate_advanced_filter') }}
+                .input_wrapper
+                    toggle-button(
+                        @change="switch_active_field_on_autovalidate_advanced_filter"
+                        :value="active_field_on_autovalidate_advanced_filter"
+                        :sync="false"
+                        :width="60"
+                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
+                    )
+
+        .default_advanced_string_filter_type(v-if="is_type_string")
+            .input_label {{ label('field_value_filter_widget_component.default_advanced_string_filter_type') }}
+            .input_wrapper
+                multiselect(
+                    :preselect-first="true"
+                    :multiple="false"
+                    :close-on-select="true"
+                    v-model="tmp_default_advanced_string_filter_type"
+                    :options="filter_type_options"
+                    :custom-label="filter_type_label"
+                    autocomplete="off"
+
+                    :show-labels="false"
+                    :searchable="false"
+                    :internal-search="false"
+                    :hide-selected="false"
+
+                    :select-label='label("multiselect.selectLabel")'
+                    :select-group-label='label("multiselect.selectGroupLabel")'
+                    :selected-label='label("multiselect.selectedLabel")'
+                    :deselect-label='label("multiselect.deselectLabel")'
+                    :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                )
+
+        .placeholder_advanced_string_filter
+            .input_label {{ label('field_value_filter_widget_component.placeholder_advanced_string_filter') }}
+            .input_wrapper
+                Inlinetranslatabletext(
+                    v-if='widget_options && widget_options.get_advanced_mode_placeholder_code_text(page_widget.id)'
+                    :code_text="widget_options.get_advanced_mode_placeholder_code_text(page_widget.id)"
+                    :is_editable="true"
+                )
+
+        .hide_advanced_string_filter_type(v-if="is_type_string")
+            .input_label {{ label('field_value_filter_widget_component.hide_advanced_string_filter_type') }}
+            .input_wrapper
+                toggle-button(
+                    @change="switch_hide_advanced_string_filter_type"
+                    :value="hide_advanced_string_filter_type"
+                    :sync="false"
+                    :width="60"
+                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
+                )
+
+        .vo_field_ref_multiple
+            .input_label {{ label('field_value_filter_widget_component.vo_field_ref_multiple') }}
+            .input_wrapper
+                Multiplevofieldrefholdercomponent(
+                    :vo_field_ref="vo_field_ref"
+                    :vo_field_ref_multiple="vo_field_ref_multiple" @remove_field_ref="remove_field_ref_multiple" @add_field_ref="add_field_ref_multiple"
+                    :page_widget_id='page_widget ? page_widget.id : null'
+                )

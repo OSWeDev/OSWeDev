@@ -6,6 +6,7 @@ import DashboardWidgetVO from '../../../../shared/modules/DashboardBuilder/vos/D
 import FavoritesFiltersVO from '../../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersVO';
 import FavoritesFiltersWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersWidgetOptionsVO';
 import FieldValueFilterWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/FieldValueFilterWidgetOptionsVO';
+import StringSearchbarWidgetOptions from '../../../../shared/modules/DashboardBuilder/vos/StringSearchbarWidgetOptions';
 import SuiviCompetencesWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/SuiviCompetencesWidgetOptionsVO';
 import TableWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/TableWidgetOptionsVO';
 import VOFieldRefVO from '../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
@@ -135,6 +136,8 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         await this.initializeWidget_OseliaThread();
 
         await this.initializeWidget_PerfReportGraph();
+
+        await this.initializeWidget_StringSearchbar();
     }
 
     private async initializeWidget_PerfReportGraph() {
@@ -297,6 +300,28 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         Vue.component('Fieldvaluefilterwidgeticoncomponent', () => import('./widgets/field_value_filter_widget/icon/FieldValueFilterWidgetIconComponent'));
     }
 
+    private async initializeWidget_StringSearchbar() {
+        const stringsearchbar = new DashboardWidgetVO();
+
+        stringsearchbar.default_height = 5;
+        stringsearchbar.default_width = 3;
+        stringsearchbar.name = DashboardWidgetVO.WIDGET_NAME_stringsearchbar;
+        stringsearchbar.widget_component = 'Stringsearchbarwidgetcomponent';
+        stringsearchbar.options_component = 'Stringsearchbarwidgetoptionscomponent';
+        stringsearchbar.weight = 0;
+        stringsearchbar.default_background = '#f5f5f5';
+        stringsearchbar.icon_component = 'Stringsearchbarwidgeticoncomponent';
+        stringsearchbar.is_filter = true;
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(stringsearchbar, () => new StringSearchbarWidgetOptions(
+            null, null
+        ), StringSearchbarWidgetOptions.get_selected_fields);
+
+        Vue.component('Stringsearchbarwidgetcomponent', () => import('./widgets/string_searchbar_widget/StringSearchbarWidgetComponent'));
+        Vue.component('Stringsearchbarwidgetoptionscomponent', () => import('./widgets/string_searchbar_widget/options/StringSearchbarWidgetOptionsComponent'));
+        Vue.component('Stringsearchbarwidgeticoncomponent', () => import('./widgets/string_searchbar_widget/icon/StringSearchbarWidgetIconComponent'));
+    }
+
     private async initializeWidget_DOWFilter() {
         const DOWFilter = new DashboardWidgetVO();
 
@@ -328,7 +353,9 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         MonthFilter.default_background = '#f5f5f5';
         MonthFilter.icon_component = 'Monthfilterwidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(MonthFilter, () => new MonthFilterWidgetOptions(true, null, null, false, 1, 12, false, false, null, null, false, null, false), MonthFilterWidgetOptions.get_selected_fields);
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(MonthFilter, () => new MonthFilterWidgetOptions(
+            true, null, null, false, 1, 12, false, false, null, null, false, null, false
+        ), MonthFilterWidgetOptions.get_selected_fields);
 
         Vue.component('Monthfilterwidgetcomponent', () => import('./widgets/month_filter_widget/MonthFilterWidgetComponent'));
         Vue.component('Monthfilterwidgetoptionscomponent', () => import('./widgets/month_filter_widget/options/MonthFilterWidgetOptionsComponent'));
