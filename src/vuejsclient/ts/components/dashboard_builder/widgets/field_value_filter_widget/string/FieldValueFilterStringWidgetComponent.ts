@@ -1612,6 +1612,16 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                 this.active_option_lvl1[dataFilter.label] = true;
             }
 
+            // On prend en compte également le filtre de texte unique
+            if (filter_.param_text) {
+
+                const dataFilter = this.createDataFilter(filter_.param_text, Math.round(Math.random() * 1000));
+
+                tmp_active_filter_options.push(dataFilter);
+
+                this.active_option_lvl1[dataFilter.label] = true;
+            }
+
             this.tmp_active_filter_options = tmp_active_filter_options;
         }
 
@@ -1674,7 +1684,10 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
     // }
 
     private has_advanced_filter(filter_: ContextFilterVO): boolean {
-        if ((filter_.filter_type == ContextFilterVO.TYPE_TEXT_EQUALS_ANY) && (filter_.param_textarray != null) && (filter_.param_textarray.length > 0)) {
+        if (
+            ((filter_.filter_type == ContextFilterVO.TYPE_TEXT_EQUALS_ANY) && (filter_.param_textarray?.length > 0)) ||
+            ((filter_.filter_type == ContextFilterVO.TYPE_TEXT_EQUALS_ALL) && ((filter_.param_textarray?.length > 0) || (filter_.param_text?.length > 0)))
+        ) {
             return false;
         }
 
