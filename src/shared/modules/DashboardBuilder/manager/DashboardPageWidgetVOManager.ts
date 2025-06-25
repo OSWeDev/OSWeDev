@@ -80,7 +80,7 @@ export default class DashboardPageWidgetVOManager {
             return;
         }
 
-        // Find id of widget that have type "yearfilter"
+        // Find id of widget named widget_name
         const widget_id = sorted_widgets_types?.find(
             (widget_type) => widget_type?.name == widget_name
         ).id;
@@ -88,7 +88,7 @@ export default class DashboardPageWidgetVOManager {
         // widget_id required to continue
         if (!widget_id) { return; }
 
-        // Find all yearfilter widgets of actual page
+        // Find all widget_name widgets of actual page
         const filtered_page_widgets = Object.values(all_page_widgets)?.filter(
             (pw: DashboardPageWidgetVO) => pw.widget_id == widget_id
         );
@@ -104,6 +104,7 @@ export default class DashboardPageWidgetVOManager {
                 dashboard_page_id: page_widget.page_id,
                 page_widget_id: page_widget.id,
                 widget_name,
+                page_widget: page_widget, // Add page_widget to metadata for easy access
             });
         }
 

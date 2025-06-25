@@ -139,6 +139,7 @@ import Patch20250624AddConfExportDBToJSON from './patchs/postmodules/Patch202506
 import Patch20250625InitTitresDashboardPages from './patchs/premodules/Patch20250625InitTitresDashboardPages';
 import Patch20250625InitTitresGroupeFiltresDashboardPages from './patchs/premodules/Patch20250625InitTitresGroupeFiltresDashboardPages';
 import Patch20250624InitUIDModuleTableFields from './patchs/premodules/Patch20250624InitUIDModuleTableFields';
+import Patch20250625InitTitresDashboardWidgets from './patchs/premodules/Patch20250625InitTitresDashboardWidgets';
 
 export default class GeneratorPatchsListHandler {
 
@@ -196,6 +197,7 @@ export default class GeneratorPatchsListHandler {
         Patch20250623InitTitresDashboards.getInstance(),
         Patch20250625InitTitresDashboardPages.getInstance(),
         Patch20250625InitTitresGroupeFiltresDashboardPages.getInstance(),
+        Patch20250625InitTitresDashboardWidgets.getInstance(),
     ];
 
     public static post_modules_workers: IGeneratorWorker[] = [

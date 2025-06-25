@@ -31,6 +31,7 @@ import FieldFiltersVO from '../vos/FieldFiltersVO';
 import FieldValueFilterWidgetOptionsVO from '../vos/FieldValueFilterWidgetOptionsVO';
 import TableColumnDescVO from '../vos/TableColumnDescVO';
 import TableWidgetOptionsVO from '../vos/TableWidgetOptionsVO';
+import WidgetOptionsMetadataVO from '../vos/WidgetOptionsMetadataVO';
 import DashboardBuilderBoardManager from './DashboardBuilderBoardManager';
 import DashboardPageWidgetVOManager from './DashboardPageWidgetVOManager';
 import FieldFiltersVOManager from './FieldFiltersVOManager';
@@ -173,23 +174,19 @@ export default class TableWidgetManager {
     ): Promise<{ [title_name_code: string]: { widget_options: TableWidgetOptionsVO, widget_name: string, dashboard_page_id: number, page_widget_id: number } }> {
 
         const datatable_page_widgets: {
-            [page_widget_id: string]: { widget_options: any, widget_name: string, dashboard_page_id: number, page_widget_id: number }
+            [page_widget_id: string]: WidgetOptionsMetadataVO
         } = await DashboardPageWidgetVOManager.filter_all_page_widgets_options_by_widget_name([dashboard_page_id], DashboardWidgetVO.WIDGET_NAME_datatable);
 
-        const res: { [title_name_code: string]: { widget_options: TableWidgetOptionsVO, widget_name: string, dashboard_page_id: number, page_widget_id: number } } = {};
+        const res: { [title_name_code: string]: WidgetOptionsMetadataVO } = {};
 
         for (const key in datatable_page_widgets) {
             const options = datatable_page_widgets[key];
 
             const widget_options = new TableWidgetOptionsVO().from(options.widget_options);
-            const name = widget_options.get_title_name_code_text(options.page_widget_id);
 
-            res[name] = {
-                dashboard_page_id: options.dashboard_page_id,
-                page_widget_id: options.page_widget_id,
-                widget_name: options.widget_name,
-                widget_options: widget_options
-            };
+            options.widget_options = widget_options;
+
+            res[options.page_widget.titre] = options;
         }
 
         return res;

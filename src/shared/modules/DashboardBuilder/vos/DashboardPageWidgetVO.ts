@@ -43,14 +43,7 @@ export default class DashboardPageWidgetVO extends AbstractVO implements IDistan
 
     public background: string;
 
-    get translatable_name_code_text(): string {
-
-        if (!this.widget_id) {
-            return null;
-        }
-
-        return DashboardBuilderController.WIDGET_NAME_CODE_PREFIX + this.widget_id;
-    }
+    public titre: string;
 
     /**
      * Create a new instance from a widget_options object

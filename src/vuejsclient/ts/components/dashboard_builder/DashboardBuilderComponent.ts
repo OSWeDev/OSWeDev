@@ -777,8 +777,12 @@ export default class DashboardBuilderComponent extends VueComponentBase {
                 langs,
                 translation_codes,
                 translations,
-                db.title, DashboardBuilderController.DASHBOARD_NAME_CODE_PREFIX + '{{IMPORT:' + db._type + ':' + db.id + '}}' + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION),
-            );
+                db.title,
+
+                db.title,
+                // DashboardBuilderController.DASHBOARD_NAME_CODE_PREFIX + '{{IMPORT:' + db._type + ':' + db.id + '}}' + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION), TODO FIXME Alors en fait la migration va devoir être totale et tout de suite, par ce que sinon on va avoir des collisions sur les trads...
+
+            ));
         }
 
         // trads des pages
@@ -791,7 +795,11 @@ export default class DashboardBuilderComponent extends VueComponentBase {
                     translation_codes,
                     translations,
                     page.titre_page,
-                    DashboardBuilderController.PAGE_NAME_CODE_PREFIX + '{{IMPORT:' + page._type + ':' + page.id + '}}' + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION));
+
+                    page.titre_page,
+                    // DashboardBuilderController.PAGE_NAME_CODE_PREFIX + '{{IMPORT:' + page._type + ':' + page.id + '}}' + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION)); TODO FIXME Alors en fait la migration va devoir être totale et tout de suite, par ce que sinon on va avoir des collisions sur les trads...
+
+                ));
             }
         }
 
@@ -799,13 +807,17 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         for (const i in page_widgets) {
             const page_widget = page_widgets[i];
 
-            if (page_widget && page_widget.translatable_name_code_text) {
+            if (page_widget && page_widget.titre) {
                 promises.push(this.get_exportable_translation(
                     langs,
                     translation_codes,
                     translations,
-                    page_widget.translatable_name_code_text,
-                    DashboardBuilderController.WIDGET_NAME_CODE_PREFIX + '{{IMPORT:' + page_widget._type + ':' + page_widget.id + '}}'));
+                    page_widget.titre,
+
+                    page_widget.titre,
+                    // DashboardBuilderController.WIDGET_NAME_CODE_PREFIX + '{{IMPORT:' + page_widget._type + ':' + page_widget.id + '}}')); TODO FIXME Alors en fait la migration va devoir être totale et tout de suite, par ce que sinon on va avoir des collisions sur les trads...
+
+                ));
             }
 
             if (page_widgets_options && page_widgets_options[page_widget.id]) {

@@ -54,28 +54,9 @@ export default class VarWidgetOptions implements IExportableWidgetOptions {
         return this;
     }
 
-    public get_title_name_code_text(page_widget_id: number): string {
-
-        if ((!page_widget_id) || (!this.var_id)) {
-            return null;
-        }
-
-        return VarWidgetOptions.TITLE_CODE_PREFIX + this.var_id + '.' + page_widget_id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
-    }
-
     public async get_all_exportable_name_code_and_translation(page_id: number, page_widget_id: number): Promise<{ [current_code_text: string]: string }> {
         const res: { [exportable_code_text: string]: string } = {};
 
-        const placeholder_name_code_text: string = this.get_title_name_code_text(page_widget_id);
-        if (placeholder_name_code_text) {
-
-            res[placeholder_name_code_text] =
-                VarWidgetOptions.TITLE_CODE_PREFIX +
-                '{{IMPORT:' + VarConfVO.API_TYPE_ID + ':' + this.var_id + '}}' +
-                '.' +
-                '{{IMPORT:' + DashboardPageWidgetVO.API_TYPE_ID + ':' + page_widget_id + '}}' +
-                DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
-        }
         return res;
     }
 }

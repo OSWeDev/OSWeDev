@@ -1,4 +1,5 @@
 import AbstractVO from "../../VO/abstract/AbstractVO";
+import DashboardPageWidgetVO from "./DashboardPageWidgetVO";
 import FieldValueFilterWidgetOptionsVO from "./FieldValueFilterWidgetOptionsVO";
 import MonthFilterWidgetOptionsVO from "./MonthFilterWidgetOptionsVO";
 import YearFilterWidgetOptionsVO from "./YearFilterWidgetOptionsVO";
@@ -16,4 +17,6 @@ export default class WidgetOptionsMetadataVO extends AbstractVO {
     public dashboard_page_id: number;
 
     public page_widget_id: number;
+
+    public page_widget: DashboardPageWidgetVO;
 }

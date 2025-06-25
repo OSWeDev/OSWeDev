@@ -164,15 +164,6 @@ export default class VarMixedChartWidgetOptionsVO extends AbstractVO {
         );
     }
 
-    public get_title_name_code_text(page_widget_id: number): string {
-
-        if (!page_widget_id) {
-            return null;
-        }
-
-        return VarMixedChartWidgetOptionsVO.TITLE_CODE_PREFIX + page_widget_id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
-    }
-
     public get_scale_x_code_text(page_widget_id: number): string {
 
         if (!page_widget_id) {
@@ -203,15 +194,6 @@ export default class VarMixedChartWidgetOptionsVO extends AbstractVO {
 
     public async get_all_exportable_name_code_and_translation(page_id: number, page_widget_id: number): Promise<{ [current_code_text: string]: string }> {
         const res: { [exportable_code_text: string]: string } = {};
-
-        const placeholder_name_code_text: string = this.get_title_name_code_text(page_widget_id);
-        if (placeholder_name_code_text) {
-
-            res[placeholder_name_code_text] =
-                VarMixedChartWidgetOptionsVO.TITLE_CODE_PREFIX +
-                '{{IMPORT:' + DashboardPageWidgetVO.API_TYPE_ID + ':' + page_widget_id + '}}' +
-                DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
-        }
 
         for (const key in this.var_charts_options) {
             const var_chart_options = this.var_charts_options[key];

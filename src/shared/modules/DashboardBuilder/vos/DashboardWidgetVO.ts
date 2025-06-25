@@ -21,7 +21,6 @@ export default class DashboardWidgetVO implements IDistantVOBase, IWeightedItem,
     public static WIDGET_NAME_supervision_type: string = 'supervision_type';
     public static WIDGET_NAME_datatable: string = 'datatable';
     public static WIDGET_NAME_oseliathread: string = 'oseliathread';
-    public static WIDGET_NAME_oseliacreator: string = 'oseliacreator';
     public static WIDGET_NAME_fieldvaluefilter: string = 'fieldvaluefilter';
     public static WIDGET_NAME_dowfilter: string = 'dowfilter';
     public static WIDGET_NAME_monthfilter: string = 'monthfilter';
@@ -38,17 +37,12 @@ export default class DashboardWidgetVO implements IDistantVOBase, IWeightedItem,
     public static WIDGET_NAME_varradarchart: string = 'varradarchart';
     public static WIDGET_NAME_varmixedcharts: string = 'varmixedcharts';
     public static WIDGET_NAME_oseliarungraphwidget: string = 'oseliarungraphwidget';
+    public static WIDGET_NAME_resetfilters: string = 'resetfilters';
 
     public id: number;
     public _type: string = DashboardWidgetVO.API_TYPE_ID;
 
-    get translatable_name_code_text(): string {
-
-        if (!this.id) {
-            return null;
-        }
-        return DashboardBuilderController.WIDGET_NAME_CODE_PREFIX + this.id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
-    }
+    public label: string;
 
     public weight: number;
 

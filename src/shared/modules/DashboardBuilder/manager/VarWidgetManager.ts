@@ -4,6 +4,7 @@ import ExportVarcolumnConfVO from "../../DataExport/vos/ExportVarcolumnConfVO";
 import FieldFiltersVOHandler from "../handlers/FieldFiltersVOHandler";
 import FieldFiltersVO from "../vos/FieldFiltersVO";
 import VarWidgetOptionsVO from "../vos/VarWidgetOptionsVO";
+import WidgetOptionsMetadataVO from "../vos/WidgetOptionsMetadataVO";
 import DashboardPageWidgetVOManager from "./DashboardPageWidgetVOManager";
 
 /**
@@ -127,7 +128,7 @@ export default class VarWidgetManager {
         const varcolumn_conf: { [xlsx_sheet_row_code_name: string]: ExportVarcolumnConfVO } = {};
 
         const var_page_widgets: {
-            [page_widget_id: string]: { widget_options: any, widget_name: string, dashboard_page_id: number, page_widget_id: number }
+            [page_widget_id: string]: WidgetOptionsMetadataVO
         } = await DashboardPageWidgetVOManager.filter_all_page_widgets_options_by_widget_name(
             [dashboard_page_id],
             'var'
@@ -137,7 +138,6 @@ export default class VarWidgetManager {
             const var_page_widget = var_page_widgets[key];
 
             const var_widget_options = new VarWidgetOptionsVO().from(var_page_widget.widget_options);
-            const name = var_widget_options.get_title_name_code_text(var_page_widget.page_widget_id);
 
             const conf: ExportVarcolumnConfVO = ExportVarcolumnConfVO.create_new(
                 var_widget_options.var_id,
@@ -146,7 +146,7 @@ export default class VarWidgetManager {
                 var_widget_options.filter_additional_params
             );
 
-            varcolumn_conf[name] = conf;
+            varcolumn_conf[var_page_widget.page_widget.titre] = conf;
         }
 
         // returns ordered_column_list, column_labels and varcolumn_conf
