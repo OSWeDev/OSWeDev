@@ -275,6 +275,12 @@ export default class EnvParamsVO implements IDistantVOBase {
     // OPEN_API_API_KEY?: string;
     public open_api_api_key: string;
 
+    /**
+     * Static env temporaire pour les tests du nouveau système d'export vers JSON
+     * à passer en true pour activer et à supprimer dès que possible (migration complète des confs en VOs et plus de trads à aller chercher à côté...)
+     */
+    public use_new_export_vos_to_json_confs_for_dbb: boolean;
+
     // TEAMS Webhooks
     public teams_webhook_send_message?: string = null;
     public teams_webhook_update_message?: string = null;

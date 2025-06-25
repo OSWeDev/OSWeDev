@@ -105,7 +105,7 @@ export default class ModuleDataExport extends Module {
     public import_vos_from_json: (
         exported_data_historic: ExportVOsToJSONHistoricVO,
         import_first_elt_to_id: number,
-    ) => Promise<boolean> = APIControllerWrapper.sah_optimizer(this.name, reflect<this>().import_vos_from_json);
+    ) => Promise<IDistantVOBase> = APIControllerWrapper.sah_optimizer(this.name, reflect<this>().import_vos_from_json);
 
     public export_vos_to_json_historic_vo_label_function: (historic: ExportVOsToJSONHistoricVO) => Promise<string> = APIControllerWrapper.sah_optimizer(this.name, reflect<this>().export_vos_to_json_historic_vo_label_function);
 
@@ -180,7 +180,7 @@ export default class ModuleDataExport extends Module {
             DefaultParamTranslatorVOStatic
         ));
 
-        APIControllerWrapper.registerApi(PostAPIDefinition.new<DefaultParamTranslatorVO<[exported_data_historic: ExportVOsToJSONHistoricVO, import_first_elt_to_id: number]>, string>(
+        APIControllerWrapper.registerApi(PostAPIDefinition.new<DefaultParamTranslatorVO<[exported_data_historic: ExportVOsToJSONHistoricVO, import_first_elt_to_id: number]>, IDistantVOBase>(
             ModuleAccessPolicy.POLICY_FO_ACCESS,
             this.name,
             reflect<this>().import_vos_from_json,

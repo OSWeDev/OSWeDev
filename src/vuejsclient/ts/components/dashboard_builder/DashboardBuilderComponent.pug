@@ -99,7 +99,7 @@
                                 .btn-success.selected(v-else)
                                     i.fa-duotone.fa-check-circle.fa-fw(aria-hidden="true" v-tooltip.top='label("dashboard_builder.pages.tooltip_selected_page")')
                                 .name
-                                    Inlinetranslatabletext(:code_text="pages_name_code_text[pagei]" :is_editable="POLICY_DBB_CAN_EDIT_PAGES")
+                                    Inlinetranslatabletext(:code_text="page_.titre_page" :is_editable="POLICY_DBB_CAN_EDIT_PAGES")
                                 .hide_navigation(:class='{"disabled" : !parseInt(pagei.toString()), "not_disabled": !!parseInt(pagei.toString())}')
                                     template(v-if='parseInt(pagei.toString()) != 0')
                                         template(v-if='page_.hide_navigation')

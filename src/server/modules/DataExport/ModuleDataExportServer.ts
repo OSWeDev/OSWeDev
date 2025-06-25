@@ -175,6 +175,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         return export_vo_to_json_historic_vo.name + ' - ' + Dates.format_segment(export_vo_to_json_historic_vo.export_date, TimeSegment.TYPE_SECOND) + ' - ' + export_vo_to_json_historic_vo.source_app_name + ' - ' + export_vo_to_json_historic_vo.source_app_env + ' - ' + export_vo_to_json_historic_vo.export_user_email + ' - ' + export_vo_to_json_historic_vo.source_app_version + ' - ' + export_vo_to_json_historic_vo.export_user_email;
     }
 
+    //#region Import/Export JSON
     /**
      * Méthode générique d'export de VOs au format JSON pour réimport dans une autre instance de l'application (ou dans la même)
      * On se base sur la conf qui permet de savoir si on veut suivre des refs et donc intégrer les vos liés dans l'export
@@ -231,13 +232,14 @@ export default class ModuleDataExportServer extends ModuleServerBase {
     /**
      * Méthode générique d'import de VOs au format JSON
      * Le premier VO réimporté peut être ciblé sur un ID pour réaliser un update au lieu d'un insère, les suivants sont toujours insérés pour le moment
+     * On renvoie le premier VO créé
      */
     public async import_vos_from_json(
         exported_data_historic: ExportVOsToJSONHistoricVO,
         import_first_elt_to_id: number,
-    ): Promise<boolean> {
+    ): Promise<IDistantVOBase> {
 
-        let res: boolean = true;
+        let res: IDistantVOBase = null;
 
         try {
 
@@ -263,6 +265,11 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
                 await ModuleDAO.getInstance().insertOrUpdateVO(imported_vo);
 
+                if (is_first) {
+                    // On renvoie le premier VO importé
+                    res = imported_vo;
+                }
+
                 // On stocke la correspondance id source => nouvel id pour pouvoir le retrouver dans les refs
                 table_de_correspondance_des_ids[imported_vo._type][source_id] = imported_vo.id;
 
@@ -271,7 +278,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         } catch (error) {
             ConsoleHandler.error('Error during import_vos_from_json', error);
             exported_data_historic.import_error = error.message || error.toString();
-            res = false;
+            res = null;
         }
 
         // On enregistre l'historique de l'import avec les infos à jour côté nouvel env
@@ -281,6 +288,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
         return res;
     }
+    //#endregion Import/Export JSON
 
 
     public async exportDataToXLSX(

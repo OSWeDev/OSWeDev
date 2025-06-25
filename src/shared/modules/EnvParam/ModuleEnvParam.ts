@@ -1,10 +1,11 @@
-import { field_names } from '../../tools/ObjectHandler';
+import { field_names, reflect } from '../../tools/ObjectHandler';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import String2ParamVO, { String2ParamVOStatic } from '../API/vos/apis/String2ParamVO';
 import StringAndBooleanParamVO, { StringAndBooleanParamVOStatic } from '../API/vos/apis/StringAndBooleanParamVO';
 import StringAndNumberParamVO, { StringAndNumberParamVOStatic } from '../API/vos/apis/StringAndNumberParamVO';
+import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamVO';
 import ModuleAccessPolicy from '../AccessPolicy/ModuleAccessPolicy';
 import ModuleTableController from '../DAO/ModuleTableController';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
@@ -29,6 +30,11 @@ export default class ModuleEnvParam extends Module {
     public set_env_param_number: (code: string, value: number) => Promise<boolean> = APIControllerWrapper.sah<StringAndNumberParamVO, boolean>(ModuleEnvParam.APINAME_set_env_param_number);
 
     public get_env_params: () => Promise<EnvParamsVO> = APIControllerWrapper.sah<null, EnvParamsVO>(ModuleEnvParam.APINAME_get_env_params);
+
+    public get_env_param_value_as_string: (param_name: string) => Promise<string> = APIControllerWrapper.sah_optimizer(this.name, reflect<this>().get_env_param_value_as_string);
+    public get_env_param_value_as_int: (param_name: string) => Promise<number> = APIControllerWrapper.sah_optimizer(this.name, reflect<this>().get_env_param_value_as_int);
+    public get_env_param_value_as_boolean: (param_name: string) => Promise<boolean> = APIControllerWrapper.sah_optimizer(this.name, reflect<this>().get_env_param_value_as_boolean);
+    public get_env_param_value_as_float: (param_name: string) => Promise<number> = APIControllerWrapper.sah_optimizer(this.name, reflect<this>().get_env_param_value_as_float);
 
     private constructor() {
 
@@ -71,6 +77,38 @@ export default class ModuleEnvParam extends Module {
             ModuleEnvParam.APINAME_set_env_param_number,
             [EnvParamsVO.API_TYPE_ID],
             StringAndNumberParamVOStatic
+        ));
+
+        APIControllerWrapper.registerApi(GetAPIDefinition.new<StringParamVO, EnvParamsVO>(
+            ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS,
+            this.name,
+            reflect<this>().get_env_param_value_as_string,
+            [EnvParamsVO.API_TYPE_ID],
+            StringParamVOStatic
+        ));
+
+        APIControllerWrapper.registerApi(GetAPIDefinition.new<StringParamVO, EnvParamsVO>(
+            ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS,
+            this.name,
+            reflect<this>().get_env_param_value_as_int,
+            [EnvParamsVO.API_TYPE_ID],
+            StringParamVOStatic
+        ));
+
+        APIControllerWrapper.registerApi(GetAPIDefinition.new<StringParamVO, EnvParamsVO>(
+            ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS,
+            this.name,
+            reflect<this>().get_env_param_value_as_boolean,
+            [EnvParamsVO.API_TYPE_ID],
+            StringParamVOStatic
+        ));
+
+        APIControllerWrapper.registerApi(GetAPIDefinition.new<StringParamVO, EnvParamsVO>(
+            ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS,
+            this.name,
+            reflect<this>().get_env_param_value_as_float,
+            [EnvParamsVO.API_TYPE_ID],
+            StringParamVOStatic
         ));
     }
 
@@ -221,6 +259,8 @@ export default class ModuleEnvParam extends Module {
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().activate_module_perf_vars_datas_proxy, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Activate module perf - VarsDatasProxy', true, true, false);
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().activate_module_perf_vars_tabs_subs_controller, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Activate module perf - VarsTabsSubsController', true, true, false);
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().activate_module_perf_push_data_server_controller, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Activate module perf - PushDataServerController', true, true, false);
+
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().use_new_export_vos_to_json_confs_for_dbb, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Utiliser les nouvelles confs d\'export des VOs vers JSON pour DBB', true, true, false);
 
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_all_expressjs_perf, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug all ExpressJS perf', true, true, false);
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_expressjs_request_reflexion_time, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug ExpressJS request reflexion time', true, true, false);

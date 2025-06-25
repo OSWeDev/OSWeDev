@@ -234,6 +234,9 @@ export default class ModuleDashboardBuilder extends Module {
 
     private init_DashboardPageVO(db_table: ModuleTableVO): ModuleTableVO {
 
+        const label = ModuleTableFieldController.create_new(DashboardPageVO.API_TYPE_ID, field_names<DashboardPageVO>().titre_page, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Titre de la page', true).unique();
+        ModuleTableFieldController.create_new(DashboardPageVO.API_TYPE_ID, field_names<DashboardPageVO>().titre_groupe_filtres, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Titre du groupe de filtres', true).unique();
+
         ModuleTableFieldController.create_new(DashboardPageVO.API_TYPE_ID, field_names<DashboardPageVO>().dashboard_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Dashboard', true).set_many_to_one_target_moduletable_name(db_table.vo_type);
 
         ModuleTableFieldController.create_new(DashboardPageVO.API_TYPE_ID, field_names<DashboardPageVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true, true, 0);
@@ -241,7 +244,7 @@ export default class ModuleDashboardBuilder extends Module {
         ModuleTableFieldController.create_new(DashboardPageVO.API_TYPE_ID, field_names<DashboardPageVO>().group_filters, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Grouper les filtres', false, true, false);
         ModuleTableFieldController.create_new(DashboardPageVO.API_TYPE_ID, field_names<DashboardPageVO>().collapse_filters, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Voir les filtres par défaut', false, true, false);
 
-        const res = ModuleTableController.create_new(this.name, DashboardPageVO, null, "Pages de Dashboard");
+        const res = ModuleTableController.create_new(this.name, DashboardPageVO, label, "Pages de Dashboard");
 
         return res;
     }

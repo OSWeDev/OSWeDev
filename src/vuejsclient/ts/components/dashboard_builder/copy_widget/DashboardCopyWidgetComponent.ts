@@ -231,20 +231,4 @@ export default class DashboardCopyWidgetComponent extends VueComponentBase {
             return this.copy_to_page.id;
         }
     }
-
-    get pages_name_code_text(): string[] {
-        const res: string[] = [];
-
-        if (!this.pages) {
-            return res;
-        }
-
-        for (const i in this.pages) {
-            const page = this.pages[i];
-
-            res.push(page.translatable_name_code_text ? page.translatable_name_code_text : null);
-        }
-
-        return res;
-    }
 }

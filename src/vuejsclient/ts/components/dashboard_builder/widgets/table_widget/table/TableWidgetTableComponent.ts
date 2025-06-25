@@ -2877,8 +2877,8 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             export_name += 'Dashboard-' + this.t(this.dashboard.title) + '-';
         }
 
-        if (this.dashboard_page?.translatable_name_code_text) {
-            export_name += 'Page-' + this.t(this.dashboard_page.translatable_name_code_text) + '-';
+        if (this.dashboard_page?.titre_page) {
+            export_name += 'Page-' + this.t(this.dashboard_page.titre_page) + '-';
         }
 
         export_name += Dates.now();

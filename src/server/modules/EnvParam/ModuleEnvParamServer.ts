@@ -75,6 +75,19 @@ export default class ModuleEnvParamServer extends ModuleServerBase {
             ModuleEnvParamServer.UPDATE_ENVPARAM_EVENT_BASE_NAME + msg.message_content.env_param_name, msg.message_content.env_param_value));
     }
 
+    public async get_env_param_value_as_string(param_name: string): Promise<string> {
+        return ConfigurationService.node_configuration[param_name];
+    }
+    public async get_env_param_value_as_int(param_name: string): Promise<number> {
+        return ConfigurationService.node_configuration[param_name];
+    }
+    public async get_env_param_value_as_boolean(param_name: string): Promise<boolean> {
+        return ConfigurationService.node_configuration[param_name];
+    }
+    public async get_env_param_value_as_float(param_name: string): Promise<number> {
+        return ConfigurationService.node_configuration[param_name];
+    }
+
     public async set_env_param_string(code: string, value: string): Promise<boolean> {
         this.broadcast_set_env_param(code, value);
         return true;

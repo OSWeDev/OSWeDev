@@ -91,22 +91,6 @@ export default class DashboardViewerComponent extends VueComponentBase {
         return this.dashboard.title ? this.dashboard.title : null;
     }
 
-    get pages_name_code_text(): string[] {
-        const res: string[] = [];
-
-        if (!this.pages) {
-            return res;
-        }
-
-        for (const i in this.pages) {
-            const page = this.pages[i];
-
-            res.push(page.translatable_name_code_text ? page.translatable_name_code_text : null);
-        }
-
-        return res;
-    }
-
     @Watch("dashboard")
     private async onchange_dashboard() {
         // We should load the shared_filters with the current dashboard

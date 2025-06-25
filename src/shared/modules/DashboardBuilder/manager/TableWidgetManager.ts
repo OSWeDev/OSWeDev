@@ -76,8 +76,8 @@ export default class TableWidgetManager {
             export_name += 'Dashboard-' + LocaleManager.t(dashboard.title) + '-';
         }
 
-        if (dashboard_page?.translatable_name_code_text) {
-            export_name += 'Page-' + LocaleManager.t(dashboard_page.translatable_name_code_text) + '-';
+        if (dashboard_page?.titre_page) {
+            export_name += 'Page-' + LocaleManager.t(dashboard_page.titre_page) + '-';
         }
 
         export_name = slug(export_name, { lower: false }) + "{#Date}.xlsx";

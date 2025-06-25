@@ -93,6 +93,8 @@ export default interface IEnvParam {
     activate_module_perf_vars_tabs_subs_controller?: boolean;
     activate_module_perf_push_data_server_controller?: boolean;
 
+    use_new_export_vos_to_json_confs_for_dbb?: boolean;
+
     debug_all_expressjs_perf?: boolean;
     debug_expressjs_request_reflexion_time?: boolean;
     debug_expressjs_request_reflexion_time_console_log_ms_limit?: number;

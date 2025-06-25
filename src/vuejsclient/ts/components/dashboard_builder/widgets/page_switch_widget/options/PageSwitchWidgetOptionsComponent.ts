@@ -53,7 +53,7 @@ export default class PageSwitchWidgetOptionsComponent extends VueComponentBase {
                 continue;
             }
 
-            res.push(page.id + ' | ' + this.t(page.translatable_name_code_text));
+            res.push(page.id + ' | ' + this.t(page.titre_page));
         }
 
         return res;
@@ -66,7 +66,7 @@ export default class PageSwitchWidgetOptionsComponent extends VueComponentBase {
             return;
         }
         const page = this.dashboard_pages.find((p) => p.id == this.widget_options.page_id);
-        this.tmp_selected_page_name = page.id + ' | ' + this.t(page.translatable_name_code_text);
+        this.tmp_selected_page_name = page.id + ' | ' + this.t(page.titre_page);
     }
 
     @Watch('tmp_selected_page_name')
@@ -142,7 +142,7 @@ export default class PageSwitchWidgetOptionsComponent extends VueComponentBase {
         }
 
         const page = this.dashboard_pages.find((p) => p.id == this.widget_options.page_id);
-        return this.t(page.translatable_name_code_text);
+        return this.t(page.titre_page);
     }
 
     get widget_options(): PageSwitchWidgetOptions {

@@ -879,7 +879,7 @@ export default class SharedFiltersModalComponent extends VueComponentBase {
             return '';
         }
 
-        return page.id + ' | ' + this.t(page.translatable_name_code_text);
+        return page.id + ' | ' + this.t(page.titre_page);
     }
 
     /**

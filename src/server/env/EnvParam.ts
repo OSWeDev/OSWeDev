@@ -160,6 +160,8 @@ export default class EnvParam implements IEnvParam {
     public activate_module_perf_vars_tabs_subs_controller?: boolean = false;
     public activate_module_perf_push_data_server_controller?: boolean = false;
 
+    public use_new_export_vos_to_json_confs_for_dbb?: boolean = false;
+
     // Lenteurs sur ExpressJS - lenteurs sur la partie réflexion (calculs, requetes, ...) et sur la partie envoie de la réponse
     /**
      * Pour debug toutes les requetes à expressjs

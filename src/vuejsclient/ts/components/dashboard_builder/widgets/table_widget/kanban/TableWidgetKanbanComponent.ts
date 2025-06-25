@@ -2673,8 +2673,8 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             }
         }
 
-        const export_name = this.dashboard_page.translatable_name_code_text ?
-            "Export-" + this.t(this.dashboard_page.translatable_name_code_text) + "-" + Dates.now() + ".xlsx" :
+        const export_name = this.dashboard_page.titre_page ?
+            "Export-" + this.t(this.dashboard_page.titre_page) + "-" + Dates.now() + ".xlsx" :
             "Export-" + Dates.now() + ".xlsx";
         const fields: { [datatable_field_uid: string]: DatatableField<any, any> } = {};
         for (const i in this.fields) {

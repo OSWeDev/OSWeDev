@@ -220,6 +220,14 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'var_radar_chart_widget_options_component.widget_title.title_name_code_text.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Il y a eu une erreur durant l\'export du dashboard'
+        }, 'do_copy_dashboard.no_exported_data_found.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'La configuration d\'export du dashboard n\'a pas été trouvée'
+        }, 'do_copy_dashboard.no_export_vos_to_json_conf_found.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Couleur du fond'
         }, 'var_radar_chart_widget_options_component.bg_color.___LABEL___'));
 

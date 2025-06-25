@@ -20,7 +20,12 @@ import DashboardPageVO from '../../../../shared/modules/DashboardBuilder/vos/Das
 import DashboardPageWidgetVO from '../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import SharedFiltersVO from '../../../../shared/modules/DashboardBuilder/vos/SharedFiltersVO';
+import ModuleDataExport from '../../../../shared/modules/DataExport/ModuleDataExport';
+import ExportVOsToJSONConfVO from '../../../../shared/modules/DataExport/vos/ExportVOsToJSONConfVO';
+import ExportVOsToJSONHistoricVO from '../../../../shared/modules/DataExport/vos/ExportVOsToJSONHistoricVO';
 import ModuleDataImport from '../../../../shared/modules/DataImport/ModuleDataImport';
+import ModuleEnvParam from '../../../../shared/modules/EnvParam/ModuleEnvParam';
+import EnvParamsVO from '../../../../shared/modules/EnvParam/vos/EnvParamsVO';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import ModuleTranslation from '../../../../shared/modules/Translation/ModuleTranslation';
 import DefaultTranslationVO from '../../../../shared/modules/Translation/vos/DefaultTranslationVO';
@@ -34,8 +39,8 @@ import ObjectHandler, { field_names, reflect } from '../../../../shared/tools/Ob
 import { all_promises } from '../../../../shared/tools/PromiseTools';
 import ThrottleHelper from '../../../../shared/tools/ThrottleHelper';
 import WeightHandler from '../../../../shared/tools/WeightHandler';
+import VueAppController from '../../../VueAppController';
 import InlineTranslatableText from '../InlineTranslatableText/InlineTranslatableText';
-import TranslatableTextController from '../InlineTranslatableText/TranslatableTextController';
 import VueComponentBase from '../VueComponentBase';
 import ModuleTablesComponent from '../module_tables/ModuleTablesComponent';
 import './DashboardBuilderComponent.scss';
@@ -51,11 +56,6 @@ import MaxGraphMapper from './tables_graph/graph_mapper/MaxGraphMapper';
 import DashboardBuilderWidgetsComponent from './widgets/DashboardBuilderWidgetsComponent';
 import DashboardBuilderWidgetsController from './widgets/DashboardBuilderWidgetsController';
 import IExportableWidgetOptions from './widgets/IExportableWidgetOptions';
-import { basename } from 'path';
-import { ChatCompletionStream } from 'openai/lib/ChatCompletionStream';
-import VueAppController from '../../../VueAppController';
-import ModuleDataExport from '../../../../shared/modules/DataExport/ModuleDataExport';
-import ExportVOsToJSONConfVO from '../../../../shared/modules/DataExport/vos/ExportVOsToJSONConfVO';
 
 @Component({
     template: require('./DashboardBuilderComponent.pug'),
@@ -124,7 +124,12 @@ export default class DashboardBuilderComponent extends VueComponentBase {
 
     private can_use_clipboard: boolean = false;
 
+    private export_vos_to_json_conf: ExportVOsToJSONConfVO = null;
+
     private all_tables_by_table_name: { [table_name: string]: ModuleTableVO } = {};
+
+    private has_access_to_POLICY_BO_MODULES_MANAGMENT_ACCESS: boolean = null;
+    private use_new_export_vos_to_json_confs_for_dbb: boolean = null;
 
     private throttle_on_dashboard_loaded = ThrottleHelper.declare_throttle_without_args(
         'DashboardBuilderComponent.throttle_on_dashboard_loaded',
@@ -182,22 +187,6 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         }
 
         return this.dashboards;
-    }
-
-    get pages_name_code_text(): string[] {
-        const res: string[] = [];
-
-        if (!this.pages) {
-            return res;
-        }
-
-        for (const i in this.pages) {
-            const page = this.pages[i];
-
-            res.push(page.translatable_name_code_text ? page.translatable_name_code_text : null);
-        }
-
-        return res;
     }
 
     get get_page_history(): DashboardPageVO[] {
@@ -414,36 +403,92 @@ export default class DashboardBuilderComponent extends VueComponentBase {
                         throw new Error('Invalid paste');
                     }
 
-                    if ((!!import_on_vo) && (import_on_vo.id)) {
-                        const old_pages = self.pages = await this.load_dashboard_pages_by_dashboard_id(
-                            self.dashboard.id,
+
+                    if (this.has_access_to_POLICY_BO_MODULES_MANAGMENT_ACCESS == null) {
+                        this.has_access_to_POLICY_BO_MODULES_MANAGMENT_ACCESS = await ModuleAccessPolicy.getInstance().testAccess(ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS);
+                    }
+
+                    if (this.use_new_export_vos_to_json_confs_for_dbb == null) {
+                        this.use_new_export_vos_to_json_confs_for_dbb = this.has_access_to_POLICY_BO_MODULES_MANAGMENT_ACCESS ? await ModuleEnvParam.getInstance().get_env_param_value_as_boolean(field_names<EnvParamsVO>().use_new_export_vos_to_json_confs_for_dbb) : false;
+                    }
+
+                    const use_new_export_system: boolean = this.has_access_to_POLICY_BO_MODULES_MANAGMENT_ACCESS && this.use_new_export_vos_to_json_confs_for_dbb;
+
+                    if (use_new_export_system) {
+
+                        if (!this.export_vos_to_json_conf) {
+                            this.export_vos_to_json_conf = await query(ExportVOsToJSONConfVO.API_TYPE_ID)
+                                .filter_by_text_eq(field_names<ExportVOsToJSONConfVO>().name, DashboardBuilderController.DASHBOARD_EXPORT_TO_JSON_CONF_NAME)
+                                .select_vo<ExportVOsToJSONConfVO>();
+                        }
+
+                        if (!this.export_vos_to_json_conf) {
+                            ConsoleHandler.error('No export_vos_to_json_conf found for DashboardBuilderComponent');
+                            this.snotify.error(this.label('do_copy_dashboard.no_export_vos_to_json_conf_found'));
+                            return;
+                        }
+
+                        const export_historic: ExportVOsToJSONHistoricVO = JSON.parse(text) as ExportVOsToJSONHistoricVO;
+                        if (!export_historic.exported_data) {
+                            throw new Error('No exported data found for DashboardBuilderComponent');
+                        }
+
+                        const new_db = await ModuleDataExport.getInstance().import_vos_from_json(export_historic, import_on_vo?.id);
+
+                        if (!new_db) {
+                            throw new Error('No new dashboard found after import');
+                        }
+
+                        self.loading = true;
+
+                        self.dashboards = await self.load_all_dashboards(
                             { refresh: true },
                         );
 
-                        await ModuleDAO.instance.deleteVOs(
-                            old_pages,
+                        self.throttle_on_dashboard_loaded();
+
+                        // On crée des trads, on les recharge
+                        await LocaleManager.get_all_flat_locale_translations(true);
+
+                        if ((!import_on_vo) && new_db) {
+                            // on récupère le nouveau db
+                            self.dashboard = new_db as DashboardVO;
+                        }
+                        self.loading = false;
+
+                    } else {
+
+                        if ((!!import_on_vo) && (import_on_vo.id)) {
+                            const old_pages = self.pages = await this.load_dashboard_pages_by_dashboard_id(
+                                self.dashboard.id,
+                                { refresh: true },
+                            );
+
+                            await ModuleDAO.instance.deleteVOs(
+                                old_pages,
+                            );
+                        }
+
+                        const imported_datas = await ModuleDataImport.getInstance().importJSON(text, import_on_vo);
+
+                        self.loading = true;
+
+                        self.dashboards = await self.load_all_dashboards(
+                            { refresh: true },
                         );
+
+                        self.throttle_on_dashboard_loaded();
+
+                        // On crée des trads, on les recharge
+                        await LocaleManager.get_all_flat_locale_translations(true);
+
+                        if ((!import_on_vo) && imported_datas && imported_datas.length) {
+                            // on récupère le nouveau db
+                            const new_db = imported_datas.find((i) => i._type == DashboardVO.API_TYPE_ID);
+                            self.dashboard = new_db ? new_db as DashboardVO : self.dashboard;
+                        }
+                        self.loading = false;
                     }
-
-                    const imported_datas = await ModuleDataImport.getInstance().importJSON(text, import_on_vo);
-
-                    self.loading = true;
-
-                    self.dashboards = await self.load_all_dashboards(
-                        { refresh: true },
-                    );
-
-                    self.throttle_on_dashboard_loaded();
-
-                    // On crée des trads, on les recharge
-                    await LocaleManager.get_all_flat_locale_translations(true);
-
-                    if ((!import_on_vo) && imported_datas && imported_datas.length) {
-                        // on récupère le nouveau db
-                        const new_db = imported_datas.find((i) => i._type == DashboardVO.API_TYPE_ID);
-                        self.dashboard = new_db ? new_db as DashboardVO : self.dashboard;
-                    }
-                    self.loading = false;
 
                     resolve({
                         body: self.label('paste_dashboard.ok'),
@@ -586,125 +631,148 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         /**
          * On exporte le DB, les pages, les widgets, DashboardGraphVORefVO et les trads associées (dont TableWidgetOptionsComponent et VOFieldRefVO)
          */
-        let export_vos: IDistantVOBase[] = [];
-        const db = this.dashboard;
 
-        if (!this.export_vos_to_json_conf) {
-            this.export_vos_to_json_conf = await query(ExportVOsToJSONConfVO.API_TYPE_ID)
-                .filter_by_text_eq(field_names<ExportVOsToJSONConfVO>().name, DashboardBuilderController.DASHBOARD_EXPORT_TO_JSON_CONF_NAME
-        ModuleDataExport.getInstance().export_vos_to_json([db], export_vos_to_json_conf);
+        // TEMP DELETE me quand migration de la copy de DB terminée :
+        // On testaccess avant de demander l'env param, sinon on se fait déco
 
-            await navigator.clipboard.writeText(text);
-
-            // /**
-            //  * On exporte le DB, les pages, les widgets, DashboardGraphVORefVO et les trads associées (dont TableWidgetOptionsComponent et VOFieldRefVO)
-            //  *  attention sur les trads on colle des codes de remplacement pour les ids qui auront été insérés après import
-            //  */
-            // let export_vos: IDistantVOBase[] = [];
-            // const db = this.dashboard;
-
-            // export_vos.push(ModuleTableController.translate_vos_to_api(db));
-
-            // /**
-            //  * TODO FIXME
-            //  * On doit généraliser l'export import de datas sur la base suivante :
-            //  *  - On prend un VO à exporter, et on exporte tous ses champs
-            //  *      - en particulier, si un champs est de type translatable_string, on exporte pas le code_text qui sera déduit à la reconstruction, mais on exporte les trads dans toutes les langues de l'appli :
-            //  *          {[code_langue:string]:translation:string}
-            //  *          à la reconstruction si la langue existe pas osef
-            //  *      - en particulier si un champs est une foreign key, on exporte l'id + les champs uniques, de manière à pouvoir faire un double check sur la nouvelle appli, et si on retrouve pas les correspondances de champs uniques, on peut chercher et si on trouve, on corrige l'id
-            //  *          par contre si pas de champs unique c'est l'id point barre.
-            //  *          On peut aussi définir lors de l'export que ce type de données doit aussi être exporté, par ce qu'il sera alors créé en même temps, et donc on l'exporte et on garde une ref interne à l'export (un id qui se mettra à jour à la création)
-            //  *          Pour définir les liaisons qu'on exporte en plus du VO de base, on sélectionne les fields, et on les met dans un tableau de conf. si on tombe sur un champs du tableau, on exporte la cible aussi
-            //  *          Valable pour les num ref ranges
-            //  *      - en particulier, si on a des vos qui références ce vo, alors puisqu'il s'agit d'une création dans le nouvel environnement, par défaut, on exporte aussi ces vos et on stocke la ref id en mode dynamique
-            //  *          exemple des pages de db sur les dbs. on veut aussi exporter les pages, et les page_widgets qui font référence à la page.
-            //  *          On peut vouloir ignorer peut-etre un type de contenu lié qui fait référence. on rajoute le champs de ref dans les champs ignoré, 
-            //  * et donc en param on a le vo à exporter, les fields qu'on veut suivre (quelle que soit la profondeur) et les fields qu'on veut pas suivre.
-            //  * idéalement faudrait un outil de visualisation des vos qui sont dans l'export pour être sûr de ce qu'on embarque (au moins des stats, X vos de ce types, X trads, ...)
-            //  *      
-            //  */
-
-            // const pages = await this.load_dashboard_pages_by_dashboard_id(
-            //     this.dashboard.id,
-            //     { refresh: true },
-            // );
-
-            // if (pages && pages.length) {
-            //     export_vos = export_vos.concat(pages.map((p) => ModuleTableController.translate_vos_to_api(p)));
-            // }
-
-            // const graphvorefs = await query(DashboardGraphVORefVO.API_TYPE_ID).filter_by_num_eq(field_names<DashboardGraphVORefVO>().dashboard_id, this.dashboard.id).select_vos<DashboardGraphVORefVO>();
-            // if (graphvorefs && graphvorefs.length) {
-            //     export_vos = export_vos.concat(graphvorefs.map((p) => ModuleTableController.translate_vos_to_api(p)));
-            // }
-
-            // let page_widgets: DashboardPageWidgetVO[] = null;
-            // for (const i in pages) {
-            //     const page = pages[i];
-
-            //     const this_page_widgets = await query(DashboardPageWidgetVO.API_TYPE_ID).filter_by_num_eq(field_names<DashboardPageWidgetVO>().page_id, page.id).select_vos<DashboardPageWidgetVO>();
-            //     if (this_page_widgets && this_page_widgets.length) {
-            //         export_vos = export_vos.concat(this_page_widgets.map((p) => ModuleTableController.translate_vos_to_api(p)));
-            //         page_widgets = page_widgets ? page_widgets.concat(this_page_widgets) : this_page_widgets;
-            //     }
-            // }
-
-            // const page_widgets_options: { [page_widget_id: number]: IExportableWidgetOptions } = {};
-            // for (const i in page_widgets) {
-            //     const page_widget = page_widgets[i];
-
-            //     if (DashboardBuilderWidgetsController.getInstance().widgets_options_constructor_by_widget_id[page_widget.widget_id]) {
-            //         const options = Object.assign(
-            //             DashboardBuilderWidgetsController.getInstance().widgets_options_constructor_by_widget_id[page_widget.widget_id](),
-            //             ObjectHandler.try_get_json(page_widget.json_options),
-            //         );
-            //         if (options) {
-            //             page_widgets_options[page_widget.id] = options as IExportableWidgetOptions;
-            //         }
-            //     }
-            // }
-
-            // const translation_codes: TranslatableTextVO[] = [];
-            // const translations: TranslationVO[] = [];
-            // await this.get_exportable_translations(
-            //     translation_codes,
-            //     translations,
-            //     db,
-            //     pages,
-            //     page_widgets,
-            //     page_widgets_options,
-            // );
-            // if (translation_codes && translation_codes.length) {
-            //     export_vos = export_vos.concat(translation_codes.map((p) => ModuleTableController.translate_vos_to_api(p)));
-            // }
-            // if (translations && translations.length) {
-            //     export_vos = export_vos.concat(translations.map((p) => ModuleTableController.translate_vos_to_api(p)));
-            // }
-
-            // const text: string = JSON.stringify(export_vos);
-            // await navigator.clipboard.writeText(text);
+        if (this.has_access_to_POLICY_BO_MODULES_MANAGMENT_ACCESS == null) {
+            this.has_access_to_POLICY_BO_MODULES_MANAGMENT_ACCESS = await ModuleAccessPolicy.getInstance().testAccess(ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS);
         }
 
+        if (this.use_new_export_vos_to_json_confs_for_dbb == null) {
+            this.use_new_export_vos_to_json_confs_for_dbb = this.has_access_to_POLICY_BO_MODULES_MANAGMENT_ACCESS ? await ModuleEnvParam.getInstance().get_env_param_value_as_boolean(field_names<EnvParamsVO>().use_new_export_vos_to_json_confs_for_dbb) : false;
+        }
+
+        const use_new_export_system: boolean = this.has_access_to_POLICY_BO_MODULES_MANAGMENT_ACCESS && this.use_new_export_vos_to_json_confs_for_dbb;
+
+        if (use_new_export_system) {
+
+            if (!this.export_vos_to_json_conf) {
+                this.export_vos_to_json_conf = await query(ExportVOsToJSONConfVO.API_TYPE_ID)
+                    .filter_by_text_eq(field_names<ExportVOsToJSONConfVO>().name, DashboardBuilderController.DASHBOARD_EXPORT_TO_JSON_CONF_NAME)
+                    .select_vo<ExportVOsToJSONConfVO>();
+            }
+
+            if (!this.export_vos_to_json_conf) {
+                ConsoleHandler.error('No export_vos_to_json_conf found for DashboardBuilderComponent');
+                this.snotify.error(this.label('do_copy_dashboard.no_export_vos_to_json_conf_found'));
+                return;
+            }
+            const export_historic = await ModuleDataExport.getInstance().export_vos_to_json([this.dashboard], this.export_vos_to_json_conf);
+
+            if (!export_historic || !export_historic.exported_data) {
+                ConsoleHandler.error('No exported data found for DashboardBuilderComponent');
+                this.snotify.error(this.label('do_copy_dashboard.no_exported_data_found'));
+                return;
+            }
+
+            await navigator.clipboard.writeText(export_historic.exported_data);
+        } else {
+            /**
+             * On exporte le DB, les pages, les widgets, DashboardGraphVORefVO et les trads associées (dont TableWidgetOptionsComponent et VOFieldRefVO)
+             *  attention sur les trads on colle des codes de remplacement pour les ids qui auront été insérés après import
+             */
+            let export_vos: IDistantVOBase[] = [];
+            const db = this.dashboard;
+
+            export_vos.push(ModuleTableController.translate_vos_to_api(db));
+
+            /**
+             * TODO FIXME
+             * On doit généraliser l'export import de datas sur la base suivante :
+             *  - On prend un VO à exporter, et on exporte tous ses champs
+             *      - en particulier, si un champs est de type translatable_string, on exporte pas le code_text qui sera déduit à la reconstruction, mais on exporte les trads dans toutes les langues de l'appli :
+             *          {[code_langue:string]:translation:string}
+             *          à la reconstruction si la langue existe pas osef
+             *      - en particulier si un champs est une foreign key, on exporte l'id + les champs uniques, de manière à pouvoir faire un double check sur la nouvelle appli, et si on retrouve pas les correspondances de champs uniques, on peut chercher et si on trouve, on corrige l'id
+             *          par contre si pas de champs unique c'est l'id point barre.
+             *          On peut aussi définir lors de l'export que ce type de données doit aussi être exporté, par ce qu'il sera alors créé en même temps, et donc on l'exporte et on garde une ref interne à l'export (un id qui se mettra à jour à la création)
+             *          Pour définir les liaisons qu'on exporte en plus du VO de base, on sélectionne les fields, et on les met dans un tableau de conf. si on tombe sur un champs du tableau, on exporte la cible aussi
+             *          Valable pour les num ref ranges
+             *      - en particulier, si on a des vos qui références ce vo, alors puisqu'il s'agit d'une création dans le nouvel environnement, par défaut, on exporte aussi ces vos et on stocke la ref id en mode dynamique
+             *          exemple des pages de db sur les dbs. on veut aussi exporter les pages, et les page_widgets qui font référence à la page.
+             *          On peut vouloir ignorer peut-etre un type de contenu lié qui fait référence. on rajoute le champs de ref dans les champs ignoré,
+             * et donc en param on a le vo à exporter, les fields qu'on veut suivre (quelle que soit la profondeur) et les fields qu'on veut pas suivre.
+             * idéalement faudrait un outil de visualisation des vos qui sont dans l'export pour être sûr de ce qu'on embarque (au moins des stats, X vos de ce types, X trads, ...)
+             *
+             */
+
+            const pages = await this.load_dashboard_pages_by_dashboard_id(
+                this.dashboard.id,
+                { refresh: true },
+            );
+
+            if (pages && pages.length) {
+                export_vos = export_vos.concat(pages.map((p) => ModuleTableController.translate_vos_to_api(p)));
+            }
+
+            const graphvorefs = await query(DashboardGraphVORefVO.API_TYPE_ID).filter_by_num_eq(field_names<DashboardGraphVORefVO>().dashboard_id, this.dashboard.id).select_vos<DashboardGraphVORefVO>();
+            if (graphvorefs && graphvorefs.length) {
+                export_vos = export_vos.concat(graphvorefs.map((p) => ModuleTableController.translate_vos_to_api(p)));
+            }
+
+            let page_widgets: DashboardPageWidgetVO[] = null;
+            for (const i in pages) {
+                const page = pages[i];
+
+                const this_page_widgets = await query(DashboardPageWidgetVO.API_TYPE_ID).filter_by_num_eq(field_names<DashboardPageWidgetVO>().page_id, page.id).select_vos<DashboardPageWidgetVO>();
+                if (this_page_widgets && this_page_widgets.length) {
+                    export_vos = export_vos.concat(this_page_widgets.map((p) => ModuleTableController.translate_vos_to_api(p)));
+                    page_widgets = page_widgets ? page_widgets.concat(this_page_widgets) : this_page_widgets;
+                }
+            }
+
+            const page_widgets_options: { [page_widget_id: number]: IExportableWidgetOptions } = {};
+            for (const i in page_widgets) {
+                const page_widget = page_widgets[i];
+
+                if (DashboardBuilderWidgetsController.getInstance().widgets_options_constructor_by_widget_id[page_widget.widget_id]) {
+                    const options = Object.assign(
+                        DashboardBuilderWidgetsController.getInstance().widgets_options_constructor_by_widget_id[page_widget.widget_id](),
+                        ObjectHandler.try_get_json(page_widget.json_options),
+                    );
+                    if (options) {
+                        page_widgets_options[page_widget.id] = options as IExportableWidgetOptions;
+                    }
+                }
+            }
+
+            const translation_codes: TranslatableTextVO[] = [];
+            const translations: TranslationVO[] = [];
+            await this.get_exportable_translations(
+                translation_codes,
+                translations,
+                db,
+                pages,
+                page_widgets,
+                page_widgets_options,
+            );
+            if (translation_codes && translation_codes.length) {
+                export_vos = export_vos.concat(translation_codes.map((p) => ModuleTableController.translate_vos_to_api(p)));
+            }
+            if (translations && translations.length) {
+                export_vos = export_vos.concat(translations.map((p) => ModuleTableController.translate_vos_to_api(p)));
+            }
+
+            const text: string = JSON.stringify(export_vos);
+            await navigator.clipboard.writeText(text);
+        }
+    }
+
     private async get_exportable_translations(
-            translation_codes: TranslatableTextVO[],
-            translations: TranslationVO[],
-            db: DashboardVO,
-            pages: DashboardPageVO[],
-            page_widgets: DashboardPageWidgetVO[],
-            page_widgets_options: { [page_widget_id: number]: IExportableWidgetOptions },
-        ) {
+        translation_codes: TranslatableTextVO[],
+        translations: TranslationVO[],
+        db: DashboardVO,
+        pages: DashboardPageVO[],
+        page_widgets: DashboardPageWidgetVO[],
+        page_widgets_options: { [page_widget_id: number]: IExportableWidgetOptions },
+    ) {
         const langs: LangVO[] = await ModuleTranslation.getInstance().getLangs();
 
         const promises = [];
 
         // trad du db
         if (db && db.title) {
-            TODO FIXME ya 2 choses qui vont pas là: !on doit exporter tous les champs de type translatable_string avec la même idée:
-            on embarque la trad de toutes les langues directement dans le champs / JSON du vo, et lors de la création
-            on génére un nouveau code autoinc pour le codetext(donc ça serrt à rien de le trimbaler à la base)
-            et ensuite on vient mettre le code dans le champs, et on crée les trads qu'on avait exportées.
-            logiquement ya plus rien à traiter à la main ici
             promises.push(this.get_exportable_translation(
                 langs,
                 translation_codes,
@@ -717,12 +785,12 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         for (const i in pages) {
             const page = pages[i];
 
-            if (page && page.translatable_name_code_text) {
+            if (page && page.titre_page) {
                 promises.push(this.get_exportable_translation(
                     langs,
                     translation_codes,
                     translations,
-                    page.translatable_name_code_text,
+                    page.titre_page,
                     DashboardBuilderController.PAGE_NAME_CODE_PREFIX + '{{IMPORT:' + page._type + ':' + page.id + '}}' + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION));
             }
         }
