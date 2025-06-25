@@ -1,6 +1,6 @@
 .field_value_filter_string_widget_component
     template(v-if='vo_field_ref')
-        .vo_field_ref_label {{ vo_field_ref_label }}
+        .vo_field_ref_label {{ get_flat_locale_translations[page_widget.titre] }}
         template(v-if="!is_checkbox")
             template(v-if="!hide_btn_switch_advanced")
                 .vo_field_ref_advanced

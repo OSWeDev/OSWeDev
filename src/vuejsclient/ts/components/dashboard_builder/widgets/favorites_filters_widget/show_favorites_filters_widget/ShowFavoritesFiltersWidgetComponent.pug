@@ -1,7 +1,7 @@
 include ../../../../../../views/mixins/loading.pug
 
 .show_favorites_filters_widget_component
-    .favorites_filters_select_label.vo_field_ref_label {{ vo_field_ref_label }}
+    .favorites_filters_select_label.vo_field_ref_label {{ get_flat_locale_translations[page_widget.titre] }}
     .favorites_filters_select
         multiselect(
             :options="favorites_filters_visible_options"

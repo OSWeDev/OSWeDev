@@ -1,8 +1,10 @@
 
-import DashboardPageWidgetVOManager from "./DashboardPageWidgetVOManager";
-import ContextFilterVO from "../../ContextFilter/vos/ContextFilterVO";
-import VOFieldRefVO from "../vos/VOFieldRefVO";
 import { isEmpty } from 'lodash';
+import ContextFilterVO from "../../ContextFilter/vos/ContextFilterVO";
+import { query } from "../../ContextFilter/vos/ContextQueryVO";
+import DashboardPageWidgetVO from "../vos/DashboardPageWidgetVO";
+import VOFieldRefVO from "../vos/VOFieldRefVO";
+import DashboardPageWidgetVOManager from "./DashboardPageWidgetVOManager";
 
 /**
  * @class VOFieldRefVOManager
@@ -65,9 +67,11 @@ export default class VOFieldRefVOManager {
             label = page_widget_options?.widget_options?.custom_filter_name;
 
         } else if (page_widget_options?.page_widget_id) {
-            label = (vo_field_ref as VOFieldRefVO).get_translatable_name_code_text(
-                page_widget_options.page_widget_id
-            );
+            const page_widget: DashboardPageWidgetVO = await query(DashboardPageWidgetVO.API_TYPE_ID)
+                .filter_by_id(page_widget_options.page_widget_id)
+                .select_vo<DashboardPageWidgetVO>();
+
+            label = page_widget?.titre;
         }
 
         label = (label?.length > 0) ? label : `${vo_field_ref.api_type_id}.${vo_field_ref.field_id}`;

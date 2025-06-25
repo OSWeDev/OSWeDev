@@ -80,14 +80,6 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
         return this.widget_options.custom_filter_name;
     }
 
-    get vo_field_ref_label(): string {
-        if ((!this.widget_options) || (!this.vo_field_ref)) {
-            return null;
-        }
-
-        return this.get_flat_locale_translations[this.vo_field_ref.get_translatable_name_code_text(this.page_widget.id)];
-    }
-
     get widget_options() {
         if (!this.page_widget) {
             return null;

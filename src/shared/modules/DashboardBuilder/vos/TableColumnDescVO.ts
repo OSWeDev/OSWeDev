@@ -4,7 +4,6 @@ import ModuleTableFieldVO from "../../DAO/vos/ModuleTableFieldVO";
 import IDistantVOBase from "../../IDistantVOBase";
 import AbstractVO from "../../VO/abstract/AbstractVO";
 import VOsTypesHandler from "../../VO/handler/VOsTypesHandler";
-import DashboardBuilderController from "../DashboardBuilderController";
 
 export default class TableColumnDescVO extends AbstractVO implements IDistantVOBase, IWeightedItem {
 
@@ -34,6 +33,8 @@ export default class TableColumnDescVO extends AbstractVO implements IDistantVOB
     public _type: string = TableColumnDescVO.API_TYPE_ID;
 
     public type: number;
+
+    public titre: string;
 
     public column_width: number;
     public default_sort_field: number;
@@ -238,48 +239,5 @@ export default class TableColumnDescVO extends AbstractVO implements IDistantVOB
 
     get is_var(): boolean {
         return this.type === TableColumnDescVO.TYPE_var_ref;
-    }
-
-    public get_translatable_name_code_text(page_widget_id: number): string {
-
-        if (this.custom_label) {
-            return this.custom_label;
-        }
-
-        if (!page_widget_id) {
-            return null;
-        }
-
-        if (!this.type) {
-            return null;
-        }
-
-        let res: string = DashboardBuilderController.TableColumnDesc_NAME_CODE_PREFIX + page_widget_id + '.' + this.type + '.';
-
-        if (this.type == TableColumnDescVO.TYPE_crud_actions) {
-            res += "_";
-        }
-
-        if (this.type == TableColumnDescVO.TYPE_vo_field_ref) {
-            res += this.api_type_id + '.' + this.field_id;
-        }
-
-        if (this.type == TableColumnDescVO.TYPE_var_ref) {
-            res += this.var_id + '.' + this.var_unicity_id;
-        }
-
-        if (this.type == TableColumnDescVO.TYPE_select_box) {
-            res += "_";
-        }
-
-        if (this.type == TableColumnDescVO.TYPE_component) {
-            res += this.component_name;
-        }
-
-        if (this.type == TableColumnDescVO.TYPE_header) {
-            res += this.header_name;
-        }
-
-        return res;
     }
 }

@@ -138,20 +138,6 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
     }
 
     /**
-     * Get vo_field_ref_label
-     *
-     * @return {string}
-     */
-    get vo_field_ref_label(): string {
-
-        return this.get_flat_locale_translations[new VOFieldRefVO().from({
-            api_type_id: FavoritesFiltersVO.API_TYPE_ID,
-            field_id: field_names<FavoritesFiltersVO>().name,
-            _type: VOFieldRefVO.API_TYPE_ID
-        }).get_translatable_name_code_text(this.page_widget.id)];
-    }
-
-    /**
      * Get All Page Widget By Id
      * @return {{ [id: number]: DashboardPageWidgetVO }}
      */

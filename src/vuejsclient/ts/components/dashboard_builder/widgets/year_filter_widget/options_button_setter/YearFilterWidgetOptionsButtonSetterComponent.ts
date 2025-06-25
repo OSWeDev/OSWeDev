@@ -168,14 +168,6 @@ export default class YearFilterWidgetOptionsButtonSetterComponent extends VueCom
         return Object.assign(new VOFieldRefVO(), options.vo_field_ref);
     }
 
-    get vo_field_ref_label(): string {
-        if ((!this.widget_options) || (!this.vo_field_ref)) {
-            return null;
-        }
-
-        return this.get_flat_locale_translations[this.vo_field_ref.get_translatable_name_code_text(this.page_widget.id)];
-    }
-
     // get relative_to_this_filter(): YearFilterWidgetComponent {
     //     if (!this.widget_options.auto_select_year_relative_mode) {
     //         return null;

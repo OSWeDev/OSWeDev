@@ -350,6 +350,8 @@ export default class ModuleDashboardBuilder extends Module {
 
     private init_TableColumnDescVO() {
 
+        const titre = ModuleTableFieldController.create_new(TableColumnDescVO.API_TYPE_ID, field_names<TableColumnDescVO>().titre, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Titre', true).unique();
+
         const var_id = ModuleTableFieldController.create_new(TableColumnDescVO.API_TYPE_ID, field_names<TableColumnDescVO>().var_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Var', false);
 
         ModuleTableFieldController.create_new(TableColumnDescVO.API_TYPE_ID, field_names<TableColumnDescVO>().type, ModuleTableFieldVO.FIELD_TYPE_enum, 'Type de colonne', true).setEnumValues(TableColumnDescVO.TYPE_LABELS);
@@ -410,7 +412,7 @@ export default class ModuleDashboardBuilder extends Module {
         ModuleTableFieldController.create_new(TableColumnDescVO.API_TYPE_ID, field_names<TableColumnDescVO>().column_dynamic_time_segment, ModuleTableFieldVO.FIELD_TYPE_int, "Segment de la colonne dynamique");
 
 
-        ModuleTableController.create_new(this.name, TableColumnDescVO, null, "Référence de champs");
+        ModuleTableController.create_new(this.name, TableColumnDescVO, titre, "Référence de champs");
         var_id.set_many_to_one_target_moduletable_name(VarConfVO.API_TYPE_ID);
     }
 

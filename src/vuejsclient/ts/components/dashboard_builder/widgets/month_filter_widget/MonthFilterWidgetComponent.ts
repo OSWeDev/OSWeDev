@@ -432,14 +432,6 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
         return other_filter_selected_months;
     }
 
-    get vo_field_ref_label(): string {
-        if ((!this.widget_options) || (!this.vo_field_ref)) {
-            return null;
-        }
-
-        return this.get_flat_locale_translations[this.vo_field_ref.get_translatable_name_code_text(this.page_widget.id)];
-    }
-
     get relative_to_this_filter(): MonthFilterWidgetComponent {
         if (!this.widget_options.auto_select_month_relative_mode) {
             return null;

@@ -100,15 +100,6 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
         return this.vuexGet<string[]>(reflect<this>().get_dashboard_api_type_ids);
     }
 
-
-    get vo_field_ref_label(): string {
-        if ((!this.widget_options) || (!this.vo_field_ref)) {
-            return null;
-        }
-
-        return this.get_flat_locale_translations[this.vo_field_ref.get_translatable_name_code_text(this.page_widget.id)];
-    }
-
     get link_type_labels(): { [link_type: number]: string } {
         return AdvancedNumberFilter.FILTER_TYPE_LABELS;
     }

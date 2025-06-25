@@ -575,14 +575,10 @@ export default class TableWidgetManager {
                 for (const key in column.children) {
                     const child = column.children[key];
 
-                    label_by_field_uid[child.datatable_field_uid] = child.custom_label ?? LocaleManager.t(
-                        child.get_translatable_name_code_text(page_widget_id)
-                    );
+                    label_by_field_uid[child.datatable_field_uid] = child.custom_label ?? LocaleManager.t(child.titre);
                 }
             } else {
-                label_by_field_uid[column.datatable_field_uid] = column.custom_label ?? LocaleManager.t(
-                    column.get_translatable_name_code_text(page_widget_id)
-                );
+                label_by_field_uid[column.datatable_field_uid] = column.custom_label ?? LocaleManager.t(column.titre);
             }
         }
 

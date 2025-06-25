@@ -71,6 +71,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'StatVO.AGGREGATOR_MAX'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Titre'
+        }, 'field_value_filter_widget_component.titre_code_text.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Heure'
         }, 'export_frequency_prefered_time.___LABEL___'));
 

@@ -122,7 +122,7 @@ include ../../../../../../views/mixins/loading.pug
                                                                                 template(v-if="column.custom_label")
                                                                                     span {{ column.custom_label }}
                                                                                 template(v-else)
-                                                                                    Inlinetranslatabletext(:code_text="column.get_translatable_name_code_text(page_widget.id)")
+                                                                                    Inlinetranslatabletext(:code_text="column.titre")
                                                                             .kanban_row_column_field_value
                                                                                 template(v-if='column.is_enum')
                                                                                     Datatablecomponentfield.is_enum(

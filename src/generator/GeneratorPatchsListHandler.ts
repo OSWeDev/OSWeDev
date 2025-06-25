@@ -140,6 +140,8 @@ import Patch20250625InitTitresDashboardPages from './patchs/premodules/Patch2025
 import Patch20250625InitTitresGroupeFiltresDashboardPages from './patchs/premodules/Patch20250625InitTitresGroupeFiltresDashboardPages';
 import Patch20250624InitUIDModuleTableFields from './patchs/premodules/Patch20250624InitUIDModuleTableFields';
 import Patch20250625InitTitresDashboardWidgets from './patchs/premodules/Patch20250625InitTitresDashboardWidgets';
+import Patch20250625InitTitresTableColumnDescs from './patchs/premodules/Patch20250625InitTitresTableColumnDescs';
+import Patch20250625InitTitresDashboardPageWidgets from './patchs/premodules/Patch20250625InitTitresDashboardPageWidgets';
 
 export default class GeneratorPatchsListHandler {
 
@@ -198,6 +200,8 @@ export default class GeneratorPatchsListHandler {
         Patch20250625InitTitresDashboardPages.getInstance(),
         Patch20250625InitTitresGroupeFiltresDashboardPages.getInstance(),
         Patch20250625InitTitresDashboardWidgets.getInstance(),
+        Patch20250625InitTitresDashboardPageWidgets.getInstance(),
+        Patch20250625InitTitresTableColumnDescs.getInstance(),
     ];
 
     public static post_modules_workers: IGeneratorWorker[] = [

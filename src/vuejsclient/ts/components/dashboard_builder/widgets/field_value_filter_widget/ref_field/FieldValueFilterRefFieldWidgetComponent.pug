@@ -1,6 +1,6 @@
 .field_value_filter_ref_field_widget_component
     template(v-if='vo_field_ref')
-        .vo_field_ref_label {{ vo_field_ref_label }}
+        .vo_field_ref_label {{ get_flat_locale_translations[page_widget.titre] }}
         template(v-if="!is_checkbox")
             template(v-if="!hide_btn_switch_advanced")
                 .vo_field_ref_advanced
@@ -75,7 +75,7 @@
                     template(v-if="show_search_field")
                         .search_field.mb-2
                             input.form-control(type="text" v-model="search_field_checkbox" @input="debounced_query_update_visible_options_checkbox")
-                    .container_filter_opt(:class="{has_search_field: show_search_field, has_vo_field_ref_label: vo_field_ref_label}")
+                    .container_filter_opt(:class="{has_search_field: show_search_field, has_vo_field_ref_label: get_flat_locale_translations[page_widget.titre] }")
                         template(v-if="separation_active_filter")
                             .row
                                 template(v-for="(active_options, column_index) in tmp_active_filter_options_by_column")

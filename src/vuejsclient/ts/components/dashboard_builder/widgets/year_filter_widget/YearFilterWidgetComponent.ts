@@ -372,14 +372,6 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
         this.selected_years = selected_years;
     }
 
-    get vo_field_ref_label(): string {
-        if ((!this.widget_options) || (!this.vo_field_ref)) {
-            return null;
-        }
-
-        return this.get_flat_locale_translations[this.vo_field_ref.get_translatable_name_code_text(this.page_widget.id)];
-    }
-
     get is_vo_field_ref(): boolean {
         if (!this.widget_options) {
             return true;

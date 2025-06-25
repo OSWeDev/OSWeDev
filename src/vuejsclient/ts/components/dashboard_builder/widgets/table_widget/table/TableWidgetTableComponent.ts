@@ -1072,10 +1072,10 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             if (column?.type == TableColumnDescVO.TYPE_header) {
                 for (const key in column.children) {
                     const child = column.children[key];
-                    res[child.datatable_field_uid] = child.custom_label ?? this.t(child.get_translatable_name_code_text(this.page_widget.id));
+                    res[child.datatable_field_uid] = child.custom_label ?? this.t(child.titre);
                 }
             } else {
-                res[column.datatable_field_uid] = column.custom_label ?? this.t(column.get_translatable_name_code_text(this.page_widget.id));
+                res[column.datatable_field_uid] = column.custom_label ?? this.t(column.titre);
             }
         }
 

@@ -38,14 +38,6 @@ export default class VoFieldWidgetRefComponent extends VueComponentBase {
             (field ? this.t(field.field_label.code_text) : this.vo_field_ref.field_id);
     }
 
-    get translatable_name_code_text() {
-        if (!this.vo_field_ref) {
-            return null;
-        }
-
-        return this.vo_field_ref.get_translatable_name_code_text(this.page_widget_id);
-    }
-
     get default_field_label(): string {
         if (!this.vo_field_ref) {
             return null;

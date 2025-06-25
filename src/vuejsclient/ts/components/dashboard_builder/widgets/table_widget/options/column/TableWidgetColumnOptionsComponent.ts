@@ -301,7 +301,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
             return null;
         }
 
-        return this.object_column.get_translatable_name_code_text(this.page_widget.id);
+        return this.object_column.titre;
     }
 
     get can_filter_by_table(): boolean {

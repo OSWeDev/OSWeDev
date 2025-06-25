@@ -75,7 +75,7 @@ include ../../../../../views/mixins/loading.pug
                                     template(v-if="column.custom_label")
                                         span {{ column.custom_label }}
                                     template(v-else)
-                                        Inlinetranslatabletext(:code_text="column.get_translatable_name_code_text(page_widget.id)")
+                                        Inlinetranslatabletext(:code_text="column.titre")
                             tbody
                                 tr.table_row(v-for='row in data_rows')
                                     td.table_col(v-for='column in columns')
@@ -106,7 +106,7 @@ include ../../../../../views/mixins/loading.pug
                                     template(v-if="column.custom_label")
                                         span {{ column.custom_label }}
                                     template(v-else)
-                                        Inlinetranslatabletext(:code_text="column.get_translatable_name_code_text(page_widget.id)" :default_translation="column.name")
+                                        Inlinetranslatabletext(:code_text="column.titre" :default_translation="column.name")
                             tbody
                                 tr.table_row(v-for='row in data_rows_after')
                                     td.table_col(v-for='column in columns')

@@ -600,15 +600,6 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         return this.get_dashboard_api_type_ids;
     }
 
-    get translatable_name_code_text() {
-
-        if (!this.vo_field_ref) {
-            return null;
-        }
-
-        return this.vo_field_ref.get_translatable_name_code_text(this.page_widget.id);
-    }
-
     @Watch('widget_options', { immediate: true, deep: true })
     private async onchange_widget_options() {
         if (!this.widget_options) {
