@@ -45,6 +45,35 @@ export default class DashboardPageWidgetVO extends AbstractVO implements IDistan
 
     public titre: string;
 
+
+    /**
+     * TODO FIXME : DELETE ME dès que possible
+     * Petite siouxerie le temps de mettre en oeuvre les VOs de param des Widgets correctement : on importe les confs de titres/translatable_string ici dans un VO
+     * Pour l'export/import. Et on rebasculera après dans les VOs de param des Widgets
+     */
+    // Le placeholder
+    public placeholder: string;
+    // Le placeholder du mode avancé
+    public advanced_mode_placeholder: string;
+    // Var 1
+    public var_1_titre: string;
+    // Var 2
+    public var_2_titre: string;
+    // Tableau de vars => on triche on rajoute juste des vars 3, 4, 5 .... 12 (ya pas encore de composant pour translatable_string_array....)
+    public var_3_titre: string;
+    public var_4_titre: string;
+    public var_5_titre: string;
+    public var_6_titre: string;
+    public var_7_titre: string;
+    public var_8_titre: string;
+    public var_9_titre: string;
+    public var_10_titre: string;
+    public var_11_titre: string;
+    public var_12_titre: string;
+    /**
+     * !TODO FIXME : DELETE ME dès que possible
+     */
+
     /**
      * Create a new instance from a widget_options object
      *

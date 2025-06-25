@@ -12,10 +12,4 @@ export default class OseliaThreadWidgetOptions implements IExportableWidgetOptio
 
     public constructor(
     ) { }
-
-    public async get_all_exportable_name_code_and_translation(page_id: number, page_widget_id: number): Promise<{ [current_code_text: string]: string }> {
-        const res: { [exportable_code_text: string]: string } = {};
-
-        return res;
-    }
 }

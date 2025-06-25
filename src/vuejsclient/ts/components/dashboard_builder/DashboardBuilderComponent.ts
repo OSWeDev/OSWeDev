@@ -771,54 +771,54 @@ export default class DashboardBuilderComponent extends VueComponentBase {
 
         const promises = [];
 
-        // trad du db
-        if (db && db.title) {
-            promises.push(this.get_exportable_translation(
-                langs,
-                translation_codes,
-                translations,
-                db.title,
+        // // trad du db
+        // if (db && db.title) {
+        //     promises.push(this.get_exportable_translation(
+        //         langs,
+        //         translation_codes,
+        //         translations,
+        //         db.title,
 
-                db.title,
-                // DashboardBuilderController.DASHBOARD_NAME_CODE_PREFIX + '{{IMPORT:' + db._type + ':' + db.id + '}}' + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION), TODO FIXME Alors en fait la migration va devoir être totale et tout de suite, par ce que sinon on va avoir des collisions sur les trads...
+        //         db.title,
+        //         // DashboardBuilderController.DASHBOARD_NAME_CODE_PREFIX + '{{IMPORT:' + db._type + ':' + db.id + '}}' + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION), TODO FIXME Alors en fait la migration va devoir être totale et tout de suite, par ce que sinon on va avoir des collisions sur les trads...
 
-            ));
-        }
+        //     ));
+        // }
 
-        // trads des pages
-        for (const i in pages) {
-            const page = pages[i];
+        // // trads des pages
+        // for (const i in pages) {
+        //     const page = pages[i];
 
-            if (page && page.titre_page) {
-                promises.push(this.get_exportable_translation(
-                    langs,
-                    translation_codes,
-                    translations,
-                    page.titre_page,
+        //     if (page && page.titre_page) {
+        //         promises.push(this.get_exportable_translation(
+        //             langs,
+        //             translation_codes,
+        //             translations,
+        //             page.titre_page,
 
-                    page.titre_page,
-                    // DashboardBuilderController.PAGE_NAME_CODE_PREFIX + '{{IMPORT:' + page._type + ':' + page.id + '}}' + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION)); TODO FIXME Alors en fait la migration va devoir être totale et tout de suite, par ce que sinon on va avoir des collisions sur les trads...
+        //             page.titre_page,
+        //             // DashboardBuilderController.PAGE_NAME_CODE_PREFIX + '{{IMPORT:' + page._type + ':' + page.id + '}}' + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION)); TODO FIXME Alors en fait la migration va devoir être totale et tout de suite, par ce que sinon on va avoir des collisions sur les trads...
 
-                ));
-            }
-        }
+        //         ));
+        //     }
+        // }
 
         // widgets
         for (const i in page_widgets) {
             const page_widget = page_widgets[i];
 
-            if (page_widget && page_widget.titre) {
-                promises.push(this.get_exportable_translation(
-                    langs,
-                    translation_codes,
-                    translations,
-                    page_widget.titre,
+            // if (page_widget && page_widget.titre) {
+            //     promises.push(this.get_exportable_translation(
+            //         langs,
+            //         translation_codes,
+            //         translations,
+            //         page_widget.titre,
 
-                    page_widget.titre,
-                    // DashboardBuilderController.WIDGET_NAME_CODE_PREFIX + '{{IMPORT:' + page_widget._type + ':' + page_widget.id + '}}')); TODO FIXME Alors en fait la migration va devoir être totale et tout de suite, par ce que sinon on va avoir des collisions sur les trads...
+            //         page_widget.titre,
+            //         // DashboardBuilderController.WIDGET_NAME_CODE_PREFIX + '{{IMPORT:' + page_widget._type + ':' + page_widget.id + '}}')); TODO FIXME Alors en fait la migration va devoir être totale et tout de suite, par ce que sinon on va avoir des collisions sur les trads...
 
-                ));
-            }
+            //     ));
+            // }
 
             if (page_widgets_options && page_widgets_options[page_widget.id]) {
                 const exportable_translations = await page_widgets_options[page_widget.id].get_all_exportable_name_code_and_translation(page_widget.page_id, page_widget.id);
@@ -833,37 +833,37 @@ export default class DashboardBuilderComponent extends VueComponentBase {
                 }
             }
 
-            /**
-             * TableColumnDescVO, VOFieldRefVO
-             */
-            const page_widget_trads: TranslatableTextVO[] = await query(TranslatableTextVO.API_TYPE_ID).filter_by_text_starting_with('code_text', [
-                DashboardBuilderController.TableColumnDesc_NAME_CODE_PREFIX + page_widget.id + '.',
-                DashboardBuilderController.VOFIELDREF_NAME_CODE_PREFIX + page_widget.id + '.',
-            ]).select_vos<TranslatableTextVO>();
+            // /**
+            //  * TableColumnDescVO, VOFieldRefVO
+            //  */
+            // const page_widget_trads: TranslatableTextVO[] = await query(TranslatableTextVO.API_TYPE_ID).filter_by_text_starting_with('code_text', [
+            //     DashboardBuilderController.TableColumnDesc_NAME_CODE_PREFIX + page_widget.id + '.',
+            //     DashboardBuilderController.VOFIELDREF_NAME_CODE_PREFIX + page_widget.id + '.',
+            // ]).select_vos<TranslatableTextVO>();
 
-            for (const j in page_widget_trads) {
-                const page_widget_trad = page_widget_trads[j];
+            // for (const j in page_widget_trads) {
+            //     const page_widget_trad = page_widget_trads[j];
 
-                let code = page_widget_trad.code_text;
-                if (code.indexOf(DashboardBuilderController.TableColumnDesc_NAME_CODE_PREFIX + page_widget.id) == 0) {
-                    code =
-                        DashboardBuilderController.TableColumnDesc_NAME_CODE_PREFIX +
-                        '{{IMPORT:' + page_widget._type + ':' + page_widget.id + '}}' +
-                        code.substring((DashboardBuilderController.TableColumnDesc_NAME_CODE_PREFIX + page_widget.id).length, code.length);
-                } else if (code.indexOf(DashboardBuilderController.VOFIELDREF_NAME_CODE_PREFIX + page_widget.id) == 0) {
-                    code =
-                        DashboardBuilderController.VOFIELDREF_NAME_CODE_PREFIX +
-                        '{{IMPORT:' + page_widget._type + ':' + page_widget.id + '}}' +
-                        code.substring((DashboardBuilderController.VOFIELDREF_NAME_CODE_PREFIX + page_widget.id).length, code.length);
-                }
+            //     let code = page_widget_trad.code_text;
+            //     if (code.indexOf(DashboardBuilderController.TableColumnDesc_NAME_CODE_PREFIX + page_widget.id) == 0) {
+            //         code =
+            //             DashboardBuilderController.TableColumnDesc_NAME_CODE_PREFIX +
+            //             '{{IMPORT:' + page_widget._type + ':' + page_widget.id + '}}' +
+            //             code.substring((DashboardBuilderController.TableColumnDesc_NAME_CODE_PREFIX + page_widget.id).length, code.length);
+            //     } else if (code.indexOf(DashboardBuilderController.VOFIELDREF_NAME_CODE_PREFIX + page_widget.id) == 0) {
+            //         code =
+            //             DashboardBuilderController.VOFIELDREF_NAME_CODE_PREFIX +
+            //             '{{IMPORT:' + page_widget._type + ':' + page_widget.id + '}}' +
+            //             code.substring((DashboardBuilderController.VOFIELDREF_NAME_CODE_PREFIX + page_widget.id).length, code.length);
+            //     }
 
-                promises.push(this.get_exportable_translation(
-                    langs,
-                    translation_codes,
-                    translations,
-                    page_widget_trad.code_text,
-                    code));
-            }
+            //     promises.push(this.get_exportable_translation(
+            //         langs,
+            //         translation_codes,
+            //         translations,
+            //         page_widget_trad.code_text,
+            //         code));
+            // }
         }
 
         await all_promises(promises);

@@ -275,6 +275,21 @@ export default class ModuleDashboardBuilder extends Module {
 
         const titre = ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().titre, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Titre', true).unique();
 
+        ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().placeholder, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Placeholder', false);
+        ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().advanced_mode_placeholder, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Placeholder - Mode avancé', false);
+        ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().var_1_titre, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Var 1 Titre', false);
+        ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().var_2_titre, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Var 2 Titre', false);
+        ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().var_3_titre, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Var 3 Titre', false);
+        ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().var_4_titre, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Var 4 Titre', false);
+        ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().var_5_titre, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Var 5 Titre', false);
+        ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().var_6_titre, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Var 6 Titre', false);
+        ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().var_7_titre, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Var 7 Titre', false);
+        ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().var_8_titre, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Var 8 Titre', false);
+        ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().var_9_titre, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Var 9 Titre', false);
+        ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().var_10_titre, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Var 10 Titre', false);
+        ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().var_11_titre, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Var 11 Titre', false);
+        ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().var_12_titre, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Var 12 Titre', false);
+
         ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().static, ModuleTableFieldVO.FIELD_TYPE_boolean, 'static', true, true, false);
         ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().x, ModuleTableFieldVO.FIELD_TYPE_int, 'x', true, true, 0);
         ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().y, ModuleTableFieldVO.FIELD_TYPE_int, 'y', true, true, 0);

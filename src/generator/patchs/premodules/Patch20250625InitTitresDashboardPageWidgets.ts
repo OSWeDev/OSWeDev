@@ -71,7 +71,7 @@ export default class Patch20250625InitTitresDashboardPageWidgets implements IGen
 
 
         // Maintenant on met à jour les titres des dashboards existants
-        const pwidgets = await db.query("SELECT id, widget_id, page_id FROM ref.module_dashboardbuilder_dashboard_pwidget;");
+        const pwidgets = await db.query("SELECT id, widget_id, page_id, json_options FROM ref.module_dashboardbuilder_dashboard_pwidget;");
 
         if (pwidgets && pwidgets.length > 0) {
             for (const pwidget of pwidgets) {

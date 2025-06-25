@@ -1,6 +1,4 @@
 import DashboardPageWidgetVO from "../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO";
-import DefaultTranslationVO from "../../../../../../../shared/modules/Translation/vos/DefaultTranslationVO";
-import VarConfVO from "../../../../../../../shared/modules/Var/vos/VarConfVO";
 import IExportableWidgetOptions from "../../IExportableWidgetOptions";
 
 /**
@@ -52,11 +50,5 @@ export default class VarWidgetOptions implements IExportableWidgetOptions {
         this.var_id = props.var_id ?? this.var_id;
 
         return this;
-    }
-
-    public async get_all_exportable_name_code_and_translation(page_id: number, page_widget_id: number): Promise<{ [current_code_text: string]: string }> {
-        const res: { [exportable_code_text: string]: string } = {};
-
-        return res;
     }
 }

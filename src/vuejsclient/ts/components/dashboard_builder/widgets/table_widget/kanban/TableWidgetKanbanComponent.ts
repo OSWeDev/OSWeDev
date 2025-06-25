@@ -877,7 +877,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                         column.filter_type,
                         column.filter_additional_params,
                         this.dashboard.id
-                    ).auto_update_datatable_field_uid_with_vo_type(); //, column.get_translatable_name_code_text(this.page_widget.id)
+                    ).auto_update_datatable_field_uid_with_vo_type();
                     res[column.id] = var_data_field;
                     break;
                 }
@@ -918,76 +918,6 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                     break;
             }
         }
-        // for (let i in this.widget_options.columns) {
-        //     let column: TableColumnDescVO = this.widget_options.columns[i];
-        //     let moduleTable: ModuleTableVO;
-
-        //     if (column.type != TableColumnDescVO.TYPE_header) {
-        //         moduleTable = ModuleTableController.module_tables_by_vo_type[column.api_type_id];
-        //     }
-
-        //     switch (column.type) {
-        //         case TableColumnDescVO.TYPE_component:
-        //             res[column.id] = TableWidgetController.components_by_translatable_title[column.component_name].auto_update_datatable_field_uid_with_vo_type();
-        //             break;
-        //         case TableColumnDescVO.TYPE_var_ref:
-        //             let var_data_field: VarDatatableFieldVO<any, any> = VarDatatableFieldVO.createNew(
-        //                 column.id.toString(), column.var_id, column.filter_type, column.filter_additional_params,
-        //                 this.dashboard.id, column.get_translatable_name_code_text(this.page_widget.id)).auto_update_datatable_field_uid_with_vo_type();
-        //             res[column.id] = var_data_field;
-        //             break;
-        //         case TableColumnDescVO.TYPE_header:
-        //             //to do surment a complete
-        //             let semaphore: string;
-        //             for (let f = 0; f < column.children.length; f++) {
-        //                 let children = column.children[f];
-        //                 if (!semaphore || children.field_id != semaphore) {
-        //                     moduleTable = ModuleTableController.module_tables_by_vo_type[children.api_type_id];
-        //                     let result = this.switch_for_type_header(children, moduleTable);
-        //                     result.is_required = true;
-        //                     res[children.id] = result;
-        //                 }
-        //                 semaphore = children.field_id;
-
-        //             }
-
-        //             break;
-        //         case TableColumnDescVO.TYPE_vo_field_ref:
-        //             let field = moduleTable.get_field_by_id(column.field_id);
-        //             // let field_type = field ? field.field_type : moduletablfiel
-        //             // switch (field.field_type) {
-
-        //             // let data_field: SimpleDatatableFieldVO<any, any> = SimpleDatatableFieldVO.createNew(field.field_id, field.field_label.code_text);
-        //             // data_field.setModuleTable(moduleTable);
-        //             // res[column.id] = data_field;
-        //             // break;
-        //             // default:
-
-        //             // if (!field) {
-        //             //     res[column.id] = SimpleDatatableFieldVO.createNew(column.field_id).setModuleTable(moduleTable).auto_update_datatable_field_uid_with_vo_type().set_translatable_title();
-        //             //     break;
-        //             // }
-
-        //             let data_field: DatatableField<any, any> = CRUD.get_dt_field(field);
-
-        //             // sur un simple on set le label
-        //             if (data_field['set_translatable_title']) {
-        //                 data_field['set_translatable_title'](field.field_label.code_text);
-        //             }
-
-        //             data_field.setModuleTable(moduleTable).auto_update_datatable_field_uid_with_vo_type();
-        //             res[column.id] = data_field;
-        //             //         break;
-        //             // }
-        //             break;
-        //         case TableColumnDescVO.TYPE_crud_actions:
-        //             res[column.id] = CRUDActionsDatatableFieldVO.createNew().setModuleTable(moduleTable);
-        //             break;
-        //         case TableColumnDescVO.TYPE_select_box:
-        //             res[column.id] = SelectBoxDatatableFieldVO.createNew().setModuleTable(moduleTable);
-        //             break;
-        //     }
-        // }
         return res;
     }
 
@@ -2067,7 +1997,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                     column.filter_type,
                     column.filter_additional_params,
                     this.dashboard.id
-                ).auto_update_datatable_field_uid_with_vo_type(); //, column.get_translatable_name_code_text(this.page_widget.id)
+                ).auto_update_datatable_field_uid_with_vo_type();
                 res = var_data_field;
                 break;
             }
