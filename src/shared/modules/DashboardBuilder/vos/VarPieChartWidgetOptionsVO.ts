@@ -1,11 +1,9 @@
-import DefaultTranslationVO from "../../Translation/vos/DefaultTranslationVO";
-import DashboardPageWidgetVO from "./DashboardPageWidgetVO";
-import AbstractVO from "../../VO/abstract/AbstractVO";
-import VarConfVO from "../../Var/vos/VarConfVO";
-import VOFieldRefVO from "./VOFieldRefVO";
-import TimeSegment from "../../DataRender/vos/TimeSegment";
 import Filters from '../../../../shared/tools/Filters';
+import TimeSegment from "../../DataRender/vos/TimeSegment";
+import AbstractVO from "../../VO/abstract/AbstractVO";
 import DashboardGraphColorPaletteVO from "./DashboardGraphColorPaletteVO";
+import DashboardPageWidgetVO from "./DashboardPageWidgetVO";
+import VOFieldRefVO from "./VOFieldRefVO";
 
 /**
  * On va gérer 2 types de paramétrages :
@@ -190,49 +188,5 @@ export default class VarPieChartWidgetOptionsVO extends AbstractVO {
             }
         }
         return {};
-    }
-
-    public get_var_name_code_text(page_widget_id: number, var_id: number): string {
-
-        if ((!page_widget_id) || (!var_id)) {
-            return null;
-        }
-
-        return VarPieChartWidgetOptionsVO.TITLE_CODE_PREFIX + var_id + '.' + page_widget_id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
-    }
-
-    public async get_all_exportable_name_code_and_translation(page_id: number, page_widget_id: number): Promise<{ [current_code_text: string]: string }> {
-        let res: { [exportable_code_text: string]: string } = {};
-
-
-        if (this.var_id_1) {
-
-            let placeholder_name_code_text_var_id_1: string = this.get_var_name_code_text(page_widget_id, this.var_id_1);
-            if (placeholder_name_code_text_var_id_1) {
-
-                res[placeholder_name_code_text_var_id_1] =
-                    VarPieChartWidgetOptionsVO.TITLE_CODE_PREFIX +
-                    '{{IMPORT:' + VarConfVO.API_TYPE_ID + ':' + this.var_id_1 + '}}' +
-                    '.' +
-                    '{{IMPORT:' + DashboardPageWidgetVO.API_TYPE_ID + ':' + page_widget_id + '}}' +
-                    DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
-            }
-        }
-
-        if (this.var_id_2) {
-
-            let placeholder_name_code_text_var_id_2: string = this.get_var_name_code_text(page_widget_id, this.var_id_2);
-            if (placeholder_name_code_text_var_id_2) {
-
-                res[placeholder_name_code_text_var_id_2] =
-                    VarPieChartWidgetOptionsVO.TITLE_CODE_PREFIX +
-                    '{{IMPORT:' + VarConfVO.API_TYPE_ID + ':' + this.var_id_2 + '}}' +
-                    '.' +
-                    '{{IMPORT:' + DashboardPageWidgetVO.API_TYPE_ID + ':' + page_widget_id + '}}' +
-                    DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
-            }
-        }
-
-        return res;
     }
 }

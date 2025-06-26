@@ -389,7 +389,6 @@
                 .input_wrapper
                     Varchartscalesoptionscomponent(
                         @on_change="handle_var_chart_scales_options_change"
-                        :get_var_name_code_text="widget_options.get_var_name_code_text"
                         :page_widget_id="page_widget.id"
                         :options="fields_that_could_get_scales_filter"
                         :detailed="detailed"
@@ -400,8 +399,7 @@
                 .input_wrapper
                     Varchartsoptionscomponent(
                         @on_change="handle_var_charts_options_change"
-                        :get_var_name_code_text="widget_options.get_var_name_code_text"
-                        :page_widget_id="page_widget.id"
+                        :page_widget="page_widget"
                         :options="var_charts_options"
                         :detailed="detailed"
                         :fields_that_could_get_scales_filter="fields_that_could_get_scales_filter"

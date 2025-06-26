@@ -11,11 +11,11 @@
 
             .section-content(v-if="localSectionsOpen.graphicalOptions")
                 // Var title
-                .var_title(v-if='page_widget_id && var_id && get_var_name_code_text(page_widget_id, var_id, chart_id)')
+                .var_title(v-if='page_widget && page_widget.id && var_id && (index != null) && page_widget['var_' + (index+1) + '_title']')
                     .input_label {{ label('var_chart_options_item_component.var_title.title_name_code_text') }}
                     .input_wrapper
                         Inlinetranslatabletext(
-                            :code_text="get_var_name_code_text(page_widget_id, var_id, chart_id)" 
+                            :code_text="page_widget['var_' + (index+1) + '_title']" 
                             :is_editable="true"
                         )
 

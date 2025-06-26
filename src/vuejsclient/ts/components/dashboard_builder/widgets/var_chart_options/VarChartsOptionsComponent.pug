@@ -68,8 +68,8 @@
                         .section-content(v-if="isOpen(index)")
                             Varchartoptionsitemcomponent(
                                 @on_change="handle_var_chart_options_change(index, $event)"
-                                :get_var_name_code_text="get_var_name_code_text"
-                                :page_widget_id="page_widget_id"
+                                :index="index"
+                                :page_widget="page_widget"
                                 :options="item"
                                 :use_palette="use_palette"
                                 :detailed="detailed"

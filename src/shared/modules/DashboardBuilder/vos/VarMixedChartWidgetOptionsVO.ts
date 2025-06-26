@@ -182,37 +182,4 @@ export default class VarMixedChartWidgetOptionsVO extends AbstractVO {
 
         return VarMixedChartWidgetOptionsVO.TITLE_CODE_PREFIX + page_widget_id + '.scale_y' + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
     }
-
-    public get_var_name_code_text(page_widget_id: number, var_id: number, chart_id?: number): string {
-
-        if ((!page_widget_id) || (!var_id) || (!chart_id)) {
-            return null;
-        }
-
-        return VarMixedChartWidgetOptionsVO.TITLE_CODE_PREFIX + var_id + '.' + page_widget_id + '.' + chart_id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
-    }
-
-    public async get_all_exportable_name_code_and_translation(page_id: number, page_widget_id: number): Promise<{ [current_code_text: string]: string }> {
-        const res: { [exportable_code_text: string]: string } = {};
-
-        for (const key in this.var_charts_options) {
-            const var_chart_options = this.var_charts_options[key];
-
-            const placeholder_name_code_text_var_id: string = this.get_var_name_code_text(
-                page_widget_id,
-                var_chart_options.var_id
-            );
-
-            if (placeholder_name_code_text_var_id) {
-                res[placeholder_name_code_text_var_id] =
-                    VarMixedChartWidgetOptionsVO.TITLE_CODE_PREFIX +
-                    '{{IMPORT:' + VarConfVO.API_TYPE_ID + ':' + var_chart_options.var_id + '}}' +
-                    '.' +
-                    '{{IMPORT:' + DashboardPageWidgetVO.API_TYPE_ID + ':' + page_widget_id + '}}' +
-                    DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
-            }
-        }
-
-        return res;
-    }
 }

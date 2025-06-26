@@ -300,7 +300,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
                     return new VarPieDataSetDescriptor(
                         VarsController.var_conf_by_id[this.widget_options.var_id_1].name,
 
-                        this.t(this.widget_options.get_var_name_code_text(this.page_widget.id, this.widget_options.var_id_1)) != this.widget_options.get_var_name_code_text(this.page_widget.id, this.widget_options.var_id_1) ? this.t(this.widget_options.get_var_name_code_text(this.page_widget.id, this.widget_options.var_id_1)) : ''
+                        this.t(this.page_widget.var_1_titre) != this.page_widget.var_1_titre ? this.t(this.page_widget.var_1_titre) : ''
                     )
                         .set_backgrounds(colors)
                         .set_bordercolors([this.widget_options.border_color_1])
@@ -319,7 +319,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
                     }
                     return new VarPieDataSetDescriptor(
                         VarsController.var_conf_by_id[this.widget_options.var_id_1].name,
-                        this.t(this.widget_options.get_var_name_code_text(this.page_widget.id, this.widget_options.var_id_1)) != this.widget_options.get_var_name_code_text(this.page_widget.id, this.widget_options.var_id_1) ? this.t(this.widget_options.get_var_name_code_text(this.page_widget.id, this.widget_options.var_id_1)) : '')
+                        this.t(this.page_widget.var_1_titre) != this.page_widget.var_1_titre ? this.t(this.page_widget.var_1_titre) : '')
                         .set_backgrounds(colors)
                         .set_bordercolors([this.widget_options.border_color_1])
                         .set_borderwidths([this.widget_options.border_width_1]);
@@ -331,7 +331,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
             if (this.widget_options.var_id_1 && VarsController.var_conf_by_id[this.widget_options.var_id_1]) {
                 return new VarPieDataSetDescriptor(
                     VarsController.var_conf_by_id[this.widget_options.var_id_1].name, // ?? flou le var_name à utiliser ici
-                    this.t(this.widget_options.get_var_name_code_text(this.page_widget.id, this.widget_options.var_id_1)) != this.widget_options.get_var_name_code_text(this.page_widget.id, this.widget_options.var_id_1) ? this.t(this.widget_options.get_var_name_code_text(this.page_widget.id, this.widget_options.var_id_1)) : ''
+                    this.t(this.page_widget.var_1_titre) != this.page_widget.var_1_titre ? this.t(this.page_widget.var_1_titre) : ''
                 )
                     .set_backgrounds([this.widget_options.bg_color_1, this.widget_options.bg_color_2])
                     .set_bordercolors([this.widget_options.border_color_1, this.widget_options.border_color_2])
@@ -960,8 +960,8 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
 
         this.ordered_dimension = [0, 1];
         this.label_by_index = {
-            0: [this.t(this.widget_options.get_var_name_code_text(this.page_widget.id, this.widget_options.var_id_1))],
-            1: [this.t(this.widget_options.get_var_name_code_text(this.page_widget.id, this.widget_options.var_id_2))]
+            0: [this.t(this.page_widget.var_1_titre)],
+            1: [this.t(this.page_widget.var_2_titre)]
         };
         this.var_params_1_et_2 = {
             0: var_1,

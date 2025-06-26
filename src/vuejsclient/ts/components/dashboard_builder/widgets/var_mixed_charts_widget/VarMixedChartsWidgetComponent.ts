@@ -307,7 +307,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
                         label_translatable_code = dataset;
                     } else {
                         // Sinon on prend le code text pour la var
-                        const codeText = this.widget_options.get_var_name_code_text(this.page_widget.id, var_chart_options.var_id, var_chart_options.chart_id);
+                        const codeText = this.page_widget['var_' + (parseInt(key) + 1) + '_titre'];
                         const translated = this.t(codeText);
                         label_translatable_code = translated !== codeText ? translated : '';
                     }
@@ -374,11 +374,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
                     label_translatable_code = dataset;
                 } else {
                     // label = code text => var chart
-                    const codeText = this.widget_options.get_var_name_code_text(
-                        this.page_widget.id,
-                        var_chart_options.var_id,
-                        var_chart_options.chart_id
-                    );
+                    const codeText = this.page_widget['var_' + (parseInt(key) + 1) + '_titre'];
                     const translated = this.t(codeText);
                     label_translatable_code = translated !== codeText ? translated : '';
                 }

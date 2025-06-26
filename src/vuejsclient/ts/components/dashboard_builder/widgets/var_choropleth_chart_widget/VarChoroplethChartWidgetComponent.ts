@@ -319,7 +319,7 @@ export default class VarChoroplethChartWidgetComponent extends VueComponentBase 
 
                     return new VarChoroplethDataSetDescriptor(
                         VarsController.var_conf_by_id[this.widget_options.var_id_1].name,
-                        this.t(this.widget_options.get_var_name_code_text(this.page_widget.id, this.widget_options.var_id_1)))
+                        this.t(page_widget.var_1_titre))
                         .set_backgrounds(colors)
                         .set_bordercolors([this.widget_options.border_color_1])
                         .set_borderwidths([this.widget_options.border_width_1]);
@@ -337,7 +337,7 @@ export default class VarChoroplethChartWidgetComponent extends VueComponentBase 
                     }
                     return new VarChoroplethDataSetDescriptor(
                         VarsController.var_conf_by_id[this.widget_options.var_id_1].name,
-                        this.t(this.widget_options.get_var_name_code_text(this.page_widget.id, this.widget_options.var_id_1)))
+                        this.t(page_widget.var_1_titre))
                         .set_backgrounds(colors)
                         .set_bordercolors([this.widget_options.border_color_1])
                         .set_borderwidths([this.widget_options.border_width_1]);

@@ -38,9 +38,6 @@ export default class VarChartScalesOptionsItemComponent extends VueComponentBase
     @Prop({ default: false })
     private detailed!: boolean;
 
-    @Prop({ default: null })
-    private get_var_name_code_text?: (page_widget_id: number, var_id: number, chart_id: number) => string;
-
     /**
      * sectionsOpen = { scaleOptions: boolean, filterOptions: boolean }
      */
@@ -73,7 +70,7 @@ export default class VarChartScalesOptionsItemComponent extends VueComponentBase
     private scale_options: Partial<Scale> = null;
     private filter_type: string = '';
     private filter_additional_params: string = '';
-    private scale_position: string[] = [ 'left', 'right' ];
+    private scale_position: string[] = ['left', 'right'];
     private selected_position: string = 'left';
     private stacked: boolean = false;
     private fill: boolean = false;

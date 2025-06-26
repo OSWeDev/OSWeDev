@@ -1,22 +1,23 @@
+import { cloneDeep, isEqual } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
-import { cloneDeep, every, isEqual } from 'lodash';
 
 import VarChartOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VarChartOptionsVO';
 import VarsController from '../../../../../../../shared/modules/Var/VarsController';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 
+import ChartJsScaleOptionsComponent from '../../../../chartjs/scale_options/ChartJsScaleOptionsComponent';
 import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../../../VueComponentBase';
 import SingleVoFieldRefHolderComponent from '../../../options_tools/single_vo_field_ref_holder/SingleVoFieldRefHolderComponent';
-import ChartJsScaleOptionsComponent from '../../../../chartjs/scale_options/ChartJsScaleOptionsComponent';
 import WidgetFilterOptionsComponent from '../../var_widget/options/filters/WidgetFilterOptionsComponent';
 
-import ModuleTableFieldVO from '../../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import ModuleTableController from '../../../../../../../shared/modules/DAO/ModuleTableController';
+import ModuleTableFieldVO from '../../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import VarChartScalesOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VarChartScalesOptionsVO';
 
+import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import './VarChartOptionsItemComponent.scss';
 
 @Component({
@@ -37,16 +38,16 @@ export default class VarChartOptionsItemComponent extends VueComponentBase {
     private detailed!: boolean;
 
     @Prop({ default: null })
-    private page_widget_id!: number;
+    private page_widget!: DashboardPageWidgetVO;
+
+    @Prop({ default: null })
+    private index: number;
 
     @Prop({ default: null })
     private fields_that_could_get_scales_filter!: VarChartScalesOptionsVO[];
 
     @Prop({ default: false })
     private use_palette!: boolean;
-
-    @Prop({ default: null })
-    private get_var_name_code_text!: (page_widget_id: number, var_id: number, chart_id: number) => string;
 
     // Store
     @Prop({ default: null })
@@ -100,7 +101,7 @@ export default class VarChartOptionsItemComponent extends VueComponentBase {
         'time',
         'radialLinear'
     ];
-    private legend_positions: string[] = ['top','left','bottom','right'];
+    private legend_positions: string[] = ['top', 'left', 'bottom', 'right'];
 
     /**
      * Throttle pour émettre le changement

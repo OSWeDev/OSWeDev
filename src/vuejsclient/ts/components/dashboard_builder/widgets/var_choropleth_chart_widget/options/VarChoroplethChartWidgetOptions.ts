@@ -1,8 +1,6 @@
 import DashboardPageWidgetVO from "../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO";
 import VOFieldRefVO from "../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO";
 import TimeSegment from "../../../../../../../shared/modules/DataRender/vos/TimeSegment";
-import DefaultTranslationVO from "../../../../../../../shared/modules/Translation/vos/DefaultTranslationVO";
-import VarConfVO from "../../../../../../../shared/modules/Var/vos/VarConfVO";
 import IExportableWidgetOptions from "../../IExportableWidgetOptions";
 
 /**
@@ -86,34 +84,6 @@ export default class VarChoroplethChartWidgetOptions implements IExportableWidge
         public border_width_1: number,
 
     ) { }
-
-    public get_var_name_code_text(page_widget_id: number, var_id: number): string {
-
-        if ((!page_widget_id) || (!var_id)) {
-            return null;
-        }
-        return VarChoroplethChartWidgetOptions.TITLE_CODE_PREFIX + var_id + '.' + page_widget_id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
-    }
-
-    public async get_all_exportable_name_code_and_translation(page_id: number, page_widget_id: number): Promise<{ [current_code_text: string]: string }> {
-        const res: { [exportable_code_text: string]: string } = {};
-
-
-        if (this.var_id_1) {
-
-            const placeholder_name_code_text_var_id_1: string = this.get_var_name_code_text(page_widget_id, this.var_id_1);
-            if (placeholder_name_code_text_var_id_1) {
-
-                res[placeholder_name_code_text_var_id_1] =
-                    VarChoroplethChartWidgetOptions.TITLE_CODE_PREFIX +
-                    '{{IMPORT:' + VarConfVO.API_TYPE_ID + ':' + this.var_id_1 + '}}' +
-                    '.' +
-                    '{{IMPORT:' + DashboardPageWidgetVO.API_TYPE_ID + ':' + page_widget_id + '}}' +
-                    DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
-            }
-        }
-        return res;
-    }
 
     public static createDefault() {
         return new VarChoroplethChartWidgetOptions(

@@ -1,23 +1,17 @@
 /* istanbul ignore file: no unit tests on patchs */
 
 import { IDatabase } from 'pg-promise';
-import DashboardBuilderController from '../../../shared/modules/DashboardBuilder/DashboardBuilderController';
 import DashboardWidgetVO from '../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
-import FavoritesFiltersWidgetOptionsVO from '../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersWidgetOptionsVO';
 import FieldValueFilterWidgetOptionsVO from '../../../shared/modules/DashboardBuilder/vos/FieldValueFilterWidgetOptionsVO';
-import SupervisionTypeWidgetOptionsVO from '../../../shared/modules/DashboardBuilder/vos/SupervisionTypeWidgetOptionsVO';
-import SupervisionWidgetOptionsVO from '../../../shared/modules/DashboardBuilder/vos/SupervisionWidgetOptionsVO';
-import TableWidgetOptionsVO from '../../../shared/modules/DashboardBuilder/vos/TableWidgetOptionsVO';
+import MonthFilterWidgetOptionsVO from '../../../shared/modules/DashboardBuilder/vos/MonthFilterWidgetOptionsVO';
+import VarChartOptionsVO from '../../../shared/modules/DashboardBuilder/vos/VarChartOptionsVO';
 import VarMixedChartWidgetOptionsVO from '../../../shared/modules/DashboardBuilder/vos/VarMixedChartWidgetOptionsVO';
 import VarPieChartWidgetOptionsVO from '../../../shared/modules/DashboardBuilder/vos/VarPieChartWidgetOptionsVO';
 import VarRadarChartWidgetOptionsVO from '../../../shared/modules/DashboardBuilder/vos/VarRadarChartWidgetOptionsVO';
-import VarWidgetOptionsVO from '../../../shared/modules/DashboardBuilder/vos/VarWidgetOptionsVO';
+import YearFilterWidgetOptionsVO from '../../../shared/modules/DashboardBuilder/vos/YearFilterWidgetOptionsVO';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import IGeneratorWorker from '../../IGeneratorWorker';
-import VarChartOptionsVO from '../../../shared/modules/DashboardBuilder/vos/VarChartOptionsVO';
-import MonthFilterWidgetOptionsVO from '../../../shared/modules/DashboardBuilder/vos/MonthFilterWidgetOptionsVO';
-import YearFilterWidgetOptionsVO from '../../../shared/modules/DashboardBuilder/vos/YearFilterWidgetOptionsVO';
 
 export default class Patch20250625InitAutresTranslatablesDashboardPageWidgets implements IGeneratorWorker {
     private static instance: Patch20250625InitAutresTranslatablesDashboardPageWidgets = null;
@@ -158,7 +152,7 @@ export default class Patch20250625InitAutresTranslatablesDashboardPageWidgets im
                     case DashboardWidgetVO.WIDGET_NAME_varmixedcharts:
 
                         const var_mixed_options: VarMixedChartWidgetOptionsVO = pwidget.json_options ? JSON.parse(pwidget.json_options) as VarMixedChartWidgetOptionsVO : null;
-                        if ((!var_mixed_options) || (!var_mixed_options.var_charts_options) || (!var_mixed_options.var_charts_options.length) || (!var_mixed_options.var_id)) {
+                        if ((!var_mixed_options) || (!var_mixed_options.var_charts_options) || (!var_mixed_options.var_charts_options.length)) {
                             break;
                         }
 

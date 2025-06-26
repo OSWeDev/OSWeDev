@@ -275,11 +275,11 @@
                 )
                     .lang_selector_option(slot="noOptions") -
 
-        .var_title_1(v-if='page_widget && page_widget.id && widget_options && widget_options.var_id_1 && widget_options.get_var_name_code_text(page_widget.id, widget_options.var_id_1)')
+        .var_title_1(v-if='page_widget && page_widget.id && widget_options && widget_options.var_id_1 && page_widget.var_1_titre')
             .var_title_1_label {{ label('var_radar_chart_widget_options_component.var_title_1.title_name_code_text') }}
             .var_title_1_wrapper
                 Inlinetranslatabletext(
-                    :code_text="widget_options.get_var_name_code_text(page_widget.id, widget_options.var_id_1)" 
+                    :code_text="page_widget.var_1_titre" 
                     :is_editable="true"
                 )
 

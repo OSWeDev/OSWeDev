@@ -13,6 +13,7 @@ import ContextQueryVO, { query } from '../../../../../../shared/modules/ContextF
 import DashboardGraphColorPaletteVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardGraphColorPaletteVO';
 
 import './VarChartsOptionsComponent.scss';
+import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 
 @Component({
     template: require('./VarChartsOptionsComponent.pug'),
@@ -29,10 +30,7 @@ export default class VarChartsOptionsComponent extends VueComponentBase {
     private detailed!: boolean;
 
     @Prop({ default: null })
-    private page_widget_id!: number;
-
-    @Prop({ default: null })
-    private get_var_name_code_text!: (page_widget_id: number, var_id: number, chart_id: number) => string;
+    private page_widget!: DashboardPageWidgetVO;
 
     @Prop({ default: null })
     private get_custom_filters!: string[];
@@ -163,7 +161,7 @@ export default class VarChartsOptionsComponent extends VueComponentBase {
         const res: Array<{ id: number; label: string; palette: DashboardGraphColorPaletteVO }> = [];
         this.color_palettes = [];
 
-        const palettes : DashboardGraphColorPaletteVO[] = await query(DashboardGraphColorPaletteVO.API_TYPE_ID).select_vos();
+        const palettes: DashboardGraphColorPaletteVO[] = await query(DashboardGraphColorPaletteVO.API_TYPE_ID).select_vos();
         for (const pal of palettes) {
             res.push({
                 id: pal.id,

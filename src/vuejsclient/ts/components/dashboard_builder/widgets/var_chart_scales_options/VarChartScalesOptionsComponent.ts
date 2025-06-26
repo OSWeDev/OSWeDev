@@ -31,9 +31,6 @@ export default class VarChartScalesOptionsComponent extends VueComponentBase {
     @Prop({ default: null })
     private page_widget_id!: number;
 
-    @Prop({ default: null })
-    private get_var_name_code_text!: (page_widget_id: number, var_id: number, chart_id: number) => string;
-
     // --------------------------------------------------------------------------
     // Données internes
     // --------------------------------------------------------------------------
