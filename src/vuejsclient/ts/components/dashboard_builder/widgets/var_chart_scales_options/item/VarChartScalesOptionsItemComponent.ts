@@ -1,18 +1,18 @@
+import { cloneDeep, isEqual } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
-import { cloneDeep, isEqual } from 'lodash';
 
 import VarChartScalesOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VarChartScalesOptionsVO';
-import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 
+import ChartJsScaleOptionsComponent from '../../../../chartjs/scale_options/ChartJsScaleOptionsComponent';
 import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../../../VueComponentBase';
 import SingleVoFieldRefHolderComponent from '../../../options_tools/single_vo_field_ref_holder/SingleVoFieldRefHolderComponent';
-import ChartJsScaleOptionsComponent from '../../../../chartjs/scale_options/ChartJsScaleOptionsComponent';
 import WidgetFilterOptionsComponent from '../../var_widget/options/filters/WidgetFilterOptionsComponent';
 
 import { Scale } from 'chart.js';
+import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import './VarChartScalesOptionsItemComponent.scss';
 
 @Component({
@@ -33,10 +33,13 @@ export default class VarChartScalesOptionsItemComponent extends VueComponentBase
     private options!: VarChartScalesOptionsVO;
 
     @Prop({ default: null })
-    private page_widget_id!: number;
+    private page_widget!: DashboardPageWidgetVO;
 
     @Prop({ default: false })
     private detailed!: boolean;
+
+    @Prop({ default: null })
+    private index!: number;
 
     /**
      * sectionsOpen = { scaleOptions: boolean, filterOptions: boolean }
@@ -104,10 +107,10 @@ export default class VarChartScalesOptionsItemComponent extends VueComponentBase
      * Titre "code text" => pour InlineTranslatableText
      */
     get title_code_text(): string {
-        if (!this.options_props) {
+        if (!this.page_widget) {
             return null;
         }
-        return this.options_props.get_title_name_code_text(this.page_widget_id, this.chart_id);
+        return this.page_widget['scale_' + (this.index + 1) + '_titre'];
     }
 
     // -------------------------------------------------------------------------
@@ -234,7 +237,7 @@ export default class VarChartScalesOptionsItemComponent extends VueComponentBase
         if (!this.options_props) {
             return;
         }
-        this.options_props.page_widget_id = this.page_widget_id;
+        this.options_props.page_widget_id = this.page_widget.id;
         this.options_props.chart_id = this.chart_id;
         this.options_props.filter_additional_params = this.filter_additional_params;
         this.options_props.filter_type = this.filter_type;

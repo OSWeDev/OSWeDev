@@ -163,14 +163,6 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
         return this.vuexGet<string[]>(reflect<this>().get_custom_filters);
     }
 
-
-    /**
-     * Retourne les échelles (var_chart_scales_options) disponibles
-     */
-    get fields_that_could_get_scales_filter(): VarChartScalesOptionsVO[] {
-        return this.var_chart_scales_options;
-    }
-
     /**
      * Titre de l'axe X (code text)
      */

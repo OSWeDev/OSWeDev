@@ -261,7 +261,7 @@ export default class VarChartOptionsItemComponent extends VueComponentBase {
         const res: string[] = [];
         for (const [index, scale_options] of this.fields_that_could_get_scales_filter.entries()) {
             const so = new VarChartScalesOptionsVO().from(scale_options);
-            const codeText = so.get_title_name_code_text(this.page_widget_id, so.chart_id);
+            const codeText = this.page_widget['scale_' + (index + 1) + '_titre'];
             const translation = this.t(codeText);
             if (translation && translation !== codeText) {
                 res.push(translation);

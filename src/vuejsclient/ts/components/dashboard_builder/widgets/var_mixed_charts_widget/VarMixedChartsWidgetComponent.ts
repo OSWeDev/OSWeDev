@@ -570,12 +570,12 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
         if (this.widget_options.detailed) {
             // Scales (Y1, Y2, Y3...) => on boucle sur current_charts_scales_options
             if (var_chart_scales_options && var_chart_scales_options.length > 0) {
-                for (const i in this.current_charts_scales_options) {
-                    const current_scale = new VarChartScalesOptionsVO().from(this.current_charts_scales_options[i]);
+                for (const i in var_chart_scales_options) {
+                    const current_scale = new VarChartScalesOptionsVO().from(var_chart_scales_options[i]);
                     this.temp_current_scale = current_scale;
 
                     // On récupère le "titre" (code text) => on le translate
-                    const scaleTitleCode = current_scale.get_title_name_code_text(current_scale.page_widget_id, current_scale.chart_id);
+                    const scaleTitleCode = this.page_widget['scale_' + (parseInt(i) + 1) + '_titre'];
                     const scaleTitleTranslated = this.t(scaleTitleCode);
 
                     if (scaleTitleTranslated) {
@@ -687,11 +687,11 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
         };
 
         if (var_chart_scales_options && var_chart_scales_options.length > 0) {
-            for (const i in this.current_charts_scales_options) {
-                const current_scale = new VarChartScalesOptionsVO().from(this.current_charts_scales_options[i]);
+            for (const i in var_chart_scales_options) {
+                const current_scale = new VarChartScalesOptionsVO().from(var_chart_scales_options[i]);
                 this.temp_current_scale = current_scale;
 
-                const scaleTitleCode = current_scale.get_title_name_code_text(current_scale.page_widget_id, current_scale.chart_id);
+                const scaleTitleCode = this.page_widget['scale_' + (parseInt(i) + 1) + '_titre'];
                 const scaleTitleTranslated = this.t(scaleTitleCode);
 
                 if (scaleTitleTranslated) {
@@ -1421,11 +1421,18 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
     private getLabelsForTooltip(context) {
         const value = context.raw;
         const axisID = context.dataset.yAxisID;
-        const scale = Object.values(this.current_charts_scales_options).find((s) => {
-            if (axisID == this.t(s.get_title_name_code_text(s.page_widget_id, s.chart_id))) {
-                return s;
+
+        let scale = null;
+
+        for (const i in this.widget_options.var_chart_scales_options) {
+            const s = this.widget_options.var_chart_scales_options[i];
+            const title_name = this.t(this.page_widget['scale_' + (parseInt(i) + 1) + '_titre']);
+
+            if (axisID == title_name) {
+                scale = s;
+                break;
             }
-        });
+        }
 
         if (!scale || scale.filter_type == Filters.FILTER_TYPE_none) {
             return value;

@@ -16,4 +16,6 @@ div.var_mixed_charts_widget_component(:style='widget_options ? {background: widg
                     :filter_additional_params='var_filter_additional_params'
                     :key="'var_mixed_charts_widget_' + page_widget.id"
                     v-tooltip="chart_result_nb"
+                    :var_mixed_chart_widget_options="widget_options"
+                    :page_widget="page_widget"
                 ) 

@@ -5,6 +5,7 @@ import DashboardWidgetVO from '../../../shared/modules/DashboardBuilder/vos/Dash
 import FieldValueFilterWidgetOptionsVO from '../../../shared/modules/DashboardBuilder/vos/FieldValueFilterWidgetOptionsVO';
 import MonthFilterWidgetOptionsVO from '../../../shared/modules/DashboardBuilder/vos/MonthFilterWidgetOptionsVO';
 import VarChartOptionsVO from '../../../shared/modules/DashboardBuilder/vos/VarChartOptionsVO';
+import VarChartScalesOptionsVO from '../../../shared/modules/DashboardBuilder/vos/VarChartScalesOptionsVO';
 import VarMixedChartWidgetOptionsVO from '../../../shared/modules/DashboardBuilder/vos/VarMixedChartWidgetOptionsVO';
 import VarPieChartWidgetOptionsVO from '../../../shared/modules/DashboardBuilder/vos/VarPieChartWidgetOptionsVO';
 import VarRadarChartWidgetOptionsVO from '../../../shared/modules/DashboardBuilder/vos/VarRadarChartWidgetOptionsVO';
@@ -111,6 +112,55 @@ export default class Patch20250625InitAutresTranslatablesDashboardPageWidgets im
                 ADD COLUMN var_12_titre TEXT NOT NULL DEFAULT 'dashboard.widget.name.0.var_12.___LABEL___';
             `);
 
+        await db.query(`
+                ALTER TABLE ref.module_dashboardbuilder_dashboard_pwidget 
+                ADD COLUMN scale_1_titre TEXT NOT NULL DEFAULT 'dashboard.widget.name.0.scale_1.___LABEL___';
+            `);
+        await db.query(`
+                ALTER TABLE ref.module_dashboardbuilder_dashboard_pwidget 
+                ADD COLUMN scale_2_titre TEXT NOT NULL DEFAULT 'dashboard.widget.name.0.scale_2.___LABEL___';
+            `);
+        await db.query(`
+                ALTER TABLE ref.module_dashboardbuilder_dashboard_pwidget 
+                ADD COLUMN scale_3_titre TEXT NOT NULL DEFAULT 'dashboard.widget.name.0.scale_3.___LABEL___';
+            `);
+        await db.query(`
+                ALTER TABLE ref.module_dashboardbuilder_dashboard_pwidget 
+                ADD COLUMN scale_4_titre TEXT NOT NULL DEFAULT 'dashboard.widget.name.0.scale_4.___LABEL___';
+            `);
+        await db.query(`
+                ALTER TABLE ref.module_dashboardbuilder_dashboard_pwidget 
+                ADD COLUMN scale_5_titre TEXT NOT NULL DEFAULT 'dashboard.widget.name.0.scale_5.___LABEL___';
+            `);
+        await db.query(`
+                ALTER TABLE ref.module_dashboardbuilder_dashboard_pwidget 
+                ADD COLUMN scale_6_titre TEXT NOT NULL DEFAULT 'dashboard.widget.name.0.scale_6.___LABEL___';
+            `);
+        await db.query(`
+                ALTER TABLE ref.module_dashboardbuilder_dashboard_pwidget 
+                ADD COLUMN scale_7_titre TEXT NOT NULL DEFAULT 'dashboard.widget.name.0.scale_7.___LABEL___';
+            `);
+        await db.query(`
+                ALTER TABLE ref.module_dashboardbuilder_dashboard_pwidget 
+                ADD COLUMN scale_8_titre TEXT NOT NULL DEFAULT 'dashboard.widget.name.0.scale_8.___LABEL___';
+            `);
+        await db.query(`
+                ALTER TABLE ref.module_dashboardbuilder_dashboard_pwidget 
+                ADD COLUMN scale_9_titre TEXT NOT NULL DEFAULT 'dashboard.widget.name.0.scale_9.___LABEL___';
+            `);
+        await db.query(`
+                ALTER TABLE ref.module_dashboardbuilder_dashboard_pwidget 
+                ADD COLUMN scale_10_titre TEXT NOT NULL DEFAULT 'dashboard.widget.name.0.scale_10.___LABEL___';
+            `);
+        await db.query(`
+                ALTER TABLE ref.module_dashboardbuilder_dashboard_pwidget 
+                ADD COLUMN scale_11_titre TEXT NOT NULL DEFAULT 'dashboard.widget.name.0.scale_11.___LABEL___';
+            `);
+        await db.query(`
+                ALTER TABLE ref.module_dashboardbuilder_dashboard_pwidget 
+                ADD COLUMN scale_12_titre TEXT NOT NULL DEFAULT 'dashboard.widget.name.0.scale_12.___LABEL___';
+            `);
+
 
         const widgets = await db.query("SELECT id, name FROM ref.module_dashboardbuilder_dashboard_widget;");
         const widgets_name_by_id: { [id: number]: string } = {};
@@ -133,6 +183,9 @@ export default class Patch20250625InitAutresTranslatablesDashboardPageWidgets im
                 let advanced_mode_placeholder = null;
 
                 const var_titres: string[] = [
+                ];
+
+                const scale_titres: string[] = [
                 ];
 
                 switch (widget_name) {
@@ -166,11 +219,28 @@ export default class Patch20250625InitAutresTranslatablesDashboardPageWidgets im
                             throw new Error(`Invalid var_charts_options format for widget ${pwidget.id}.`);
                         }
 
+                        let var_mixed_options___var_chart_scales_options = var_mixed_options.var_chart_scales_options;
+                        try {
+                            if (typeof var_mixed_options___var_chart_scales_options === 'string') {
+                                var_mixed_options___var_chart_scales_options = JSON.parse(var_mixed_options___var_chart_scales_options) as VarChartOptionsVO[];
+                            }
+                        } catch (error) {
+                            ConsoleHandler.error(`Error parsing var_chart_scales_options for widget ${pwidget.id}:`, error);
+                            throw new Error(`Invalid var_chart_scales_options format for widget ${pwidget.id}.`);
+                        }
+
                         for (const key in var_mixed_options___var_charts_options) {
                             const var_chart_options = var_mixed_options___var_charts_options[key];
 
                             var_titres.push(VarMixedChartWidgetOptionsVO.TITLE_CODE_PREFIX + var_chart_options.var_id + '.' + id + '.' + var_chart_options.chart_id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION);
                         }
+
+                        for (const key in var_mixed_options___var_chart_scales_options) {
+                            const var_chart_options = var_mixed_options___var_chart_scales_options[key];
+
+                            scale_titres.push(VarChartScalesOptionsVO.TITLE_CODE_PREFIX + id + '.' + var_chart_options.chart_id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION);
+                        }
+
                         break;
 
                     case DashboardWidgetVO.WIDGET_NAME_varpiechart:
@@ -363,6 +433,55 @@ export default class Patch20250625InitAutresTranslatablesDashboardPageWidgets im
         await db.query(`
                 ALTER TABLE ref.module_dashboardbuilder_dashboard_pwidget 
                 ALTER COLUMN var_12_titre DROP DEFAULT;
+            `);
+
+        await db.query(`
+                ALTER TABLE ref.module_dashboardbuilder_dashboard_pwidget 
+                ALTER COLUMN scale_1_titre DROP DEFAULT;
+            `);
+        await db.query(`
+                ALTER TABLE ref.module_dashboardbuilder_dashboard_pwidget 
+                ALTER COLUMN scale_2_titre DROP DEFAULT;
+            `);
+        await db.query(`
+                ALTER TABLE ref.module_dashboardbuilder_dashboard_pwidget 
+                ALTER COLUMN scale_3_titre DROP DEFAULT;
+            `);
+        await db.query(`
+                ALTER TABLE ref.module_dashboardbuilder_dashboard_pwidget 
+                ALTER COLUMN scale_4_titre DROP DEFAULT;
+            `);
+        await db.query(`
+                ALTER TABLE ref.module_dashboardbuilder_dashboard_pwidget 
+                ALTER COLUMN scale_5_titre DROP DEFAULT;
+            `);
+        await db.query(`
+                ALTER TABLE ref.module_dashboardbuilder_dashboard_pwidget 
+                ALTER COLUMN scale_6_titre DROP DEFAULT;
+            `);
+        await db.query(`
+                ALTER TABLE ref.module_dashboardbuilder_dashboard_pwidget 
+                ALTER COLUMN scale_7_titre DROP DEFAULT;
+            `);
+        await db.query(`
+                ALTER TABLE ref.module_dashboardbuilder_dashboard_pwidget 
+                ALTER COLUMN scale_8_titre DROP DEFAULT;
+            `);
+        await db.query(`
+                ALTER TABLE ref.module_dashboardbuilder_dashboard_pwidget 
+                ALTER COLUMN scale_9_titre DROP DEFAULT;
+            `);
+        await db.query(`
+                ALTER TABLE ref.module_dashboardbuilder_dashboard_pwidget 
+                ALTER COLUMN scale_10_titre DROP DEFAULT;
+            `);
+        await db.query(`
+                ALTER TABLE ref.module_dashboardbuilder_dashboard_pwidget 
+                ALTER COLUMN scale_11_titre DROP DEFAULT;
+            `);
+        await db.query(`
+                ALTER TABLE ref.module_dashboardbuilder_dashboard_pwidget 
+                ALTER COLUMN scale_12_titre DROP DEFAULT;
             `);
 
     }

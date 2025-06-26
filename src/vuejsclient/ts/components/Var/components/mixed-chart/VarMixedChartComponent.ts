@@ -5,7 +5,9 @@ import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { debounce, isEqual } from 'lodash';
 import { Chart as VueChart } from 'vue-chartjs';
 import { Component, Prop, Watch } from 'vue-property-decorator';
+import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import VarChartScalesOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/VarChartScalesOptionsVO';
+import VarMixedChartWidgetOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/VarMixedChartWidgetOptionsVO';
 import DatesChartJsAdapters from '../../../../../../shared/modules/FormatDatesNombres/Dates/DatesChartJsAdapters';
 import VarMixedChartDataSetDescriptor from '../../../../../../shared/modules/Var/graph/VarMixedChartDataSetDescriptor';
 import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
@@ -76,6 +78,12 @@ export default class VarMixedChartComponent extends VueComponentBase {
 
     @Prop({ default: null })
     public options: IChartOptions;
+
+    @Prop({ default: null })
+    public var_mixed_chart_widget_options: VarMixedChartWidgetOptionsVO;
+
+    @Prop({ default: null })
+    public page_widget: DashboardPageWidgetVO;
 
     @Prop({ default: null })
     public filter: () => any;
@@ -449,7 +457,7 @@ export default class VarMixedChartComponent extends VueComponentBase {
         this.temp_current_dataset_descriptor = chart_var_dataset_descriptor;
         const chart_var_params = this.charts_var_params[chart_id];
         const chart_var_datas = this.charts_var_datas[chart_id];
-        const charts_scales_options = this.charts_scales_options[chart_id];
+        const charts_scales_options: VarChartScalesOptionsVO = this.charts_scales_options[chart_id];
 
         const data: number[] = [];
         const backgroundColor = [];
@@ -461,7 +469,9 @@ export default class VarMixedChartComponent extends VueComponentBase {
             return null;
         }
 
-        yAxisID = this.t(new VarChartScalesOptionsVO().from(charts_scales_options).get_title_name_code_text(charts_scales_options.page_widget_id, charts_scales_options.chart_id));
+        yAxisID = this.t(
+            this.page_widget['scale_' + (this.get_scale_option_index(charts_scales_options.chart_id) + 1) + '_title']
+        );
 
         for (const var_key in chart_var_params) {
             const var_param: VarDataBaseVO = chart_var_params[var_key];
@@ -653,6 +663,21 @@ export default class VarMixedChartComponent extends VueComponentBase {
         if (!!this.rendered) {
             // Issu de Bar
             this.$data._chart.update();
+        }
+    }
+
+    private get_scale_option_index(
+        chart_id: number
+    ): number {
+
+        if ((!this.var_mixed_chart_widget_options) || (!this.var_mixed_chart_widget_options.var_chart_scales_options)) {
+            return null;
+        }
+
+        for (const i in this.var_mixed_chart_widget_options.var_chart_scales_options) {
+            if (this.var_mixed_chart_widget_options.var_chart_scales_options[i].chart_id == chart_id) {
+                return parseInt(i, 10);
+            }
         }
     }
 }

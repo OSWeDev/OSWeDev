@@ -389,8 +389,8 @@
                 .input_wrapper
                     Varchartscalesoptionscomponent(
                         @on_change="handle_var_chart_scales_options_change"
-                        :page_widget_id="page_widget.id"
-                        :options="fields_that_could_get_scales_filter"
+                        :page_widget="page_widget"
+                        :options="var_chart_scales_options"
                         :detailed="detailed"
                     )
 
@@ -402,6 +402,6 @@
                         :page_widget="page_widget"
                         :options="var_charts_options"
                         :detailed="detailed"
-                        :fields_that_could_get_scales_filter="fields_that_could_get_scales_filter"
+                        :fields_that_could_get_scales_filter="var_chart_scales_options"
                         :get_custom_filters="get_custom_filters"
                     )

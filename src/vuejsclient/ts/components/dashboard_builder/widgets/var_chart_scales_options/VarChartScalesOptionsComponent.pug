@@ -28,12 +28,13 @@
                         .section-header(@click="toggleSection(index)")
 
                             // Titre ou inline edit
-                            span.scale-title(v-if="!isEditingTitle(index)") {{ getScaleTitle(item, index) }}
-                            template(v-else)
-                                Inlinetranslatabletext(
-                                    :code_text="item.get_title_name_code_text(page_widget_id, item.chart_id)"
-                                    :is_editable="true"
-                                )
+                            //- span.scale-title(v-if="!isEditingTitle(index)") {{ getScaleTitle(item, index) }}
+                            //- template(v-else)
+                            Inlinetranslatabletext(
+                                :code_text="page_widget['scale_' + (index+1) + '_titre']"
+                                :is_editable="isEditingTitle(index)"
+                                :default_translation="'Ordonnée #' + (index + 1)"
+                            )
 
                             // Edit icon
                             i.fa.fa-pen.edit-icon(@click.stop="toggleEditTitle(index)")
@@ -50,7 +51,8 @@
                                 :options="item"
                                 :detailed="detailed"
                                 :sectionsOpen="openedSections[index]"
-                                :page_widget_id="page_widget_id"
+                                :page_widget="page_widget"
+                                :index='index'
                                 @on_change="handle_var_chart_scales_options_change(index, $event)"
                                 @update-sections-open="onChildSectionsOpen(index, $event)"
                             )

@@ -55,7 +55,7 @@ export default class VarChoroplethChartWidgetOptionsComponent extends VueCompone
         "ColorBrewer",
         "Matplotlib",
         "Coolors",
-    ]
+    ];
     private color_palettes: string[][] = [
         [
             '#4E79A7', // Bleu
@@ -170,240 +170,6 @@ export default class VarChoroplethChartWidgetOptionsComponent extends VueCompone
         return this.vuexGet<string[]>(reflect<this>().get_custom_filters);
     }
 
-    // Accès dynamiques Vuex
-    public vuexGet<T>(getter: string): T {
-        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
-    }
-    public vuexAct<A>(action: string, payload?: A) {
-        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
-    }
-
-    public set_page_widget(page_widget: DashboardPageWidgetVO) {
-        return this.vuexAct(reflect<this>().set_page_widget, page_widget);
-    }
-
-    private async remove_dimension_vo_field_ref() {
-        this.next_update_options = this.widget_options;
-
-        if (!this.next_update_options) {
-            return null;
-        }
-
-        if (!this.next_update_options.dimension_vo_field_ref) {
-            return null;
-        }
-
-        this.next_update_options.dimension_vo_field_ref = null;
-
-        await this.throttled_update_options();
-    }
-
-    private async add_dimension_vo_field_ref(api_type_id: string, field_id: string) {
-        this.next_update_options = this.widget_options;
-
-        if (!this.next_update_options) {
-            this.next_update_options = this.get_default_options();
-        }
-
-        const dimension_vo_field_ref = new VOFieldRefVO();
-        dimension_vo_field_ref.api_type_id = api_type_id;
-        dimension_vo_field_ref.field_id = field_id;
-        dimension_vo_field_ref.weight = 0;
-
-        this.next_update_options.dimension_vo_field_ref = dimension_vo_field_ref;
-
-        await this.throttled_update_options();
-    }
-
-    get sort_dimension_by_vo_field_ref(): VOFieldRefVO {
-        const options: VarChoroplethChartWidgetOptions = this.widget_options;
-
-        if ((!options) || (!options.sort_dimension_by_vo_field_ref)) {
-            return null;
-        }
-
-        return Object.assign(new VOFieldRefVO(), options.sort_dimension_by_vo_field_ref);
-    }
-
-    private async remove_sort_dimension_by_vo_field_ref() {
-        this.next_update_options = this.widget_options;
-
-        if (!this.next_update_options) {
-            return null;
-        }
-
-        if (!this.next_update_options.sort_dimension_by_vo_field_ref) {
-            return null;
-        }
-
-        this.next_update_options.sort_dimension_by_vo_field_ref = null;
-
-        await this.throttled_update_options();
-    }
-
-    private async add_sort_dimension_by_vo_field_ref(api_type_id: string, field_id: string) {
-        this.next_update_options = this.widget_options;
-
-        if (!this.next_update_options) {
-            this.next_update_options = this.get_default_options();
-        }
-
-        const sort_dimension_by_vo_field_ref = new VOFieldRefVO();
-        sort_dimension_by_vo_field_ref.api_type_id = api_type_id;
-        sort_dimension_by_vo_field_ref.field_id = field_id;
-        sort_dimension_by_vo_field_ref.weight = 0;
-
-        this.next_update_options.sort_dimension_by_vo_field_ref = sort_dimension_by_vo_field_ref;
-
-        await this.throttled_update_options();
-    }
-
-    private get_default_options(): VarChoroplethChartWidgetOptions {
-        return VarChoroplethChartWidgetOptions.createDefault();
-    }
-
-    private async switch_bg_gradient() {
-        this.next_update_options = this.widget_options;
-
-        if (!this.next_update_options) {
-            this.next_update_options = this.get_default_options();
-        }
-
-        this.next_update_options.bg_gradient = !this.next_update_options.bg_gradient;
-
-        await this.throttled_update_options();
-    }
-
-    private async switch_legend_display() {
-        this.next_update_options = this.widget_options;
-
-        if (!this.next_update_options) {
-            this.next_update_options = this.get_default_options();
-        }
-
-        this.next_update_options.legend_display = !this.next_update_options.legend_display;
-
-        await this.throttled_update_options();
-    }
-
-    private async switch_label_display() {
-        this.next_update_options = this.widget_options;
-
-        if (!this.next_update_options) {
-            this.next_update_options = this.get_default_options();
-        }
-
-        this.next_update_options.label_display = !this.next_update_options.label_display;
-
-        await this.throttled_update_options();
-    }
-
-    private async switch_dimension_is_vo_field_ref() {
-        this.next_update_options = this.widget_options;
-
-        if (!this.next_update_options) {
-            this.next_update_options = this.get_default_options();
-        }
-
-        this.next_update_options.dimension_is_vo_field_ref = !this.next_update_options.dimension_is_vo_field_ref;
-
-        await this.throttled_update_options();
-    }
-
-    private async switch_sort_dimension_by_asc() {
-        this.next_update_options = this.widget_options;
-
-        if (!this.next_update_options) {
-            this.next_update_options = this.get_default_options();
-        }
-
-        this.next_update_options.sort_dimension_by_asc = !this.next_update_options.sort_dimension_by_asc;
-
-        await this.throttled_update_options();
-    }
-
-    private async switch_has_dimension() {
-        if (!this.has_dimension) {
-            this.snotify.error('Not implemented yet');
-        }
-        // this.next_update_options = this.widget_options;
-
-        // if (!this.next_update_options) {
-        //     this.next_update_options = this.get_default_options();
-        // }
-
-        // this.next_update_options.has_dimension = !this.next_update_options.has_dimension;
-
-        // await this.throttled_update_options();
-    }
-
-    private async switch_title_display() {
-        this.next_update_options = this.widget_options;
-
-        if (!this.next_update_options) {
-            this.next_update_options = this.get_default_options();
-        }
-
-        this.next_update_options.title_display = !this.next_update_options.title_display;
-
-        await this.throttled_update_options();
-    }
-
-    private async switch_legend_use_point_style() {
-        this.next_update_options = this.widget_options;
-
-        if (!this.next_update_options) {
-            this.next_update_options = this.get_default_options();
-        }
-
-        this.next_update_options.legend_use_point_style = !this.next_update_options.legend_use_point_style;
-
-        await this.throttled_update_options();
-    }
-
-    private async update_colors() {
-        if (!this.widget_options) {
-            return;
-        }
-
-        if (!this.next_update_options) {
-            this.next_update_options = this.get_default_options();
-        }
-        this.next_update_options.bg_color_1 = this.bg_color_1;
-        this.next_update_options.border_color_1 = this.border_color_1;
-        this.next_update_options.bg_color = this.bg_color;
-        this.next_update_options.legend_font_color = this.legend_font_color;
-        this.next_update_options.title_font_color = this.title_font_color;
-        await this.throttled_update_options();
-    }
-
-    private async change_custom_filter_1(field_id: string, custom_filter: string) {
-        if (!this.widget_options) {
-            return;
-        }
-
-        if (!this.next_update_options) {
-            this.next_update_options = this.get_default_options();
-        }
-        this.custom_filter_names_1[field_id] = custom_filter;
-        this.next_update_options.filter_custom_field_filters_1 = this.custom_filter_names_1;
-        await this.throttled_update_options();
-    }
-
-
-    private async change_custom_filter_dimension(custom_filter: string) {
-        if (!this.widget_options) {
-            return;
-        }
-
-        if (!this.next_update_options) {
-            this.next_update_options = this.get_default_options();
-        }
-        this.dimension_custom_filter_name = custom_filter;
-        this.next_update_options.dimension_custom_filter_name = this.dimension_custom_filter_name;
-        await this.throttled_update_options();
-    }
-
 
     get fields_that_could_get_custom_filter_1(): string[] {
         const res: string[] = [];
@@ -463,266 +229,16 @@ export default class VarChoroplethChartWidgetOptionsComponent extends VueCompone
         return res;
     }
 
-    private reload_options() {
-        if (!this.page_widget) {
-            this.widget_options = null;
-        } else {
+    get sort_dimension_by_vo_field_ref(): VOFieldRefVO {
+        const options: VarChoroplethChartWidgetOptions = this.widget_options;
 
-            let options: VarChoroplethChartWidgetOptions = null;
-            try {
-                if (this.page_widget.json_options) {
-                    options = JSON.parse(this.page_widget.json_options) as VarChoroplethChartWidgetOptions;
-                    if (this.widget_options &&
-                        (this.widget_options.var_id_1 == options.var_id_1) &&
-                        (this.widget_options.dimension_custom_filter_name == options.dimension_custom_filter_name) &&
-                        (ObjectHandler.are_equal(this.widget_options.filter_custom_field_filters_1, options.filter_custom_field_filters_1)) &&
-
-                        (this.widget_options.legend_display == options.legend_display) &&
-                        (this.widget_options.label_display == options.label_display) &&
-                        (this.widget_options.legend_position == options.legend_position) &&
-                        (this.widget_options.bg_color_1 == options.bg_color_1) &&
-                        (this.widget_options.bg_colors == options.bg_colors) &&
-                        (this.widget_options.bg_gradient == options.bg_gradient) &&
-                        (this.widget_options.border_color_1 == options.border_color_1) &&
-                        (this.widget_options.color_palette == options.color_palette) &&
-                        (this.widget_options.bg_color == options.bg_color) &&
-                        (this.widget_options.legend_font_color == options.legend_font_color) &&
-                        (this.widget_options.title_font_color == options.title_font_color) &&
-                        (this.widget_options.legend_font_size == options.legend_font_size) &&
-                        (this.widget_options.legend_box_width == options.legend_box_width) &&
-                        (this.widget_options.legend_padding == options.legend_padding) &&
-                        (this.widget_options.legend_use_point_style == options.legend_use_point_style) &&
-                        (this.widget_options.title_display == options.title_display) &&
-                        (this.widget_options.title_font_size == options.title_font_size) &&
-                        (this.widget_options.title_padding == options.title_padding) &&
-                        (this.widget_options.has_dimension == options.has_dimension) &&
-                        (this.widget_options.max_dimension_values == options.max_dimension_values) &&
-                        (this.widget_options.sort_dimension_by_vo_field_ref == options.sort_dimension_by_vo_field_ref) &&
-                        (this.widget_options.sort_dimension_by_asc == options.sort_dimension_by_asc) &&
-
-                        (this.widget_options.dimension_is_vo_field_ref == options.dimension_is_vo_field_ref) &&
-                        ObjectHandler.are_equal(this.widget_options.dimension_vo_field_ref, options.dimension_vo_field_ref) &&
-                        (this.widget_options.dimension_custom_filter_name == options.dimension_custom_filter_name) &&
-                        (this.widget_options.dimension_custom_filter_segment_type == options.dimension_custom_filter_segment_type) &&
-                        (this.widget_options.border_width_1 == options.border_width_1)
-                    ) {
-                        options = null;
-                    }
-
-                    options = options ? new VarChoroplethChartWidgetOptions(
-                        options.bg_color,
-                        options.legend_display,
-                        options.label_display,
-                        options.legend_position,
-                        options.legend_font_color,
-                        options.legend_font_size,
-                        options.legend_box_width,
-                        options.legend_padding,
-                        options.legend_use_point_style,
-                        options.title_display,
-                        options.title_font_color,
-                        options.title_font_size,
-                        options.title_padding,
-                        options.has_dimension,
-                        options.max_dimension_values,
-                        options.sort_dimension_by_vo_field_ref,
-                        options.sort_dimension_by_asc,
-                        options.dimension_is_vo_field_ref,
-                        options.dimension_vo_field_ref,
-                        options.dimension_custom_filter_name,
-                        options.dimension_custom_filter_segment_type,
-                        options.filter_type,
-                        options.filter_additional_params,
-                        options.var_id_1,
-                        options.filter_custom_field_filters_1,
-                        options.color_palette,
-                        options.bg_colors,
-                        options.bg_gradient,
-                        options.bg_color_1,
-                        options.border_color_1,
-                        options.border_width_1,
-                    ) : null;
-                }
-            } catch (error) {
-                ConsoleHandler.error(error);
-            }
-
-            if ((!!options) && (!!this.page_widget.json_options)) {
-                if (!ObjectHandler.are_equal(this.widget_options, options)) {
-                    this.widget_options = options;
-                }
-            } else if ((!!this.widget_options) && !this.page_widget.json_options) {
-                this.widget_options = null;
-            }
+        if ((!options) || (!options.sort_dimension_by_vo_field_ref)) {
+            return null;
         }
 
-        if (!this.widget_options) {
-            this.next_update_options = null;
-
-            this.bg_color = "#f00";
-
-            this.legend_display = true;
-            this.label_display = true;
-            this.tmp_selected_legend_position = 'top';
-            this.legend_font_color = '#666';
-            this.legend_font_size = '12';
-            this.legend_box_width = '40';
-            this.legend_padding = '10';
-            this.legend_use_point_style = false;
-
-            this.title_display = false;
-            this.title_font_color = '#666';
-            this.title_font_size = '16';
-            this.title_padding = '10';
-            this.cutout_percentage = '0';
-            this.rotation = '0';
-            this.circumference = '360';
-
-            this.has_dimension = true;
-            this.max_dimension_values = '10';
-            this.sort_dimension_by_asc = true;
-            this.dimension_is_vo_field_ref = true;
-            this.dimension_custom_filter_name = null;
-            this.tmp_selected_dimension_custom_filter_segment_type = this.dimension_custom_filter_segment_types[0];
-
-            this.tmp_selected_var_name_1 = null;
-            this.custom_filter_names_1 = {};
-            this.tmp_selected_color_palette = "None"
-            this.color_palettes = null;
-            this.bg_colors = null;
-            this.bg_gradient = false;
-            this.bg_color_1 = null;
-            this.border_color_1 = null;
-            this.border_width_1 = null;
-            this.tmp_selected_var_name_2 = null;
-            this.custom_filter_names_2 = {};
-            this.bg_color_2 = null;
-            this.border_color_2 = null;
-            this.border_width_2 = null;
-            this.max_is_sum_of_var_1_and_2 = false;
-
-            return;
-        }
-
-        if (this.legend_display != this.widget_options.legend_display) {
-            this.legend_display = this.widget_options.legend_display;
-        }
-        if (this.label_display != this.widget_options.label_display) {
-            this.label_display = this.widget_options.label_display;
-        }
-        if (((!this.widget_options.legend_font_size) && this.legend_font_size) || (this.widget_options.legend_font_size && (this.legend_font_size != this.widget_options.legend_font_size.toString()))) {
-            this.legend_font_size = this.widget_options.legend_font_size ? this.widget_options.legend_font_size.toString() : null;
-        }
-        if (((!this.widget_options.legend_box_width) && this.legend_box_width) || (this.widget_options.legend_box_width && (this.legend_box_width != this.widget_options.legend_box_width.toString()))) {
-            this.legend_box_width = this.widget_options.legend_box_width ? this.widget_options.legend_box_width.toString() : null;
-        }
-        if (((!this.widget_options.legend_padding) && this.legend_padding) || (this.widget_options.legend_padding && (this.legend_padding != this.widget_options.legend_padding.toString()))) {
-            this.legend_padding = this.widget_options.legend_padding ? this.widget_options.legend_padding.toString() : null;
-        }
-        if (this.legend_use_point_style != this.widget_options.legend_use_point_style) {
-            this.legend_use_point_style = this.widget_options.legend_use_point_style;
-        }
-
-        if (this.title_display != this.widget_options.title_display) {
-            this.title_display = this.widget_options.title_display;
-        }
-        if (((!this.widget_options.title_font_size) && this.title_font_size) || (this.widget_options.title_font_size && (this.title_font_size != this.widget_options.title_font_size.toString()))) {
-            this.title_font_size = this.widget_options.title_font_size ? this.widget_options.title_font_size.toString() : null;
-        }
-        if (((!this.widget_options.title_padding) && this.title_padding) || (this.widget_options.title_padding && (this.title_padding != this.widget_options.title_padding.toString()))) {
-            this.title_padding = this.widget_options.title_padding ? this.widget_options.title_padding.toString() : null;
-        }
-
-        if (this.has_dimension != this.widget_options.has_dimension) {
-            this.has_dimension = this.widget_options.has_dimension;
-        }
-        if (((!this.widget_options.max_dimension_values) && this.max_dimension_values) || (this.widget_options.max_dimension_values && (this.max_dimension_values != this.widget_options.max_dimension_values.toString()))) {
-            this.max_dimension_values = this.widget_options.max_dimension_values ? this.widget_options.max_dimension_values.toString() : null;
-        }
-        if (this.sort_dimension_by_asc != this.widget_options.sort_dimension_by_asc) {
-            this.sort_dimension_by_asc = this.widget_options.sort_dimension_by_asc;
-        }
-        if (this.dimension_is_vo_field_ref != this.widget_options.dimension_is_vo_field_ref) {
-            this.dimension_is_vo_field_ref = this.widget_options.dimension_is_vo_field_ref;
-        }
-        if (this.dimension_custom_filter_name != this.widget_options.dimension_custom_filter_name) {
-            this.dimension_custom_filter_name = this.widget_options.dimension_custom_filter_name;
-        }
-
-        if (((!this.widget_options.border_width_1) && this.border_width_1) || (this.widget_options.border_width_1 && (this.border_width_1 != this.widget_options.border_width_1.toString()))) {
-            this.border_width_1 = this.widget_options.border_width_1 ? this.widget_options.border_width_1.toString() : null;
-        }
-
-        if (this.tmp_selected_legend_position != this.widget_options.legend_position) {
-            this.tmp_selected_legend_position = this.widget_options.legend_position;
-        }
-        if (this.get_dimension_custom_filter_segment_type_from_selected_option(this.tmp_selected_dimension_custom_filter_segment_type) != this.widget_options.dimension_custom_filter_segment_type) {
-            this.tmp_selected_dimension_custom_filter_segment_type = this.dimension_custom_filter_segment_types[this.widget_options.dimension_custom_filter_segment_type];
-        }
-
-        if (this.tmp_selected_var_name_1 != (this.widget_options.var_id_1 + ' | ' + this.t(VarsController.get_translatable_name_code_by_var_id(this.widget_options.var_id_1)))) {
-            this.tmp_selected_var_name_1 = this.widget_options.var_id_1 + ' | ' + this.t(VarsController.get_translatable_name_code_by_var_id(this.widget_options.var_id_1));
-        }
-
-        if (this.custom_filter_names_1 != (this.widget_options.filter_custom_field_filters_1 ? cloneDeep(this.widget_options.filter_custom_field_filters_1) : {})) {
-            this.custom_filter_names_1 = this.widget_options.filter_custom_field_filters_1 ? cloneDeep(this.widget_options.filter_custom_field_filters_1) : {};
-        }
-
-        if (this.dimension_custom_filter_name != this.widget_options.dimension_custom_filter_name) {
-            this.dimension_custom_filter_name = this.widget_options.dimension_custom_filter_name;
-        }
-        if (this.tmp_selected_color_palette != this.color_palettes_labels[this.searchIndexOfArray(this.widget_options.color_palette, this.color_palettes)]) {
-            this.tmp_selected_color_palette = this.color_palettes_labels[this.searchIndexOfArray(this.widget_options.color_palette, this.color_palettes)];
-        }
-        if (this.bg_colors != this.widget_options.bg_colors) {
-            this.bg_colors = this.widget_options.bg_colors;
-        }
-        if (this.bg_gradient != this.widget_options.bg_gradient) {
-            this.bg_gradient = this.widget_options.bg_gradient;
-        }
-        if (this.bg_color_1 != this.widget_options.bg_color_1) {
-            this.bg_color_1 = this.widget_options.bg_color_1;
-        }
-
-        if (this.border_color_1 != this.widget_options.border_color_1) {
-            this.border_color_1 = this.widget_options.border_color_1;
-        }
-
-        if (this.bg_color != this.widget_options.bg_color) {
-            this.bg_color = this.widget_options.bg_color;
-        }
-        if (this.legend_font_color != this.widget_options.legend_font_color) {
-            this.legend_font_color = this.widget_options.legend_font_color;
-        }
-        if (this.title_font_color != this.widget_options.title_font_color) {
-            this.title_font_color = this.widget_options.title_font_color;
-        }
-
-        if (this.next_update_options != this.widget_options) {
-            this.next_update_options = this.widget_options;
-        }
+        return Object.assign(new VOFieldRefVO(), options.sort_dimension_by_vo_field_ref);
     }
 
-    private get_dimension_custom_filter_segment_type_from_selected_option(selected_option: string): number {
-        if (this.dimension_custom_filter_segment_types) {
-            for (const key in Object.keys(this.dimension_custom_filter_segment_types)) {
-                if (this.dimension_custom_filter_segment_types[Object.keys(this.dimension_custom_filter_segment_types)[key]] == selected_option) {
-                    const res = parseInt(Object.keys(this.dimension_custom_filter_segment_types)[key]);
-                    return res >= 0 ? res : null;
-                }
-            }
-            return null
-        }
-    }
-
-    private searchIndexOfArray(target: any, source: any): number {
-        for (let i = 0; i <= source.length; i++) {
-            if (JSON.stringify(target) === JSON.stringify(source[i])) {
-                return i;
-            }
-        }
-        return -1;
-    }
     @Watch('page_widget', { immediate: true, deep: true })
     private async onchange_page_widget() {
         await this.throttled_reload_options();
@@ -1066,6 +582,491 @@ export default class VarChoroplethChartWidgetOptionsComponent extends VueCompone
         } catch (error) {
             ConsoleHandler.error(error);
         }
+    }
+
+    // Accès dynamiques Vuex
+    public vuexGet<T>(getter: string): T {
+        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    }
+    public vuexAct<A>(action: string, payload?: A) {
+        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    }
+
+    public set_page_widget(page_widget: DashboardPageWidgetVO) {
+        return this.vuexAct(reflect<this>().set_page_widget, page_widget);
+    }
+
+    private async remove_dimension_vo_field_ref() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            return null;
+        }
+
+        if (!this.next_update_options.dimension_vo_field_ref) {
+            return null;
+        }
+
+        this.next_update_options.dimension_vo_field_ref = null;
+
+        await this.throttled_update_options();
+    }
+
+    private async add_dimension_vo_field_ref(api_type_id: string, field_id: string) {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        const dimension_vo_field_ref = new VOFieldRefVO();
+        dimension_vo_field_ref.api_type_id = api_type_id;
+        dimension_vo_field_ref.field_id = field_id;
+        dimension_vo_field_ref.weight = 0;
+
+        this.next_update_options.dimension_vo_field_ref = dimension_vo_field_ref;
+
+        await this.throttled_update_options();
+    }
+
+    private async remove_sort_dimension_by_vo_field_ref() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            return null;
+        }
+
+        if (!this.next_update_options.sort_dimension_by_vo_field_ref) {
+            return null;
+        }
+
+        this.next_update_options.sort_dimension_by_vo_field_ref = null;
+
+        await this.throttled_update_options();
+    }
+
+    private async add_sort_dimension_by_vo_field_ref(api_type_id: string, field_id: string) {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        const sort_dimension_by_vo_field_ref = new VOFieldRefVO();
+        sort_dimension_by_vo_field_ref.api_type_id = api_type_id;
+        sort_dimension_by_vo_field_ref.field_id = field_id;
+        sort_dimension_by_vo_field_ref.weight = 0;
+
+        this.next_update_options.sort_dimension_by_vo_field_ref = sort_dimension_by_vo_field_ref;
+
+        await this.throttled_update_options();
+    }
+
+    private get_default_options(): VarChoroplethChartWidgetOptions {
+        return VarChoroplethChartWidgetOptions.createDefault();
+    }
+
+    private async switch_bg_gradient() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        this.next_update_options.bg_gradient = !this.next_update_options.bg_gradient;
+
+        await this.throttled_update_options();
+    }
+
+    private async switch_legend_display() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        this.next_update_options.legend_display = !this.next_update_options.legend_display;
+
+        await this.throttled_update_options();
+    }
+
+    private async switch_label_display() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        this.next_update_options.label_display = !this.next_update_options.label_display;
+
+        await this.throttled_update_options();
+    }
+
+    private async switch_dimension_is_vo_field_ref() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        this.next_update_options.dimension_is_vo_field_ref = !this.next_update_options.dimension_is_vo_field_ref;
+
+        await this.throttled_update_options();
+    }
+
+    private async switch_sort_dimension_by_asc() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        this.next_update_options.sort_dimension_by_asc = !this.next_update_options.sort_dimension_by_asc;
+
+        await this.throttled_update_options();
+    }
+
+    private async switch_has_dimension() {
+        if (!this.has_dimension) {
+            this.snotify.error('Not implemented yet');
+        }
+        // this.next_update_options = this.widget_options;
+
+        // if (!this.next_update_options) {
+        //     this.next_update_options = this.get_default_options();
+        // }
+
+        // this.next_update_options.has_dimension = !this.next_update_options.has_dimension;
+
+        // await this.throttled_update_options();
+    }
+
+    private async switch_title_display() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        this.next_update_options.title_display = !this.next_update_options.title_display;
+
+        await this.throttled_update_options();
+    }
+
+    private async switch_legend_use_point_style() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        this.next_update_options.legend_use_point_style = !this.next_update_options.legend_use_point_style;
+
+        await this.throttled_update_options();
+    }
+
+    private async update_colors() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+        this.next_update_options.bg_color_1 = this.bg_color_1;
+        this.next_update_options.border_color_1 = this.border_color_1;
+        this.next_update_options.bg_color = this.bg_color;
+        this.next_update_options.legend_font_color = this.legend_font_color;
+        this.next_update_options.title_font_color = this.title_font_color;
+        await this.throttled_update_options();
+    }
+
+    private async change_custom_filter_1(field_id: string, custom_filter: string) {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+        this.custom_filter_names_1[field_id] = custom_filter;
+        this.next_update_options.filter_custom_field_filters_1 = this.custom_filter_names_1;
+        await this.throttled_update_options();
+    }
+
+
+    private async change_custom_filter_dimension(custom_filter: string) {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+        this.dimension_custom_filter_name = custom_filter;
+        this.next_update_options.dimension_custom_filter_name = this.dimension_custom_filter_name;
+        await this.throttled_update_options();
+    }
+
+    private reload_options() {
+        if (!this.page_widget) {
+            this.widget_options = null;
+        } else {
+
+            let options: VarChoroplethChartWidgetOptions = null;
+            try {
+                if (this.page_widget.json_options) {
+                    options = JSON.parse(this.page_widget.json_options) as VarChoroplethChartWidgetOptions;
+                    if (this.widget_options &&
+                        (this.widget_options.var_id_1 == options.var_id_1) &&
+                        (this.widget_options.dimension_custom_filter_name == options.dimension_custom_filter_name) &&
+                        (ObjectHandler.are_equal(this.widget_options.filter_custom_field_filters_1, options.filter_custom_field_filters_1)) &&
+
+                        (this.widget_options.legend_display == options.legend_display) &&
+                        (this.widget_options.label_display == options.label_display) &&
+                        (this.widget_options.legend_position == options.legend_position) &&
+                        (this.widget_options.bg_color_1 == options.bg_color_1) &&
+                        (this.widget_options.bg_colors == options.bg_colors) &&
+                        (this.widget_options.bg_gradient == options.bg_gradient) &&
+                        (this.widget_options.border_color_1 == options.border_color_1) &&
+                        (this.widget_options.color_palette == options.color_palette) &&
+                        (this.widget_options.bg_color == options.bg_color) &&
+                        (this.widget_options.legend_font_color == options.legend_font_color) &&
+                        (this.widget_options.title_font_color == options.title_font_color) &&
+                        (this.widget_options.legend_font_size == options.legend_font_size) &&
+                        (this.widget_options.legend_box_width == options.legend_box_width) &&
+                        (this.widget_options.legend_padding == options.legend_padding) &&
+                        (this.widget_options.legend_use_point_style == options.legend_use_point_style) &&
+                        (this.widget_options.title_display == options.title_display) &&
+                        (this.widget_options.title_font_size == options.title_font_size) &&
+                        (this.widget_options.title_padding == options.title_padding) &&
+                        (this.widget_options.has_dimension == options.has_dimension) &&
+                        (this.widget_options.max_dimension_values == options.max_dimension_values) &&
+                        (this.widget_options.sort_dimension_by_vo_field_ref == options.sort_dimension_by_vo_field_ref) &&
+                        (this.widget_options.sort_dimension_by_asc == options.sort_dimension_by_asc) &&
+
+                        (this.widget_options.dimension_is_vo_field_ref == options.dimension_is_vo_field_ref) &&
+                        ObjectHandler.are_equal(this.widget_options.dimension_vo_field_ref, options.dimension_vo_field_ref) &&
+                        (this.widget_options.dimension_custom_filter_name == options.dimension_custom_filter_name) &&
+                        (this.widget_options.dimension_custom_filter_segment_type == options.dimension_custom_filter_segment_type) &&
+                        (this.widget_options.border_width_1 == options.border_width_1)
+                    ) {
+                        options = null;
+                    }
+
+                    options = options ? new VarChoroplethChartWidgetOptions(
+                        options.bg_color,
+                        options.legend_display,
+                        options.label_display,
+                        options.legend_position,
+                        options.legend_font_color,
+                        options.legend_font_size,
+                        options.legend_box_width,
+                        options.legend_padding,
+                        options.legend_use_point_style,
+                        options.title_display,
+                        options.title_font_color,
+                        options.title_font_size,
+                        options.title_padding,
+                        options.has_dimension,
+                        options.max_dimension_values,
+                        options.sort_dimension_by_vo_field_ref,
+                        options.sort_dimension_by_asc,
+                        options.dimension_is_vo_field_ref,
+                        options.dimension_vo_field_ref,
+                        options.dimension_custom_filter_name,
+                        options.dimension_custom_filter_segment_type,
+                        options.filter_type,
+                        options.filter_additional_params,
+                        options.var_id_1,
+                        options.filter_custom_field_filters_1,
+                        options.color_palette,
+                        options.bg_colors,
+                        options.bg_gradient,
+                        options.bg_color_1,
+                        options.border_color_1,
+                        options.border_width_1,
+                    ) : null;
+                }
+            } catch (error) {
+                ConsoleHandler.error(error);
+            }
+
+            if ((!!options) && (!!this.page_widget.json_options)) {
+                if (!ObjectHandler.are_equal(this.widget_options, options)) {
+                    this.widget_options = options;
+                }
+            } else if ((!!this.widget_options) && !this.page_widget.json_options) {
+                this.widget_options = null;
+            }
+        }
+
+        if (!this.widget_options) {
+            this.next_update_options = null;
+
+            this.bg_color = "#f00";
+
+            this.legend_display = true;
+            this.label_display = true;
+            this.tmp_selected_legend_position = 'top';
+            this.legend_font_color = '#666';
+            this.legend_font_size = '12';
+            this.legend_box_width = '40';
+            this.legend_padding = '10';
+            this.legend_use_point_style = false;
+
+            this.title_display = false;
+            this.title_font_color = '#666';
+            this.title_font_size = '16';
+            this.title_padding = '10';
+            this.cutout_percentage = '0';
+            this.rotation = '0';
+            this.circumference = '360';
+
+            this.has_dimension = true;
+            this.max_dimension_values = '10';
+            this.sort_dimension_by_asc = true;
+            this.dimension_is_vo_field_ref = true;
+            this.dimension_custom_filter_name = null;
+            this.tmp_selected_dimension_custom_filter_segment_type = this.dimension_custom_filter_segment_types[0];
+
+            this.tmp_selected_var_name_1 = null;
+            this.custom_filter_names_1 = {};
+            this.tmp_selected_color_palette = "None";
+            this.color_palettes = null;
+            this.bg_colors = null;
+            this.bg_gradient = false;
+            this.bg_color_1 = null;
+            this.border_color_1 = null;
+            this.border_width_1 = null;
+            this.tmp_selected_var_name_2 = null;
+            this.custom_filter_names_2 = {};
+            this.bg_color_2 = null;
+            this.border_color_2 = null;
+            this.border_width_2 = null;
+            this.max_is_sum_of_var_1_and_2 = false;
+
+            return;
+        }
+
+        if (this.legend_display != this.widget_options.legend_display) {
+            this.legend_display = this.widget_options.legend_display;
+        }
+        if (this.label_display != this.widget_options.label_display) {
+            this.label_display = this.widget_options.label_display;
+        }
+        if (((!this.widget_options.legend_font_size) && this.legend_font_size) || (this.widget_options.legend_font_size && (this.legend_font_size != this.widget_options.legend_font_size.toString()))) {
+            this.legend_font_size = this.widget_options.legend_font_size ? this.widget_options.legend_font_size.toString() : null;
+        }
+        if (((!this.widget_options.legend_box_width) && this.legend_box_width) || (this.widget_options.legend_box_width && (this.legend_box_width != this.widget_options.legend_box_width.toString()))) {
+            this.legend_box_width = this.widget_options.legend_box_width ? this.widget_options.legend_box_width.toString() : null;
+        }
+        if (((!this.widget_options.legend_padding) && this.legend_padding) || (this.widget_options.legend_padding && (this.legend_padding != this.widget_options.legend_padding.toString()))) {
+            this.legend_padding = this.widget_options.legend_padding ? this.widget_options.legend_padding.toString() : null;
+        }
+        if (this.legend_use_point_style != this.widget_options.legend_use_point_style) {
+            this.legend_use_point_style = this.widget_options.legend_use_point_style;
+        }
+
+        if (this.title_display != this.widget_options.title_display) {
+            this.title_display = this.widget_options.title_display;
+        }
+        if (((!this.widget_options.title_font_size) && this.title_font_size) || (this.widget_options.title_font_size && (this.title_font_size != this.widget_options.title_font_size.toString()))) {
+            this.title_font_size = this.widget_options.title_font_size ? this.widget_options.title_font_size.toString() : null;
+        }
+        if (((!this.widget_options.title_padding) && this.title_padding) || (this.widget_options.title_padding && (this.title_padding != this.widget_options.title_padding.toString()))) {
+            this.title_padding = this.widget_options.title_padding ? this.widget_options.title_padding.toString() : null;
+        }
+
+        if (this.has_dimension != this.widget_options.has_dimension) {
+            this.has_dimension = this.widget_options.has_dimension;
+        }
+        if (((!this.widget_options.max_dimension_values) && this.max_dimension_values) || (this.widget_options.max_dimension_values && (this.max_dimension_values != this.widget_options.max_dimension_values.toString()))) {
+            this.max_dimension_values = this.widget_options.max_dimension_values ? this.widget_options.max_dimension_values.toString() : null;
+        }
+        if (this.sort_dimension_by_asc != this.widget_options.sort_dimension_by_asc) {
+            this.sort_dimension_by_asc = this.widget_options.sort_dimension_by_asc;
+        }
+        if (this.dimension_is_vo_field_ref != this.widget_options.dimension_is_vo_field_ref) {
+            this.dimension_is_vo_field_ref = this.widget_options.dimension_is_vo_field_ref;
+        }
+        if (this.dimension_custom_filter_name != this.widget_options.dimension_custom_filter_name) {
+            this.dimension_custom_filter_name = this.widget_options.dimension_custom_filter_name;
+        }
+
+        if (((!this.widget_options.border_width_1) && this.border_width_1) || (this.widget_options.border_width_1 && (this.border_width_1 != this.widget_options.border_width_1.toString()))) {
+            this.border_width_1 = this.widget_options.border_width_1 ? this.widget_options.border_width_1.toString() : null;
+        }
+
+        if (this.tmp_selected_legend_position != this.widget_options.legend_position) {
+            this.tmp_selected_legend_position = this.widget_options.legend_position;
+        }
+        if (this.get_dimension_custom_filter_segment_type_from_selected_option(this.tmp_selected_dimension_custom_filter_segment_type) != this.widget_options.dimension_custom_filter_segment_type) {
+            this.tmp_selected_dimension_custom_filter_segment_type = this.dimension_custom_filter_segment_types[this.widget_options.dimension_custom_filter_segment_type];
+        }
+
+        if (this.tmp_selected_var_name_1 != (this.widget_options.var_id_1 + ' | ' + this.t(VarsController.get_translatable_name_code_by_var_id(this.widget_options.var_id_1)))) {
+            this.tmp_selected_var_name_1 = this.widget_options.var_id_1 + ' | ' + this.t(VarsController.get_translatable_name_code_by_var_id(this.widget_options.var_id_1));
+        }
+
+        if (this.custom_filter_names_1 != (this.widget_options.filter_custom_field_filters_1 ? cloneDeep(this.widget_options.filter_custom_field_filters_1) : {})) {
+            this.custom_filter_names_1 = this.widget_options.filter_custom_field_filters_1 ? cloneDeep(this.widget_options.filter_custom_field_filters_1) : {};
+        }
+
+        if (this.dimension_custom_filter_name != this.widget_options.dimension_custom_filter_name) {
+            this.dimension_custom_filter_name = this.widget_options.dimension_custom_filter_name;
+        }
+        if (this.tmp_selected_color_palette != this.color_palettes_labels[this.searchIndexOfArray(this.widget_options.color_palette, this.color_palettes)]) {
+            this.tmp_selected_color_palette = this.color_palettes_labels[this.searchIndexOfArray(this.widget_options.color_palette, this.color_palettes)];
+        }
+        if (this.bg_colors != this.widget_options.bg_colors) {
+            this.bg_colors = this.widget_options.bg_colors;
+        }
+        if (this.bg_gradient != this.widget_options.bg_gradient) {
+            this.bg_gradient = this.widget_options.bg_gradient;
+        }
+        if (this.bg_color_1 != this.widget_options.bg_color_1) {
+            this.bg_color_1 = this.widget_options.bg_color_1;
+        }
+
+        if (this.border_color_1 != this.widget_options.border_color_1) {
+            this.border_color_1 = this.widget_options.border_color_1;
+        }
+
+        if (this.bg_color != this.widget_options.bg_color) {
+            this.bg_color = this.widget_options.bg_color;
+        }
+        if (this.legend_font_color != this.widget_options.legend_font_color) {
+            this.legend_font_color = this.widget_options.legend_font_color;
+        }
+        if (this.title_font_color != this.widget_options.title_font_color) {
+            this.title_font_color = this.widget_options.title_font_color;
+        }
+
+        if (this.next_update_options != this.widget_options) {
+            this.next_update_options = this.widget_options;
+        }
+    }
+
+    private get_dimension_custom_filter_segment_type_from_selected_option(selected_option: string): number {
+        if (this.dimension_custom_filter_segment_types) {
+            for (const key in Object.keys(this.dimension_custom_filter_segment_types)) {
+                if (this.dimension_custom_filter_segment_types[Object.keys(this.dimension_custom_filter_segment_types)[key]] == selected_option) {
+                    const res = parseInt(Object.keys(this.dimension_custom_filter_segment_types)[key]);
+                    return res >= 0 ? res : null;
+                }
+            }
+            return null;
+        }
+    }
+
+    private searchIndexOfArray(target: any, source: any): number {
+        for (let i = 0; i <= source.length; i++) {
+            if (JSON.stringify(target) === JSON.stringify(source[i])) {
+                return i;
+            }
+        }
+        return -1;
     }
 
 

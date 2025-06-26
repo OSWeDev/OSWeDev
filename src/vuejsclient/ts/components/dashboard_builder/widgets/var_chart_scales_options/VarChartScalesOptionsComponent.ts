@@ -9,6 +9,8 @@ import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 
 import './VarChartScalesOptionsComponent.scss';
 import InlineTranslatableText from '../../../InlineTranslatableText/InlineTranslatableText';
+import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
+import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 
 @Component({
     template: require('./VarChartScalesOptionsComponent.pug'),
@@ -29,7 +31,7 @@ export default class VarChartScalesOptionsComponent extends VueComponentBase {
     private detailed!: boolean;  // si on a un affichage "détaillé"
 
     @Prop({ default: null })
-    private page_widget_id!: number;
+    private page_widget!: DashboardPageWidgetVO;
 
     // --------------------------------------------------------------------------
     // Données internes
@@ -263,20 +265,6 @@ export default class VarChartScalesOptionsComponent extends VueComponentBase {
                 this.isAllOpen = true;
             }
         }
-    }
-
-    /**
-     * Renvoie le titre d'une échelle
-     */
-    private getScaleTitle(scale: VarChartScalesOptionsVO, index: number): string {
-        const so = new VarChartScalesOptionsVO().from(scale);
-        const chartId = so.chart_id != null ? so.chart_id : (1000 + index);
-        const codeText = so.get_title_name_code_text(this.page_widget_id, chartId);
-        const translation = this.t(codeText);
-        if (translation && translation !== codeText) {
-            return translation;
-        }
-        return `Ordonnée #${index + 1}`;
     }
 
     /**

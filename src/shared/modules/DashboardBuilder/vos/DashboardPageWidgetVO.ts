@@ -70,6 +70,21 @@ export default class DashboardPageWidgetVO extends AbstractVO implements IDistan
     public var_10_titre: string;
     public var_11_titre: string;
     public var_12_titre: string;
+
+    // Idem pour les scales : x == scale_1_title, y == scale_2_title, ...
+    public scale_1_title: string;
+    public scale_2_title: string;
+    public scale_3_title: string;
+    public scale_4_title: string;
+    public scale_5_title: string;
+    public scale_6_title: string;
+    public scale_7_title: string;
+    public scale_8_title: string;
+    public scale_9_title: string;
+    public scale_10_title: string;
+    public scale_11_title: string;
+    public scale_12_title: string;
+
     /**
      * !TODO FIXME : DELETE ME dès que possible
      */
