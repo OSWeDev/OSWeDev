@@ -22,7 +22,7 @@ include ../../../../../views/mixins/loading.pug
                                     :internal-search="false"
                                     :hide-selected="false"
 
-                                    :key="'advanced_string_filter_type' + vo_field_ref.api_type_id + '__' + vo_field_ref.field_id + '__' + i"
+                                    :key="'advanced_string_filter_type' + vo_field_ref.api_type_id + '__' + vo_field_ref.field_id"
 
                                     :select-label='label("multiselect.selectLabel")'
                                     :select-group-label='label("multiselect.selectGroupLabel")'
@@ -40,5 +40,32 @@ include ../../../../../views/mixins/loading.pug
                             )
 
                         template(v-if="!autovalidate_advanced_filter || active_field_on_autovalidate_advanced_filter")
-                            .advanced_string_filter_validate_filter(v-tooltip.top='label("advanced_filters.validate")' @click='validate_advanced_string_filter' :class='{"disabled": !is_advanced_filter_valid}')
+                            .advanced_string_filter_validate_filter(v-tooltip.top='label("advanced_filters.validate")' @click='validate_advanced_string_filter')
                                 i.fa-duotone.fa-check-circle.fa-lg.btn_icon
+
+                template(v-if='is_loading_options')
+                    i.loadingspinner.fa.fa-spinner.fa-spin(aria-hidden="true")
+                template(v-else)
+                    .context_active_string_filter_options
+                        multiselect(
+                            :preselect-first="false"
+                            :multiple="false"
+                            :close-on-select="true"
+                            v-model="tmp_context_active_string_filter"
+                            :options="context_active_string_filter_options"
+                            :custom-label="context_active_string_filter_label"
+                            autocomplete="off"
+                            :show-labels="false"
+                            :searchable="false"
+                            :internal-search="false"
+                            :hide-selected="false"
+
+                            :key="'context_active_string_filter_options' + vo_field_ref.api_type_id + '__' + vo_field_ref.field_id"
+
+                            :select-label='label("multiselect.selectLabel")'
+                            :select-group-label='label("multiselect.selectGroupLabel")'
+                            :selected-label='label("multiselect.selectedLabel")'
+                            :deselect-label='label("multiselect.deselectLabel")'
+                            :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                            @input="onchange_context_active_string_filter"
+                        )

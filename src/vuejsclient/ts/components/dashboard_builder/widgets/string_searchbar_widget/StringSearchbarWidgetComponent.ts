@@ -83,10 +83,13 @@ export default class StringSearchbarWidgetComponent extends VueComponentBase {
     private dashboard_page: DashboardPageVO;
 
     private filter_visible_options: DataFilterOption[] = [];
+    private tmp_context_active_string_filter: DataFilterOption = null;
+    private context_active_string_filter_options: DataFilterOption[] = [];
     private advanced_string_filter: AdvancedStringFilter = new AdvancedStringFilter();
 
     private actual_query: string = null;
 
+    private is_loading_options: boolean = false;
     private is_init: boolean = false;
     private old_widget_options: StringSearchbarWidgetOptions = null;
 
@@ -264,6 +267,11 @@ export default class StringSearchbarWidgetComponent extends VueComponentBase {
         this.throttled_update_visible_options();
     }
 
+    @Watch('tmp_context_active_string_filter', { deep: true })
+    private onchange_context_active_string_filter(): void {
+        this.validate_context_active_string_filter();
+    }
+
     private throttled_update_visible_options = (timeout: number = 300) => (ThrottleHelper.declare_throttle_without_args(
         'StringSearchbarWidgetComponent.throttled_update_visible_options',
         this.update_visible_options.bind(this), timeout, false))();
@@ -283,61 +291,44 @@ export default class StringSearchbarWidgetComponent extends VueComponentBase {
         return null;
     }
 
-    //     const context_active_filter_options: ContextFilterVO[] = [];
+    private context_active_string_filter_label(dfo: DataFilterOption): string {
+        return dfo.label;
+    }
 
-    //     const moduletable = ModuleTableController.module_tables_by_vo_type[this.vo_field_ref.api_type_id];
-    //     const field = moduletable.get_field_by_id(this.vo_field_ref.field_id);
+    private validate_context_active_string_filter() {
 
-    //         let tmp_context_filter: ContextFilterVO = null;
+        const moduletable = ModuleTableController.module_tables_by_vo_type[this.vo_field_ref.api_type_id];
+        const field = moduletable.get_field_by_id(this.vo_field_ref.field_id);
 
-    // if (this.advanced_string_filter) {
+        let tmp_context_filter: ContextFilterVO = new ContextFilterVO();
+        let new_advanced_string_filter: AdvancedStringFilter = new AdvancedStringFilter();
+        new_advanced_string_filter.filter_content = this.tmp_context_active_string_filter.label;
+        new_advanced_string_filter.filter_type = this.advanced_string_filter.filter_type;
+        new_advanced_string_filter.link_type = this.advanced_string_filter.link_type;
 
-    //     tmp_context_filter = this.get_advanced_string_filter(
-    //         tmp_context_filter,
-    //         this.advanced_string_filter,
-    //         field,
-    //         this.vo_field_ref,
-    //     );
-    // }
+        if (this.advanced_string_filter) {
 
-    // // if (tmp_context_filter) {
-    // //     context_active_filter_options.push(tmp_context_filter);
-    // // }
+            tmp_context_filter = this.get_advanced_string_filter(
+                tmp_context_filter,
+                new_advanced_string_filter,
+                field,
+                this.vo_field_ref,
+            );
+        }
 
-    // if (this.vo_field_ref_multiple?.length > 0) {
-    //     // Case when we have a search from multiple vos api_type_id
-    //     // We need to create a context_filter for each of those
-    //     for (const j in this.vo_field_ref_multiple) {
-    //         const vo_field_ref_multiple = this.vo_field_ref_multiple[j];
+        if (tmp_context_filter) {
+            this.set_active_field_filter({
+                field_id: this.vo_field_ref.field_id,
+                vo_type: this.vo_field_ref.api_type_id,
+                active_field_filter: tmp_context_filter,
+            });
+        }
 
-    //         const moduletable_multiple = ModuleTableController.module_tables_by_vo_type[vo_field_ref_multiple.api_type_id];
-    //         const field_multiple = moduletable_multiple.get_field_by_id(vo_field_ref_multiple.field_id);
+        this.is_loading_options = false;
 
-    //         let advanced_context_filter: ContextFilterVO = null;
+        this.throttled_update_visible_options();
+    }
 
-    //         if (this.advanced_string_filter) {
-
-    //             advanced_context_filter = this.get_advanced_string_filter(
-    //                 tmp_context_filter,
-    //                 this.advanced_string_filter,
-    //                 field_multiple,
-    //                 vo_field_ref_multiple,
-    //             );
-    //         }
-
-    //         if (advanced_context_filter) {
-    //             context_active_filter_options.push(advanced_context_filter);
-    //         }
-    //     }
-    // }
-
-    // if (context_active_filter_options.length > 0) {
-    //     this.set_active_field_filter({
-    //         field_id: this.vo_field_ref.field_id,
-    //         vo_type: this.vo_field_ref.api_type_id,
-    //         active_field_filter: ContextFilterVO.or(context_active_filter_options),
-    //     });
-    // }
     private async validate_advanced_string_filter() {
         /**
          * À la validation de l'advanced_string_filter, on va parcourir les multiples.
@@ -349,20 +340,38 @@ export default class StringSearchbarWidgetComponent extends VueComponentBase {
             return;
         }
 
+        this.is_loading_options = true;
+
         // P-e qu'il faut remove l'active du vo_field_ref à ce moment là ??
 
         if (this.vo_field_ref_multiple?.length > 0) {
 
+            let multiple_res: any[] = [];
             for (const i in this.vo_field_ref_multiple) {
                 const vo_field_ref_multiple = this.vo_field_ref_multiple[i];
 
                 const moduletable = ModuleTableController.module_tables_by_vo_type[vo_field_ref_multiple.api_type_id];
                 const field = moduletable.get_field_by_id(vo_field_ref_multiple.field_id);
 
-                let query_: ContextQueryVO = await query(this.vo_field_ref.api_type_id);
+                let query_: ContextQueryVO = await query(this.vo_field_ref.api_type_id)
+                    .field(this.vo_field_ref.field_id);
                 query_ = this.apply_filter_from_AdvancedStringFilter(this.advanced_string_filter, field, vo_field_ref_multiple, query_);
-                // TODO
+
+                // On reçoit un résultat du type {<field_id>: <value>}
+                const rows: any[] = await query_.select_all();
+                const values = rows.map((row) => Object.values(row)[0]);
+                // On insère dans multiple_res que les values
+                multiple_res.push(...values);
             }
+
+            // On va supprimer les doublons
+            multiple_res = multiple_res.filter((value, index, self) => self.indexOf(value) === index);
+            // On va trier les valeurs par ordre alphabétique
+            multiple_res.sort((a, b) => a.localeCompare(b));
+            // On va créer un DataFilterOption pour chaque valeur
+            this.context_active_string_filter_options = multiple_res.map((value, index) => this.createDataFilter(value, index));
+
+            this.tmp_context_active_string_filter = this.context_active_string_filter_options.length > 0 ? this.context_active_string_filter_options[0] : null;
 
         } else {
 
@@ -388,6 +397,8 @@ export default class StringSearchbarWidgetComponent extends VueComponentBase {
                     active_field_filter: context_active_filter,
                 });
             }
+
+            this.is_loading_options = false;
         }
     }
 
@@ -633,16 +644,16 @@ export default class StringSearchbarWidgetComponent extends VueComponentBase {
 
                 switch (advanced_filter.filter_type) {
                     case AdvancedStringFilter.FILTER_TYPE_COMMENCE:
-                        query_ = query_.filter_by_text_starting_with(vo_field_ref.field_id, vo_field_ref.api_type_id);
+                        query_ = query_.filter_by_text_starting_with(vo_field_ref.field_id, advanced_filter.filter_content, vo_field_ref.api_type_id);
                         break;
                     case AdvancedStringFilter.FILTER_TYPE_CONTIENT:
-                        query_ = query_.filter_by_text_including(vo_field_ref.field_id, vo_field_ref.api_type_id);
+                        query_ = query_.filter_by_text_including(vo_field_ref.field_id, advanced_filter.filter_content, vo_field_ref.api_type_id);
                         break;
                     case AdvancedStringFilter.FILTER_TYPE_EST:
-                        query_ = query_.filter_by_text_has(vo_field_ref.field_id, vo_field_ref.api_type_id);
+                        query_ = query_.filter_by_text_has(vo_field_ref.field_id, advanced_filter.filter_content, vo_field_ref.api_type_id);
                         break;
                     case AdvancedStringFilter.FILTER_TYPE_NEST_PAS:
-                        query_ = query_.filter_by_text_has_none(vo_field_ref.field_id, vo_field_ref.api_type_id);
+                        query_ = query_.filter_by_text_has_none(vo_field_ref.field_id, advanced_filter.filter_content, vo_field_ref.api_type_id);
                         break;
                     case AdvancedStringFilter.FILTER_TYPE_EST_NULL:
                         query_ = query_.filter_is_null(vo_field_ref.field_id, vo_field_ref.api_type_id);
@@ -657,7 +668,7 @@ export default class StringSearchbarWidgetComponent extends VueComponentBase {
                         query_ = query_.filter_by_text_not_eq(vo_field_ref.field_id, "", vo_field_ref.api_type_id);
                         break;
                     case AdvancedStringFilter.FILTER_TYPE_REGEXP:
-                        query_ = query_.filter_by_reg_exp(vo_field_ref.field_id, vo_field_ref.api_type_id);
+                        query_ = query_.filter_by_reg_exp(vo_field_ref.field_id, advanced_filter.filter_content, vo_field_ref.api_type_id);
                         break;
                 }
                 break;
