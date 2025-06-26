@@ -1,6 +1,5 @@
-import IExportableWidgetOptions from "../../IExportableWidgetOptions";
 
-export default class PageSwitchWidgetOptions implements IExportableWidgetOptions {
+export default class PageSwitchWidgetOptions {
 
     public static TITLE_CODE_PREFIX: string = "PageSwitchWidgetOptions.title.";
 

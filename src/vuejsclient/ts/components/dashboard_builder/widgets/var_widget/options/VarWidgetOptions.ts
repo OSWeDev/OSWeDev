@@ -1,5 +1,4 @@
 import DashboardPageWidgetVO from "../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO";
-import IExportableWidgetOptions from "../../IExportableWidgetOptions";
 
 /**
  * IVarWidgetOptionsProps
@@ -14,7 +13,7 @@ export interface IVarWidgetOptionsProps {
     fg_color_text?: string;
 }
 
-export default class VarWidgetOptions implements IExportableWidgetOptions {
+export default class VarWidgetOptions {
 
     public static TITLE_CODE_PREFIX: string = "VarWidgetOptions.title.";
 

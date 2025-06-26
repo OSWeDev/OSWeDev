@@ -1,7 +1,6 @@
 import DashboardPageWidgetVO from "../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO";
 import VOFieldRefVO from "../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO";
 import TimeSegment from "../../../../../../../shared/modules/DataRender/vos/TimeSegment";
-import IExportableWidgetOptions from "../../IExportableWidgetOptions";
 
 /**
  * On va gérer 2 types de paramétrages :
@@ -11,7 +10,7 @@ import IExportableWidgetOptions from "../../IExportableWidgetOptions";
  *  - Soit 2 vars sans dimension :
  *      - exemple on veut un donut à 50% de circonférence et on compare la part de la var 1 dans le max == var 2 (ou max = var 1 + var 2)
  */
-export default class VarChoroplethChartWidgetOptions implements IExportableWidgetOptions {
+export default class VarChoroplethChartWidgetOptions {
 
     public static TITLE_CODE_PREFIX: string = "VarChoroplethChartWidgetOptions.title.";
 

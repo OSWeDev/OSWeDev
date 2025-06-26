@@ -1,7 +1,6 @@
 import AbstractVO from "../../../../../../../shared/modules/VO/abstract/AbstractVO";
-import IExportableWidgetOptions from "../../IExportableWidgetOptions";
 
-export default class ValidationFiltersWidgetOptions extends AbstractVO implements IExportableWidgetOptions {
+export default class ValidationFiltersWidgetOptions extends AbstractVO {
 
     public static TITLE_CODE_PREFIX: string = "ValidationFiltersWidgetOptions.title.";
 
