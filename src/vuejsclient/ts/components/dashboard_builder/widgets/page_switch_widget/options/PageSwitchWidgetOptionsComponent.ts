@@ -59,6 +59,37 @@ export default class PageSwitchWidgetOptionsComponent extends VueComponentBase {
         return res;
     }
 
+    get default_title_translation(): string {
+        if (!this.widget_options) {
+            return null;
+        }
+
+        if (!this.widget_options.page_id) {
+            return null;
+        }
+
+        const page = this.dashboard_pages.find((p) => p.id == this.widget_options.page_id);
+        return this.t(page.titre_page);
+    }
+
+    get widget_options(): PageSwitchWidgetOptions {
+        if (!this.page_widget) {
+            return null;
+        }
+
+        let options: PageSwitchWidgetOptions = null;
+        try {
+            if (this.page_widget.json_options) {
+                options = JSON.parse(this.page_widget.json_options) as PageSwitchWidgetOptions;
+                options = options ? new PageSwitchWidgetOptions(options.page_id) : null;
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+
+        return options;
+    }
+
     @Watch('widget_options', { immediate: true })
     private onchange_widget_options() {
         if ((!this.widget_options) || (!this.widget_options.page_id)) {
@@ -122,44 +153,5 @@ export default class PageSwitchWidgetOptionsComponent extends VueComponentBase {
 
         this.set_page_widget(this.page_widget);
         this.$emit('update_layout_widget', this.page_widget);
-    }
-
-    get title_name_code_text(): string {
-        if (!this.widget_options) {
-            return null;
-        }
-
-        return this.widget_options.get_title_name_code_text(this.page_widget.id);
-    }
-
-    get default_title_translation(): string {
-        if (!this.widget_options) {
-            return null;
-        }
-
-        if (!this.widget_options.page_id) {
-            return null;
-        }
-
-        const page = this.dashboard_pages.find((p) => p.id == this.widget_options.page_id);
-        return this.t(page.titre_page);
-    }
-
-    get widget_options(): PageSwitchWidgetOptions {
-        if (!this.page_widget) {
-            return null;
-        }
-
-        let options: PageSwitchWidgetOptions = null;
-        try {
-            if (this.page_widget.json_options) {
-                options = JSON.parse(this.page_widget.json_options) as PageSwitchWidgetOptions;
-                options = options ? new PageSwitchWidgetOptions(options.page_id) : null;
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-
-        return options;
     }
 }

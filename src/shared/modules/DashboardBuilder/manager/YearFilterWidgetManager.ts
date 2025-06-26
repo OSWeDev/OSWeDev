@@ -236,6 +236,7 @@ export default class YearFilterWidgetManager {
      */
     public static async get_year_filters_widgets_options_metadata(
         dashboard_page_id: number,
+        page_widget: DashboardPageWidgetVO,
     ): Promise<
         {
             [title_name_code: string]: { widget_options: YearFilterWidgetOptionsVO, widget_name: string, dashboard_page_id: number, page_widget_id: number }
@@ -254,7 +255,7 @@ export default class YearFilterWidgetManager {
             const options = year_page_widgets[key];
 
             const widget_options = new YearFilterWidgetOptionsVO().from(options.widget_options);
-            const name = widget_options.get_placeholder_name_code_text(options.page_widget_id);
+            const name = page_widget.placeholder;
 
             res[name] = {
                 dashboard_page_id: options.dashboard_page_id,

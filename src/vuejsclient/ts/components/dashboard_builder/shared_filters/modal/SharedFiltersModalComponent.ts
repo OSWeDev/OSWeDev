@@ -71,6 +71,168 @@ export default class SharedFiltersModalComponent extends VueComponentBase {
     );
 
     /**
+     * Get Selectionnable Readable Field Filters
+     * - Get readable field filters that are selectionnable
+     */
+    get selectionnable_readable_field_filters(): { [label: string]: IReadableFieldFilters } {
+        const selectionnable_field_filters = cloneDeep(this.selectionnable_field_filters);
+        const readable_field_filters: { [label: string]: IReadableFieldFilters } = {};
+
+        if (!this.selectionnable_field_filters) {
+            return readable_field_filters;
+        }
+
+        for (const api_type_id in selectionnable_field_filters) {
+            const field_filters = selectionnable_field_filters[api_type_id];
+
+            for (const field_id in field_filters) {
+                const readable_field_filter = Object.values(this.readable_field_filters).find((_readable_field_filter) => {
+                    const vo_field_ref = _readable_field_filter.vo_field_ref;
+
+                    const has_api_type_id = (vo_field_ref.api_type_id == api_type_id);
+                    const has_field_id = (vo_field_ref.field_id == field_id);
+
+                    return has_api_type_id && has_field_id;
+                });
+
+                if (!readable_field_filter) {
+                    continue;
+                }
+
+                readable_field_filters[readable_field_filter.label] = readable_field_filter;
+            }
+        }
+
+        return ObjectHandler.sort_by_key(readable_field_filters);
+    }
+
+    /**
+     * Get base_filter
+     */
+    get base_filter(): string {
+        return 'filter_opt_';
+    }
+
+    /**
+     * Watch on selectionnable_field_filters
+     *  - Happen on component each time selectionnable_field_filters changes
+     *  - Load readable_field_filters
+     */
+    @Watch('selectionnable_field_filters', { immediate: true })
+    private onchange_selectionnable_field_filters(): void {
+        this.init_selectionnable_field_filters();
+    }
+
+    /**
+     * Watch on selectionnable_dashboards changes
+     *  - Happen on component each time selectionnable_dashboards changes
+     *  - Set selected_dashboards_shared_with if selected_shared_with_dashboard_ids_numranges is not empty
+     */
+    @Watch('selectionnable_dashboards', { immediate: true })
+    private onchange_selectionnable_dashboards(): void {
+
+        if (this.selected_shared_with_dashboard_ids_numranges?.length > 0) {
+            this.selected_dashboards_shared_with = this.selectionnable_dashboards.filter((dashboard) => {
+                let has_dashboard_id = false;
+
+                RangeHandler.foreach_ranges_sync(this.selected_shared_with_dashboard_ids_numranges, (dashboard_id: number) => {
+                    if (dashboard_id == dashboard.id) {
+                        has_dashboard_id = true;
+                    }
+                });
+
+                return has_dashboard_id;
+            });
+        }
+
+        if (this.selected_shared_from_dashboard_ids_numranges?.length > 0) {
+            this.selected_dashboards_shared_from = this.selectionnable_dashboards.filter((dashboard) => {
+                let has_dashboard_id = false;
+
+                RangeHandler.foreach_ranges_sync(this.selected_shared_from_dashboard_ids_numranges, (dashboard_id: number) => {
+                    if (dashboard_id == dashboard.id) {
+                        has_dashboard_id = true;
+                    }
+                });
+
+                return has_dashboard_id;
+            });
+        }
+    }
+
+    /**
+     * Watch on selected_dashboards_shared_with changes
+     *  - Happen on component each time selected_dashboards_shared_with changes
+     *  - Load dashboard_pages
+     */
+    @Watch('selected_dashboards_shared_with', { immediate: true })
+    private async onchange_selected_dashboards_shared_with(): Promise<void> {
+        const selected_dashboards_shared_with_ids = this.selected_dashboards_shared_with.map(
+            (dashboard) => dashboard.id
+        );
+
+        this.selected_shared_with_dashboard_ids_numranges = RangeHandler.get_ids_ranges_from_list(
+            [...selected_dashboards_shared_with_ids, this.dashboard_id]
+        );
+
+        if (this.shared_filters?.id) {
+            this.selected_field_filters = this.shared_filters?.field_filters_to_share;
+        }
+
+        await this.load_all_selected_dashboards_default_field_filters('shared_with');
+
+        this.init_selectionnable_field_filters();
+    }
+
+    /**
+     * Watch on selected_dashboards_shared_from changes
+     *  - Happen on component each time selected_dashboards_shared_from changes
+     *  - Load dashboard_pages
+     */
+    @Watch('selected_dashboards_shared_from', { immediate: true })
+    private async onchange_selected_dashboards_shared_from(): Promise<void> {
+        const selected_dashboards_shared_from_ids = this.selected_dashboards_shared_from.map(
+            (dashboard) => dashboard.id
+        );
+
+        this.selected_shared_from_dashboard_ids_numranges = RangeHandler.get_ids_ranges_from_list(
+            [...selected_dashboards_shared_from_ids, this.dashboard_id]
+        );
+
+        if (this.shared_filters?.id) {
+            this.selected_field_filters = this.shared_filters?.field_filters_to_share;
+        }
+
+        await this.load_all_selected_dashboards_default_field_filters('shared_from');
+
+        this.init_selectionnable_field_filters();
+    }
+
+    /**
+     * Watch on is_modal_open
+     *  - Happen on component each time is_modal_open changes
+     *field_filtersfield_filters
+     * @returns {void}
+     */
+    @Watch('is_modal_open', { immediate: true, deep: true })
+    private is_modal_open_watcher(): void {
+        this.handle_modal_state();
+    }
+
+    @Watch('active_tab_view', { immediate: true })
+    private async update_selectable_filters() {
+        // c'est quand on arrive sur l'onglet 'field_filters_selection_tab' qu'on doit mettre à jour les filtres selectionnables
+        //  en fonction des DBs sélectionnés dans l'onglet 1
+        //  et si on a une incohérence avec la conf actuelle (un filtre selectionné qui n'est pas selectionnable dans toutes les DBs)
+        //  on doit le déselectionner ou le supprimer de la liste des filtres selectionnables
+        if (this.active_tab_view != 'field_filters_selection_tab') {
+            return;
+        }
+
+        await this.update_selectionnable_field_filters();
+    }
+
+    /**
      * Open Modal For Creation
      *  - Open modal to create a new shared_filters
      *
@@ -189,112 +351,6 @@ export default class SharedFiltersModalComponent extends VueComponentBase {
                 });
             }
         });
-    }
-
-    /**
-     * Watch on selectionnable_field_filters
-     *  - Happen on component each time selectionnable_field_filters changes
-     *  - Load readable_field_filters
-     */
-    @Watch('selectionnable_field_filters', { immediate: true })
-    private onchange_selectionnable_field_filters(): void {
-        this.init_selectionnable_field_filters();
-    }
-
-    /**
-     * Watch on selectionnable_dashboards changes
-     *  - Happen on component each time selectionnable_dashboards changes
-     *  - Set selected_dashboards_shared_with if selected_shared_with_dashboard_ids_numranges is not empty
-     */
-    @Watch('selectionnable_dashboards', { immediate: true })
-    private onchange_selectionnable_dashboards(): void {
-
-        if (this.selected_shared_with_dashboard_ids_numranges?.length > 0) {
-            this.selected_dashboards_shared_with = this.selectionnable_dashboards.filter((dashboard) => {
-                let has_dashboard_id = false;
-
-                RangeHandler.foreach_ranges_sync(this.selected_shared_with_dashboard_ids_numranges, (dashboard_id: number) => {
-                    if (dashboard_id == dashboard.id) {
-                        has_dashboard_id = true;
-                    }
-                });
-
-                return has_dashboard_id;
-            });
-        }
-
-        if (this.selected_shared_from_dashboard_ids_numranges?.length > 0) {
-            this.selected_dashboards_shared_from = this.selectionnable_dashboards.filter((dashboard) => {
-                let has_dashboard_id = false;
-
-                RangeHandler.foreach_ranges_sync(this.selected_shared_from_dashboard_ids_numranges, (dashboard_id: number) => {
-                    if (dashboard_id == dashboard.id) {
-                        has_dashboard_id = true;
-                    }
-                });
-
-                return has_dashboard_id;
-            });
-        }
-    }
-
-    /**
-     * Watch on selected_dashboards_shared_with changes
-     *  - Happen on component each time selected_dashboards_shared_with changes
-     *  - Load dashboard_pages
-     */
-    @Watch('selected_dashboards_shared_with', { immediate: true })
-    private async onchange_selected_dashboards_shared_with(): Promise<void> {
-        const selected_dashboards_shared_with_ids = this.selected_dashboards_shared_with.map(
-            (dashboard) => dashboard.id
-        );
-
-        this.selected_shared_with_dashboard_ids_numranges = RangeHandler.get_ids_ranges_from_list(
-            [...selected_dashboards_shared_with_ids, this.dashboard_id]
-        );
-
-        if (this.shared_filters?.id) {
-            this.selected_field_filters = this.shared_filters?.field_filters_to_share;
-        }
-
-        await this.load_all_selected_dashboards_default_field_filters('shared_with');
-
-        this.init_selectionnable_field_filters();
-    }
-
-    /**
-     * Watch on selected_dashboards_shared_from changes
-     *  - Happen on component each time selected_dashboards_shared_from changes
-     *  - Load dashboard_pages
-     */
-    @Watch('selected_dashboards_shared_from', { immediate: true })
-    private async onchange_selected_dashboards_shared_from(): Promise<void> {
-        const selected_dashboards_shared_from_ids = this.selected_dashboards_shared_from.map(
-            (dashboard) => dashboard.id
-        );
-
-        this.selected_shared_from_dashboard_ids_numranges = RangeHandler.get_ids_ranges_from_list(
-            [...selected_dashboards_shared_from_ids, this.dashboard_id]
-        );
-
-        if (this.shared_filters?.id) {
-            this.selected_field_filters = this.shared_filters?.field_filters_to_share;
-        }
-
-        await this.load_all_selected_dashboards_default_field_filters('shared_from');
-
-        this.init_selectionnable_field_filters();
-    }
-
-    /**
-     * Watch on is_modal_open
-     *  - Happen on component each time is_modal_open changes
-     *field_filtersfield_filters
-     * @returns {void}
-     */
-    @Watch('is_modal_open', { immediate: true, deep: true })
-    private is_modal_open_watcher(): void {
-        this.handle_modal_state();
     }
 
     /**
@@ -662,19 +718,6 @@ export default class SharedFiltersModalComponent extends VueComponentBase {
         this.throttled_load_selectionnable_dashboards_options();
     }
 
-    @Watch('active_tab_view', { immediate: true })
-    private async update_selectable_filters() {
-        // c'est quand on arrive sur l'onglet 'field_filters_selection_tab' qu'on doit mettre à jour les filtres selectionnables
-        //  en fonction des DBs sélectionnés dans l'onglet 1
-        //  et si on a une incohérence avec la conf actuelle (un filtre selectionné qui n'est pas selectionnable dans toutes les DBs)
-        //  on doit le déselectionner ou le supprimer de la liste des filtres selectionnables
-        if (this.active_tab_view != 'field_filters_selection_tab') {
-            return;
-        }
-
-        await this.update_selectionnable_field_filters();
-    }
-
     /**
      * Reset Modal
      *  - Reset modal to its initial state
@@ -889,64 +932,5 @@ export default class SharedFiltersModalComponent extends VueComponentBase {
      */
     private set_active_tab_view(tab_view: string): void {
         this.active_tab_view = tab_view;
-    }
-
-    /**
-     * Get Translation By VO Field Ref Name Code Text
-     *
-     * @param {string} name_code_text
-     * @returns {string}
-     */
-    private get_translation_by_vo_field_ref_name_code_text(name_code_text: string): string {
-        let translation: string = LocaleManager.ALL_FLAT_LOCALE_TRANSLATIONS[name_code_text];
-
-        if (!translation) {
-            translation = name_code_text;
-        }
-
-        return translation;
-    }
-
-    /**
-     * Get Selectionnable Readable Field Filters
-     * - Get readable field filters that are selectionnable
-     */
-    get selectionnable_readable_field_filters(): { [label: string]: IReadableFieldFilters } {
-        const selectionnable_field_filters = cloneDeep(this.selectionnable_field_filters);
-        const readable_field_filters: { [label: string]: IReadableFieldFilters } = {};
-
-        if (!this.selectionnable_field_filters) {
-            return readable_field_filters;
-        }
-
-        for (const api_type_id in selectionnable_field_filters) {
-            const field_filters = selectionnable_field_filters[api_type_id];
-
-            for (const field_id in field_filters) {
-                const readable_field_filter = Object.values(this.readable_field_filters).find((_readable_field_filter) => {
-                    const vo_field_ref = _readable_field_filter.vo_field_ref;
-
-                    const has_api_type_id = (vo_field_ref.api_type_id == api_type_id);
-                    const has_field_id = (vo_field_ref.field_id == field_id);
-
-                    return has_api_type_id && has_field_id;
-                });
-
-                if (!readable_field_filter) {
-                    continue;
-                }
-
-                readable_field_filters[readable_field_filter.label] = readable_field_filter;
-            }
-        }
-
-        return ObjectHandler.sort_by_key(readable_field_filters);
-    }
-
-    /**
-     * Get base_filter
-     */
-    get base_filter(): string {
-        return 'filter_opt_';
     }
 }

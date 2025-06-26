@@ -106,11 +106,11 @@ export default class VarRadarChartWidgetComponent extends VueComponentBase {
 
     get translated_title(): string {
 
-        if (!this.widget_options) {
+        if (!this.page_widget) {
             return null;
         }
-        if (this.t(this.widget_options.get_title_name_code_text(this.page_widget.id)) != this.widget_options.get_title_name_code_text(this.page_widget.id)) {
-            return this.t(this.widget_options.get_title_name_code_text(this.page_widget.id));
+        if (this.t(this.page_widget.titre) != this.page_widget.titre) {
+            return this.t(this.page_widget.titre);
         }
 
         return 'Title';

@@ -281,7 +281,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             const options = JSON.parse(var_page_widget.json_options);
 
             const var_widget_options = new VarWidgetOptions().from(options);
-            const name = var_widget_options.get_title_name_code_text(var_page_widget.id);
+            const name = var_page_widget.titre;
 
             const conf: ExportVarcolumnConfVO = ExportVarcolumnConfVO.create_new(
                 options.var_id,
@@ -300,70 +300,6 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             varcolumn_conf
         );
     }
-    // /**
-    //  * Var Indicator
-    //  *  - All vars indicator on the actual page to be exported
-    //  *
-    //  * @return {ExportVarIndicatorVO[]}
-    //  */
-    // get vars_indicator(): ExportVarIndicatorVO[] {
-
-    //     if (!this.widget_options) {
-    //         return;
-    //     }
-    //     let res: ExportVarIndicatorVO[] = [];
-    //     let res_columns: ExportVarcolumnConfVO[] = [];
-    //     const varcolumn_conf: { [xlsx_sheet_row_code_name: string]: ExportVarcolumnConfVO }[] = [{}];
-
-    //     // Find id of widget that have type "var"
-    //     const var_widget_id = Object.values(this.widgets_by_id)?.find((e) => e.name == 'var').id;
-
-    //     // var_widget_id required to continue
-    //     if (!var_widget_id) {
-    //         return;
-    //     }
-
-    //     // Find all var widgets of actual page
-    //     const var_page_widgets = Object.values(this.all_page_widget)?.filter(
-    //         (pw) => pw.widget_id == var_widget_id
-    //     );
-
-    //     for (const key in var_page_widgets) {
-    //         const var_page_widget = var_page_widgets[key];
-    //         const options = JSON.parse(var_page_widget.json_options);
-
-    //         const var_widget_options = new VarWidgetOptions().from(options);
-    //         const name = var_widget_options.get_title_name_code_text(var_page_widget.id);
-
-    //     if (var_widget_options.vars && var_widget_options.vars.length) {
-    //         for (let j = 0; j < var_widget_options.vars.length; j++) {
-    //             const current_var = var_widget_options.vars[j];
-    //             const conf: ExportVarcolumnConfVO = ExportVarcolumnConfVO.create_new(
-    //                 options.var_id,
-    //                 var_widget_options.filter_custom_field_filters[j],
-    //                 current_var.filter_type,
-    //                 current_var.filter_additional_params,
-    //             );
-    //             res_columns.push(conf);
-    //         }
-    //     }
-    //     for (const conf in res_columns) {
-    //         const column = {};
-    //         column[name] = conf;
-    //         varcolumn_conf.push(column[name]);
-    //     }
-    // }
-
-    // // returns ordered_column_list, column_labels and varcolumn_conf
-    // for (const key in varcolumn_conf) {
-    //     res.push(ExportVarIndicatorVO.create_new(
-    //         ['name', 'value'],
-    //         { name: 'Nom', value: 'Valeur' },
-    //         varcolumn_conf[key]
-    //     ));
-    // }
-    //     return res;
-    // }
 
     get show_bulk_select_all(): boolean {
         return this.widget_options && this.widget_options.show_bulk_select_all;
@@ -669,14 +605,6 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         return res;
     }
 
-    get table_header_title(): string {
-        if ((!this.widget_options) || (!this.page_widget)) {
-            return null;
-        }
-
-        return this.get_flat_locale_translations[this.widget_options.get_title_name_code_text(this.page_widget.id)];
-    }
-
 
     get has_group_headers() {
         if (!this.columns) {
@@ -684,13 +612,6 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         }
 
         return !!this.columns.find((column) => column?.type == TableColumnDescVO.TYPE_header);
-    }
-
-    get title_name_code_text() {
-        if (!this.widget_options) {
-            return null;
-        }
-        return this.widget_options.get_title_name_code_text(this.page_widget.id);
     }
 
     get columns(): TableColumnDescVO[] {

@@ -32,7 +32,7 @@ include ../../../../../../views/mixins/loading.pug
                         button.btn_dismiss_export_alert(@click="dismiss_export_alert")
                             i.fa-duotone.fa-times.fa-lg.btn_icon(aria-hidden="true")
 
-            .kanban_header {{ table_header_title }}
+            .kanban_header {{ get_flat_locale_translations[page_widget?.titre] }}
             .kanban_wrapper
 
                 Sortablelistcomponent.kanban_columns_wrapper(

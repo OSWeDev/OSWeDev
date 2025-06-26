@@ -9,7 +9,7 @@ include ../../../../../views/mixins/loading.pug
                 .is_busy
                     i.fa-duotone.fa-refresh.fa-spin(aria-hidden="true")
 
-            .checklist_header {{ checklist_header_title }}
+            .checklist_header(v-if='page_widget && page_widget.titre') {{ get_flat_locale_translations[page_widget.titre] }}
 
             .upper_pagination
                 template(v-if='!!checklist')

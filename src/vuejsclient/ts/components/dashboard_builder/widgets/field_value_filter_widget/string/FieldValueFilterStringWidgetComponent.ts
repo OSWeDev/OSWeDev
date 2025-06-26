@@ -176,19 +176,19 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
     }
 
     get placeholder(): string {
-        if ((!this.get_flat_locale_translations) || (!this.widget_options) || (!this.get_flat_locale_translations[this.widget_options.get_placeholder_name_code_text(this.page_widget.id)])) {
+        if ((!this.get_flat_locale_translations) || (!this.widget_options) || (!this.get_flat_locale_translations[this.page_widget.placeholder])) {
             return null;
         }
 
-        return this.get_flat_locale_translations[this.widget_options.get_placeholder_name_code_text(this.page_widget.id)];
+        return this.get_flat_locale_translations[this.page_widget.placeholder];
     }
 
     get advanced_mode_placeholder(): string {
-        if ((!this.get_flat_locale_translations) || (!this.widget_options) || (!this.get_flat_locale_translations[this.widget_options.get_advanced_mode_placeholder_code_text(this.page_widget.id)])) {
+        if ((!this.get_flat_locale_translations) || (!this.widget_options) || (!this.get_flat_locale_translations[this.page_widget.advanced_mode_placeholder])) {
             return null;
         }
 
-        return this.get_flat_locale_translations[this.widget_options.get_advanced_mode_placeholder_code_text(this.page_widget.id)];
+        return this.get_flat_locale_translations[this.page_widget.advanced_mode_placeholder];
     }
 
     get can_select_multiple(): boolean {

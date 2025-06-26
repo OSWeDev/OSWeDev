@@ -124,143 +124,363 @@ export default class FieldValueFilterRefFieldWidgetComponent extends VueComponen
         return this.vuexGet<{ [w_id: number]: boolean }>(reflect<this>().get_widgets_invisibility);
     }
 
+    get has_content_filter_type(): { [filter_type: number]: boolean } {
+        const res: { [filter_type: number]: boolean } = {
+            [AdvancedRefFieldFilter.FILTER_TYPE_EQ]: true,
+            [AdvancedRefFieldFilter.FILTER_TYPE_NOTEQ]: true,
+            [AdvancedRefFieldFilter.FILTER_TYPE_INF]: true,
+            [AdvancedRefFieldFilter.FILTER_TYPE_INFEQ]: true,
+            [AdvancedRefFieldFilter.FILTER_TYPE_SUP]: true,
+            [AdvancedRefFieldFilter.FILTER_TYPE_SUPEQ]: true,
+            [AdvancedRefFieldFilter.FILTER_TYPE_EST_NULL]: false,
+            [AdvancedRefFieldFilter.FILTER_TYPE_NEST_PAS_NULL]: false,
+        };
 
-    // Accès dynamiques Vuex
-    public vuexGet<T>(getter: string): T {
-        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
-    }
-    public vuexAct<A>(action: string, payload?: A) {
-        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
-    }
-
-    public set_active_field_filter(param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) {
-        return this.vuexAct(reflect<this>().set_active_field_filter, param);
-    }
-
-    public remove_active_field_filter(params: { vo_type: string, field_id: string }) {
-        return this.vuexAct(reflect<this>().remove_active_field_filter, params);
+        return res;
     }
 
-    public set_widgets_invisibility(widgets_invisibility: { [w_id: number]: boolean }) {
-        return this.vuexAct(reflect<this>().set_widgets_invisibility, widgets_invisibility);
-    }
-
-    public set_widget_invisibility(w_id: number) {
-        return this.vuexAct(reflect<this>().set_widget_invisibility, w_id);
-    }
-
-    public set_widget_visibility(w_id: number) {
-        return this.vuexAct(reflect<this>().set_widget_visibility, w_id);
-    }
-
-    public set_page_widget(page_widget: DashboardPageWidgetVO) {
-        return this.vuexAct(reflect<this>().set_page_widget, page_widget);
-    }
-
-    private throttled_update_visible_options = (timeout: number = 300) => (ThrottleHelper.declare_throttle_without_args(
-        'FieldValueFilterRefFieldWidgetComponent.throttled_update_visible_options',
-        this.update_visible_options.bind(this), timeout, false))();
-
-    @Watch('filter_visible_options', { deep: true, immediate: true })
-    private async try_apply_query_params() {
-
-        if (this.already_loaded_query_params) {
-            return;
+    get is_advanced_filter_valid(): boolean {
+        if (!this.widget_options) {
+            return false;
         }
 
-        /**
-         * Try apply query params
-         */
-        let update_tmp_active_filter_options: boolean = false;
-        const updated_tmp_active_filter_options: DataFilterOption[] = [];
+        if ((!this.advanced_ref_field_filters) || (!this.advanced_ref_field_filters.length)) {
+            return false;
+        }
 
-        // get all search params (including ?)
-        const queryString = window.location.search;
-        // it will look like this: ?product=shirt&color=blue&newuser&size=m
+        for (const i in this.advanced_ref_field_filters) {
+            const advanced_ref_field_filter = this.advanced_ref_field_filters[i];
 
-        // parse the query string's paramters
-        const urlParams = new URLSearchParams(queryString);
-
-
-        // // To get a parameter simply write something like the follwing
-        // let param_name = FieldValueFilterWidgetController.get_query_param_filter_name(this.vo_field_ref.api_type_id, this.vo_field_ref.field_id);
-        // const filter_value_str: string = urlParams.get(param_name);
-        // if (filter_value_str != null) {
-        //     const filter_value_number: number = parseInt(filter_value_str);
-
-        //     // On doit retrouver la valeur dans les options disponibles
-        //     let filter_value: DataFilterOption = null;
-        //     for (let i in this.filter_visible_options) {
-        //         let filter_opt = this.filter_visible_options[i];
-        //         if (filter_opt.numeric_value == filter_value_number) {
-        //             filter_value = filter_opt;
-        //             break;
-        //         }
-        //     }
-
-        //     if (filter_value) {
-        //         update_tmp_active_filter_options = true;
-        //         updated_tmp_active_filter_options.push(filter_value);
-        //     }
-        // }
-
-        // On tente de forcer même si on trouve pas dans la liste déjà chargée
-        // Pour l'instant c'est très lié à un type number, à voir comment on adapte par la suite
-        const param_name = FieldValueFilterWidgetController.get_query_param_filter_name(this.vo_field_ref.api_type_id, this.vo_field_ref.field_id);
-        const filter_value_str: string = urlParams.get(param_name);
-        if (filter_value_str != null) {
-            const filter_value_number: number = parseInt(filter_value_str);
-
-            // On doit retrouver la valeur dans les options disponibles
-            let filter_value: DataFilterOption = null;
-            for (const i in this.filter_visible_options) {
-                const filter_opt = this.filter_visible_options[i];
-                if (filter_opt.numeric_value == filter_value_number) {
-                    filter_value = filter_opt;
-                    break;
-                }
+            if (!this.has_content_filter_type[advanced_ref_field_filter.filter_type]) {
+                continue;
             }
 
-            if (filter_value) {
-                update_tmp_active_filter_options = true;
-                updated_tmp_active_filter_options.push(filter_value);
-            } else {
-                filter_value = new DataFilterOption(
-                    DataFilterOption.STATE_SELECTED,
-                    filter_value_str,
-                    null,
-                    false,
-                    false,
-                    false,
-                    null,
-                    null,
-                    null,
-                    filter_value_number,
-                    null,
-                    null,
-                    true,
-                    [],
-                    filter_value_str
-                );
-                update_tmp_active_filter_options = true;
-                updated_tmp_active_filter_options.push(filter_value);
-                this.filter_visible_options.push(filter_value);
+            if (advanced_ref_field_filter.filter_content == null) {
+                return false;
             }
         }
 
-        if (update_tmp_active_filter_options) {
-            this.tmp_active_filter_options = updated_tmp_active_filter_options;
-            this.already_loaded_query_params = true;
-            this.onchange_tmp_active_filter_options();
-        }
+        return true;
     }
 
-    private async mounted() {
-        ResetFiltersWidgetController.getInstance().register_reseter(
-            this.dashboard_page,
-            this.page_widget,
-            this.reset_visible_options.bind(this),
-        );
+    get link_type_labels(): { [link_type: number]: string } {
+        return AdvancedRefFieldFilter.FILTER_TYPE_LABELS;
+    }
+
+    get placeholder(): string {
+        if ((!this.get_flat_locale_translations) || (!this.widget_options) || (!this.get_flat_locale_translations[this.page_widget.placeholder])) {
+            return null;
+        }
+
+        return this.get_flat_locale_translations[this.page_widget.placeholder];
+    }
+
+    get advanced_mode_placeholder(): string {
+        if ((!this.get_flat_locale_translations) || (!this.widget_options) || (!this.get_flat_locale_translations[this.page_widget.advanced_mode_placeholder])) {
+            return null;
+        }
+
+        return this.get_flat_locale_translations[this.page_widget.advanced_mode_placeholder];
+    }
+
+    get can_select_multiple(): boolean {
+
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return !!this.widget_options.can_select_multiple;
+    }
+
+    get show_search_field(): boolean {
+
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return !!this.widget_options.show_search_field;
+    }
+
+    get add_is_null_selectable(): boolean {
+
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return !!this.widget_options.add_is_null_selectable;
+    }
+
+    get separation_active_filter(): boolean {
+
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return !!this.widget_options.separation_active_filter;
+    }
+
+    get is_checkbox(): boolean {
+
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return !!this.widget_options.is_checkbox;
+    }
+
+    get is_button(): boolean {
+
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return !!this.widget_options.is_button;
+    }
+
+    /**
+     * Can Select All
+     *  - Can select all clickable text
+     */
+    get can_select_all(): boolean {
+        if (!this.widget_options) {
+            return false;
+        }
+
+        const can_select_all = !!this.widget_options.can_select_all;
+        const query_limit = this.widget_options.max_visible_options;
+
+        if (!can_select_all) {
+            return can_select_all;
+        }
+
+        // May be shown only if active filter options
+        // length smaller than actual query limit
+        return this.filter_visible_options?.length < query_limit;
+    }
+
+    /**
+     * Can select None
+     *  - Can select none clickable text
+     */
+    get can_select_none(): boolean {
+
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return !!this.widget_options.can_select_none;
+    }
+
+    get hide_lvl2_if_lvl1_not_selected(): boolean {
+
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return !!this.widget_options.hide_lvl2_if_lvl1_not_selected;
+    }
+
+    get vo_field_ref(): VOFieldRefVO {
+        const options: FieldValueFilterWidgetOptionsVO = this.widget_options;
+
+        if ((!options) || (!options.vo_field_ref)) {
+            return null;
+        }
+
+        return Object.assign(new VOFieldRefVO(), options.vo_field_ref);
+    }
+
+    get vo_field_ref_lvl2(): VOFieldRefVO {
+        const options: FieldValueFilterWidgetOptionsVO = this.widget_options;
+
+        if ((!options) || (!options.vo_field_ref_lvl2)) {
+            return null;
+        }
+
+        return Object.assign(new VOFieldRefVO(), options.vo_field_ref_lvl2);
+    }
+
+    get vo_field_sort(): VOFieldRefVO {
+        const options: FieldValueFilterWidgetOptionsVO = this.widget_options;
+
+        if ((!options) || (!options.vo_field_sort)) {
+            return null;
+        }
+
+        return Object.assign(new VOFieldRefVO(), options.vo_field_sort);
+    }
+
+    get vo_field_sort_lvl2(): VOFieldRefVO {
+        const options: FieldValueFilterWidgetOptionsVO = this.widget_options;
+
+        if ((!options) || (!options.vo_field_sort_lvl2)) {
+            return null;
+        }
+
+        return Object.assign(new VOFieldRefVO(), options.vo_field_sort_lvl2);
+    }
+
+    get advanced_mode(): boolean {
+        return this.widget_options.advanced_mode;
+    }
+
+    get default_advanced_ref_field_filter_type(): number {
+        return this.widget_options.default_advanced_ref_field_filter_type;
+    }
+
+    get hide_btn_switch_advanced(): boolean {
+        return this.widget_options.hide_btn_switch_advanced;
+    }
+
+    get no_inter_filter(): boolean {
+
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return !!this.widget_options.no_inter_filter;
+    }
+
+    get has_other_ref_api_type_id(): boolean {
+
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return !!this.widget_options.has_other_ref_api_type_id;
+    }
+
+    get other_ref_api_type_id(): string {
+
+        if (!this.widget_options) {
+            return null;
+        }
+
+        return this.widget_options.other_ref_api_type_id;
+    }
+
+    get hide_advanced_ref_field_filter_type(): boolean {
+        return this.widget_options.hide_advanced_ref_field_filter_type;
+    }
+
+    get vo_field_ref_multiple(): VOFieldRefVO[] {
+        const options: FieldValueFilterWidgetOptionsVO = this.widget_options;
+
+        if ((!options) || (!options.vo_field_ref_multiple) || (!options.vo_field_ref_multiple.length)) {
+            return null;
+        }
+
+        const res: VOFieldRefVO[] = [];
+
+        for (const i in options.vo_field_ref_multiple) {
+            res.push(Object.assign(new VOFieldRefVO(), options.vo_field_ref_multiple[i]));
+        }
+
+        return res;
+    }
+
+    get default_values(): DataFilterOption[] {
+        const options: FieldValueFilterWidgetOptionsVO = this.widget_options;
+
+        if ((!options) || (!options.default_filter_opt_values) || (!options.default_filter_opt_values.length)) {
+            return null;
+        }
+
+        const res: DataFilterOption[] = [];
+
+        for (const i in options.default_filter_opt_values) {
+            res.push(new DataFilterOption(
+                options.default_filter_opt_values[i].select_state,
+                options.default_filter_opt_values[i].label,
+                options.default_filter_opt_values[i].id,
+                options.default_filter_opt_values[i].disabled_state_selected,
+                options.default_filter_opt_values[i].disabled_state_selectable,
+                options.default_filter_opt_values[i].disabled_state_unselectable,
+                options.default_filter_opt_values[i].img,
+                options.default_filter_opt_values[i].desc,
+                options.default_filter_opt_values[i].boolean_value,
+                options.default_filter_opt_values[i].numeric_value,
+                options.default_filter_opt_values[i].string_value,
+                options.default_filter_opt_values[i].tstz_value,
+                true,
+            ));
+        }
+
+        return res;
+    }
+
+    get exclude_values(): DataFilterOption[] {
+        const options: FieldValueFilterWidgetOptionsVO = this.widget_options;
+
+        if ((!options) || (!options.exclude_filter_opt_values) || (!options.exclude_filter_opt_values.length)) {
+            return null;
+        }
+
+        const res: DataFilterOption[] = [];
+
+        for (const i in options.exclude_filter_opt_values) {
+            res.push(new DataFilterOption(
+                options.exclude_filter_opt_values[i].select_state,
+                options.exclude_filter_opt_values[i].label,
+                options.exclude_filter_opt_values[i].id,
+                options.exclude_filter_opt_values[i].disabled_state_selected,
+                options.exclude_filter_opt_values[i].disabled_state_selectable,
+                options.exclude_filter_opt_values[i].disabled_state_unselectable,
+                options.exclude_filter_opt_values[i].img,
+                options.exclude_filter_opt_values[i].desc,
+                options.exclude_filter_opt_values[i].boolean_value,
+                options.exclude_filter_opt_values[i].numeric_value,
+                options.exclude_filter_opt_values[i].string_value,
+                options.exclude_filter_opt_values[i].tstz_value,
+                true,
+            ));
+        }
+
+        return res;
+    }
+
+    get autovalidate_advanced_filter(): boolean {
+
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return !!this.widget_options.autovalidate_advanced_filter;
+    }
+
+    get active_field_on_autovalidate_advanced_filter(): boolean {
+
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return !!this.widget_options.active_field_on_autovalidate_advanced_filter;
+    }
+
+    get is_translatable_type(): boolean {
+        if (!this.vo_field_ref) {
+            return false;
+        }
+
+        const moduletable = ModuleTableController.module_tables_by_vo_type[this.vo_field_ref.api_type_id];
+        if (!moduletable) {
+            return false;
+        }
+
+        const field = moduletable.get_field_by_id(this.vo_field_ref.field_id);
+        if (!field) {
+            return false;
+        }
+
+        return ((field.field_type == ModuleTableFieldVO.FIELD_TYPE_translatable_text) || (field.field_type == ModuleTableFieldVO.FIELD_TYPE_translatable_string));
+    }
+
+    get base_filter(): string {
+        return 'filter_opt_' + this.page_widget.id + '_';
+    }
+
+    get widgets_by_id(): { [id: number]: DashboardWidgetVO } {
+        return VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets);
     }
 
     get div_column_class(): string {
@@ -393,6 +613,101 @@ export default class FieldValueFilterRefFieldWidgetComponent extends VueComponen
         }
 
         return options;
+    }
+
+
+    @Watch('filter_visible_options', { deep: true, immediate: true })
+    private async try_apply_query_params() {
+
+        if (this.already_loaded_query_params) {
+            return;
+        }
+
+        /**
+         * Try apply query params
+         */
+        let update_tmp_active_filter_options: boolean = false;
+        const updated_tmp_active_filter_options: DataFilterOption[] = [];
+
+        // get all search params (including ?)
+        const queryString = window.location.search;
+        // it will look like this: ?product=shirt&color=blue&newuser&size=m
+
+        // parse the query string's paramters
+        const urlParams = new URLSearchParams(queryString);
+
+
+        // // To get a parameter simply write something like the follwing
+        // let param_name = FieldValueFilterWidgetController.get_query_param_filter_name(this.vo_field_ref.api_type_id, this.vo_field_ref.field_id);
+        // const filter_value_str: string = urlParams.get(param_name);
+        // if (filter_value_str != null) {
+        //     const filter_value_number: number = parseInt(filter_value_str);
+
+        //     // On doit retrouver la valeur dans les options disponibles
+        //     let filter_value: DataFilterOption = null;
+        //     for (let i in this.filter_visible_options) {
+        //         let filter_opt = this.filter_visible_options[i];
+        //         if (filter_opt.numeric_value == filter_value_number) {
+        //             filter_value = filter_opt;
+        //             break;
+        //         }
+        //     }
+
+        //     if (filter_value) {
+        //         update_tmp_active_filter_options = true;
+        //         updated_tmp_active_filter_options.push(filter_value);
+        //     }
+        // }
+
+        // On tente de forcer même si on trouve pas dans la liste déjà chargée
+        // Pour l'instant c'est très lié à un type number, à voir comment on adapte par la suite
+        const param_name = FieldValueFilterWidgetController.get_query_param_filter_name(this.vo_field_ref.api_type_id, this.vo_field_ref.field_id);
+        const filter_value_str: string = urlParams.get(param_name);
+        if (filter_value_str != null) {
+            const filter_value_number: number = parseInt(filter_value_str);
+
+            // On doit retrouver la valeur dans les options disponibles
+            let filter_value: DataFilterOption = null;
+            for (const i in this.filter_visible_options) {
+                const filter_opt = this.filter_visible_options[i];
+                if (filter_opt.numeric_value == filter_value_number) {
+                    filter_value = filter_opt;
+                    break;
+                }
+            }
+
+            if (filter_value) {
+                update_tmp_active_filter_options = true;
+                updated_tmp_active_filter_options.push(filter_value);
+            } else {
+                filter_value = new DataFilterOption(
+                    DataFilterOption.STATE_SELECTED,
+                    filter_value_str,
+                    null,
+                    false,
+                    false,
+                    false,
+                    null,
+                    null,
+                    null,
+                    filter_value_number,
+                    null,
+                    null,
+                    true,
+                    [],
+                    filter_value_str
+                );
+                update_tmp_active_filter_options = true;
+                updated_tmp_active_filter_options.push(filter_value);
+                this.filter_visible_options.push(filter_value);
+            }
+        }
+
+        if (update_tmp_active_filter_options) {
+            this.tmp_active_filter_options = updated_tmp_active_filter_options;
+            this.already_loaded_query_params = true;
+            this.onchange_tmp_active_filter_options();
+        }
     }
 
     /**
@@ -590,6 +905,41 @@ export default class FieldValueFilterRefFieldWidgetComponent extends VueComponen
             vo_type: this.vo_field_ref.api_type_id
         });
     }
+    // Accès dynamiques Vuex
+    public vuexGet<T>(getter: string): T {
+        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    }
+    public vuexAct<A>(action: string, payload?: A) {
+        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    }
+
+    public set_active_field_filter(param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) {
+        return this.vuexAct(reflect<this>().set_active_field_filter, param);
+    }
+
+    public remove_active_field_filter(params: { vo_type: string, field_id: string }) {
+        return this.vuexAct(reflect<this>().remove_active_field_filter, params);
+    }
+
+    public set_widgets_invisibility(widgets_invisibility: { [w_id: number]: boolean }) {
+        return this.vuexAct(reflect<this>().set_widgets_invisibility, widgets_invisibility);
+    }
+
+    public set_widget_invisibility(w_id: number) {
+        return this.vuexAct(reflect<this>().set_widget_invisibility, w_id);
+    }
+
+    public set_widget_visibility(w_id: number) {
+        return this.vuexAct(reflect<this>().set_widget_visibility, w_id);
+    }
+
+    public set_page_widget(page_widget: DashboardPageWidgetVO) {
+        return this.vuexAct(reflect<this>().set_page_widget, page_widget);
+    }
+
+    private throttled_update_visible_options = (timeout: number = 300) => (ThrottleHelper.declare_throttle_without_args(
+        'FieldValueFilterRefFieldWidgetComponent.throttled_update_visible_options',
+        this.update_visible_options.bind(this), timeout, false))();
 
     /**
      * Handle Select All
@@ -1605,362 +1955,11 @@ export default class FieldValueFilterRefFieldWidgetComponent extends VueComponen
         }
     }
 
-    get has_content_filter_type(): { [filter_type: number]: boolean } {
-        const res: { [filter_type: number]: boolean } = {
-            [AdvancedRefFieldFilter.FILTER_TYPE_EQ]: true,
-            [AdvancedRefFieldFilter.FILTER_TYPE_NOTEQ]: true,
-            [AdvancedRefFieldFilter.FILTER_TYPE_INF]: true,
-            [AdvancedRefFieldFilter.FILTER_TYPE_INFEQ]: true,
-            [AdvancedRefFieldFilter.FILTER_TYPE_SUP]: true,
-            [AdvancedRefFieldFilter.FILTER_TYPE_SUPEQ]: true,
-            [AdvancedRefFieldFilter.FILTER_TYPE_EST_NULL]: false,
-            [AdvancedRefFieldFilter.FILTER_TYPE_NEST_PAS_NULL]: false,
-        };
-
-        return res;
-    }
-
-    get is_advanced_filter_valid(): boolean {
-        if (!this.widget_options) {
-            return false;
-        }
-
-        if ((!this.advanced_ref_field_filters) || (!this.advanced_ref_field_filters.length)) {
-            return false;
-        }
-
-        for (const i in this.advanced_ref_field_filters) {
-            const advanced_ref_field_filter = this.advanced_ref_field_filters[i];
-
-            if (!this.has_content_filter_type[advanced_ref_field_filter.filter_type]) {
-                continue;
-            }
-
-            if (advanced_ref_field_filter.filter_content == null) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    get link_type_labels(): { [link_type: number]: string } {
-        return AdvancedRefFieldFilter.FILTER_TYPE_LABELS;
-    }
-
-    get placeholder(): string {
-        if ((!this.get_flat_locale_translations) || (!this.widget_options) || (!this.get_flat_locale_translations[this.widget_options.get_placeholder_name_code_text(this.page_widget.id)])) {
-            return null;
-        }
-
-        return this.get_flat_locale_translations[this.widget_options.get_placeholder_name_code_text(this.page_widget.id)];
-    }
-
-    get advanced_mode_placeholder(): string {
-        if ((!this.get_flat_locale_translations) || (!this.widget_options) || (!this.get_flat_locale_translations[this.widget_options.get_advanced_mode_placeholder_code_text(this.page_widget.id)])) {
-            return null;
-        }
-
-        return this.get_flat_locale_translations[this.widget_options.get_advanced_mode_placeholder_code_text(this.page_widget.id)];
-    }
-
-    get can_select_multiple(): boolean {
-
-        if (!this.widget_options) {
-            return false;
-        }
-
-        return !!this.widget_options.can_select_multiple;
-    }
-
-    get show_search_field(): boolean {
-
-        if (!this.widget_options) {
-            return false;
-        }
-
-        return !!this.widget_options.show_search_field;
-    }
-
-    get add_is_null_selectable(): boolean {
-
-        if (!this.widget_options) {
-            return false;
-        }
-
-        return !!this.widget_options.add_is_null_selectable;
-    }
-
-    get separation_active_filter(): boolean {
-
-        if (!this.widget_options) {
-            return false;
-        }
-
-        return !!this.widget_options.separation_active_filter;
-    }
-
-    get is_checkbox(): boolean {
-
-        if (!this.widget_options) {
-            return false;
-        }
-
-        return !!this.widget_options.is_checkbox;
-    }
-
-    get is_button(): boolean {
-
-        if (!this.widget_options) {
-            return false;
-        }
-
-        return !!this.widget_options.is_button;
-    }
-
-    /**
-     * Can Select All
-     *  - Can select all clickable text
-     */
-    get can_select_all(): boolean {
-        if (!this.widget_options) {
-            return false;
-        }
-
-        const can_select_all = !!this.widget_options.can_select_all;
-        const query_limit = this.widget_options.max_visible_options;
-
-        if (!can_select_all) {
-            return can_select_all;
-        }
-
-        // May be shown only if active filter options
-        // length smaller than actual query limit
-        return this.filter_visible_options?.length < query_limit;
-    }
-
-    /**
-     * Can select None
-     *  - Can select none clickable text
-     */
-    get can_select_none(): boolean {
-
-        if (!this.widget_options) {
-            return false;
-        }
-
-        return !!this.widget_options.can_select_none;
-    }
-
-    get hide_lvl2_if_lvl1_not_selected(): boolean {
-
-        if (!this.widget_options) {
-            return false;
-        }
-
-        return !!this.widget_options.hide_lvl2_if_lvl1_not_selected;
-    }
-
-    get vo_field_ref(): VOFieldRefVO {
-        const options: FieldValueFilterWidgetOptionsVO = this.widget_options;
-
-        if ((!options) || (!options.vo_field_ref)) {
-            return null;
-        }
-
-        return Object.assign(new VOFieldRefVO(), options.vo_field_ref);
-    }
-
-    get vo_field_ref_lvl2(): VOFieldRefVO {
-        const options: FieldValueFilterWidgetOptionsVO = this.widget_options;
-
-        if ((!options) || (!options.vo_field_ref_lvl2)) {
-            return null;
-        }
-
-        return Object.assign(new VOFieldRefVO(), options.vo_field_ref_lvl2);
-    }
-
-    get vo_field_sort(): VOFieldRefVO {
-        const options: FieldValueFilterWidgetOptionsVO = this.widget_options;
-
-        if ((!options) || (!options.vo_field_sort)) {
-            return null;
-        }
-
-        return Object.assign(new VOFieldRefVO(), options.vo_field_sort);
-    }
-
-    get vo_field_sort_lvl2(): VOFieldRefVO {
-        const options: FieldValueFilterWidgetOptionsVO = this.widget_options;
-
-        if ((!options) || (!options.vo_field_sort_lvl2)) {
-            return null;
-        }
-
-        return Object.assign(new VOFieldRefVO(), options.vo_field_sort_lvl2);
-    }
-
-    get advanced_mode(): boolean {
-        return this.widget_options.advanced_mode;
-    }
-
-    get default_advanced_ref_field_filter_type(): number {
-        return this.widget_options.default_advanced_ref_field_filter_type;
-    }
-
-    get hide_btn_switch_advanced(): boolean {
-        return this.widget_options.hide_btn_switch_advanced;
-    }
-
-    get no_inter_filter(): boolean {
-
-        if (!this.widget_options) {
-            return false;
-        }
-
-        return !!this.widget_options.no_inter_filter;
-    }
-
-    get has_other_ref_api_type_id(): boolean {
-
-        if (!this.widget_options) {
-            return false;
-        }
-
-        return !!this.widget_options.has_other_ref_api_type_id;
-    }
-
-    get other_ref_api_type_id(): string {
-
-        if (!this.widget_options) {
-            return null;
-        }
-
-        return this.widget_options.other_ref_api_type_id;
-    }
-
-    get hide_advanced_ref_field_filter_type(): boolean {
-        return this.widget_options.hide_advanced_ref_field_filter_type;
-    }
-
-    get vo_field_ref_multiple(): VOFieldRefVO[] {
-        const options: FieldValueFilterWidgetOptionsVO = this.widget_options;
-
-        if ((!options) || (!options.vo_field_ref_multiple) || (!options.vo_field_ref_multiple.length)) {
-            return null;
-        }
-
-        const res: VOFieldRefVO[] = [];
-
-        for (const i in options.vo_field_ref_multiple) {
-            res.push(Object.assign(new VOFieldRefVO(), options.vo_field_ref_multiple[i]));
-        }
-
-        return res;
-    }
-
-    get default_values(): DataFilterOption[] {
-        const options: FieldValueFilterWidgetOptionsVO = this.widget_options;
-
-        if ((!options) || (!options.default_filter_opt_values) || (!options.default_filter_opt_values.length)) {
-            return null;
-        }
-
-        const res: DataFilterOption[] = [];
-
-        for (const i in options.default_filter_opt_values) {
-            res.push(new DataFilterOption(
-                options.default_filter_opt_values[i].select_state,
-                options.default_filter_opt_values[i].label,
-                options.default_filter_opt_values[i].id,
-                options.default_filter_opt_values[i].disabled_state_selected,
-                options.default_filter_opt_values[i].disabled_state_selectable,
-                options.default_filter_opt_values[i].disabled_state_unselectable,
-                options.default_filter_opt_values[i].img,
-                options.default_filter_opt_values[i].desc,
-                options.default_filter_opt_values[i].boolean_value,
-                options.default_filter_opt_values[i].numeric_value,
-                options.default_filter_opt_values[i].string_value,
-                options.default_filter_opt_values[i].tstz_value,
-                true,
-            ));
-        }
-
-        return res;
-    }
-
-    get exclude_values(): DataFilterOption[] {
-        const options: FieldValueFilterWidgetOptionsVO = this.widget_options;
-
-        if ((!options) || (!options.exclude_filter_opt_values) || (!options.exclude_filter_opt_values.length)) {
-            return null;
-        }
-
-        const res: DataFilterOption[] = [];
-
-        for (const i in options.exclude_filter_opt_values) {
-            res.push(new DataFilterOption(
-                options.exclude_filter_opt_values[i].select_state,
-                options.exclude_filter_opt_values[i].label,
-                options.exclude_filter_opt_values[i].id,
-                options.exclude_filter_opt_values[i].disabled_state_selected,
-                options.exclude_filter_opt_values[i].disabled_state_selectable,
-                options.exclude_filter_opt_values[i].disabled_state_unselectable,
-                options.exclude_filter_opt_values[i].img,
-                options.exclude_filter_opt_values[i].desc,
-                options.exclude_filter_opt_values[i].boolean_value,
-                options.exclude_filter_opt_values[i].numeric_value,
-                options.exclude_filter_opt_values[i].string_value,
-                options.exclude_filter_opt_values[i].tstz_value,
-                true,
-            ));
-        }
-
-        return res;
-    }
-
-    get autovalidate_advanced_filter(): boolean {
-
-        if (!this.widget_options) {
-            return false;
-        }
-
-        return !!this.widget_options.autovalidate_advanced_filter;
-    }
-
-    get active_field_on_autovalidate_advanced_filter(): boolean {
-
-        if (!this.widget_options) {
-            return false;
-        }
-
-        return !!this.widget_options.active_field_on_autovalidate_advanced_filter;
-    }
-
-    get is_translatable_type(): boolean {
-        if (!this.vo_field_ref) {
-            return false;
-        }
-
-        const moduletable = ModuleTableController.module_tables_by_vo_type[this.vo_field_ref.api_type_id];
-        if (!moduletable) {
-            return false;
-        }
-
-        const field = moduletable.get_field_by_id(this.vo_field_ref.field_id);
-        if (!field) {
-            return false;
-        }
-
-        return ((field.field_type == ModuleTableFieldVO.FIELD_TYPE_translatable_text) || (field.field_type == ModuleTableFieldVO.FIELD_TYPE_translatable_string));
-    }
-
-    get base_filter(): string {
-        return 'filter_opt_' + this.page_widget.id + '_';
-    }
-
-    get widgets_by_id(): { [id: number]: DashboardWidgetVO } {
-        return VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets);
+    private async mounted() {
+        ResetFiltersWidgetController.getInstance().register_reseter(
+            this.dashboard_page,
+            this.page_widget,
+            this.reset_visible_options.bind(this),
+        );
     }
 }

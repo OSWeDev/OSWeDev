@@ -83,14 +83,6 @@ export default class DashboardViewerComponent extends VueComponentBase {
         return res;
     }
 
-    get dashboard_name_code_text(): string {
-        if (!this.dashboard) {
-            return null;
-        }
-
-        return this.dashboard.title ? this.dashboard.title : null;
-    }
-
     @Watch("dashboard")
     private async onchange_dashboard() {
         // We should load the shared_filters with the current dashboard

@@ -10,5 +10,5 @@
             :show_tooltip_maj='false'
             :show_tooltip_prefix='false'
         )
-    .var_label 
-        Inlinetranslatabletext(:code_text="title_name_code_text" :style='widget_options ? {color: widget_options.fg_color_text ? widget_options.fg_color_text : "inherit"} : {}')
+    .var_label(v-if='page_widget?.titre')
+        Inlinetranslatabletext(:code_text="page_widget.titre" :style='widget_options ? {color: widget_options.fg_color_text ? widget_options.fg_color_text : "inherit"} : {}')

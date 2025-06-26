@@ -1,8 +1,8 @@
 .oselia_thread_widget_options_component
-    .widget_title(v-if='title_name_code_text')
+    .widget_title(v-if='page_widget?.titre')
         .widget_title_label {{ label('oselia_thread_widget_options_component.widget_title.title_name_code_text') }}
         .widget_title_wrapper
             Inlinetranslatabletext(
-                :code_text="title_name_code_text" 
+                :code_text="page_widget.titre" 
                 :is_editable="true"
                 :default_translation="default_title_translation")

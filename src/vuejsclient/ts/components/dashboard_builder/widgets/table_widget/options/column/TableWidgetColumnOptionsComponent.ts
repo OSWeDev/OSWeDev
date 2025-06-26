@@ -296,14 +296,6 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         return Object.assign(new TableColumnDescVO(), this.column);
     }
 
-    get translatable_name_code_text() {
-        if (!this.object_column) {
-            return null;
-        }
-
-        return this.object_column.titre;
-    }
-
     get can_filter_by_table(): boolean {
         if (!this.widget_options) {
             return false;

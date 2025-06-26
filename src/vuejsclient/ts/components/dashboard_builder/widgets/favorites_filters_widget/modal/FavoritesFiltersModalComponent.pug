@@ -111,7 +111,7 @@
                                                             :sync="true"
                                                             :width="60"  
                                                         )                            
-                                                    .input_label {{ get_translation_by_vo_field_ref_name_code_text(translatable_field_filters_code) }}: {{ option.readable_field_filters }}
+                                                    .input_label {{ get_flat_locale_translations[translatable_field_filters_code] ? get_flat_locale_translations[translatable_field_filters_code] : translatable_field_filters_code }}: {{ option.readable_field_filters }}
 
                             #export_tab(v-if="active_tab_view == 'export_tab'")
                                 template 

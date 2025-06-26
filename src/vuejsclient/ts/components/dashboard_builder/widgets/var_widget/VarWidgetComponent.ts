@@ -105,14 +105,6 @@ export default class VarWidgetComponent extends VueComponentBase {
         return VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets);
     }
 
-    get title_name_code_text() {
-        if (!this.widget_options) {
-            return null;
-        }
-
-        return this.widget_options.get_title_name_code_text(this.page_widget.id);
-    }
-
     get widget_options() {
         if (!this.page_widget) {
             return null;

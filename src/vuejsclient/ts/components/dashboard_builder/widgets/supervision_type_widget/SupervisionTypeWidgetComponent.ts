@@ -93,14 +93,6 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
         return this.vuexGet<string[]>(reflect<this>().get_query_api_type_ids);
     }
 
-    get title_name_code_text() {
-        if (!this.widget_options) {
-            return null;
-        }
-
-        return this.widget_options.get_title_name_code_text(this.page_widget.id);
-    }
-
     /**
      * Supervision Api Type Ids
      * - Used to filter the supervision items (sondes) from each datatable

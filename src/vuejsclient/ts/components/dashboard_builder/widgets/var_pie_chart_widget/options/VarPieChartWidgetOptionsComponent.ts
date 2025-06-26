@@ -234,13 +234,6 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         return res;
     }
 
-    get title_name_code_text(): string {
-        if (!this.widget_options) {
-            return null;
-        }
-        return this.widget_options.get_title_name_code_text(this.page_widget.id);
-    }
-
 
     // --------------------------------------------------------------------------
     // WATCHERS sur page_widget, widget_options, etc.

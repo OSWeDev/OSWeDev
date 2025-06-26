@@ -1,13 +1,13 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
-import DashboardPageWidgetVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
-import DashboardWidgetVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
 import DashboardPageVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
+import DashboardPageWidgetVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
+import DashboardWidgetVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import VueComponentBase from '../../VueComponentBase';
-import DashboardBuilderWidgetsController from './DashboardBuilderWidgetsController';
 import './DashboardBuilderWidgetsComponent.scss';
+import DashboardBuilderWidgetsController from './DashboardBuilderWidgetsController';
 
 @Component({
     template: require('./DashboardBuilderWidgetsComponent.pug'),
@@ -39,7 +39,7 @@ export default class DashboardBuilderWidgetsComponent extends VueComponentBase {
         for (const i in this.widgets) {
             const widget = this.widgets[i];
 
-            res.push(this.t(widget.translatable_name_code_text ?? null));
+            res.push(this.t(widget.label ?? null));
         }
 
         return res;
@@ -50,7 +50,7 @@ export default class DashboardBuilderWidgetsComponent extends VueComponentBase {
             return null;
         }
 
-        return this.t(this.selected_widget_type.translatable_name_code_text ?? null);
+        return this.t(this.selected_widget_type.label ?? null);
     }
 
     @Watch('selected_widget', { immediate: true })

@@ -1,6 +1,6 @@
 .supervision_type_widget_component
     .component_header
-        label(v-if="title_name_code_text") {{ t(title_name_code_text) }}
+        label(v-if="page_widget?.titre") {{ t(page_widget.titre) }}
 
         template(v-if='loaded_once')
             template(v-if='loaded_once && is_busy')

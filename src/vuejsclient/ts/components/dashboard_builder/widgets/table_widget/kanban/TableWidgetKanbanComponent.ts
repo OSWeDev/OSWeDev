@@ -63,6 +63,7 @@ import CRUDComponentManager from '../../../../crud/CRUDComponentManager';
 import { ModuleDAOAction } from '../../../../dao/store/DaoStore';
 import DatatableRowController from '../../../../datatable/component/DatatableRowController';
 import DatatableComponentField from '../../../../datatable/component/fields/DatatableComponentField';
+import { ModuleModalsAndBasicPageComponentsHolderGetter } from '../../../../modals_and_basic_page_components_holder/ModalsAndBasicPageComponentsHolderStore';
 import SortableListComponent from '../../../../sortable/SortableListComponent';
 import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
 import FieldValueFilterWidgetOptions from '../../field_value_filter_widget/options/FieldValueFilterWidgetOptions';
@@ -74,7 +75,6 @@ import CRUDUpdateModalComponent from './../crud_modals/update/CRUDUpdateModalCom
 import './TableWidgetKanbanComponent.scss';
 import TableWidgetKanbanCardFooterLinksComponent from './kanban_card_footer_links/TableWidgetKanbanCardFooterLinksComponent';
 import TableWidgetKanbanCardHeaderCollageComponent from './kanban_card_header_collage/TableWidgetKanbanCardHeaderCollageComponent';
-import { ModuleModalsAndBasicPageComponentsHolderGetter } from '../../../../modals_and_basic_page_components_holder/ModalsAndBasicPageComponentsHolderStore';
 
 //TODO Faire en sorte que les champs qui n'existent plus car supprimés du dashboard ne se conservent pas lors de la création d'un tableau
 
@@ -728,14 +728,6 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         return res;
     }
 
-    get table_header_title(): string {
-        if ((!this.widget_options) || (!this.page_widget)) {
-            return null;
-        }
-
-        return this.get_flat_locale_translations[this.widget_options.get_title_name_code_text(this.page_widget.id)];
-    }
-
     get columns(): TableColumnDescVO[] {
         const options: TableWidgetOptionsVO = this.widget_options;
 
@@ -927,13 +919,6 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         }
 
         return !!this.columns.find((column) => column.type == TableColumnDescVO.TYPE_header);
-    }
-
-    get title_name_code_text() {
-        if (!this.widget_options) {
-            return null;
-        }
-        return this.widget_options.get_title_name_code_text(this.page_widget.id);
     }
 
     get widget_options(): TableWidgetOptionsVO {

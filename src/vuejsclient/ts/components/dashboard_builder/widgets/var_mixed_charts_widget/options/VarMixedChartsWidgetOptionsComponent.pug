@@ -48,11 +48,11 @@
 
                     template(v-if='title_display')
                         //--- Widget Title
-                        .widget_title(v-if='title_name_code_text')
+                        .widget_title(v-if='page_widget && page_widget.titre')
                             .input_label {{ label('var_mixed_charts_widget_options_component.widget_title.title_name_code_text') }}
                             .input_wrapper
                                 Inlinetranslatabletext(
-                                    :code_text="title_name_code_text" 
+                                    :code_text="page_widget.titre" 
                                     :is_editable="true"
                                 )
                         .title_font_color

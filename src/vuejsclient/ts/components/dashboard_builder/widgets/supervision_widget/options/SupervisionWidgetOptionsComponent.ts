@@ -47,14 +47,6 @@ export default class SupervisionWidgetOptionsComponent extends VueComponentBase 
 
     private supervision_select_options: string[] = [];
 
-    get title_name_code_text(): string {
-        if (!this.widget_options) {
-            return null;
-        }
-
-        return this.widget_options.get_title_name_code_text(this.page_widget.id);
-    }
-
     get get_dashboard_api_type_ids(): string[] {
         return this.vuexGet<string[]>(reflect<this>().get_dashboard_api_type_ids);
     }

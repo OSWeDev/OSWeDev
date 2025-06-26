@@ -25,11 +25,11 @@ import YearFilterWidgetOptionsVO from '../../../../../../../shared/modules/Dashb
 import ExportContextQueryToXLSXParamVO from '../../../../../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
 import NumSegment from '../../../../../../../shared/modules/DataRender/vos/NumSegment';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
-import LocaleManager from '../../../../../../../shared/tools/LocaleManager';
 import { field_names } from '../../../../../../../shared/tools/ObjectHandler';
 import RangeHandler from '../../../../../../../shared/tools/RangeHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import VueAppController from '../../../../../../VueAppController';
+import { ModuleTranslatableTextGetter } from '../../../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../../../VueComponentBase';
 import MonthFilterWidgetOptionsButtonSetterComponent from '../../month_filter_widget/options_button_setter/MonthFilterWidgetOptionsButtonSetterComponent';
 import YearFilterWidgetOptionsButtonSetterComponent from '../../year_filter_widget/options_button_setter/YearFilterWidgetOptionsButtonSetterComponent';
@@ -49,6 +49,9 @@ import './FavoritesFiltersModalComponent.scss';
     }
 })
 export default class FavoritesFiltersModalComponent extends VueComponentBase {
+
+    @ModuleTranslatableTextGetter
+    private get_flat_locale_translations: { [code_text: string]: string };
 
     private modal_initialized: boolean = false;
 
@@ -892,22 +895,6 @@ export default class FavoritesFiltersModalComponent extends VueComponentBase {
      */
     private set_active_tab_view(tab_view: string): void {
         this.active_tab_view = tab_view;
-    }
-
-    /**
-     * Get Translation By VO Field Ref Name Code Text
-     *
-     * @param {string} name_code_text
-     * @returns {string}
-     */
-    private get_translation_by_vo_field_ref_name_code_text(name_code_text: string): string {
-        let translation: string = LocaleManager.ALL_FLAT_LOCALE_TRANSLATIONS[name_code_text];
-
-        if (!translation) {
-            translation = name_code_text;
-        }
-
-        return translation;
     }
 
     /**

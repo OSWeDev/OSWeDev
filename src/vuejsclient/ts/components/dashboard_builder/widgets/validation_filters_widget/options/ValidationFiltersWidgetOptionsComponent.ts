@@ -60,14 +60,6 @@ export default class ValidationFiltersWidgetOptionsComponent extends VueComponen
         return options;
     }
 
-    get title_name_code_text(): string {
-        if (!this.widget_options) {
-            return null;
-        }
-
-        return this.widget_options.get_title_name_code_text(this.page_widget.id);
-    }
-
     @Watch('page_widget', { immediate: true })
     private async onchange_page_widget() {
         if ((!this.page_widget) || (!this.widget_options)) {

@@ -125,11 +125,11 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
     }
 
     get placeholder(): string {
-        if ((!this.get_flat_locale_translations) || (!this.widget_options) || (!this.get_flat_locale_translations[this.widget_options.get_placeholder_name_code_text(this.page_widget.id)])) {
+        if ((!this.get_flat_locale_translations) || (!this.widget_options) || (!this.get_flat_locale_translations[this.page_widget.placeholder])) {
             return null;
         }
 
-        return this.get_flat_locale_translations[this.widget_options.get_placeholder_name_code_text(this.page_widget.id)];
+        return this.get_flat_locale_translations[this.page_widget.placeholder];
     }
 
     get can_select_multiple(): boolean {

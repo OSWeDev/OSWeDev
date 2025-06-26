@@ -51,11 +51,11 @@
                     template(v-if='title_display')
 
                         // -- Titre du widget
-                        .widget_title(v-if='title_name_code_text')
+                        .widget_title(v-if='page_widget && page_widget.titre')
                             .input_label {{ label('var_pie_chart_widget_options_component.widget_title.title_name_code_text') }}
                             .input_wrapper
                                 Inlinetranslatabletext(
-                                    :code_text="title_name_code_text" 
+                                    :code_text="page_widget.titre" 
                                     :is_editable="true"
                                 )
 
@@ -385,7 +385,7 @@
                                 :labels="{ checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false') }"
                             )
                         .input_label {{ label('var_pie_chart_widget_options_component.sort_dimension_by_asc') }}
-            .widget_filter_options(v-if='title_name_code_text && widget_options')
+            .widget_filter_options(v-if='page_widget && page_widget.titre && widget_options')
                 .input_label {{ label('var_pie_chart_widget_options_component.widget_filter_options') }}
                 .input_wrapper
                     Widgetfilteroptionscomponent(

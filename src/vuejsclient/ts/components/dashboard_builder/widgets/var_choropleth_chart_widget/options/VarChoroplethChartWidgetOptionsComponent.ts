@@ -1089,12 +1089,4 @@ export default class VarChoroplethChartWidgetOptionsComponent extends VueCompone
         await this.throttled_update_options();
 
     }
-
-    get title_name_code_text(): string {
-        if (!this.widget_options) {
-            return null;
-        }
-
-        return this.widget_options.get_title_name_code_text(this.page_widget.id);
-    }
 }

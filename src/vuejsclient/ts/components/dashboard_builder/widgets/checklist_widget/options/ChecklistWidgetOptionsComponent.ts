@@ -52,6 +52,30 @@ export default class ChecklistWidgetOptionsComponent extends VueComponentBase {
         return this.checklists;
     }
 
+    get default_title_translation(): string {
+        return 'Checklist#' + this.page_widget.id;
+    }
+
+    get widget_options(): ChecklistWidgetOptions {
+        if (!this.page_widget) {
+            return null;
+        }
+
+        let options: ChecklistWidgetOptions = null;
+        try {
+            if (this.page_widget.json_options) {
+                options = JSON.parse(this.page_widget.json_options) as ChecklistWidgetOptions;
+                options = options ? new ChecklistWidgetOptions(
+                    options.limit, options.checklist_id,
+                    options.delete_all_button, options.create_button, options.refresh_button, options.export_button) : null;
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+
+        return options;
+    }
+
     @Watch('page_widget', { immediate: true })
     private async onchange_page_widget() {
 
@@ -147,38 +171,6 @@ export default class ChecklistWidgetOptionsComponent extends VueComponentBase {
         const name = VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets)[this.page_widget.widget_id].name;
         const get_selected_fields = DashboardBuilderWidgetsController.getInstance().widgets_get_selected_fields[name];
         this.set_selected_fields(get_selected_fields ? get_selected_fields(this.page_widget) : {});
-    }
-
-    get title_name_code_text(): string {
-        if (!this.widget_options) {
-            return null;
-        }
-
-        return this.widget_options.get_title_name_code_text(this.page_widget.id);
-    }
-
-    get default_title_translation(): string {
-        return 'Checklist#' + this.page_widget.id;
-    }
-
-    get widget_options(): ChecklistWidgetOptions {
-        if (!this.page_widget) {
-            return null;
-        }
-
-        let options: ChecklistWidgetOptions = null;
-        try {
-            if (this.page_widget.json_options) {
-                options = JSON.parse(this.page_widget.json_options) as ChecklistWidgetOptions;
-                options = options ? new ChecklistWidgetOptions(
-                    options.limit, options.checklist_id,
-                    options.delete_all_button, options.create_button, options.refresh_button, options.export_button) : null;
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-
-        return options;
     }
 
     private async switch_delete_all_button() {

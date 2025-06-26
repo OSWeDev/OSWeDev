@@ -143,21 +143,6 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
         return this.widget_options?.supervision_api_type_ids ?? [];
     }
 
-    get title_name_code_text() {
-        if (!this.widget_options) {
-            return null;
-        }
-        return this.widget_options.get_title_name_code_text(this.page_widget.id);
-    }
-
-    get checklist_header_title(): string {
-        if ((!this.widget_options) || (!this.page_widget)) {
-            return null;
-        }
-
-        return this.get_flat_locale_translations[this.widget_options.get_title_name_code_text(this.page_widget.id)];
-    }
-
     get is_all_selected(): boolean {
         if (isEmpty(this.selected_items)) {
             return false;

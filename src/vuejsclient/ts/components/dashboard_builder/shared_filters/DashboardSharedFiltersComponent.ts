@@ -7,7 +7,6 @@ import DashboardPageFieldFiltersVO from '../../../../../shared/modules/Dashboard
 import DashboardPageVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import SharedFiltersVO from '../../../../../shared/modules/DashboardBuilder/vos/SharedFiltersVO';
-import LocaleManager from '../../../../../shared/tools/LocaleManager';
 import ThrottleHelper from '../../../../../shared/tools/ThrottleHelper';
 import VueAppController from '../../../../VueAppController';
 import { ModuleTranslatableTextGetter } from '../../InlineTranslatableText/TranslatableTextStore';
@@ -352,25 +351,5 @@ export default class DashboardSharedFiltersComponent extends VueComponentBase {
         this.shared_filters_with_dashboard = shared_filters_with_dashboard;
 
         this.is_shared_filters_loading = false;
-    }
-
-    /**
-     * Get Translation By VO Field Ref Name Code Text
-     *
-     * @param {string} name_code_text
-     * @returns {string}
-     */
-    private get_translation_by_vo_field_ref_name_code_text(name_code_text: string): string {
-        let translation: string = LocaleManager.ALL_FLAT_LOCALE_TRANSLATIONS[name_code_text];
-
-        if (!translation) {
-            translation = this.get_flat_locale_translations[name_code_text];
-        }
-
-        if (!translation) {
-            translation = name_code_text;
-        }
-
-        return translation;
     }
 }

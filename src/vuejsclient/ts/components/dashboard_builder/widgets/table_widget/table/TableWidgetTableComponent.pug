@@ -8,7 +8,7 @@ include ../../../../../../views/mixins/loading.pug
                 .is_busy 
                     i.fa-duotone.fa-refresh.fa-spin(aria-hidden="true")
 
-            .table_header {{ table_header_title }}
+            .table_header {{ get_flat_locale_translations[page_widget?.titre] }}
 
             template(v-if="show_bulk_edit && cb_bulk_actions && cb_bulk_actions.length > 0")
                 .bulk_actions_component

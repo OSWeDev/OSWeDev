@@ -36,11 +36,11 @@ import InlineTranslatableText from '../../../InlineTranslatableText/InlineTransl
 import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleDAOAction, ModuleDAOGetter } from '../../../dao/store/DaoStore';
+import { ModuleModalsAndBasicPageComponentsHolderGetter } from '../../../modals_and_basic_page_components_holder/ModalsAndBasicPageComponentsHolderStore';
 import TablePaginationComponent from '../table_widget/pagination/TablePaginationComponent';
 import './ChecklistWidgetComponent.scss';
 import ChecklistItemModalComponent from './checklist_item_modal/ChecklistItemModalComponent';
 import ChecklistWidgetOptions from './options/ChecklistWidgetOptions';
-import { ModuleModalsAndBasicPageComponentsHolderGetter } from '../../../modals_and_basic_page_components_holder/ModalsAndBasicPageComponentsHolderStore';
 
 /**
  * Datatable of checklist items
@@ -193,45 +193,6 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
         return res;
     }
 
-    @Watch('modal_show')
-    @Watch('checklist_controller')
-    @Watch('item_id')
-    @Watch('step_id')
-    @Watch('checklist_id')
-    @Watch('checklist_shared_module')
-    private watchers() {
-        this.throttled_update_visible_options();
-    }
-
-    // Accès dynamiques Vuex
-    public vuexGet<T>(getter: string): T {
-        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
-    }
-    public vuexAct<A>(action: string, payload?: A) {
-        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
-    }
-
-    private async onchangevo(vo: ICheckListItem) {
-
-        if (!vo) {
-            return;
-        }
-
-        Vue.set(this.checklist_items_by_id, vo.id, await query(this.checklist_shared_module.checklistitem_type_id).filter_by_id(vo.id).select_vo());
-
-        this.get_Checklistitemmodalcomponent.change_selected_checklist_item(this.checklist_items_by_id[vo.id]);
-
-        if (this.checklist_items_by_id[vo.id].archived) {
-            delete this.checklist_items_by_id[vo.id];
-        }
-
-        if (!ObjectHandler.hasAtLeastOneAttribute(this.checklist_items_by_id)) {
-            this.checklist_items_by_id = {};
-        }
-
-        await this.throttled_update_visible_options();
-    }
-
     get ordered_checklistitems() {
 
         if (!this.checklist_controller) {
@@ -285,6 +246,151 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
         return res;
     }
 
+    get widget_options(): ChecklistWidgetOptions {
+        if (!this.page_widget) {
+            return null;
+        }
+
+        let options: ChecklistWidgetOptions = null;
+        try {
+            if (this.page_widget.json_options) {
+                options = JSON.parse(this.page_widget.json_options) as ChecklistWidgetOptions;
+                options = options ? new ChecklistWidgetOptions(
+                    options.limit, options.checklist_id,
+                    options.delete_all_button, options.create_button, options.refresh_button, options.export_button) : null;
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+
+        return options;
+    }
+
+    get has_checklist_items() {
+        if (!this.checklist_items_by_id) {
+            return false;
+        }
+
+        return ObjectHandler.hasAtLeastOneAttribute(this.checklist_items_by_id);
+    }
+
+    get can_refresh(): boolean {
+        return this.widget_options && this.widget_options.refresh_button;
+    }
+
+    get can_export(): boolean {
+        return this.widget_options && this.widget_options.export_button;
+    }
+
+    get can_create(): boolean {
+        if (!this.checklist_shared_module) {
+            return false;
+        }
+
+        return this.can_create_right && this.widget_options.create_button;
+    }
+
+    get can_delete_all(): boolean {
+        if (!this.checklist_shared_module) {
+            return false;
+        }
+
+        return this.can_delete_all_right && this.widget_options.delete_all_button;
+    }
+
+    get checklist() {
+        if ((!this.widget_options) || (!this.checklists_by_ids)) {
+            return null;
+        }
+
+        return this.checklists_by_ids[this.widget_options.checklist_id];
+    }
+
+    @Watch('get_active_field_filters', { deep: true })
+    private async onchange_active_field_filters() {
+        this.is_busy = true;
+
+        await this.throttled_update_visible_options();
+    }
+
+    @Watch('checklist_shared_module', { immediate: true })
+    private async onchange_checklist_shared_module() {
+        if (!this.checklist_shared_module) {
+            return;
+        }
+
+        if (this.can_delete_all_right == null) {
+            this.can_delete_all_right = false;
+        }
+
+        if (this.can_delete_right == null) {
+            this.can_delete_right = await ModuleAccessPolicy.getInstance().testAccess(
+                DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_DELETE, this.checklist_shared_module.checklistitem_type_id));
+        }
+
+        if (this.can_update_right == null) {
+            this.can_update_right = await ModuleAccessPolicy.getInstance().testAccess(
+                DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, this.checklist_shared_module.checklistitem_type_id));
+        }
+
+        if (this.can_create_right == null) {
+            this.can_create_right = await ModuleAccessPolicy.getInstance().testAccess(
+                DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, this.checklist_shared_module.checklistitem_type_id));
+        }
+    }
+
+    @Watch('widget_options', { immediate: true })
+    private async onchange_widget_options() {
+        if (this.old_widget_options) {
+            if (isEqual(this.widget_options, this.old_widget_options)) {
+                return;
+            }
+        }
+
+        this.old_widget_options = cloneDeep(this.widget_options);
+
+        await this.throttled_update_visible_options();
+    }
+
+    @Watch('modal_show')
+    @Watch('checklist_controller')
+    @Watch('item_id')
+    @Watch('step_id')
+    @Watch('checklist_id')
+    @Watch('checklist_shared_module')
+    private watchers() {
+        this.throttled_update_visible_options();
+    }
+
+    // Accès dynamiques Vuex
+    public vuexGet<T>(getter: string): T {
+        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    }
+    public vuexAct<A>(action: string, payload?: A) {
+        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    }
+
+    private async onchangevo(vo: ICheckListItem) {
+
+        if (!vo) {
+            return;
+        }
+
+        Vue.set(this.checklist_items_by_id, vo.id, await query(this.checklist_shared_module.checklistitem_type_id).filter_by_id(vo.id).select_vo());
+
+        this.get_Checklistitemmodalcomponent.change_selected_checklist_item(this.checklist_items_by_id[vo.id]);
+
+        if (this.checklist_items_by_id[vo.id].archived) {
+            delete this.checklist_items_by_id[vo.id];
+        }
+
+        if (!ObjectHandler.hasAtLeastOneAttribute(this.checklist_items_by_id)) {
+            this.checklist_items_by_id = {};
+        }
+
+        await this.throttled_update_visible_options();
+    }
+
     private async mounted() {
 
         this.get_Checklistitemmodalcomponent.$on("onchangevo", this.onchangevo.bind(this));
@@ -302,14 +408,6 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
         }
 
         await this.update_visible_options();
-    }
-
-    get has_checklist_items() {
-        if (!this.checklist_items_by_id) {
-            return false;
-        }
-
-        return ObjectHandler.hasAtLeastOneAttribute(this.checklist_items_by_id);
     }
 
     private async createNew() {
@@ -344,76 +442,11 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
         this.get_Checklistitemmodalcomponent.closemodal();
     }
 
-    get can_refresh(): boolean {
-        return this.widget_options && this.widget_options.refresh_button;
-    }
-
-    get can_export(): boolean {
-        return this.widget_options && this.widget_options.export_button;
-    }
-
-    get can_create(): boolean {
-        if (!this.checklist_shared_module) {
-            return false;
-        }
-
-        return this.can_create_right && this.widget_options.create_button;
-    }
-
-    get can_delete_all(): boolean {
-        if (!this.checklist_shared_module) {
-            return false;
-        }
-
-        return this.can_delete_all_right && this.widget_options.delete_all_button;
-    }
-
-    @Watch('checklist_shared_module', { immediate: true })
-    private async onchange_checklist_shared_module() {
-        if (!this.checklist_shared_module) {
-            return;
-        }
-
-        if (this.can_delete_all_right == null) {
-            this.can_delete_all_right = false;
-        }
-
-        if (this.can_delete_right == null) {
-            this.can_delete_right = await ModuleAccessPolicy.getInstance().testAccess(
-                DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_DELETE, this.checklist_shared_module.checklistitem_type_id));
-        }
-
-        if (this.can_update_right == null) {
-            this.can_update_right = await ModuleAccessPolicy.getInstance().testAccess(
-                DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, this.checklist_shared_module.checklistitem_type_id));
-        }
-
-        if (this.can_create_right == null) {
-            this.can_create_right = await ModuleAccessPolicy.getInstance().testAccess(
-                DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, this.checklist_shared_module.checklistitem_type_id));
-        }
-    }
-
     private async change_offset(new_offset: number) {
         if (new_offset != this.pagination_offset) {
             this.pagination_offset = new_offset;
             await this.throttled_update_visible_options();
         }
-    }
-
-    @Watch('get_active_field_filters', { deep: true })
-    private async onchange_active_field_filters() {
-        this.is_busy = true;
-
-        await this.throttled_update_visible_options();
-    }
-
-    get checklist() {
-        if ((!this.widget_options) || (!this.checklists_by_ids)) {
-            return null;
-        }
-
-        return this.checklists_by_ids[this.widget_options.checklist_id];
     }
 
     private async update_visible_options() {
@@ -561,46 +594,6 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
         await this.throttled_update_visible_options();
     }
 
-    @Watch('widget_options', { immediate: true })
-    private async onchange_widget_options() {
-        if (this.old_widget_options) {
-            if (isEqual(this.widget_options, this.old_widget_options)) {
-                return;
-            }
-        }
-
-        this.old_widget_options = cloneDeep(this.widget_options);
-
-        await this.throttled_update_visible_options();
-    }
-
-    get title_name_code_text() {
-        if (!this.widget_options) {
-            return null;
-        }
-        return this.widget_options.get_title_name_code_text(this.page_widget.id);
-    }
-
-    get widget_options(): ChecklistWidgetOptions {
-        if (!this.page_widget) {
-            return null;
-        }
-
-        let options: ChecklistWidgetOptions = null;
-        try {
-            if (this.page_widget.json_options) {
-                options = JSON.parse(this.page_widget.json_options) as ChecklistWidgetOptions;
-                options = options ? new ChecklistWidgetOptions(
-                    options.limit, options.checklist_id,
-                    options.delete_all_button, options.create_button, options.refresh_button, options.export_button) : null;
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-
-        return options;
-    }
-
     private async confirm_delete_all() {
         const self = this;
 
@@ -631,14 +624,6 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
                 }
             ]
         });
-    }
-
-    get checklist_header_title(): string {
-        if ((!this.widget_options) || (!this.page_widget)) {
-            return null;
-        }
-
-        return this.get_flat_locale_translations[this.widget_options.get_title_name_code_text(this.page_widget.id)];
     }
 
     private async openmodal(selected_checklist_item: ICheckListItem, selected_checkpoint: ICheckPoint) {

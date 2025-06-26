@@ -525,10 +525,10 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
      * translated_title : on essaie de traduire le titre
      */
     get translated_title(): string {
-        if (!this.widget_options) {
+        if (!this.page_widget) {
             return null;
         }
-        const codeText = this.widget_options.get_title_name_code_text(this.page_widget.id);
+        const codeText = this.page_widget.titre;
         const translation = this.t(codeText);
         return translation !== codeText ? translation : 'Title';
     }

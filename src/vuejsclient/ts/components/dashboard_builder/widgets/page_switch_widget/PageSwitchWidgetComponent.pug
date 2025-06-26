@@ -1,4 +1,4 @@
 .page_switch_widget_component
-    template(v-if='page_id')
+    template(v-if='page_id && page_widget?.titre')
         .page_label(v-on:click.stop.prevent='select_page')
-            Inlinetranslatabletext(:code_text="title_name_code_text")
+            Inlinetranslatabletext(:code_text="page_widget.titre")

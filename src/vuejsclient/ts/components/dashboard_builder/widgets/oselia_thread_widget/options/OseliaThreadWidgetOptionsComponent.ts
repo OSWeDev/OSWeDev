@@ -27,14 +27,6 @@ export default class OseliaThreadWidgetOptionsComponent extends VueComponentBase
     @ModuleDroppableVoFieldsAction
     private set_selected_fields: (selected_fields: { [api_type_id: string]: { [field_id: string]: boolean } }) => void;
 
-    get title_name_code_text(): string {
-        if (!this.widget_options) {
-            return null;
-        }
-
-        return this.widget_options.get_title_name_code_text(this.page_widget.id);
-    }
-
     get get_dashboard_api_type_ids(): string[] {
         return this.vuexGet<string[]>(reflect<this>().get_dashboard_api_type_ids);
     }

@@ -24,15 +24,15 @@
             )
                 .lang_selector_option(slot="noOptions") -
 
-    .widget_title(v-if='title_name_code_text')
+    .widget_title(v-if='page_widget && page_widget.titre')
         .widget_title_label {{ label('var_widget_options_component.widget_title.title_name_code_text') }}
         .widget_title_wrapper
             Inlinetranslatabletext(
-                :code_text="title_name_code_text" 
+                :code_text="page_widget.titre" 
                 :is_editable="true"
                 :default_translation="default_title_translation")
 
-    .widget_filter_options(v-if='title_name_code_text && widget_options')
+    .widget_filter_options(v-if='page_widget && page_widget.titre && widget_options')
         .widget_filter_options_label {{ label('var_widget_options_component.widget_filter_options') }}
         .widget_filter_options_wrapper
             Widgetfilteroptionscomponent(
@@ -68,4 +68,4 @@
             .fg_color_text
                 .explication {{ label("var_widget_options_component.fg_color_text") }}
                 color-picker(v-model="fg_color_text" @change='throttled_update_colors')
-            .preview(:style='{background: bg_color, color: fg_color_value}') {{ t(title_name_code_text) }}
+            .preview(:style='{background: bg_color, color: fg_color_value}') {{ (page_widget && page_widget.titre) ? t(page_widget.titre) : 'Exemple' }}

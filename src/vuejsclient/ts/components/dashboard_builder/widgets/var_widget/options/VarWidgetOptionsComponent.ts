@@ -86,6 +86,81 @@ export default class VarWidgetOptionsComponent extends VueComponentBase {
         return res;
     }
 
+    get var_names(): string[] {
+
+        const res: string[] = [];
+
+        for (const i in VarsController.var_conf_by_name) {
+            const var_conf = VarsController.var_conf_by_name[i];
+            res.push(var_conf.id + ' | ' + this.t(VarsController.get_translatable_name_code_by_var_id(var_conf.id)));
+        }
+
+        res.sort((a, b) => {
+            const a_ = a.split(' | ')[1];
+            const b_ = b.split(' | ')[1];
+
+            if (a_ < b_) {
+                return -1;
+            }
+            if (a_ > b_) {
+                return 1;
+            }
+
+            return 0;
+        });
+        return res;
+    }
+
+    get default_title_translation(): string {
+        if (!this.widget_options) {
+            return null;
+        }
+
+        if (!this.widget_options.var_id) {
+            return null;
+        }
+
+        return this.t(VarsController.get_translatable_name_code_by_var_id(this.widget_options.var_id));
+    }
+
+    @Watch('page_widget', { immediate: true })
+    @Watch('widget_options')
+    private async onchange_widget_options() {
+        await this.throttled_reload_options();
+    }
+
+    @Watch('tmp_selected_var_name')
+    private async onchange_tmp_selected_var_name() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (!this.tmp_selected_var_name) {
+
+            if (this.widget_options.var_id) {
+                this.widget_options.var_id = null;
+                this.custom_filter_names = {};
+                this.widget_options.filter_custom_field_filters = {};
+                await this.throttled_update_options();
+            }
+            return;
+        }
+
+        try {
+
+            const selected_var_id: number = parseInt(this.tmp_selected_var_name.split(' | ')[0]);
+
+            if (this.widget_options.var_id != selected_var_id) {
+                this.next_update_options = this.widget_options;
+                this.next_update_options.var_id = selected_var_id;
+
+                await this.throttled_update_options();
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+    }
+
     // Accès dynamiques Vuex
     public vuexGet<T>(getter: string): T {
         return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
@@ -177,31 +252,6 @@ export default class VarWidgetOptionsComponent extends VueComponentBase {
         await this.throttled_update_options();
     }
 
-    get var_names(): string[] {
-
-        const res: string[] = [];
-
-        for (const i in VarsController.var_conf_by_name) {
-            const var_conf = VarsController.var_conf_by_name[i];
-            res.push(var_conf.id + ' | ' + this.t(VarsController.get_translatable_name_code_by_var_id(var_conf.id)));
-        }
-
-        res.sort((a, b) => {
-            const a_ = a.split(' | ')[1];
-            const b_ = b.split(' | ')[1];
-
-            if (a_ < b_) {
-                return -1;
-            }
-            if (a_ > b_) {
-                return 1;
-            }
-
-            return 0;
-        });
-        return res;
-    }
-
     private reload_options() {
         if (!this.page_widget) {
             this.widget_options = null;
@@ -271,44 +321,6 @@ export default class VarWidgetOptionsComponent extends VueComponentBase {
         }
     }
 
-    @Watch('page_widget', { immediate: true })
-    @Watch('widget_options')
-    private async onchange_widget_options() {
-        await this.throttled_reload_options();
-    }
-
-    @Watch('tmp_selected_var_name')
-    private async onchange_tmp_selected_var_name() {
-        if (!this.widget_options) {
-            return;
-        }
-
-        if (!this.tmp_selected_var_name) {
-
-            if (this.widget_options.var_id) {
-                this.widget_options.var_id = null;
-                this.custom_filter_names = {};
-                this.widget_options.filter_custom_field_filters = {};
-                await this.throttled_update_options();
-            }
-            return;
-        }
-
-        try {
-
-            const selected_var_id: number = parseInt(this.tmp_selected_var_name.split(' | ')[0]);
-
-            if (this.widget_options.var_id != selected_var_id) {
-                this.next_update_options = this.widget_options;
-                this.next_update_options.var_id = selected_var_id;
-
-                await this.throttled_update_options();
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-    }
-
     private async update_options() {
         try {
             this.page_widget.json_options = JSON.stringify(this.next_update_options);
@@ -319,25 +331,5 @@ export default class VarWidgetOptionsComponent extends VueComponentBase {
 
         this.set_page_widget(this.page_widget);
         this.$emit('update_layout_widget', this.page_widget);
-    }
-
-    get title_name_code_text(): string {
-        if (!this.widget_options) {
-            return null;
-        }
-
-        return this.widget_options.get_title_name_code_text(this.page_widget.id);
-    }
-
-    get default_title_translation(): string {
-        if (!this.widget_options) {
-            return null;
-        }
-
-        if (!this.widget_options.var_id) {
-            return null;
-        }
-
-        return this.t(VarsController.get_translatable_name_code_by_var_id(this.widget_options.var_id));
     }
 }

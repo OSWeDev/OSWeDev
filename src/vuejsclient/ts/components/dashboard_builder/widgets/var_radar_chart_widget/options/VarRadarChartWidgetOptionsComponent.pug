@@ -13,11 +13,11 @@
             )
 
         .options_separator_lvl1 {{ label('var_radar_chart_widget_options_component.separator.widget_options') }}
-        .widget_title(v-if='title_name_code_text')
+        .widget_title(v-if='page_widget?.titre')
             .widget_title_label {{ label('var_radar_chart_widget_options_component.widget_title.title_name_code_text') }}
             .widget_title_wrapper
                 Inlinetranslatabletext(
-                    :code_text="title_name_code_text" 
+                    :code_text="page_widget.titre" 
                     :is_editable="true")
         .bg_color
             .explication {{ label("var_radar_chart_widget_options_component.bg_color") }}
@@ -239,7 +239,7 @@
 
 
         .options_separator_lvl2 {{ label('var_radar_chart_widget_options_component.separator.datas_filter_options') }}
-        .widget_filter_options(v-if='title_name_code_text && widget_options')
+        .widget_filter_options(v-if='page_widget?.titre && widget_options')
             .widget_filter_options_label {{ label('var_radar_chart_widget_options_component.widget_filter_options') }}
             .widget_filter_options_wrapper
                 Widgetfilteroptionscomponent(

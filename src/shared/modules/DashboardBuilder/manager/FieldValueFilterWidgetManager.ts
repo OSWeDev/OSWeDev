@@ -12,6 +12,7 @@ import ModuleTableVO from "../../DAO/vos/ModuleTableVO";
 import DataFilterOption from "../../DataRender/vos/DataFilterOption";
 import VOFieldRefVOHandler from "../handlers/VOFieldRefVOHandler";
 import BooleanFilterModel from "../models/BooleanFilterModel";
+import DashboardPageWidgetVO from "../vos/DashboardPageWidgetVO";
 import FieldValueFilterWidgetOptionsVO from "../vos/FieldValueFilterWidgetOptionsVO";
 import VOFieldRefVO from "../vos/VOFieldRefVO";
 import DashboardPageWidgetVOManager from "./DashboardPageWidgetVOManager";
@@ -577,6 +578,7 @@ export default class FieldValueFilterWidgetManager {
      */
     public static async get_field_value_filters_widgets_options_metadata(
         dashboard_page_id: number,
+        page_widget: DashboardPageWidgetVO,
     ): Promise<
         {
             [title_name_code: string]: { widget_options: FieldValueFilterWidgetOptionsVO, widget_name: string, dashboard_page_id: number, page_widget_id: number }
@@ -600,7 +602,7 @@ export default class FieldValueFilterWidgetManager {
             const options = valuetable_page_widgets[key];
 
             const widget_options = new FieldValueFilterWidgetOptionsVO().from(options.widget_options);
-            const name = widget_options.get_placeholder_name_code_text(options.page_widget_id);
+            const name = page_widget.placeholder;
 
             res[name] = {
                 dashboard_page_id: options.dashboard_page_id,

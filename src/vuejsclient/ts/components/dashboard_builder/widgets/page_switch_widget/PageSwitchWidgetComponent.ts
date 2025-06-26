@@ -41,27 +41,12 @@ export default class PageSwitchWidgetComponent extends VueComponentBase {
         return this.dashboard_pages.find((p) => p.id == this.page_id);
     }
 
-    private select_page() {
-        if (!this.page) {
-            return;
-        }
-
-        this.$emit('select_page', this.page);
-    }
-
     get page_id(): number {
         if (!this.widget_options) {
             return null;
         }
 
         return this.widget_options.page_id;
-    }
-
-    get title_name_code_text() {
-        if (!this.widget_options) {
-            return null;
-        }
-        return this.widget_options.get_title_name_code_text(this.page_widget.id);
     }
 
     get widget_options() {
@@ -80,5 +65,13 @@ export default class PageSwitchWidgetComponent extends VueComponentBase {
         }
 
         return options;
+    }
+
+    private select_page() {
+        if (!this.page) {
+            return;
+        }
+
+        this.$emit('select_page', this.page);
     }
 }

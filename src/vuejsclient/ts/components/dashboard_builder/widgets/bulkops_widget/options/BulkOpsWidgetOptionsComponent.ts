@@ -52,6 +52,28 @@ export default class BulkOpsWidgetOptionsComponent extends VueComponentBase {
         return this.get_dashboard_api_type_ids;
     }
 
+    get default_title_translation(): string {
+        return 'BulkOps#' + this.page_widget.id;
+    }
+
+    get widget_options(): BulkOpsWidgetOptions {
+        if (!this.page_widget) {
+            return null;
+        }
+
+        let options: BulkOpsWidgetOptions = null;
+        try {
+            if (this.page_widget.json_options) {
+                options = JSON.parse(this.page_widget.json_options) as BulkOpsWidgetOptions;
+                options = options ? new BulkOpsWidgetOptions(options.api_type_id, options.limit) : null;
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+
+        return options;
+    }
+
     @Watch('page_widget', { immediate: true })
     private onchange_page_widget() {
         if ((!this.page_widget) || (!this.widget_options)) {
@@ -116,35 +138,5 @@ export default class BulkOpsWidgetOptionsComponent extends VueComponentBase {
         const name = VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets)[this.page_widget.widget_id].name;
         const get_selected_fields = DashboardBuilderWidgetsController.getInstance().widgets_get_selected_fields[name];
         this.set_selected_fields(get_selected_fields ? get_selected_fields(this.page_widget) : {});
-    }
-
-    get title_name_code_text(): string {
-        if (!this.widget_options) {
-            return null;
-        }
-
-        return this.widget_options.get_title_name_code_text(this.page_widget.id);
-    }
-
-    get default_title_translation(): string {
-        return 'BulkOps#' + this.page_widget.id;
-    }
-
-    get widget_options(): BulkOpsWidgetOptions {
-        if (!this.page_widget) {
-            return null;
-        }
-
-        let options: BulkOpsWidgetOptions = null;
-        try {
-            if (this.page_widget.json_options) {
-                options = JSON.parse(this.page_widget.json_options) as BulkOpsWidgetOptions;
-                options = options ? new BulkOpsWidgetOptions(options.api_type_id, options.limit) : null;
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-
-        return options;
     }
 }

@@ -159,16 +159,6 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
     // Getters
     // --------------------------------------------------------------------------
 
-    /**
-     * Titre du widget (code text)
-     */
-    get title_name_code_text(): string {
-        if (!this.widget_options) {
-            return null;
-        }
-        return this.widget_options.get_title_name_code_text(this.page_widget?.id);
-    }
-
     get get_custom_filters() {
         return this.vuexGet<string[]>(reflect<this>().get_custom_filters);
     }
