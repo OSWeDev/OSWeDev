@@ -3347,7 +3347,22 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 try {
 
                     const vo = await query(one_to_many.target_vo_api_type_id).filter_by_id(one_to_many.target_vo_id).select_vo();
-                    vo[one_to_many.field_id] = new_vo_and_refs.new_vo.id;
+
+                    const field: ModuleTableFieldVO = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[one_to_many.target_vo_api_type_id][one_to_many.field_id];
+
+                    switch (field.field_type) {
+                        case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
+                            if (!vo[one_to_many.field_id]) {
+                                vo[one_to_many.field_id] = [];
+                            }
+
+                            vo[one_to_many.field_id].push(RangeHandler.create_single_elt_NumRange(new_vo_and_refs.new_vo.id, NumSegment.TYPE_INT));
+                            break;
+                        default:
+                            vo[one_to_many.field_id] = new_vo_and_refs.new_vo.id;
+                            break;
+                    }
+
                     await ModuleDAO.instance.insertOrUpdateVO(vo);
                     res.push(vo);
                 } catch (error) {
