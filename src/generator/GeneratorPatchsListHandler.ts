@@ -143,6 +143,7 @@ import Patch20250625InitTitresDashboardWidgets from './patchs/premodules/Patch20
 import Patch20250625InitTitresTableColumnDescs from './patchs/premodules/Patch20250625InitTitresTableColumnDescs';
 import Patch20250625InitTitresDashboardPageWidgets from './patchs/premodules/Patch20250625InitTitresDashboardPageWidgets';
 import Patch20250625InitAutresTranslatablesDashboardPageWidgets from './patchs/premodules/Patch20250625InitAutresTranslatablesDashboardPageWidgets';
+import Patch20250627TruncateTableColumnDescVO from './patchs/premodules/Patch20250627TruncateTableColumnDescVO';
 
 export default class GeneratorPatchsListHandler {
 
@@ -204,6 +205,8 @@ export default class GeneratorPatchsListHandler {
         Patch20250625InitTitresDashboardPageWidgets.getInstance(),
         Patch20250625InitTitresTableColumnDescs.getInstance(),
         Patch20250625InitAutresTranslatablesDashboardPageWidgets.getInstance(),
+
+        Patch20250627TruncateTableColumnDescVO.getInstance(),
     ];
 
     public static post_modules_workers: IGeneratorWorker[] = [
