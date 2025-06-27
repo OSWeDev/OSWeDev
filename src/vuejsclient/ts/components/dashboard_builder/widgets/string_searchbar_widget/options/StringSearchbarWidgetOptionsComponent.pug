@@ -64,6 +64,11 @@
                     :is_editable="true"
                 )
 
+        .tooltip_filter
+            .input_label {{ label('field_value_filter_widget_component.tooltip') }}
+                .input_wrapper
+                Vuequilleditor(v-model="tooltip", :options="optionsEditeur")
+
         .hide_advanced_string_filter_type(v-if="is_type_string")
             .input_label {{ label('field_value_filter_widget_component.hide_advanced_string_filter_type') }}
             .input_wrapper

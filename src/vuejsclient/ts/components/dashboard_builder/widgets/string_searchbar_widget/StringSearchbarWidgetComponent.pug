@@ -3,7 +3,7 @@ include ../../../../../views/mixins/loading.pug
 .string_searchbar_widget_component
     template(v-if='vo_field_ref')
         .vo_field_ref_label {{ vo_field_ref_label }}
-        .vo_field_advanced_string_filters
+        .vo_field_advanced_string_filters(v-tooltip="tooltip")
             template(v-if='advanced_string_filter')
                 .vo_field_advanced_string_filter
                     form(v-on:submit.prevent="validate_advanced_string_filter")

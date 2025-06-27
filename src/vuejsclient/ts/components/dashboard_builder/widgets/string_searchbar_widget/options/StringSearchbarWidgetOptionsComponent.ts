@@ -29,6 +29,9 @@ import FieldValueFilterWidgetManager from '../../../../../../../shared/modules/D
 import SortByVO from '../../../../../../../shared/modules/ContextFilter/vos/SortByVO';
 import ModuleTableVO from '../../../../../../../shared/modules/DAO/vos/ModuleTableVO';
 import ModuleContextFilter from '../../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
+import 'quill/dist/quill.bubble.css'; // Compliqué à lazy load
+import 'quill/dist/quill.core.css'; // Compliqué à lazy load
+import 'quill/dist/quill.snow.css'; // Compliqué à lazy load
 
 @Component({
     template: require('./StringSearchbarWidgetOptionsComponent.pug'),
@@ -83,6 +86,7 @@ export default class StringSearchbarWidgetOptionsComponent extends VueComponentB
     private tmp_default_advanced_string_filter_type: number = null;
 
     private actual_query: string = null;
+    private tooltip: string = null;
 
     private next_update_options: StringSearchbarWidgetOptions = null;
 
@@ -99,6 +103,22 @@ export default class StringSearchbarWidgetOptionsComponent extends VueComponentB
     private placeholder_advanced_string_filter: string = null;
     private last_calculation_cpt: number = 0;
 
+    private optionsEditeur = {
+        modules: {
+            toolbar: [
+                ['bold', 'italic', 'underline', 'strike'],      // Boutons pour le gras, italique, souligné, barré
+                [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+                [{ 'size': ['small', false, 'large', 'huge'] }],
+                [{ 'color': [] }, { 'background': [] }],        // dropdown with defaults from theme
+                [{ 'list': 'ordered' }, { 'list': 'bullet' }],  // Boutons pour les listes
+                [{ 'script': 'sub' }, { 'script': 'super' }],   // indice et exposant
+                [{ 'indent': '-1' }, { 'indent': '+1' }],       // outdent/indent
+                [{ 'align': [] }],                              // Bouton pour l'alignement (gauche, centre, droite, justifié)
+                ['clean']                                       // Bouton pour effacer la mise en forme
+            ]
+        }
+    };
+
     get default_advanced_mode_placeholder_translation(): string {
         return this.label('StringSearchbarWidget.advanced_mode_placeholder');
     }
@@ -112,6 +132,7 @@ export default class StringSearchbarWidgetOptionsComponent extends VueComponentB
             false,
             false,
             false,
+            "",
         );
     }
 
@@ -236,10 +257,12 @@ export default class StringSearchbarWidgetOptionsComponent extends VueComponentB
     private async onchange_widget_options() {
         if (!this.widget_options) {
             this.tmp_default_advanced_string_filter_type = null;
+            this.tooltip = null;
 
             return;
         }
         this.tmp_default_advanced_string_filter_type = this.widget_options.default_advanced_string_filter_type;
+        this.tooltip = this.widget_options.tooltip;
 
         if (!(this.filter_visible_options?.length > 0)) {
             await this.throttled_update_visible_options();
@@ -252,6 +275,17 @@ export default class StringSearchbarWidgetOptionsComponent extends VueComponentB
 
         if (this.next_update_options.placeholder_advanced_mode != this.placeholder_advanced_string_filter) {
             this.next_update_options.placeholder_advanced_mode = this.placeholder_advanced_string_filter;
+
+            await this.throttled_update_options();
+        }
+    }
+
+    @Watch('tooltip')
+    private async onchange_tooltip() {
+        this.next_update_options = this.widget_options;
+
+        if (this.next_update_options.tooltip != this.tooltip) {
+            this.next_update_options.tooltip = this.tooltip;
 
             await this.throttled_update_options();
         }

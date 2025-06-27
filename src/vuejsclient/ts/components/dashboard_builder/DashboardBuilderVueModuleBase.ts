@@ -308,7 +308,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         stringsearchbar.name = DashboardWidgetVO.WIDGET_NAME_stringsearchbar;
         stringsearchbar.widget_component = 'Stringsearchbarwidgetcomponent';
         stringsearchbar.options_component = 'Stringsearchbarwidgetoptionscomponent';
-        stringsearchbar.weight = 0;
+        stringsearchbar.weight = 1;
         stringsearchbar.default_background = '#f5f5f5';
         stringsearchbar.icon_component = 'Stringsearchbarwidgeticoncomponent';
         stringsearchbar.is_filter = true;

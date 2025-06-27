@@ -8,6 +8,7 @@ import ObjectHandler from "../../../tools/ObjectHandler";
 export default class StringSearchbarWidgetOptions extends AbstractVO implements IExportableWidgetOptions {
 
     public static VO_FIELD_REF_PLACEHOLDER_CODE_PREFIX: string = "StringSearchbarWidgetOptions.vo_field_ref.placeholder.";
+    public static VO_FIELD_REF_TOOLTIP_CODE_PREFIX: string = "StringSearchbarWidgetOptions.vo_field_ref.tooltip.";
     public static TITLE_CODE_PREFIX: string = "StringSearchbarWidgetOptions.title.";
 
     public constructor(
@@ -18,6 +19,7 @@ export default class StringSearchbarWidgetOptions extends AbstractVO implements 
         public autovalidate_advanced_filter?: boolean,
         public hide_advanced_string_filter_type?: boolean,
         public active_field_on_autovalidate_advanced_filter?: boolean,
+        public tooltip?: string,
     ) {
         super();
     }
@@ -64,6 +66,15 @@ export default class StringSearchbarWidgetOptions extends AbstractVO implements 
         }
 
         return StringSearchbarWidgetOptions.VO_FIELD_REF_PLACEHOLDER_CODE_PREFIX + page_widget_id + '.' + this.vo_field_ref.api_type_id + '.' + this.vo_field_ref.field_id;
+    }
+
+    public get_advanced_mode_tooltip_code_text(page_widget_id: number): string {
+
+        if ((!this.vo_field_ref) || (!page_widget_id)) {
+            return null;
+        }
+
+        return StringSearchbarWidgetOptions.VO_FIELD_REF_TOOLTIP_CODE_PREFIX + page_widget_id + '.' + this.vo_field_ref.api_type_id + '.' + this.vo_field_ref.field_id;
     }
 
     public get_title_name_code_text(page_widget_id: number): string {

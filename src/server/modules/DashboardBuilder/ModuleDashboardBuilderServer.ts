@@ -2811,6 +2811,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'field_value_filter_widget_component.placeholder_advanced_string_filter.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Tooltip" },
+            'field_value_filter_widget_component.tooltip.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': "Liste des champs pour la recherche multiple" },
             'field_value_filter_widget_component.vo_field_ref_multiple.___LABEL___'
         ));

@@ -86,6 +86,7 @@ export default class StringSearchbarWidgetComponent extends VueComponentBase {
     private tmp_context_active_string_filter: DataFilterOption = null;
     private context_active_string_filter_options: DataFilterOption[] = [];
     private advanced_string_filter: AdvancedStringFilter = new AdvancedStringFilter();
+    private tooltip: string = null;
 
     private actual_query: string = null;
 
@@ -251,6 +252,7 @@ export default class StringSearchbarWidgetComponent extends VueComponentBase {
         }
 
         this.old_widget_options = cloneDeep(this.widget_options);
+        this.tooltip = this.widget_options?.tooltip || null;
 
         this.is_init = false;
 
