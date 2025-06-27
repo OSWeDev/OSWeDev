@@ -100,7 +100,6 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
 
     private default_values_changed: boolean = false; // Attribut pour reaffecter les valeurs par défaut lorsqu'elles sont modifiées.
 
-
     private tmp_active_filter_options: DataFilterOption[] = [];
     private tmp_active_filter_options_lvl2: { [filter_opt_value: string]: DataFilterOption[] } = {};
     private active_option_lvl1: { [filter_opt_value: string]: boolean } = {};

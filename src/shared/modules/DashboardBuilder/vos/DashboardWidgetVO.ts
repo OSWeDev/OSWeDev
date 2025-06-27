@@ -38,17 +38,10 @@ export default class DashboardWidgetVO implements IDistantVOBase, IWeightedItem,
     public static WIDGET_NAME_varradarchart: string = 'varradarchart';
     public static WIDGET_NAME_varmixedcharts: string = 'varmixedcharts';
     public static WIDGET_NAME_oseliarungraphwidget: string = 'oseliarungraphwidget';
+    public static WIDGET_NAME_stringsearchbar: string = 'stringsearchbar';
 
     public id: number;
     public _type: string = DashboardWidgetVO.API_TYPE_ID;
-
-    get translatable_name_code_text(): string {
-
-        if (!this.id) {
-            return null;
-        }
-        return DashboardBuilderController.WIDGET_NAME_CODE_PREFIX + this.id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
-    }
 
     public weight: number;
 
@@ -68,4 +61,12 @@ export default class DashboardWidgetVO implements IDistantVOBase, IWeightedItem,
 
     public is_filter: boolean;
     public is_validation_filters: boolean;
+
+    get translatable_name_code_text(): string {
+
+        if (!this.id) {
+            return null;
+        }
+        return DashboardBuilderController.WIDGET_NAME_CODE_PREFIX + this.id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
+    }
 }
