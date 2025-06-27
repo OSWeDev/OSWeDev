@@ -560,7 +560,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         ResetFilters.default_height = 5;
         ResetFilters.default_width = 2;
-        ResetFilters.name = 'resetfilters';
+        ResetFilters.name = DashboardWidgetVO.WIDGET_NAME_resetfilters;
         ResetFilters.widget_component = 'Resetfilterswidgetcomponent';
         ResetFilters.options_component = 'Resetfilterswidgetoptionscomponent';
         ResetFilters.weight = 3;
@@ -580,7 +580,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         BlocText.default_height = 5;
         BlocText.default_width = 2;
-        BlocText.name = 'BlocText';
+        BlocText.name = DashboardWidgetVO.WIDGET_NAME_bloctext;
         BlocText.widget_component = 'BlocTextwidgetcomponent';
         BlocText.options_component = 'BlocTextwidgetoptionscomponent';
         BlocText.weight = 3;
@@ -599,7 +599,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         SuiviCompetences.default_height = 5;
         SuiviCompetences.default_width = 2;
-        SuiviCompetences.name = 'SuiviCompetences';
+        SuiviCompetences.name = DashboardWidgetVO.WIDGET_NAME_suivicompetences;
         SuiviCompetences.widget_component = 'SuiviCompetenceswidgetcomponent';
         SuiviCompetences.options_component = 'SuiviCompetenceswidgetoptionscomponent';
         SuiviCompetences.weight = 3;

@@ -224,8 +224,8 @@ export default class ModuleDataExport extends Module {
 
     private initialize_ExportVOToJSONHistoricVO(): void {
         const label = ModuleTableFieldController.create_new(ExportVOsToJSONHistoricVO.API_TYPE_ID, field_names<ExportVOsToJSONHistoricVO>().label, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': "Label de l'export" }), true).define_as_custom_computed(this.name, reflect<this>().export_vos_to_json_historic_vo_label_function);
-        ModuleTableFieldController.create_new(ExportVOsToJSONConfVO.API_TYPE_ID, field_names<ExportVOsToJSONConfVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': "Nom de la conf d'export" }), true);
-        ModuleTableFieldController.create_new(ExportVOsToJSONConfVO.API_TYPE_ID, field_names<ExportVOsToJSONConfVO>().description, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': "Description de la conf d'export" }), false);
+        ModuleTableFieldController.create_new(ExportVOsToJSONHistoricVO.API_TYPE_ID, field_names<ExportVOsToJSONHistoricVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': "Nom de la conf d'export" }), true);
+        ModuleTableFieldController.create_new(ExportVOsToJSONHistoricVO.API_TYPE_ID, field_names<ExportVOsToJSONHistoricVO>().description, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': "Description de la conf d'export" }), false);
 
         ModuleTableFieldController.create_new(ExportVOsToJSONHistoricVO.API_TYPE_ID, field_names<ExportVOsToJSONHistoricVO>().unique_fields_to_use_id_ranges, ModuleTableFieldVO.FIELD_TYPE_refrange_array, DefaultTranslationVO.create_new({ 'fr-fr': "Champs uniques à utiliser à la place des ids" }), false)
             .set_many_to_one_target_moduletable_name(ModuleTableFieldVO.API_TYPE_ID);
@@ -255,7 +255,7 @@ export default class ModuleDataExport extends Module {
 
         ModuleTableFieldController.create_new(ExportVOsToJSONHistoricVO.API_TYPE_ID, field_names<ExportVOsToJSONHistoricVO>().exported_data, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': "Données exportées" }), true);
 
-        ModuleTableController.create_new(this.name, ExportVOsToJSONConfVO, label, 'Export de VO vers JSON');
+        ModuleTableController.create_new(this.name, ExportVOsToJSONHistoricVO, label, 'Export de VO vers JSON');
     }
 
     private initializeExportHistoricVO(): void {

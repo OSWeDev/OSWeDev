@@ -336,6 +336,10 @@ export default class ModuleTableDBService {
         } else {
             res = await this.check_datatable_structure(moduleTable, database_name, table_name, table_cols, queries_to_try_after_creation);
 
+            if (await this.syncUniqueConstraints(moduleTable)) {
+                res = true;
+            }
+
             if (await this.check_indexes(moduleTable, database_name, table_name)) {
                 res = true;
             }
@@ -886,6 +890,97 @@ export default class ModuleTableDBService {
 
         return res_;
     }
+
+    private async syncUniqueConstraints(moduleTable: ModuleTableVO, full_name: string = null): Promise<boolean> {
+
+        if (moduleTable.is_segmented && (!full_name)) {
+
+            const tables: TableDescriptor[] = await this.db.query("SELECT * FROM pg_catalog.pg_tables WHERE schemaname = '" + moduleTable.database + "';");
+            let cumulative_res: boolean = false;
+
+            for (const i in tables) {
+                const table = tables[i];
+
+                if (await this.syncUniqueConstraints(moduleTable, moduleTable.database + '.' + table.tablename)) {
+                    cumulative_res = true;
+                }
+            }
+
+            return cumulative_res;
+        }
+
+        // On gère les tables segmentées avec les params full_name, vo_type
+        const table = full_name ? full_name : moduleTable.full_name;
+        const voType = moduleTable.vo_type;
+        let res = false;
+
+        // 1. définitions uniques attendues
+        const uniqDefs: ModuleTableFieldVO[][] =
+            ModuleTableController.unique_fields_by_vo_type[voType] || [];
+        const expected = uniqDefs.map(fields => fields.map(f => f.field_name));
+
+        // 2. récupère en base et parse cols
+        let existing = null;
+        try {
+            const result = await this.db.query(`
+      SELECT con.conname,
+             array_agg(att.attname ORDER BY i.ordinality) AS cols
+        FROM pg_constraint con
+        JOIN unnest(con.conkey) WITH ORDINALITY AS i(attnum, ordinality) ON TRUE
+        JOIN pg_attribute att
+          ON att.attrelid = con.conrelid
+         AND att.attnum = i.attnum
+       WHERE con.contype = 'u'
+         AND con.conrelid = $1::regclass
+       GROUP BY con.conname
+    `, [table]);
+
+            existing = result ? result.map(r => {
+                // r.cols peut être déjà string[] ou string "{a,b}"
+                const raw = r.cols;
+                const cols = Array.isArray(raw)
+                    ? raw
+                    : typeof raw === 'string' && raw.startsWith('{') && raw.endsWith('}')
+                        ? raw.slice(1, -1).split(',').map(s => s.trim())
+                        : [String(raw)];
+                return { name: r.conname, cols };
+            }) : [];
+        } catch (error) {
+            throw new Error(`syncUniqueConstraints: error fetching unique constraints for table ${table}: ${error.message}`);
+        }
+
+        const norm = (arr: string[]) => [...arr].sort().join('||');
+        const expectedSet = new Set(expected.map(norm));
+        const existingSet = new Set(existing.map(e => norm(e.cols)));
+        const qi = (s: string) => `"${s.replace(/"/g, '""')}"`;
+
+        // 3. DROP superflues
+        for (const { name, cols } of existing) {
+            if (!expectedSet.has(norm(cols))) {
+                await this.db.query(
+                    `ALTER TABLE ${table} DROP CONSTRAINT ${qi(name)}`
+                );
+                ConsoleHandler.log(`syncUniqueConstraints: drop ${name}`);
+                res = true;
+            }
+        }
+
+        // 4. ADD manquantes
+        for (const cols of expected) {
+            if (!existingSet.has(norm(cols))) {
+                const cname = `${table}_${cols.join('_')}_uniq`;
+                const colList = cols.map(qi).join(', ');
+                await this.db.query(
+                    `ALTER TABLE ${table} ADD CONSTRAINT ${qi(cname)} UNIQUE (${colList})`
+                );
+                ConsoleHandler.log(`syncUniqueConstraints: add ${cname}`);
+                res = true;
+            }
+        }
+
+        return res;
+    }
+
 
     /**
      * @returns true if causes a change in the db structure

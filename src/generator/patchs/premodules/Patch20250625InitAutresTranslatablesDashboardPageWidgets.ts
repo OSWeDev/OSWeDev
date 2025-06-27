@@ -345,12 +345,15 @@ export default class Patch20250625InitAutresTranslatablesDashboardPageWidgets im
                         break;
 
                     case DashboardWidgetVO.WIDGET_NAME_currentuserfilter:
+                    case DashboardWidgetVO.WIDGET_NAME_suivicompetences:
+                    case DashboardWidgetVO.WIDGET_NAME_bloctext:
                         break;
 
 
 
                     default:
-                        throw new Error(`Widget name "${widget_name}" is not supported for patching titles in DashboardPageWidgets.`);
+                        ConsoleHandler.error(`Widget name "${widget_name}" is not supported for patching titles in DashboardPageWidgets. If there is no placeholder/vars/scales translations this is not a problem. Otherwise you need to migrate the translation' code to the according field`);
+                        break;
                 }
 
                 if (placeholder) {
@@ -369,6 +372,17 @@ export default class Patch20250625InitAutresTranslatablesDashboardPageWidgets im
                             continue;
                         }
                         await db.query("UPDATE ref.module_dashboardbuilder_dashboard_pwidget SET " + 'var_' + (parseInt(i) + 1) + '_titre' + " = $1 WHERE id = $2;", [var_titre, id]);
+                    }
+                }
+
+                // On ajoute les titres des scales
+                if (scale_titres && scale_titres.length > 0) {
+                    for (const i in scale_titres) {
+                        const scale_titre = scale_titres[i];
+                        if (!scale_titre) {
+                            continue;
+                        }
+                        await db.query("UPDATE ref.module_dashboardbuilder_dashboard_pwidget SET " + 'scale_' + (parseInt(i) + 1) + '_titre' + " = $1 WHERE id = $2;", [scale_titre, id]);
                     }
                 }
             }

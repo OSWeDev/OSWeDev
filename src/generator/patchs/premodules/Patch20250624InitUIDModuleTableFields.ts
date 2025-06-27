@@ -65,5 +65,12 @@ export default class Patch20250624InitUIDModuleTableFields implements IGenerator
                 ALTER TABLE ref.module_dao_module_table_field 
                 ALTER COLUMN uid DROP DEFAULT;
             `);
+
+        // Dans le doute on néttoie les doublons sur cette table à ce stade, le champs va être passé en unique dans la foulée
+        await db.query(`DELETE FROM ref.module_dao_module_table_field a
+            USING ref.module_dao_module_table_field b
+            WHERE a.uid = b.uid
+            AND a.id < b.id;
+        `);
     }
 }

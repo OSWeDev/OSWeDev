@@ -291,18 +291,18 @@ export default class ModuleDashboardBuilder extends Module {
         ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().var_11_titre, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Var 11 Titre', false);
         ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().var_12_titre, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Var 12 Titre', false);
 
-        ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().scale_1_title, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Scale 1 Titre', false);
-        ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().scale_2_title, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Scale 2 Titre', false);
-        ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().scale_3_title, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Scale 3 Titre', false);
-        ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().scale_4_title, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Scale 4 Titre', false);
-        ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().scale_5_title, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Scale 5 Titre', false);
-        ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().scale_6_title, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Scale 6 Titre', false);
-        ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().scale_7_title, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Scale 7 Titre', false);
-        ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().scale_8_title, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Scale 8 Titre', false);
-        ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().scale_9_title, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Scale 9 Titre', false);
-        ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().scale_10_title, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Scale 10 Titre', false);
-        ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().scale_11_title, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Scale 11 Titre', false);
-        ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().scale_12_title, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Scale 12 Titre', false);
+        ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().scale_1_titre, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Scale 1 Titre', false);
+        ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().scale_2_titre, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Scale 2 Titre', false);
+        ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().scale_3_titre, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Scale 3 Titre', false);
+        ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().scale_4_titre, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Scale 4 Titre', false);
+        ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().scale_5_titre, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Scale 5 Titre', false);
+        ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().scale_6_titre, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Scale 6 Titre', false);
+        ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().scale_7_titre, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Scale 7 Titre', false);
+        ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().scale_8_titre, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Scale 8 Titre', false);
+        ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().scale_9_titre, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Scale 9 Titre', false);
+        ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().scale_10_titre, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Scale 10 Titre', false);
+        ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().scale_11_titre, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Scale 11 Titre', false);
+        ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().scale_12_titre, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Scale 12 Titre', false);
 
         ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().static, ModuleTableFieldVO.FIELD_TYPE_boolean, 'static', true, true, false);
         ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().x, ModuleTableFieldVO.FIELD_TYPE_int, 'x', true, true, 0);

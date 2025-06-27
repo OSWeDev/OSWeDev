@@ -150,6 +150,8 @@ export default class Patch20250625InitTitresDashboardPageWidgets implements IGen
 
                     case DashboardWidgetVO.WIDGET_NAME_perfreportgraph:
                     case DashboardWidgetVO.WIDGET_NAME_oseliarungraphwidget:
+                    case DashboardWidgetVO.WIDGET_NAME_suivicompetences:
+                    case DashboardWidgetVO.WIDGET_NAME_bloctext:
                         titre = `dashboard.page_widget.name.${id}.___LABEL___`; // Le osef est total en fait dans ce cas puisqu'on a pas de titre à la base
                         break;
 
@@ -171,7 +173,9 @@ export default class Patch20250625InitTitresDashboardPageWidgets implements IGen
 
 
                     default:
-                        throw new Error(`Widget name "${widget_name}" is not supported for patching titles in DashboardPageWidgets.`);
+                        ConsoleHandler.error(`Widget name "${widget_name}" is not supported for patching titles in DashboardPageWidgets. If there is no title translation existing as of now this is not a problem. Otherwise you need to migrate the translation' code to the according field`);
+                        titre = `dashboard.page_widget.name.${id}.___LABEL___`; // Le osef est total en fait dans ce cas puisqu'on a pas de titre à la base
+                        break;
                 }
 
                 await db.query("UPDATE ref.module_dashboardbuilder_dashboard_pwidget SET titre = $1 WHERE id = $2;", [titre, id]);

@@ -57,7 +57,7 @@ export default class Patch20250625InitTitresTableColumnDescs implements IGenerat
 
         // Alors pour les tablecolumndecs c'est des options dans un widget, donc on doit charger les widgets qui ont ce type d'options : TableWidgetOptionsVO/DashboardWidgetVO.WIDGET_NAME_datatable
         // On charge le widget DashboardWidgetVO.WIDGET_NAME_datatable, pour avoir son id dans la requete suivante
-        const widget = await db.query(`SELECT id FROM ref.module_dashboardbuilder_dashboard_widget WHERE name = '${DashboardWidgetVO.WIDGET_NAME_datatable}';`);
+        const widget = (await db.query(`SELECT id FROM ref.module_dashboardbuilder_dashboard_widget WHERE name = '${DashboardWidgetVO.WIDGET_NAME_datatable}';`))[0];
         // On charge tous les pages_widgets de type DashboardWidgetVO.WIDGET_NAME_datatable
         const page_widgets = await db.query(`SELECT id, json_options FROM ref.module_dashboardbuilder_dashboard_pwidget WHERE widget_id = ${widget.id};`);
 
@@ -99,11 +99,9 @@ export default class Patch20250625InitTitresTableColumnDescs implements IGenerat
 
                 if (column.custom_label) {
                     titre = column.custom_label;
+                } else if ((!page_widget.id) || (column.type == null)) {
+                    titre = '';
                 } else {
-
-                    if ((!page_widget.id) || (!column.type)) {
-                        titre = '';
-                    }
 
                     titre = DashboardBuilderController.TableColumnDesc_NAME_CODE_PREFIX + page_widget.id + '.' + column.type + '.';
 
