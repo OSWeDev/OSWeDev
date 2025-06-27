@@ -2,6 +2,7 @@ import { cloneDeep, isEqual } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ContextFilterVO, { filter } from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import ContextQueryVO, { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleTableController from '../../../../../../shared/modules/DAO/ModuleTableController';
 import ModuleTableFieldVO from '../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
@@ -25,8 +26,6 @@ import ResetFiltersWidgetController from '../reset_filters_widget/ResetFiltersWi
 import ValidationFiltersCallUpdaters from '../validation_filters_widget/ValidationFiltersCallUpdaters';
 import ValidationFiltersWidgetController from '../validation_filters_widget/ValidationFiltersWidgetController';
 import './StringSearchbarWidgetComponent.scss';
-import ContextQueryVO, { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import { field_names } from '../../../../../../shared/tools/ObjectHandler';
 
 @Component({
     template: require('./StringSearchbarWidgetComponent.pug'),
