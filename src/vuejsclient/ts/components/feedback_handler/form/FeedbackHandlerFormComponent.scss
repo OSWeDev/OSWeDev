@@ -1,0 +1,48 @@
+.FeedbackHandlerFormComponent {
+    &:not(.is_modal) {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    textarea,
+    input[type~="text"] {
+        padding: 0.5em;
+        width: 100%;
+        margin-left: 0;
+    }
+
+    input[type~="radio"] {
+        height: 1.5em;
+        width: 1.5em;
+        vertical-align: middle;
+        cursor: pointer;
+
+        &+label {
+            max-width: 80%;
+        }
+    }
+
+    label i.fa-solid.fa-asterisk.mandatory {
+        color: red;
+        font-size: 0.4rem;
+        vertical-align: top;
+        margin-left: 1px;
+    }
+
+    label.feedback_type {
+
+        vertical-align: text-top;
+        margin-left: 0.5em;
+        cursor: pointer;
+    }
+
+    .dz-preview.dz-file-preview.dz-processing {
+        display: none;
+    }
+
+    .spacer {
+        display: block;
+        height: 1em;
+    }
+}

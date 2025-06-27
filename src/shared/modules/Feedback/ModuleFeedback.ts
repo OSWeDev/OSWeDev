@@ -23,14 +23,9 @@ export default class ModuleFeedback extends Module {
     public static POLICY_BO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleFeedback.MODULE_NAME + '.BO_ACCESS';
     public static POLICY_FO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleFeedback.MODULE_NAME + '.FO_ACCESS';
 
+    public static ROUTE_NAME_FEEDBACK_FORM: string = 'feedback_form';
+
     public static APINAME_feedback: string = "feedback";
-    // istanbul ignore next: nothing to test
-    public static getInstance(): ModuleFeedback {
-        if (!ModuleFeedback.instance) {
-            ModuleFeedback.instance = new ModuleFeedback();
-        }
-        return ModuleFeedback.instance;
-    }
 
     private static instance: ModuleFeedback = null;
 
@@ -39,6 +34,14 @@ export default class ModuleFeedback extends Module {
     private constructor() {
         super("feedback", ModuleFeedback.MODULE_NAME);
         this.forceActivationOnInstallation();
+    }
+
+    // istanbul ignore next: nothing to test
+    public static getInstance(): ModuleFeedback {
+        if (!ModuleFeedback.instance) {
+            ModuleFeedback.instance = new ModuleFeedback();
+        }
+        return ModuleFeedback.instance;
     }
 
     public registerApis() {
@@ -74,7 +77,7 @@ export default class ModuleFeedback extends Module {
         const state_id = ModuleTableFieldController.create_new(FeedbackVO.API_TYPE_ID, field_names<FeedbackVO>().state_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Etat', false);
         const confirmation_mail_id = ModuleTableFieldController.create_new(FeedbackVO.API_TYPE_ID, field_names<FeedbackVO>().confirmation_mail_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Mail de confirmation', false);
         const impersonated_from_user_id = ModuleTableFieldController.create_new(FeedbackVO.API_TYPE_ID, field_names<FeedbackVO>().impersonated_from_user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Si LogAs: Admin', false);
-        const screen_capture_1_id = ModuleTableFieldController.create_new(FeedbackVO.API_TYPE_ID, field_names<FeedbackVO>().screen_capture_1_id, ModuleTableFieldVO.FIELD_TYPE_image_ref, 'Capture écran 1', true).not_add_to_crud();
+        const screen_capture_1_id = ModuleTableFieldController.create_new(FeedbackVO.API_TYPE_ID, field_names<FeedbackVO>().screen_capture_1_id, ModuleTableFieldVO.FIELD_TYPE_image_ref, 'Capture écran 1', false).not_add_to_crud();
         const screen_capture_2_id = ModuleTableFieldController.create_new(FeedbackVO.API_TYPE_ID, field_names<FeedbackVO>().screen_capture_2_id, ModuleTableFieldVO.FIELD_TYPE_image_ref, 'Capture écran 2', false).not_add_to_crud();
         const screen_capture_3_id = ModuleTableFieldController.create_new(FeedbackVO.API_TYPE_ID, field_names<FeedbackVO>().screen_capture_3_id, ModuleTableFieldVO.FIELD_TYPE_image_ref, 'Capture écran 3', false).not_add_to_crud();
         const file_attachment_1_id = ModuleTableFieldController.create_new(FeedbackVO.API_TYPE_ID, field_names<FeedbackVO>().file_attachment_1_id, ModuleTableFieldVO.FIELD_TYPE_file_ref, 'Pièce jointe 1', false).not_add_to_crud();
