@@ -95,7 +95,7 @@ export default class SendInBlueMailServerController {
             }
 
             if (attachments && attachments.length > 0) {
-                postParams.attachments = attachments;
+                postParams.attachment = attachments;
             }
 
             if (templateId) {
@@ -223,7 +223,7 @@ export default class SendInBlueMailServerController {
             }
 
             if (attachments && attachments.length > 0) {
-                postParams.attachments = attachments;
+                postParams.attachment = attachments;
             }
 
             if (tags && tags.length > 0) {
