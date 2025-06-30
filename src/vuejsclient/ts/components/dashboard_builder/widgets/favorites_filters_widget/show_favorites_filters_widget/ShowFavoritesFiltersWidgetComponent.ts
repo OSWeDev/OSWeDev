@@ -145,6 +145,38 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
         return VOsTypesManager.vosArray_to_vosByIds(this.all_page_widget);
     }
 
+    /**
+     * Watch on widget_options
+     *  - Shall happen first on component init or each time widget_options changes
+     *  - Initialize the tmp_active_favorites_filters_option with default widget options
+     *
+     * @returns {void}
+     */
+    @Watch('widget_options', { immediate: true })
+    private onchange_widget_options(): void {
+        if (this.old_widget_options) {
+            if (isEqual(this.widget_options, this.old_widget_options)) {
+                return;
+            }
+        }
+
+        this.old_widget_options = cloneDeep(this.widget_options);
+
+        this.throttled_update_visible_options();
+    }
+
+    /**
+     * Watch on get_active_field_filters
+     *  - Shall happen first on component init or each time get_active_field_filters changes
+     *  - Initialize the tmp_active_favorites_filters_option with active filter options
+     *
+     * @returns {void}
+     */
+    @Watch('get_active_field_filters', { deep: true })
+    private onchange_active_field_filters(): void {
+        this.throttled_update_visible_options();
+    }
+
 
     // /**
     //  * Update Active Field Filters
@@ -219,38 +251,6 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
         );
 
         this.set_active_field_filters(context_field_filters);
-    }
-
-    /**
-     * Watch on widget_options
-     *  - Shall happen first on component init or each time widget_options changes
-     *  - Initialize the tmp_active_favorites_filters_option with default widget options
-     *
-     * @returns {void}
-     */
-    @Watch('widget_options', { immediate: true })
-    private onchange_widget_options(): void {
-        if (this.old_widget_options) {
-            if (isEqual(this.widget_options, this.old_widget_options)) {
-                return;
-            }
-        }
-
-        this.old_widget_options = cloneDeep(this.widget_options);
-
-        this.throttled_update_visible_options();
-    }
-
-    /**
-     * Watch on get_active_field_filters
-     *  - Shall happen first on component init or each time get_active_field_filters changes
-     *  - Initialize the tmp_active_favorites_filters_option with active filter options
-     *
-     * @returns {void}
-     */
-    @Watch('get_active_field_filters', { deep: true })
-    private onchange_active_field_filters(): void {
-        this.throttled_update_visible_options();
     }
 
     /**
@@ -535,8 +535,8 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
         const dashboard_page_id = this.dashboard_page.id;
 
         const field_value_filters_widgets_options = await FieldValueFilterWidgetManager.get_field_value_filters_widgets_options_metadata(dashboard_page_id, this.page_widget);
-        const month_filters_widgets_options = await MonthFilterWidgetManager.get_month_filters_widgets_options_metadata(dashboard_page_id);
-        const year_filters_widgets_options = await YearFilterWidgetManager.get_year_filters_widgets_options_metadata(dashboard_page_id);
+        const month_filters_widgets_options = await MonthFilterWidgetManager.get_month_filters_widgets_options_metadata(dashboard_page_id, this.page_widget);
+        const year_filters_widgets_options = await YearFilterWidgetManager.get_year_filters_widgets_options_metadata(dashboard_page_id, this.page_widget);
 
         const widgets_options: any[] = [];
 

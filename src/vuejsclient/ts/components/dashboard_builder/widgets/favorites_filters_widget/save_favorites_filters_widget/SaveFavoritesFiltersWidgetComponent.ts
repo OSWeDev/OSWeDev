@@ -56,6 +56,48 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
         return this.vuexGet<FieldFiltersVO>(reflect<this>().get_active_field_filters);
     }
 
+    /**
+     * Get Widgets By Id
+     *
+     * @return { [id: number]: DashboardWidgetVO }
+     */
+    get widgets_by_id(): { [id: number]: DashboardWidgetVO } {
+        return VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets);
+    }
+
+    /**
+     * Get widget_options
+     *
+     * @return {FavoritesFiltersWidgetOptionsVO}
+     */
+    get widget_options(): FavoritesFiltersWidgetOptionsVO {
+
+        if (!this.page_widget) {
+            return null;
+        }
+
+        let options: FavoritesFiltersWidgetOptionsVO = null;
+
+        try {
+            if (this.page_widget.json_options) {
+                options = JSON.parse(this.page_widget.json_options) as FavoritesFiltersWidgetOptionsVO;
+                options = options ? new FavoritesFiltersWidgetOptionsVO().from(options) : null;
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+
+        return options;
+    }
+
+    /**
+     * Get All Page Widget By Id
+     * @return {{ [id: number]: DashboardPageWidgetVO }}
+     */
+    get all_page_widgets_by_id(): { [id: number]: DashboardPageWidgetVO } {
+        return VOsTypesManager.vosArray_to_vosByIds(this.all_page_widget);
+    }
+
     // Accès dynamiques Vuex
     public vuexGet<T>(getter: string): T {
         return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
@@ -205,8 +247,8 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
         const dashboard_page_id = this.dashboard_page.id;
 
         const field_value_filters_widgets_options = await FieldValueFilterWidgetManager.get_field_value_filters_widgets_options_metadata(dashboard_page_id, this.page_widget);
-        const month_filters_widgets_options = await MonthFilterWidgetManager.get_month_filters_widgets_options_metadata(dashboard_page_id);
-        const year_filters_widgets_options = await YearFilterWidgetManager.get_year_filters_widgets_options_metadata(dashboard_page_id);
+        const month_filters_widgets_options = await MonthFilterWidgetManager.get_month_filters_widgets_options_metadata(dashboard_page_id, this.page_widget);
+        const year_filters_widgets_options = await YearFilterWidgetManager.get_year_filters_widgets_options_metadata(dashboard_page_id, this.page_widget);
 
         const widgets_options: any[] = [];
 
@@ -249,47 +291,5 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
         }
 
         return new VOFieldRefVO().from(widget_options.vo_field_ref);
-    }
-
-    /**
-     * Get Widgets By Id
-     *
-     * @return { [id: number]: DashboardWidgetVO }
-     */
-    get widgets_by_id(): { [id: number]: DashboardWidgetVO } {
-        return VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets);
-    }
-
-    /**
-     * Get widget_options
-     *
-     * @return {FavoritesFiltersWidgetOptionsVO}
-     */
-    get widget_options(): FavoritesFiltersWidgetOptionsVO {
-
-        if (!this.page_widget) {
-            return null;
-        }
-
-        let options: FavoritesFiltersWidgetOptionsVO = null;
-
-        try {
-            if (this.page_widget.json_options) {
-                options = JSON.parse(this.page_widget.json_options) as FavoritesFiltersWidgetOptionsVO;
-                options = options ? new FavoritesFiltersWidgetOptionsVO().from(options) : null;
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-
-        return options;
-    }
-
-    /**
-     * Get All Page Widget By Id
-     * @return {{ [id: number]: DashboardPageWidgetVO }}
-     */
-    get all_page_widgets_by_id(): { [id: number]: DashboardPageWidgetVO } {
-        return VOsTypesManager.vosArray_to_vosByIds(this.all_page_widget);
     }
 }

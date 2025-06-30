@@ -11,7 +11,7 @@
 
             .section-content(v-if="localSectionsOpen.graphicalOptions")
                 // Var title
-                .var_title(v-if='page_widget && page_widget.id && var_id && (index != null) && page_widget['var_' + (index+1) + '_title']')
+                .var_title(v-if='page_widget && page_widget.id && var_id && (index != null) && page_widget["var_" + (index+1) + "_title"]')
                     .input_label {{ label('var_chart_options_item_component.var_title.title_name_code_text') }}
                     .input_wrapper
                         Inlinetranslatabletext(
