@@ -143,7 +143,7 @@ export default class ModuleDAO extends Module {
             return true;
         });
 
-    public get_computed_moduletable_field_uid: (vo_type: string) => Promise<string> = APIControllerWrapper.sah_optimizer(this.name, reflect<this>().get_computed_moduletable_field_uid);
+    public get_computed_moduletable_field_uid: (field: ModuleTableFieldVO) => Promise<string> = APIControllerWrapper.sah_optimizer(this.name, reflect<this>().get_computed_moduletable_field_uid);
 
     private constructor() {
 

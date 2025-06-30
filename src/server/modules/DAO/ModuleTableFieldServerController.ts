@@ -256,6 +256,7 @@ export default class ModuleTableFieldServerController {
                     let db_field = await query(ModuleTableFieldVO.API_TYPE_ID)
                         .filter_by_text_eq(field_names<ModuleTableVO>().vo_type, vo_type, ModuleTableVO.API_TYPE_ID)
                         .filter_by_text_eq(field_names<ModuleTableFieldVO>().field_name, field_name)
+                        .exec_as_server()
                         .select_vo<ModuleTableFieldVO>();
 
                     let merged_db_field = field;

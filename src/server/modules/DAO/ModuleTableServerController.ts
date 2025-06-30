@@ -180,6 +180,7 @@ export default class ModuleTableServerController {
             await promise_pipeline.push(async () => {
                 let db_table = await query(ModuleTableVO.API_TYPE_ID)
                     .filter_by_text_eq(field_names<ModuleTableVO>().vo_type, vo_type)
+                    .exec_as_server()
                     .select_vo<ModuleTableVO>();
 
                 let merged_db_table = table;

@@ -412,6 +412,49 @@ export default class ModuleDAOServer extends ModuleServerBase {
         await ModuleDAO.instance.late_configuration(is_generator);
     }
 
+    /**
+     * Au final pas utilisé pour le moment, mais potentiellement utile pour des traitements qui changeraient des éléments structurant pour un computed, et qui auraient besoin d'avoir une valeur à jour (hors insert/update en base qui gèrent la mise à jour déjà)
+     */
+    public async update_computed_fields(vo: IDistantVOBase, limit_to_unique_fields: boolean = false) {
+
+        if (!vo) {
+            return;
+        }
+
+        const computed_fields = [];
+        const table_fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[vo._type];
+
+        for (const i in table_fields) {
+            const field = table_fields[i];
+
+            if (limit_to_unique_fields && !field.is_unique) {
+                continue;
+            }
+
+            if (!field.is_custom_computed) {
+                continue;
+            }
+
+            computed_fields.push(field);
+        }
+
+        const promises = [];
+        for (const i in computed_fields) {
+            const field = computed_fields[i];
+
+            const module = ModulesManager.getModuleByNameAndRole(field.custom_computed_module_name, Module.ServerModuleRoleName);
+
+            if (!module) {
+                throw new Error("Impossible de trouver le module " + field.custom_computed_module_name + " pour le champ " + field.field_name);
+            }
+
+            promises.push((async () => {
+                vo[field.field_name] = await (module[field.custom_computed_function_name].bind(module))(vo, field);
+            })());
+        }
+        await all_promises(promises);
+    }
+
     public async shift_select_queries(event: EventifyEventInstanceVO, listener: EventifyEventListenerInstanceVO): Promise<void> {
         return ThrottledQueryServerController.shift_select_queries();
     }
@@ -3300,6 +3343,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             })());
         }
 
+
         // 3 on insert les refs one to many, en forçant d'abord le champs de liaison à l'id de l'objet nouvellement créé
         for (const i in new_vo_and_refs.one_to_many_vos) {
             const one_to_many: CRUDCNVOOneToManyRefVO = new_vo_and_refs.one_to_many_vos[i];
@@ -3309,7 +3353,22 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 try {
 
                     const vo = await query(one_to_many.target_vo_api_type_id).filter_by_id(one_to_many.target_vo_id).select_vo();
-                    vo[one_to_many.field_id] = new_vo_and_refs.new_vo.id;
+
+                    const field: ModuleTableFieldVO = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[one_to_many.target_vo_api_type_id][one_to_many.field_id];
+
+                    switch (field.field_type) {
+                        case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
+                            if (!vo[one_to_many.field_id]) {
+                                vo[one_to_many.field_id] = [];
+                            }
+
+                            vo[one_to_many.field_id].push(RangeHandler.create_single_elt_NumRange(new_vo_and_refs.new_vo.id, NumSegment.TYPE_INT));
+                            break;
+                        default:
+                            vo[one_to_many.field_id] = new_vo_and_refs.new_vo.id;
+                            break;
+                    }
+
                     await ModuleDAO.instance.insertOrUpdateVO(vo);
                     res.push(vo);
                 } catch (error) {

@@ -203,7 +203,7 @@ export default class ModuleDataImport extends Module {
         for (const i in targetModuleTable.get_fields()) {
             const vofield = targetModuleTable.get_fields()[i];
 
-            Object.assign(
+            let new_vo_field = Object.assign(
                 ModuleTableFieldController.create_new(
                     imported_vo_type,
                     vofield.field_id,
@@ -213,6 +213,9 @@ export default class ModuleDataImport extends Module {
                     vofield.has_default,
                     vofield.field_default_value?.value
                 ), vofield);
+            new_vo_field.module_table_vo_type = imported_vo_type;
+            new_vo_field.module_table_id = null;
+            new_vo_field.id = null;
         }
 
         // On crée le moduletable adapté, et on stocke l'info de l'existence de ce type importable
