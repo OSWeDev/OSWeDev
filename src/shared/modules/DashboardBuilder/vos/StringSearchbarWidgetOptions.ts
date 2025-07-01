@@ -19,6 +19,7 @@ export default class StringSearchbarWidgetOptions extends AbstractVO implements 
         public hide_advanced_string_filter_type?: boolean,
         public active_field_on_autovalidate_advanced_filter?: boolean,
         public tooltip?: string,
+        public is_res_mode_list?: boolean,
     ) {
         super();
     }

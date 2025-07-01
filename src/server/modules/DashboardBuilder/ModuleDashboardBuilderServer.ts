@@ -3660,6 +3660,19 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'field_value_filter_widget_component.auto_select_date.is_relative_to_other_filter.tooltip.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Afficher les résultats sous forme de liste (ou de tableau)" },
+            'field_value_filter_widget_component.is_res_mode_list.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Liste" },
+            'field_value_filter_widget_component.mode_list.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Tableau" },
+            'field_value_filter_widget_component.mode_tab.___LABEL___'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': "Utiliser cette table pour la comptage des valeurs dans les filtres (si activé)" },
             'table_widget_options_component.use_for_count.___LABEL___'
         ));

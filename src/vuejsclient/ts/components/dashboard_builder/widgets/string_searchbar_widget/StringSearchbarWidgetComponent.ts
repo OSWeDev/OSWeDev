@@ -86,6 +86,7 @@ export default class StringSearchbarWidgetComponent extends VueComponentBase {
     private context_active_string_filter_options: DataFilterOption[] = [];
     private advanced_string_filter: AdvancedStringFilter = new AdvancedStringFilter();
     private tooltip: string = null;
+    private context_active_string_filter_table_rows: any[] = [];
 
     private actual_query: string = null;
 
@@ -176,6 +177,15 @@ export default class StringSearchbarWidgetComponent extends VueComponentBase {
         }
 
         return !!this.widget_options.autovalidate_advanced_filter;
+    }
+
+    get is_res_mode_list(): boolean {
+
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return !!this.widget_options.is_res_mode_list;
     }
 
     get hide_advanced_string_filter_type(): boolean {
@@ -302,7 +312,7 @@ export default class StringSearchbarWidgetComponent extends VueComponentBase {
         const field = moduletable.get_field_by_id(this.vo_field_ref.field_id);
 
         let tmp_context_filter: ContextFilterVO = new ContextFilterVO();
-        let new_advanced_string_filter: AdvancedStringFilter = new AdvancedStringFilter();
+        const new_advanced_string_filter: AdvancedStringFilter = new AdvancedStringFilter();
         new_advanced_string_filter.filter_content = this.tmp_context_active_string_filter.label;
         new_advanced_string_filter.filter_type = this.advanced_string_filter.filter_type;
         new_advanced_string_filter.link_type = this.advanced_string_filter.link_type;
@@ -330,6 +340,15 @@ export default class StringSearchbarWidgetComponent extends VueComponentBase {
         this.throttled_update_visible_options();
     }
 
+    private onClickContextTableRow(row: any, rowIndex: number): void {
+        // récupère la 1ere clé et sa valeur
+        const firstKey = Object.keys(row)[0];
+        const value = row[firstKey];
+        // crée l’option et délégué à ta validation existante
+        this.tmp_context_active_string_filter = this.createDataFilter(value, rowIndex);
+        this.validate_context_active_string_filter();
+    }
+
     private async validate_advanced_string_filter() {
         /**
          * À la validation de l'advanced_string_filter, on va parcourir les multiples.
@@ -343,36 +362,70 @@ export default class StringSearchbarWidgetComponent extends VueComponentBase {
 
         this.is_loading_options = true;
 
-        // P-e qu'il faut remove l'active du vo_field_ref à ce moment là ??
-
         if (this.vo_field_ref_multiple?.length > 0) {
 
+            const multiple_field_id_from_vo_field_ref: string[] = [];
+            if (!this.widget_options.is_res_mode_list) {
+                for (const i in this.vo_field_ref_multiple) {
+                    if (this.vo_field_ref_multiple[i].api_type_id == this.vo_field_ref.api_type_id) {
+                        multiple_field_id_from_vo_field_ref.push(this.vo_field_ref_multiple[i].field_id);
+                    }
+                }
+            }
+
             let multiple_res: any[] = [];
-            for (const i in this.vo_field_ref_multiple) {
-                const vo_field_ref_multiple = this.vo_field_ref_multiple[i];
+            for (const j in this.vo_field_ref_multiple) {
+                const vo_field_ref_multiple = this.vo_field_ref_multiple[j];
 
                 const moduletable = ModuleTableController.module_tables_by_vo_type[vo_field_ref_multiple.api_type_id];
                 const field = moduletable.get_field_by_id(vo_field_ref_multiple.field_id);
 
                 let query_: ContextQueryVO = await query(this.vo_field_ref.api_type_id)
                     .field(this.vo_field_ref.field_id);
+
+                if (!this.widget_options.is_res_mode_list) {
+                    // On va ajouter un field pour chacun des multiples qui ont le même api_type_id que le champ principal
+                    for (const k in multiple_field_id_from_vo_field_ref) {
+                        query_.field(multiple_field_id_from_vo_field_ref[k]);
+                    }
+                }
+
                 query_ = this.apply_filter_from_AdvancedStringFilter(this.advanced_string_filter, field, vo_field_ref_multiple, query_);
 
                 // On reçoit un résultat du type {<field_id>: <value>}
                 const rows: any[] = await query_.select_all();
-                const values = rows.map((row) => Object.values(row)[0]);
-                // On insère dans multiple_res que les values
-                multiple_res.push(...values);
+
+                if (this.widget_options.is_res_mode_list) {
+                    const values = rows.map((row) => Object.values(row)[0]);
+                    // On insère dans multiple_res que les values
+                    multiple_res.push(...values);
+                } else {
+                    // on récupère tous les objets pour le tableau
+                    multiple_res.push(...rows);
+                }
             }
+            if (this.widget_options.is_res_mode_list) {
+                // On va supprimer les doublons
+                multiple_res = multiple_res.filter((value, index, self) => self.indexOf(value) === index);
+                // On va trier les valeurs par ordre alphabétique
+                multiple_res.sort((a, b) => a.localeCompare(b));
+                // On va créer un DataFilterOption pour chaque valeur
+                this.context_active_string_filter_options = multiple_res.map((value, index) => this.createDataFilter(value, index));
+                // préselection de la première option
+                this.tmp_context_active_string_filter = this.context_active_string_filter_options.length > 0 ? this.context_active_string_filter_options[0] : null;
+            } else {
+                // suppression des doublons d'objets (via JSON) et tri selon le premier champ
+                multiple_res = multiple_res.filter((v, i, self) =>
+                    self.findIndex(x => JSON.stringify(x) === JSON.stringify(v)) === i
+                );
+                multiple_res.sort((a, b) => {
+                    const key = Object.keys(a)[0];
+                    return String(a[key]).localeCompare(String(b[key]));
+                });
+                this.context_active_string_filter_table_rows = multiple_res;
 
-            // On va supprimer les doublons
-            multiple_res = multiple_res.filter((value, index, self) => self.indexOf(value) === index);
-            // On va trier les valeurs par ordre alphabétique
-            multiple_res.sort((a, b) => a.localeCompare(b));
-            // On va créer un DataFilterOption pour chaque valeur
-            this.context_active_string_filter_options = multiple_res.map((value, index) => this.createDataFilter(value, index));
-
-            this.tmp_context_active_string_filter = this.context_active_string_filter_options.length > 0 ? this.context_active_string_filter_options[0] : null;
+                this.is_loading_options = false;
+            }
 
         } else {
 

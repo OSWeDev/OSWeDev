@@ -125,14 +125,15 @@ export default class StringSearchbarWidgetOptionsComponent extends VueComponentB
 
     get default_widget_props(): StringSearchbarWidgetOptions {
         return new StringSearchbarWidgetOptions(
-            null,
-            null,
-            AdvancedStringFilter.FILTER_TYPE_CONTIENT,
-            "",
-            false,
-            false,
-            false,
-            "",
+            null,   // vo_field_ref
+            null,   // vo_field_ref_multiple
+            AdvancedStringFilter.FILTER_TYPE_CONTIENT, // default_advanced_string_filter_type
+            "",     // placeholder_advanced_mode
+            false,  // autovalidate_advanced_filter
+            false,  // hide_advanced_string_filter_type
+            false,  // active_field_on_autovalidate_advanced_filter
+            "",     // tooltip
+            true,   // is_res_mode_list
         );
     }
 
@@ -186,6 +187,15 @@ export default class StringSearchbarWidgetOptionsComponent extends VueComponentB
         }
 
         return this.widget_options.autovalidate_advanced_filter;
+    }
+
+    get is_res_mode_list(): boolean {
+
+        if (!this.widget_options) {
+            return null;
+        }
+
+        return this.widget_options.is_res_mode_list;
     }
 
     get default_advanced_string_filter_type(): number {
@@ -313,6 +323,18 @@ export default class StringSearchbarWidgetOptionsComponent extends VueComponentB
         }
 
         this.next_update_options.autovalidate_advanced_filter = !this.next_update_options.autovalidate_advanced_filter;
+
+        await this.throttled_update_options();
+    }
+
+    private async switch_is_res_mode_list() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.default_widget_props;
+        }
+
+        this.next_update_options.is_res_mode_list = !this.next_update_options.is_res_mode_list;
 
         await this.throttled_update_options();
     }

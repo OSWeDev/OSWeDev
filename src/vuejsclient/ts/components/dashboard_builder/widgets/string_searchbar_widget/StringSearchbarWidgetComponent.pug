@@ -46,26 +46,41 @@ include ../../../../../views/mixins/loading.pug
                 template(v-if='is_loading_options')
                     i.loadingspinner.fa.fa-spinner.fa-spin(aria-hidden="true")
                 template(v-else)
-                    .context_active_string_filter_options
-                        multiselect(
-                            :preselect-first="false"
-                            :multiple="false"
-                            :close-on-select="true"
-                            v-model="tmp_context_active_string_filter"
-                            :options="context_active_string_filter_options"
-                            :custom-label="context_active_string_filter_label"
-                            autocomplete="off"
-                            :show-labels="false"
-                            :searchable="false"
-                            :internal-search="false"
-                            :hide-selected="false"
+                    template(v-if='is_res_mode_list')
+                        .context_active_string_filter_options
+                            multiselect(
+                                :preselect-first="false"
+                                :multiple="false"
+                                :close-on-select="true"
+                                v-model="tmp_context_active_string_filter"
+                                :options="context_active_string_filter_options"
+                                :custom-label="context_active_string_filter_label"
+                                autocomplete="off"
+                                :show-labels="false"
+                                :searchable="false"
+                                :internal-search="false"
+                                :hide-selected="false"
 
-                            :key="'context_active_string_filter_options' + vo_field_ref.api_type_id + '__' + vo_field_ref.field_id"
+                                :key="'context_active_string_filter_options' + vo_field_ref.api_type_id + '__' + vo_field_ref.field_id"
 
-                            :select-label='label("multiselect.selectLabel")'
-                            :select-group-label='label("multiselect.selectGroupLabel")'
-                            :selected-label='label("multiselect.selectedLabel")'
-                            :deselect-label='label("multiselect.deselectLabel")'
-                            :deselect-group-label='label("multiselect.deselectGroupLabel")'
-                            @input="onchange_context_active_string_filter"
-                        )
+                                :select-label='label("multiselect.selectLabel")'
+                                :select-group-label='label("multiselect.selectGroupLabel")'
+                                :selected-label='label("multiselect.selectedLabel")'
+                                :deselect-label='label("multiselect.deselectLabel")'
+                                :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                                @input="onchange_context_active_string_filter"
+                            )
+
+                    template(v-else)
+                        .scrollable-table-container
+                            table.table
+                                thead
+                                    tr
+                                        th(v-for="(header, i) in Object.keys(context_active_string_filter_table_rows[0] || {})" :key="i") {{ header }}
+                                tbody
+                                    tr(v-for="(row, rowIndex) in context_active_string_filter_table_rows" :key="rowIndex")
+                                        td(v-for="(value, key, colIndex) in row" :key="key")
+                                            template(v-if="colIndex === 0")
+                                                a(href="#" @click.prevent="onClickContextTableRow(row, rowIndex)" style="cursor:pointer;" ) {{ value }}
+                                            template(v-else)
+                                                | {{ value }}

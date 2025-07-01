@@ -1,8 +1,40 @@
 @import "skin-variables.scss";
 
 .string_searchbar_widget_component {
-    height: -webkit-fill-available;
+    height: auto;
     vertical-align: middle;
+    display: flex;
+    flex-direction: column;
+    max-height: 100%;
+
+    .vo_field_advanced_string_filters {
+
+        flex-grow: 1;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        
+        .scrollable-table-container {
+            display: block;
+            width: 100%;           // occupe toute la largeur disponible
+            max-height: 100%;      // on limite la hauteur à 60% de la hauteur de la fenêtre
+            overflow-x: auto;      // scroll horizontal si besoin
+            overflow-y: auto;      // scroll vertical si besoin
+            /* Optionnel : une bordure légère ou ombre pour délimiter */
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+        }
+        .table {
+            width: 100%;           // pour que les colonnes prennent tout l’espace
+            border-collapse: collapse;
+        }
+        .table th,
+        .table td {
+            padding: 0.5rem;
+            text-align: left;
+            white-space: nowrap;   // pour ne pas casser le texte automatiquement
+        }
+    }
 
     .vo_field_ref_label {
         font-size: 1.2em;
