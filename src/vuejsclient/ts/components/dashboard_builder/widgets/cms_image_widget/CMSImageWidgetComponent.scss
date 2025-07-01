@@ -1,0 +1,18 @@
+.cms_image_widget_component_container {
+    padding: 0 !important;
+    margin-top: 0;
+
+    .cms_image_widget_component {
+        height: -webkit-fill-available;
+
+        span {
+            display: inline-block;
+            overflow: hidden;
+            height: 100%;
+            width: 100%;
+            background-repeat: no-repeat;
+            background-size: contain;
+            background-position: center center;
+        }
+    }
+}

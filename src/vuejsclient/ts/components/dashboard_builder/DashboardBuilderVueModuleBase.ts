@@ -28,6 +28,12 @@ import SupervisionWidgetOptions from './widgets/supervision_widget/options/Super
 import VarChoroplethChartWidgetOptions from './widgets/var_choropleth_chart_widget/options/VarChoroplethChartWidgetOptions';
 import VarWidgetOptions from './widgets/var_widget/options/VarWidgetOptions';
 import OseliaRunGraphWidgetComponent from './widgets/oselia_run_graph_widget/OseliaRunGraphWidgetComponent';
+import CMSCrudButtonsWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/CMSCrudButtonsWidgetOptionsVO';
+import CMSVisionneusePdfWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/CMSVisionneusePdfWidgetOptionsVO';
+import CMSLinkButtonWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/CMSLinkButtonWidgetOptionsVO';
+import CMSImageWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/CMSImageWidgetOptionsVO';
+import CMSBlocTextWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/CMSBlocTextWidgetOptionsVO';
+import { all_promises } from '../../../../shared/tools/PromiseTools';
 export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
     protected static instance: DashboardBuilderVueModuleBase = null;
@@ -97,44 +103,61 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
     }
 
     private async initializeDefaultWidgets() {
-        await this.initializeWidget_FieldValueFilter();
+        await all_promises([
+            this.initializeWidget_FieldValueFilter(),
 
-        await this.initializeWidget_DOWFilter();
-        await this.initializeWidget_MonthFilter();
-        await this.initializeWidget_YearFilter();
-        await this.initializeWidget_AdvancedDateFilter();
-        await this.initializeWidget_CurrentUserFilter();
+            this.initializeWidget_DOWFilter(),
+            this.initializeWidget_MonthFilter(),
+            this.initializeWidget_YearFilter(),
+            this.initializeWidget_AdvancedDateFilter(),
+            this.initializeWidget_CurrentUserFilter(),
 
-        await this.initializeWidget_VarPieChart();
-        await this.initializeWidget_VarRadarChart();
-        await this.initializeWidget_VarMixedChart();
-        await this.initializeWidget_VarChoroplethChart();
+            this.initializeWidget_VarPieChart(),
+            this.initializeWidget_VarRadarChart(),
+            this.initializeWidget_VarMixedChart(),
+            this.initializeWidget_VarChoroplethChart(),
 
-        await this.initializeWidget_Checklist();
-        await this.initializeWidget_Supervision();
-        await this.initializeWidget_SupervisionType();
+            this.initializeWidget_Checklist(),
+            this.initializeWidget_Supervision(),
+            this.initializeWidget_SupervisionType(),
 
-        await this.initializeWidget_BulkOps();
+            this.initializeWidget_BulkOps(),
 
-        await this.initializeWidget_Var();
-        await this.initializeWidget_DataTable();
+            this.initializeWidget_Var(),
+            this.initializeWidget_DataTable(),
 
-        await this.initializeWidget_PageSwitch();
-        await this.initializeWidget_OseliaRunGraphWidget();
+            this.initializeWidget_PageSwitch(),
+            this.initializeWidget_OseliaRunGraphWidget(),
 
-        await this.initializeWidget_ValidationFilters();
+            this.initializeWidget_ValidationFilters(),
 
-        await this.initializeWidget_ResetFilters();
-        await this.initializeWidget_BlocText();
-        await this.initializeWidget_SuiviCompetences();
+            this.initializeWidget_ResetFilters(),
+            this.initializeWidget_BlocText(),
+            this.initializeWidget_SuiviCompetences(),
 
-        await this.initializeWidget_SaveFavoritesFilters();
+            this.initializeWidget_SaveFavoritesFilters(),
 
-        await this.initializeWidget_ShowFavoritesFilters();
+            this.initializeWidget_ShowFavoritesFilters(),
 
-        await this.initializeWidget_OseliaThread();
+            this.initializeWidget_OseliaThread(),
 
-        await this.initializeWidget_PerfReportGraph();
+            this.initializeWidget_PerfReportGraph(),
+
+            this.initializeWidget_CMSBlocText(),
+            this.initializeWidget_CMSImage(),
+            this.initializeWidget_CMSLinkButton(),
+            this.initializeWidget_CMSLikeButton(),
+            this.initializeWidget_CMSCrudButtons(),
+            this.initializeWidget_CMSPrintParam(),
+            this.initializeWidget_CMSVisionneusePdf(),
+            this.initializeWidget_CMSBooleanButton(),
+
+            this.initializeWidget_TemplateConsultation_CrudButtons(),
+            this.initializeWidget_TemplateConsultation_VisionneusePdf(),
+            this.initializeWidget_TemplateConsultation_LinkButton(),
+            this.initializeWidget_TemplateConsultation_Image(),
+            this.initializeWidget_TemplateConsultation_BlocText(),
+        ]);
     }
 
     private async initializeWidget_PerfReportGraph() {
@@ -674,4 +697,422 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         Vue.component('Oseliarungraphwidgetoptionscomponent', () => import('./widgets/oselia_run_graph_widget/options/OseliaRunGraphWidgetOptionsComponent'));
         Vue.component('Oseliarungraphwidgeticoncomponent', () => import('./widgets/oselia_run_graph_widget/icon/OseliaRunGraphWidgetIconComponent'));
     }
+
+    private async initializeWidget_CMSBlocText() {
+        const CMSBlocText = new DashboardWidgetVO();
+
+        CMSBlocText.default_height = 5;
+        CMSBlocText.default_width = 2;
+        CMSBlocText.name = DashboardWidgetVO.WIDGET_NAME_cmsbloctext;
+        CMSBlocText.widget_component = 'CMSBlocTextwidgetcomponent';
+        CMSBlocText.options_component = 'CMSBlocTextwidgetoptionscomponent';
+        CMSBlocText.weight = 3;
+        CMSBlocText.default_background = '#f5f5f5';
+        CMSBlocText.icon_html = `
+        <div class='fa-stack fa-lg fa-fw' aria-hidden='true'>
+            <i class='fa-solid fa-text'></i>
+        </div>
+        `;
+        CMSBlocText.is_filter = false;
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(CMSBlocText, () =>
+            CMSBlocTextWidgetOptionsVO.createNew(
+                "",
+                "",
+                "",
+                "",
+                false,
+                null,
+                null,
+                null,
+                null,
+                false,
+                false,
+                false,
+                false,
+                "",
+                "",
+                "",
+                "",
+                "",
+            ), null);
+
+        Vue.component('CMSBlocTextwidgetcomponent', () => import('./widgets/cms_bloc_text_widget/CMSBlocTextWidgetComponent'));
+        Vue.component('CMSBlocTextwidgetoptionscomponent', () => import('./widgets/cms_bloc_text_widget/options/CMSBlocTextWidgetOptionsComponent'));
+        Vue.component('CMSBlocTextwidgeticoncomponent', () => import('./widgets/cms_bloc_text_widget/icon/CMSBlocTextWidgetIconComponent'));
+    }
+
+    private async initializeWidget_CMSImage() {
+        const CMSImage = new DashboardWidgetVO();
+
+        CMSImage.default_height = 5;
+        CMSImage.default_width = 2;
+        CMSImage.name = DashboardWidgetVO.WIDGET_NAME_cmsimage;
+        CMSImage.widget_component = 'CMSImagewidgetcomponent';
+        CMSImage.options_component = 'CMSImagewidgetoptionscomponent';
+        CMSImage.weight = 3;
+        CMSImage.default_background = '#f5f5f5';
+        CMSImage.icon_html = `
+        <div class='fa-stack fa-lg fa-fw' aria-hidden='true'>
+            <i class='fa-solid fa-image'></i>
+        </div>
+        `;
+        CMSImage.is_filter = false;
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(CMSImage, () =>
+            CMSImageWidgetOptionsVO.createNew(
+                null,
+                0,
+                false,
+                null,
+                CMSImageWidgetOptionsVO.POSITION_CENTRE_CENTRE,
+                CMSImageWidgetOptionsVO.MISE_EN_PAGE_COUVRIR,
+            ), null);
+
+        Vue.component('CMSImagewidgetcomponent', () => import('./widgets/cms_image_widget/CMSImageWidgetComponent'));
+        Vue.component('CMSImagewidgetoptionscomponent', () => import('./widgets/cms_image_widget/options/CMSImageWidgetOptionsComponent'));
+        Vue.component('CMSImagewidgeticoncomponent', () => import('./widgets/cms_image_widget/icon/CMSImageWidgetIconComponent'));
+    }
+
+    private async initializeWidget_CMSLinkButton() {
+        const CMSLinkButton = new DashboardWidgetVO();
+
+        CMSLinkButton.default_height = 5;
+        CMSLinkButton.default_width = 2;
+        CMSLinkButton.name = DashboardWidgetVO.WIDGET_NAME_cmslinkbutton;
+        CMSLinkButton.widget_component = 'CMSLinkButtonwidgetcomponent';
+        CMSLinkButton.options_component = 'CMSLinkButtonwidgetoptionscomponent';
+        CMSLinkButton.weight = 3;
+        CMSLinkButton.default_background = '#f5f5f5';
+        CMSLinkButton.icon_html = `
+        <div class='fa-stack fa-lg fa-fw' aria-hidden='true'>
+            <i class='fa-solid fa-link'></i>
+        </div>
+        `;
+        CMSLinkButton.is_filter = false;
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(CMSLinkButton, () =>
+            CMSLinkButtonWidgetOptionsVO.createNew(
+                null,
+                null,
+                '#003c7d',
+                '#ffffff',
+                false,
+                0,
+                null,
+                "",
+                false,
+                [],
+                "",
+                false,
+            ), null);
+
+        Vue.component('CMSLinkButtonwidgetcomponent', () => import('./widgets/cms_link_button_widget/CMSLinkButtonWidgetComponent'));
+        Vue.component('CMSLinkButtonwidgetoptionscomponent', () => import('./widgets/cms_link_button_widget/options/CMSLinkButtonWidgetOptionsComponent'));
+        Vue.component('CMSLinkButtonwidgeticoncomponent', () => import('./widgets/cms_link_button_widget/icon/CMSLinkButtonWidgetIconComponent'));
+    }
+
+    private async initializeWidget_CMSBooleanButton() {
+        const CMSBooleanButton = new DashboardWidgetVO();
+
+        CMSBooleanButton.default_height = 5;
+        CMSBooleanButton.default_width = 2;
+        CMSBooleanButton.name = DashboardWidgetVO.WIDGET_NAME_cmsbooleanbutton;
+        CMSBooleanButton.widget_component = 'CMSBooleanButtonwidgetcomponent';
+        CMSBooleanButton.options_component = 'CMSBooleanButtonwidgetoptionscomponent';
+        CMSBooleanButton.weight = 3;
+        CMSBooleanButton.default_background = '#f5f5f5';
+        CMSBooleanButton.icon_component = 'CMSBooleanButtonwidgeticoncomponent';
+        CMSBooleanButton.is_filter = false;
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(CMSBooleanButton, null, null);
+
+        Vue.component('CMSBooleanButtonwidgetcomponent', () => import('./widgets/cms_boolean_button_widget/CMSBooleanButtonWidgetComponent'));
+        Vue.component('CMSBooleanButtonwidgetoptionscomponent', () => import('./widgets/cms_boolean_button_widget/options/CMSBooleanButtonWidgetOptionsComponent'));
+        Vue.component('CMSBooleanButtonwidgeticoncomponent', () => import('./widgets/cms_boolean_button_widget/icon/CMSBooleanButtonWidgetIconComponent'));
+    }
+
+    private async initializeWidget_CMSLikeButton() {
+        const CMSLikeButton = new DashboardWidgetVO();
+
+        CMSLikeButton.default_height = 5;
+        CMSLikeButton.default_width = 2;
+        CMSLikeButton.name = DashboardWidgetVO.WIDGET_NAME_cmslikebutton;
+        CMSLikeButton.widget_component = 'CMSLikeButtonwidgetcomponent';
+        CMSLikeButton.options_component = 'CMSLikeButtonwidgetoptionscomponent';
+        CMSLikeButton.weight = 3;
+        CMSLikeButton.default_background = '#f5f5f5';
+        CMSLikeButton.icon_component = 'CMSLikeButtonwidgeticoncomponent';
+        CMSLikeButton.is_filter = false;
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(CMSLikeButton, null, null);
+
+        Vue.component('CMSLikeButtonwidgetcomponent', () => import('./widgets/cms_like_button_widget/CMSLikeButtonWidgetComponent'));
+        Vue.component('CMSLikeButtonwidgetoptionscomponent', () => import('./widgets/cms_like_button_widget/options/CMSLikeButtonWidgetOptionsComponent'));
+        Vue.component('CMSLikeButtonwidgeticoncomponent', () => import('./widgets/cms_like_button_widget/icon/CMSLikeButtonWidgetIconComponent'));
+    }
+
+    private async initializeWidget_CMSPrintParam() {
+        const CMSPrintParam = new DashboardWidgetVO();
+
+        CMSPrintParam.default_height = 5;
+        CMSPrintParam.default_width = 2;
+        CMSPrintParam.name = DashboardWidgetVO.WIDGET_NAME_cmsprintparam;
+        CMSPrintParam.widget_component = 'CMSPrintParamwidgetcomponent';
+        CMSPrintParam.options_component = 'CMSPrintParamwidgetoptionscomponent';
+        CMSPrintParam.weight = 3;
+        CMSPrintParam.default_background = '#f5f5f5';
+        CMSPrintParam.icon_component = 'CMSPrintParamwidgeticoncomponent';
+        CMSPrintParam.is_filter = false;
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(CMSPrintParam, null, null);
+
+        Vue.component('CMSPrintParamwidgetcomponent', () => import('./widgets/cms_print_param_widget/CMSPrintParamWidgetComponent'));
+        Vue.component('CMSPrintParamwidgetoptionscomponent', () => import('./widgets/cms_print_param_widget/options/CMSPrintParamWidgetOptionsComponent'));
+        Vue.component('CMSPrintParamwidgeticoncomponent', () => import('./widgets/cms_print_param_widget/icon/CMSPrintParamWidgetIconComponent'));
+    }
+
+    private async initializeWidget_CMSVisionneusePdf() {
+        const CMSVisionneusePdf = new DashboardWidgetVO();
+
+        CMSVisionneusePdf.default_height = 5;
+        CMSVisionneusePdf.default_width = 2;
+        CMSVisionneusePdf.name = DashboardWidgetVO.WIDGET_NAME_cmsvisionneusepdf;
+        CMSVisionneusePdf.widget_component = 'CMSVisionneusePdfwidgetcomponent';
+        CMSVisionneusePdf.options_component = 'CMSVisionneusePdfwidgetoptionscomponent';
+        CMSVisionneusePdf.weight = 3;
+        CMSVisionneusePdf.default_background = '#f5f5f5';
+        CMSVisionneusePdf.icon_html = `
+        <div class='fa-stack fa-lg fa-fw' aria-hidden='true'>
+            <i class='fa-solid fa-file-pdf'></i>
+        </div>
+        `;
+        CMSVisionneusePdf.is_filter = false;
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(CMSVisionneusePdf, () =>
+            CMSVisionneusePdfWidgetOptionsVO.createNew(
+                null,
+                false,
+                null,
+            ), null);
+
+        Vue.component('CMSVisionneusePdfwidgetcomponent', () => import('./widgets/cms_visionneuse_pdf/CMSVisionneusePdfWidgetComponent'));
+        Vue.component('CMSVisionneusePdfwidgetoptionscomponent', () => import('./widgets/cms_visionneuse_pdf/options/CMSVisionneusePdfWidgetOptionsComponent'));
+        Vue.component('CMSVisionneusePdfwidgeticoncomponent', () => import('./widgets/cms_visionneuse_pdf/icon/CMSVisionneusePdfWidgetIconComponent'));
+    }
+
+    private async initializeWidget_CMSCrudButtons() {
+        const CrudButtons = new DashboardWidgetVO();
+
+        CrudButtons.default_height = 5;
+        CrudButtons.default_width = 2;
+        CrudButtons.name = DashboardWidgetVO.WIDGET_NAME_crudbuttons;
+        CrudButtons.widget_component = 'Cmscrudbuttonswidgetcomponent';
+        CrudButtons.options_component = 'Cmscrudbuttonswidgetoptionscomponent';
+        CrudButtons.weight = 3;
+        CrudButtons.default_background = '#f5f5f5';
+
+        CrudButtons.icon_html = `
+        <div class='fa-stack fa-lg fa-fw' aria-hidden='true'>
+            <i class='fa-solid fa-database fa-stack-2x'></i>
+            <i class='fa-solid fa-trash fa-stack-1x' style="position: absolute;    left: 18px;    bottom: -5px;    width: auto;    height: auto;    color: dodgerblue;    background: transparent;    padding: 1px 3px;    margin: 0;    line-height: 1.1em;"></i>
+            <i class='fa-solid fa-pen fa-stack-1x' style="position: absolute;    left: 18px;    bottom: 15px;    width: auto;    height: auto;    color: dodgerblue;    background: transparent;    padding: 1px 3px;    margin: 0; line-height: 1.1em;"></i>
+        </div>
+        `;
+
+        CrudButtons.is_filter = false;
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(CrudButtons,
+            () => CMSCrudButtonsWidgetOptionsVO.createNew(
+                false,
+                false,
+                false,
+                true,
+                null,
+                true,
+                [],
+            ), null);
+
+        Vue.component('Cmscrudbuttonswidgetcomponent', () => import('./widgets/cms_crud_buttons_widget/CMSCrudButtonsWidgetComponent'));
+        Vue.component('Cmscrudbuttonswidgetoptionscomponent', () => import('./widgets/cms_crud_buttons_widget/options/CMSCrudButtonsWidgetOptionsComponent'));
+    }
+
+    private async initializeWidget_TemplateConsultation_CrudButtons() {
+        const CrudButtons = new DashboardWidgetVO();
+
+        CrudButtons.default_height = 5;
+        CrudButtons.default_width = 2;
+        CrudButtons.name = DashboardWidgetVO.WIDGET_NAME_TemplateConsultation_crudbuttons;
+        CrudButtons.widget_component = 'Cmscrudbuttonswidgetcomponent';
+        CrudButtons.options_component = 'Cmscrudbuttonswidgetoptionscomponent';
+        CrudButtons.weight = 3;
+        CrudButtons.default_background = '#f5f5f5';
+
+        CrudButtons.icon_html = `
+        <div class='fa-stack fa-lg fa-fw' aria-hidden='true' style="filter: invert(100%);">
+            <i class='fa-solid fa-database fa-stack-2x'></i>
+            <i class='fa-solid fa-trash fa-stack-1x' style="position: absolute;    left: 18px;    bottom: -5px;    width: auto;    height: auto;    color: dodgerblue;    background: transparent;    padding: 1px 3px;    margin: 0;    line-height: 1.1em;"></i>
+            <i class='fa-solid fa-pen fa-stack-1x' style="position: absolute;    left: 18px;    bottom: 15px;    width: auto;    height: auto;    color: dodgerblue;    background: transparent;    padding: 1px 3px;    margin: 0; line-height: 1.1em;"></i>
+        </div>
+        `;
+        CrudButtons.is_filter = false;
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(CrudButtons,
+            () => CMSCrudButtonsWidgetOptionsVO.createNew(
+                false,
+                false,
+                false,
+                false,
+                null,
+                true,
+                [],
+            ), null);
+
+        Vue.component('Cmscrudbuttonswidgetcomponent', () => import('./widgets/cms_crud_buttons_widget/CMSCrudButtonsWidgetComponent'));
+        Vue.component('Cmscrudbuttonswidgetoptionscomponent', () => import('./widgets/cms_crud_buttons_widget/options/CMSCrudButtonsWidgetOptionsComponent'));
+    }
+
+    private async initializeWidget_TemplateConsultation_VisionneusePdf() {
+        const CMSVisionneusePdf = new DashboardWidgetVO();
+
+        CMSVisionneusePdf.default_height = 5;
+        CMSVisionneusePdf.default_width = 2;
+        CMSVisionneusePdf.name = DashboardWidgetVO.WIDGET_NAME_TemplateConsultation_visionneusepdf;
+        CMSVisionneusePdf.widget_component = 'CMSVisionneusePdfwidgetcomponent';
+        CMSVisionneusePdf.options_component = 'CMSVisionneusePdfwidgetoptionscomponent';
+        CMSVisionneusePdf.weight = 3;
+        CMSVisionneusePdf.default_background = '#f5f5f5';
+        CMSVisionneusePdf.icon_html = `
+        <div class='fa-stack fa-lg fa-fw' aria-hidden='true' style="filter: invert(100%);">
+            <i class='fa-solid fa-file-pdf'></i>
+        </div>
+        `;
+        CMSVisionneusePdf.is_filter = false;
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(CMSVisionneusePdf, () =>
+            CMSVisionneusePdfWidgetOptionsVO.createNew(
+                null,
+                true,
+                null,
+            ), null);
+
+        Vue.component('CMSVisionneusePdfwidgetcomponent', () => import('./widgets/cms_visionneuse_pdf/CMSVisionneusePdfWidgetComponent'));
+        Vue.component('CMSVisionneusePdfwidgetoptionscomponent', () => import('./widgets/cms_visionneuse_pdf/options/CMSVisionneusePdfWidgetOptionsComponent'));
+        Vue.component('CMSVisionneusePdfwidgeticoncomponent', () => import('./widgets/cms_visionneuse_pdf/icon/CMSVisionneusePdfWidgetIconComponent'));
+    }
+
+    private async initializeWidget_TemplateConsultation_LinkButton() {
+        const CMSLinkButton = new DashboardWidgetVO();
+
+        CMSLinkButton.default_height = 5;
+        CMSLinkButton.default_width = 2;
+        CMSLinkButton.name = DashboardWidgetVO.WIDGET_NAME_TemplateConsultation_linkbutton;
+        CMSLinkButton.widget_component = 'CMSLinkButtonwidgetcomponent';
+        CMSLinkButton.options_component = 'CMSLinkButtonwidgetoptionscomponent';
+        CMSLinkButton.weight = 3;
+        CMSLinkButton.default_background = '#f5f5f5';
+        CMSLinkButton.icon_html = `
+        <div class='fa-stack fa-lg fa-fw' aria-hidden='true' style="filter: invert(100%);">
+            <i class='fa-solid fa-link'></i>
+        </div>
+        `;
+        CMSLinkButton.is_filter = false;
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(CMSLinkButton, () =>
+            CMSLinkButtonWidgetOptionsVO.createNew(
+                null,
+                null,
+                '#003c7d',
+                '#ffffff',
+                false,
+                0,
+                null,
+                "",
+                true,
+                [],
+                "",
+                false,
+            ), null);
+
+        Vue.component('CMSLinkButtonwidgetcomponent', () => import('./widgets/cms_link_button_widget/CMSLinkButtonWidgetComponent'));
+        Vue.component('CMSLinkButtonwidgetoptionscomponent', () => import('./widgets/cms_link_button_widget/options/CMSLinkButtonWidgetOptionsComponent'));
+        Vue.component('CMSLinkButtonwidgeticoncomponent', () => import('./widgets/cms_link_button_widget/icon/CMSLinkButtonWidgetIconComponent'));
+    }
+
+    private async initializeWidget_TemplateConsultation_Image() {
+        const CMSImage = new DashboardWidgetVO();
+
+        CMSImage.default_height = 5;
+        CMSImage.default_width = 2;
+        CMSImage.name = DashboardWidgetVO.WIDGET_NAME_TemplateConsultation_image;
+        CMSImage.widget_component = 'CMSImagewidgetcomponent';
+        CMSImage.options_component = 'CMSImagewidgetoptionscomponent';
+        CMSImage.weight = 3;
+        CMSImage.default_background = '#f5f5f5';
+        CMSImage.icon_html = `
+        <div class='fa-stack fa-lg fa-fw' aria-hidden='true' style="filter: invert(100%);">
+            <i class='fa-solid fa-image'></i>
+        </div>
+        `;
+        CMSImage.is_filter = false;
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(CMSImage, () =>
+            CMSImageWidgetOptionsVO.createNew(
+                null,
+                0,
+                true,
+                null,
+                CMSImageWidgetOptionsVO.POSITION_CENTRE_CENTRE,
+                CMSImageWidgetOptionsVO.MISE_EN_PAGE_COUVRIR,
+            ), null);
+
+        Vue.component('CMSImagewidgetcomponent', () => import('./widgets/cms_image_widget/CMSImageWidgetComponent'));
+        Vue.component('CMSImagewidgetoptionscomponent', () => import('./widgets/cms_image_widget/options/CMSImageWidgetOptionsComponent'));
+        Vue.component('CMSImagewidgeticoncomponent', () => import('./widgets/cms_image_widget/icon/CMSImageWidgetIconComponent'));
+    }
+
+    private async initializeWidget_TemplateConsultation_BlocText() {
+        const CMSBlocText = new DashboardWidgetVO();
+
+        CMSBlocText.default_height = 5;
+        CMSBlocText.default_width = 2;
+        CMSBlocText.name = DashboardWidgetVO.WIDGET_NAME_TemplateConsultation_bloctext;
+        CMSBlocText.widget_component = 'CMSBlocTextwidgetcomponent';
+        CMSBlocText.options_component = 'CMSBlocTextwidgetoptionscomponent';
+        CMSBlocText.weight = 3;
+        CMSBlocText.default_background = '#f5f5f5';
+        CMSBlocText.icon_html = `
+        <div class='fa-stack fa-lg fa-fw' aria-hidden='true' style="filter: invert(100%);">
+            <i class='fa-solid fa-text'></i>
+        </div>
+        `;
+        CMSBlocText.is_filter = false;
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(CMSBlocText, () =>
+            CMSBlocTextWidgetOptionsVO.createNew(
+                "",
+                "",
+                "",
+                "",
+                true,
+                null,
+                null,
+                null,
+                null,
+                false,
+                false,
+                false,
+                false,
+                "",
+                "",
+                "",
+                "",
+                "",
+            ), null);
+
+        Vue.component('CMSBlocTextwidgetcomponent', () => import('./widgets/cms_bloc_text_widget/CMSBlocTextWidgetComponent'));
+        Vue.component('CMSBlocTextwidgetoptionscomponent', () => import('./widgets/cms_bloc_text_widget/options/CMSBlocTextWidgetOptionsComponent'));
+        Vue.component('CMSBlocTextwidgeticoncomponent', () => import('./widgets/cms_bloc_text_widget/icon/CMSBlocTextWidgetIconComponent'));
+    }
+
 }

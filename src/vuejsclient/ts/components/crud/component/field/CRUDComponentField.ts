@@ -298,6 +298,14 @@ export default class CRUDComponentField extends VueComponentBase
         ) && ((!this.field.isVisibleUpdateOrCreate) || this.field.isVisibleUpdateOrCreate(this.vo));
     }
 
+    get live_html_preview_when_editing(): boolean {
+        if ((!this.field) || (!this.field.moduleTableField)) {
+            return false;
+        }
+
+        return this.field.moduleTableField.live_html_preview_when_editing;
+    }
+
     get field_type(): string {
         if (this.field.type == 'Simple') {
             return (this.field as SimpleDatatableFieldVO<any, any>).field_type;

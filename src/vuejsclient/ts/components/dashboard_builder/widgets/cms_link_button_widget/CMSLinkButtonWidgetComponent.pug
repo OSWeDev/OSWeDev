@@ -1,0 +1,22 @@
+include ../../../../../views/mixins/loading.pug
+
+.cms_link_button_widget_component.text-center(:class="button_class")
+    template(v-if='show_link_button')
+        template(v-if='mode_bandeau')
+            a.object(:href="url" :target="(widget_options.about_blank ? '_blank' : '')" :style="style_bandeau")
+                .icone_title
+                    .icone(v-if="icone")
+                        i(v-if="!start_update" :class="icone")
+                    .title(v-if="title")
+                        span {{ title }}
+                .chevron(:style='style_chevron')
+                    i.fa-solid.fa-chevron-right
+
+        template(v-else)
+            button(@click="go_to_link" :style="style")
+                //- i.fa-solid.fa-spin.fa-spinner.mr-2(v-if="start_update")
+                template(v-if="icone")
+                    i(v-if="!start_update" :class="icone")
+                template(v-if="title")
+                    span {{ title }}
+

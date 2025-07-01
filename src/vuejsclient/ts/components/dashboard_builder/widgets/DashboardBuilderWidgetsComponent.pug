@@ -7,7 +7,10 @@
         .widgets 
             template(v-for="(widget_, widget_i) in widgets")
                 .widget(@click="add_widget_to_page(widget_)" v-tooltip.top="label('dashboards.widgets.icons_tooltips.' + widget_.name)")
-                    .widget_icone(:is="widget_.icon_component" :widget='widget_')
+                    template(v-if='widget_.icon_html')
+                        .widget_icone(v-html="widget_.icon_html")
+                    template(v-else)
+                        .widget_icone(:is="widget_.icon_component" :widget='widget_')
 
         .widget_options_wrapper
             template(v-if="!selected_widget")

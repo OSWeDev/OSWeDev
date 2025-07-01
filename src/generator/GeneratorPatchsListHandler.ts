@@ -144,6 +144,11 @@ import Patch20250625InitTitresTableColumnDescs from './patchs/premodules/Patch20
 import Patch20250625InitTitresDashboardPageWidgets from './patchs/premodules/Patch20250625InitTitresDashboardPageWidgets';
 import Patch20250625InitAutresTranslatablesDashboardPageWidgets from './patchs/premodules/Patch20250625InitAutresTranslatablesDashboardPageWidgets';
 import Patch20250627TruncateTableColumnDescVO from './patchs/premodules/Patch20250627TruncateTableColumnDescVO';
+import Patch20250701AddBasicDBBConfs from './patchs/postmodules/Patch20250701AddBasicDBBConfs';
+import Patch20250701SwitchTemplateWidgetsIds from './patchs/postmodules/Patch20250701SwitchTemplateWidgetsIds';
+import Patch20240923AddViewportDatas from './patchs/postmodules/Patch20240923AddViewportDatas';
+import Patch20250701ActivatePageWidgetsInDefaultDashboardViewPort from './patchs/postmodules/Patch20250701ActivatePageWidgetsInDefaultDashboardViewPort';
+import Patch20250701ActivateDefaultViewportOnAllDbs from './patchs/postmodules/Patch20250701ActivateDefaultViewportOnAllDbs';
 
 export default class GeneratorPatchsListHandler {
 
@@ -243,6 +248,9 @@ export default class GeneratorPatchsListHandler {
         Patch20240906DeleteOldAssistantObjDBLinks.getInstance(),
         Patch20241010CreateLogType.getInstance(),
         Patch20240912PreinitOseliaPrices.getInstance(),
+
+        Patch20240923AddViewportDatas.getInstance(),
+
         Patch20240926PreInitOseliaThreadRoles.getInstance(),
         Patch20240926AddOseliaFunction_TRELLO_trello_create_card.getInstance(),
         Patch20240926AddOseliaFunction_TRELLO_trello_get_card.getInstance(),
@@ -319,5 +327,10 @@ export default class GeneratorPatchsListHandler {
         Patch20250617MigrationCRUDDBLink.getInstance(),
 
         Patch20250624AddConfExportDBToJSON.getInstance(),
+
+        Patch20250701AddBasicDBBConfs.getInstance(),
+        Patch20250701SwitchTemplateWidgetsIds.getInstance(),
+        Patch20250701ActivatePageWidgetsInDefaultDashboardViewPort.getInstance(),
+        Patch20250701ActivateDefaultViewportOnAllDbs.getInstance(),
     ];
 }

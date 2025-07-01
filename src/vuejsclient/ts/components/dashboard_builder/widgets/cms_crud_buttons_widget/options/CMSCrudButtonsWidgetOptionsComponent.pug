@@ -1,0 +1,88 @@
+.cms_crud_buttons_widget_options_component
+    .cms_crud_buttons_widget_options_component_wrapper
+        
+        .show_add_edit_fk {{ label('cms_crud_buttons.widget_option.show_add_edit_fk') }}
+        toggle-button(
+            @change="switch_show_add_edit_fk"
+            :value="show_add_edit_fk" 
+            :sync="true"
+            :width="100"
+            :labels="{checked: label('cms_crud_buttons.widget_option.show_add_edit_fk.true'), unchecked: label('cms_crud_buttons.widget_option.show_add_edit_fk.false')}"
+        )
+        
+        .show_manual_vo_type {{ label('cms_crud_buttons.widget_option.show_manual_vo_type') }}
+        toggle-button(
+            @change="switch_show_manual_vo_type"
+            :value="show_manual_vo_type" 
+            :sync="true"
+            :width="100"
+            :labels="{checked: label('cms_crud_buttons.widget_option.show_manual_vo_type.true'), unchecked: label('cms_crud_buttons.widget_option.show_manual_vo_type.false')}"
+        )
+
+        template(v-if="show_manual_vo_type")
+            .vo_type_label {{ label('cms_crud_buttons.widget_option.vo_type') }}
+            .input_wrapper
+                multiselect(
+                    :preselect-first="false"
+                    :multiple="false"
+                    v-model="manual_vo_type"
+                    :placeholder="label('cms_crud_buttons.crud_api_type_id_select')"
+                    :options="manual_vo_type_select_options"
+                    :custom-label="crud_api_type_id_select_label"
+                    :allow-empty="true",
+                    autocomplete="off"
+
+                    :searchable="true"
+                    :internal-search="true"
+
+                    id="crud_api_type_id_select"
+
+                    :select-label='label("multiselect.selectLabel")'
+                    :select-group-label='label("multiselect.selectGroupLabel")'
+                    :selected-label='label("multiselect.selectedLabel")'
+                    :deselect-label='label("multiselect.deselectLabel")'
+                    :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                )
+        
+        .show_add_label {{ label('cms_crud_buttons.widget_option.show_add') }}
+        toggle-button(
+            @change="switch_show_add"
+            :value="show_add" 
+            :sync="true"
+            :width="100"
+            :labels="{checked: label('cms_crud_buttons.widget_option.show_add.true'), unchecked: label('cms_crud_buttons.widget_option.show_add.false')}"
+        )
+
+        template(v-if="!show_manual_vo_type")
+            .show_update_label {{ label('cms_crud_buttons.widget_option.show_update') }}
+            toggle-button(
+                @change="switch_show_update"
+                :value="show_update" 
+                :sync="true"
+                :width="100"
+                :labels="{checked: label('cms_crud_buttons.widget_option.show_update.true'), unchecked: label('cms_crud_buttons.widget_option.show_update.false')}"
+            )
+
+            .show_delete_label {{ label('cms_crud_buttons.widget_option.show_delete') }}
+            toggle-button(
+                @change="switch_show_delete"
+                :value="show_delete" 
+                :sync="true"
+                :width="100"
+                :labels="{checked: label('cms_crud_buttons.widget_option.show_delete.true'), unchecked: label('cms_crud_buttons.widget_option.show_delete.false')}"
+            )
+
+        .role_access(v-tooltip="label('cms_crud_buttons.widget_option.role_access.tooltip')") {{ label('cms_crud_buttons.widget_option.role_access') }}
+            multiselect.mb-3(
+                v-model="selected_roles"
+                :multiple="true"
+                :options="list_roles"
+                :custom-label="multiselectRoleOptionLabel"
+                :select-label='label("multiselect.selectLabel")'
+                :select-group-label='label("multiselect.selectGroupLabel")'
+                :selected-label='label("multiselect.selectedLabel")'
+                :deselect-label='label("multiselect.deselectLabel")'
+                :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                :placeholder='label("multiselect.roles.placeholder")'
+                track-by="id"
+            )

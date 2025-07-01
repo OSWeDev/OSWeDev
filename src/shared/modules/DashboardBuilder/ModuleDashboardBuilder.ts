@@ -8,6 +8,7 @@ import RoleVO from '../AccessPolicy/vos/RoleVO';
 import UserVO from '../AccessPolicy/vos/UserVO';
 import DAOController from '../DAO/DAOController';
 import ModuleDAO from '../DAO/ModuleDAO';
+import ModuleTableCompositeUniqueKeyController from '../DAO/ModuleTableCompositeUniqueKeyController';
 import ModuleTableController from '../DAO/ModuleTableController';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
 import TranslatableFieldController from '../DAO/TranslatableFieldController';
@@ -35,6 +36,8 @@ import DashboardGraphVORefVO from './vos/DashboardGraphVORefVO';
 import DashboardPageVO from './vos/DashboardPageVO';
 import DashboardPageWidgetVO from './vos/DashboardPageWidgetVO';
 import DashboardVO from './vos/DashboardVO';
+import DashboardViewportPageWidgetVO from './vos/DashboardViewportPageWidgetVO';
+import DashboardViewportVO from './vos/DashboardViewportVO';
 import DashboardWidgetVO from './vos/DashboardWidgetVO';
 import FavoritesFiltersExportFrequencyVO from './vos/FavoritesFiltersExportFrequencyVO';
 import FavoritesFiltersExportParamsVO from './vos/FavoritesFiltersExportParamsVO';
@@ -134,6 +137,7 @@ export default class ModuleDashboardBuilder extends Module {
         this.init_DashboardGraphVORefVO(db_table);
         const db_widget = this.init_DashboardWidgetVO();
         this.init_DashboardPageWidgetVO(db_page, db_widget);
+        this.initialize_DashboardViewportPageWidgetVO();
         this.init_VOFieldRefVO();
         this.init_TableColumnDescVO();
         this.init_AdvancedDateFilterOptDescVO();
@@ -211,6 +215,12 @@ export default class ModuleDashboardBuilder extends Module {
             .set_many_to_one_target_moduletable_name(ModuleTableVO.API_TYPE_ID);
         ModuleTableFieldController.create_new(DashboardVO.API_TYPE_ID, field_names<DashboardVO>().moduletable_crud_template_form, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Template de formulaire', true, true, false);
 
+        ModuleTableFieldController.create_new(DashboardVO.API_TYPE_ID, field_names<DashboardVO>().dbb_conf_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'DBB Conf', false) // théoriquement ça devrait être obligatoire, mais on a pas encore créé les confs, compliqué de passer en obligatoire maintenant
+            .set_many_to_one_target_moduletable_name(DBBConfVO.API_TYPE_ID);
+
+        ModuleTableFieldController.create_new(DashboardVO.API_TYPE_ID, field_names<DashboardVO>().activated_viewport_id_ranges, ModuleTableFieldVO.FIELD_TYPE_refrange_array, 'Viewport activés', true)
+            .set_many_to_one_target_moduletable_name(DashboardViewportVO.API_TYPE_ID);
+
         const res = ModuleTableController.create_new(this.name, DashboardVO, null, "Dashboards");
         return res;
     }
@@ -258,7 +268,8 @@ export default class ModuleDashboardBuilder extends Module {
         ModuleTableFieldController.create_new(DashboardWidgetVO.API_TYPE_ID, field_names<DashboardWidgetVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true, true, 0);
         ModuleTableFieldController.create_new(DashboardWidgetVO.API_TYPE_ID, field_names<DashboardWidgetVO>().widget_component, ModuleTableFieldVO.FIELD_TYPE_string, 'Composant - Widget', true);
         ModuleTableFieldController.create_new(DashboardWidgetVO.API_TYPE_ID, field_names<DashboardWidgetVO>().options_component, ModuleTableFieldVO.FIELD_TYPE_string, 'Composant - Options', true);
-        ModuleTableFieldController.create_new(DashboardWidgetVO.API_TYPE_ID, field_names<DashboardWidgetVO>().icon_component, ModuleTableFieldVO.FIELD_TYPE_string, 'Composant - Icône', true);
+        ModuleTableFieldController.create_new(DashboardWidgetVO.API_TYPE_ID, field_names<DashboardWidgetVO>().icon_component, ModuleTableFieldVO.FIELD_TYPE_string, 'Composant - Icône', false);
+        ModuleTableFieldController.create_new(DashboardWidgetVO.API_TYPE_ID, field_names<DashboardWidgetVO>().icon_html, ModuleTableFieldVO.FIELD_TYPE_html, 'Icône HTML', false).activate_live_html_preview_when_editing();
         ModuleTableFieldController.create_new(DashboardWidgetVO.API_TYPE_ID, field_names<DashboardWidgetVO>().default_width, ModuleTableFieldVO.FIELD_TYPE_int, 'Largeur par défaut', true, true, 106);
         ModuleTableFieldController.create_new(DashboardWidgetVO.API_TYPE_ID, field_names<DashboardWidgetVO>().default_height, ModuleTableFieldVO.FIELD_TYPE_int, 'Hauteur par défaut', true, true, 30);
         ModuleTableFieldController.create_new(DashboardWidgetVO.API_TYPE_ID, field_names<DashboardWidgetVO>().default_background, ModuleTableFieldVO.FIELD_TYPE_string, 'default_background', true, true, '#f5f5f5');
@@ -273,7 +284,9 @@ export default class ModuleDashboardBuilder extends Module {
         const widget_id = ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().widget_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Widget', true);
         const page_id = ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().page_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Page Dashboard', true);
 
-        const titre = ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().titre, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Titre', true).unique();
+        ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().titre, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Titre', true).unique(); // unique et mandatory uniquement par ce que le computed string l'est par défaut...
+        const name = ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().widget_name, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Nom du widget', true).unique(); // unique et mandatory uniquement par ce que le computed string l'est par défaut...
+        ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().widget_description, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Description du widget', true).unique(); // unique et mandatory uniquement par ce que le computed string l'est par défaut...
 
         ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().placeholder, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Placeholder', false);
         ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().advanced_mode_placeholder, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Placeholder - Mode avancé', false);
@@ -304,25 +317,62 @@ export default class ModuleDashboardBuilder extends Module {
         ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().scale_11_titre, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Scale 11 Titre', false);
         ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().scale_12_titre, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Scale 12 Titre', false);
 
+        // DEPRECATED : faut conserver un peu pour les patchs de migration
         ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().static, ModuleTableFieldVO.FIELD_TYPE_boolean, 'static', true, true, false);
+        // DEPRECATED : faut conserver un peu pour les patchs de migration
         ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().x, ModuleTableFieldVO.FIELD_TYPE_int, 'x', true, true, 0);
+        // DEPRECATED : faut conserver un peu pour les patchs de migration
         ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().y, ModuleTableFieldVO.FIELD_TYPE_int, 'y', true, true, 0);
+        // DEPRECATED : faut conserver un peu pour les patchs de migration
         ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().w, ModuleTableFieldVO.FIELD_TYPE_int, 'w', true, true, 0);
+        // DEPRECATED : faut conserver un peu pour les patchs de migration
         ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().h, ModuleTableFieldVO.FIELD_TYPE_int, 'h', true, true, 0);
+        // DEPRECATED : faut conserver un peu pour les patchs de migration
         ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().i, ModuleTableFieldVO.FIELD_TYPE_int, 'i', true);
-        ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true);
+
         ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().json_options, ModuleTableFieldVO.FIELD_TYPE_string, 'json_options', false);
         ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().background, ModuleTableFieldVO.FIELD_TYPE_string, 'background', true);
 
         ModuleTableController.create_new(
             this.name,
             DashboardPageWidgetVO,
-            titre,
+            name,
             "Widget - Instancié dans une page de Dashboard"
         );
 
         widget_id.set_many_to_one_target_moduletable_name(db_widget.vo_type);
         page_id.set_many_to_one_target_moduletable_name(db_page.vo_type);
+    }
+
+    private initialize_DashboardViewportPageWidgetVO() {
+        const page_widget_id = ModuleTableFieldController.create_new(DashboardViewportPageWidgetVO.API_TYPE_ID, field_names<DashboardViewportPageWidgetVO>().page_widget_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Page Widget', true)
+            .set_many_to_one_target_moduletable_name(DashboardPageWidgetVO.API_TYPE_ID);
+        const viewport_id = ModuleTableFieldController.create_new(DashboardViewportPageWidgetVO.API_TYPE_ID, field_names<DashboardViewportPageWidgetVO>().viewport_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Viewport', true)
+            .set_many_to_one_target_moduletable_name(DashboardViewportVO.API_TYPE_ID);
+
+        ModuleTableFieldController.create_new(DashboardViewportPageWidgetVO.API_TYPE_ID, field_names<DashboardViewportPageWidgetVO>().activated, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Activé', true, true, false);
+
+        ModuleTableFieldController.create_new(DashboardViewportPageWidgetVO.API_TYPE_ID, field_names<DashboardViewportPageWidgetVO>().static, ModuleTableFieldVO.FIELD_TYPE_boolean, 'static', true, true, false);
+        ModuleTableFieldController.create_new(DashboardViewportPageWidgetVO.API_TYPE_ID, field_names<DashboardViewportPageWidgetVO>().x, ModuleTableFieldVO.FIELD_TYPE_int, 'x', true, true, 0);
+        ModuleTableFieldController.create_new(DashboardViewportPageWidgetVO.API_TYPE_ID, field_names<DashboardViewportPageWidgetVO>().y, ModuleTableFieldVO.FIELD_TYPE_int, 'y', true, true, 0);
+        ModuleTableFieldController.create_new(DashboardViewportPageWidgetVO.API_TYPE_ID, field_names<DashboardViewportPageWidgetVO>().w, ModuleTableFieldVO.FIELD_TYPE_int, 'w', true, true, 0);
+        ModuleTableFieldController.create_new(DashboardViewportPageWidgetVO.API_TYPE_ID, field_names<DashboardViewportPageWidgetVO>().h, ModuleTableFieldVO.FIELD_TYPE_int, 'h', true, true, 0);
+        ModuleTableFieldController.create_new(DashboardViewportPageWidgetVO.API_TYPE_ID, field_names<DashboardViewportPageWidgetVO>().i, ModuleTableFieldVO.FIELD_TYPE_int, 'i', true);
+
+        ModuleTableCompositeUniqueKeyController.add_composite_unique_key_to_vo_type(
+            DashboardViewportPageWidgetVO.API_TYPE_ID,
+            [
+                page_widget_id,
+                viewport_id,
+            ],
+        );
+
+        ModuleTableController.create_new(
+            this.name,
+            DashboardViewportPageWidgetVO,
+            null,
+            "Widget - Dans une page et pour un viewport"
+        );
     }
 
     /**

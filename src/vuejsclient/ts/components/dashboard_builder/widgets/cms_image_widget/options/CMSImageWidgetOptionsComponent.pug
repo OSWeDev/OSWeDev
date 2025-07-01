@@ -1,0 +1,78 @@
+.cms_image_widget_options_component
+    .cms_image_widget_options_component_wrapper
+        .field_use_for_template
+            .input_label {{ label('cms_image.widget_option.use_for_template') }}
+            .input_wrapper
+                toggle-button(
+                    @change="switch_use_for_template" 
+                    :value="use_for_template" 
+                    :sync="false"
+                    :width="60"
+                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
+                )
+
+        template(v-if="use_for_template")
+            .field_ref_for_template
+                .input_label {{ label('cms_image.widget_option.field_ref_for_template') }}
+                .input_wrapper
+                    Singlevofieldrefholdercomponent(
+                        :vo_field_ref="field_ref_for_template"
+                        @remove_field_ref="remove_field_ref_for_template"
+                        @add_field_ref="add_field_ref_for_template"
+                        :page_widget_id='page_widget ? page_widget.id : null'
+                    )
+
+        template(v-else)
+            .image_bloc
+                .input_label {{ label('cms_image.widget_option.file_id') }}
+                .input_wrapper
+                    template(v-if="file_path && file_id")
+                        .file_path 
+                            i.fa.fa-close.mr-5(@click="clear_file_path")
+                            span {{ file_path }}
+                    template(v-else)
+                        vue-dropzone(ref="filedropzone" id="filedropzone" :options="dropzoneOptions")
+
+            .radius_bloc 
+                .input_label {{ label('cms_image.widget_option.radius') }}
+                .input_wrapper
+                    input(
+                        type="number"
+                        v-model="radius"
+                    )
+
+        .position
+            .input_label {{ label('cms_image.widget_option.position') }}
+            .input_wrapper
+                multiselect.var_name_selector(
+                    :preselect-first="false"
+                    :multiple="false"
+                    v-model="position_selected"
+                    :options="position_options"
+                    :allow-empty="false",
+                    label="label",
+
+                    :searchable="true"
+                    :internal-search="true"
+
+                    name="position_selector"
+                    track-by="id"
+                )
+
+        .mise_en_page
+            .input_label {{ label('cms_image.widget_option.mise_en_page') }}
+            .input_wrapper
+                multiselect.var_name_selector(
+                    :preselect-first="false"
+                    :multiple="false"
+                    v-model="mise_en_page_selected"
+                    :options="mise_en_page_options"
+                    :allow-empty="false",
+                    label="label",
+
+                    :searchable="true"
+                    :internal-search="true"
+
+                    name="mise_en_page_selector"
+                    track-by="id"
+                )

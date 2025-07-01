@@ -510,6 +510,7 @@ export default class ModuleDAO extends Module {
         ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().default_translation, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Traduction par défaut', false);
         ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().is_unique, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Unique', true, true, false);
         ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().description, ModuleTableFieldVO.FIELD_TYPE_string, 'Description', false);
+        ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().live_html_preview_when_editing, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Aperçu HTML en direct lors de l\'édition', true, true, false);
     }
 
     private init_ModuleTableVO() {

@@ -41,6 +41,23 @@ export default class DashboardWidgetVO implements IDistantVOBase, IWeightedItem,
     public static WIDGET_NAME_bloctext: string = 'BlocText';
     public static WIDGET_NAME_suivicompetences: string = 'SuiviCompetences';
 
+
+    public static WIDGET_NAME_cmsbloctext: string = 'cmsbloctext';
+    public static WIDGET_NAME_cmsimage: string = 'cmsimage';
+    public static WIDGET_NAME_cmslinkbutton: string = 'cmslinkbutton';
+    public static WIDGET_NAME_cmslikebutton: string = 'cmslikebutton';
+    public static WIDGET_NAME_crudbuttons: string = 'crudbuttons';
+    public static WIDGET_NAME_cmsprintparam: string = 'cmsprintparam';
+    public static WIDGET_NAME_cmsvisionneusepdf: string = 'cmsvisionneusepdf';
+    public static WIDGET_NAME_cmsbooleanbutton: string = 'cmsbooleanbutton';
+
+    public static WIDGET_NAME_TemplateConsultation_crudbuttons: string = 'templateconsultation_crudbuttons';
+    public static WIDGET_NAME_TemplateConsultation_bloctext: string = 'templateconsultation_bloctext';
+    public static WIDGET_NAME_TemplateConsultation_image: string = 'templateconsultation_image';
+    public static WIDGET_NAME_TemplateConsultation_linkbutton: string = 'templateconsultation_linkbutton';
+    public static WIDGET_NAME_TemplateConsultation_visionneusepdf: string = 'templateconsultation_visionneusepdf';
+
+
     public id: number;
     public _type: string = DashboardWidgetVO.API_TYPE_ID;
 
@@ -50,7 +67,16 @@ export default class DashboardWidgetVO implements IDistantVOBase, IWeightedItem,
 
     public widget_component: string;
     public options_component: string;
+
+    /**
+     * @deprecated Use icon_html instead
+     */
     public icon_component: string;
+
+    /**
+     * Le code html de l'icône du widget
+     */
+    public icon_html: string;
 
     public default_width: number;
     public default_height: number;

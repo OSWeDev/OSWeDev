@@ -1,13 +1,11 @@
 import IDistantVOBase from "../../../../shared/modules/IDistantVOBase";
-import IWeightedItem from "../../../tools/interfaces/IWeightedItem";
 import AbstractVO from "../../VO/abstract/AbstractVO";
-import DashboardBuilderController from "../DashboardBuilderController";
 import IDashboardGridItem from "../interfaces/IDashboardGridItem";
 import FieldValueFilterWidgetOptionsVO from "./FieldValueFilterWidgetOptionsVO";
 import MonthFilterWidgetOptionsVO from "./MonthFilterWidgetOptionsVO";
 import YearFilterWidgetOptionsVO from "./YearFilterWidgetOptionsVO";
 
-export default class DashboardPageWidgetVO extends AbstractVO implements IDistantVOBase, IDashboardGridItem, IWeightedItem {
+export default class DashboardPageWidgetVO extends AbstractVO implements IDistantVOBase, IDashboardGridItem {
     public static API_TYPE_ID: string = "dashboard_pwidget";
 
     public id: number;
@@ -15,29 +13,43 @@ export default class DashboardPageWidgetVO extends AbstractVO implements IDistan
 
     public widget_id: number;
 
+    public widget_name: string;
+    public widget_description: string;
+
     /**
      * id de la page pour le widget en question.
      */
     public page_id: number;
 
-    // public isdraggable: boolean;
-    // public isresizable: boolean;
+    /***
+     * @deprecated Use DashboardViewportPageWidgetVO.static instead
+     */
     public static: boolean;
-    // public minh: number;
-    // public minw: number;
-    // public maxh: number;
-    // public maxw: number;
-    public x: number;
-    public y: number;
-    public w: number;
-    public h: number;
-    public i: number;
-    // public dragallowfrom: string;
-    // public dragignorefrom: string;
-    // public resizeignorefrom: string;
-    // public preserveaspectratio: boolean;
 
-    public weight: number;
+    /**
+     * @deprecated Use DashboardViewportPageWidgetVO.x instead
+     */
+    public x: number;
+
+    /**
+     * @deprecated Use DashboardViewportPageWidgetVO.y instead
+     */
+    public y: number;
+
+    /**
+     * @deprecated Use DashboardViewportPageWidgetVO.w instead
+     */
+    public w: number;
+
+    /**
+     * @deprecated Use DashboardViewportPageWidgetVO.h instead
+     */
+    public h: number;
+
+    /**
+     * @deprecated Use DashboardViewportPageWidgetVO.i instead
+     */
+    public i: number;
 
     public json_options: string;
 

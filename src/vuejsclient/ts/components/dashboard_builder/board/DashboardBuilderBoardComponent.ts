@@ -266,14 +266,6 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
                     page_widget.page_id = self.dashboard_page.id;
                     page_widget.widget_id = widget.id;
 
-                    let max_weight: number = 0;
-                    self.widgets.forEach((w) => {
-                        if (w.weight >= max_weight) {
-                            max_weight = w.weight + 1;
-                        }
-                    });
-                    page_widget.weight = max_weight;
-
                     page_widget.w = widget.default_width;
                     page_widget.h = widget.default_height;
 

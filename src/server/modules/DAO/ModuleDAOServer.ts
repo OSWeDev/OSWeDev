@@ -845,6 +845,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Il faut au moins une majuscule"
         }, 'validation.ko.need_uppercase'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': "Prévisualisation"
+        }, 'crud.field.html.live_preview.___LABEL___'));
     }
 
     // istanbul ignore next: cannot test registerCrons

@@ -1,4 +1,6 @@
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
+import DashboardActiveonViewportVO from '../../../shared/modules/DashboardBuilder/vos/DashboardActiveonViewportVO';
+import DashboardViewportVO from '../../../shared/modules/DashboardBuilder/vos/DashboardViewportVO';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
@@ -17,7 +19,8 @@ import DashboardWidgetVO from '../../../shared/modules/DashboardBuilder/vos/Dash
 import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
-import { reflect } from '../../../shared/tools/ObjectHandler';
+import { field_names, reflect } from '../../../shared/tools/ObjectHandler';
+import { all_promises } from '../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
@@ -31,6 +34,9 @@ import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import DashboardBuilderCronWorkersHandler from './DashboardBuilderCronWorkersHandler';
 import DashboardCycleChecker from './DashboardCycleChecker';
 import FavoritesFiltersServerController from './favorite_filters/FavoritesFiltersServerController';
+import DashboardPageVO from '../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
+import DAOPostCreateTriggerHook from '../DAO/triggers/DAOPostCreateTriggerHook';
+import NumSegment from '../../../shared/modules/DataRender/vos/NumSegment';
 
 export default class ModuleDashboardBuilderServer extends ModuleServerBase {
 
@@ -81,6 +87,27 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Envoyer aux utilisateurs suivants'
         }, 'dashboard_viewer.favorites_filters.export_to_users.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Sélectionner un Viewport..." },
+            'dashboard_builder.select_viewport.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': " colonnes" },
+            'dashboard_builder.viewport.columns.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Ce viewport n'a pas été encore activé pour cette page. La disposition de vos widgets risque de ne pas être compatible avec ce nouveau viewport. Souhaitez-vous qu'un positionnement par défaut soit appliqué à vos widgets ?" },
+            'dashboard_builder.viewport_not_activated.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Oui, définir une disposition par défaut." },
+            'dashboard_builder.viewport_not_activated.yes.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Non, garder l'ancienne disposition." },
+            'dashboard_builder.viewport_not_activated.no.___LABEL___'
+        ));
 
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
@@ -4003,6 +4030,13 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
 
         const postUTrigger: DAOPostUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
         postUTrigger.registerHandler(DashboardGraphVORefVO.API_TYPE_ID, this, this.onUDashboardGraphVORefVO);
+        postUTrigger.registerHandler(DashboardViewportVO.API_TYPE_ID, this, this.postUpdateDashboardViewport);
+
+        const postCreateTrigger: DAOPostCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
+        postCreateTrigger.registerHandler(DashboardViewportVO.API_TYPE_ID, this, this.postCreateDashboardViewport);
+        postCreateTrigger.registerHandler(DashboardPageVO.API_TYPE_ID, this, this.postCreateDashboardPage);
+        postCreateTrigger.registerHandler(DashboardVO.API_TYPE_ID, this, this.postCreateDashboard);
+
     }
 
     // istanbul ignore next: cannot test registerServerApiHandlers
@@ -4326,24 +4360,41 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             return [];
         }
 
-        const confs: DBBConfVO[] = await query(DBBConfVO.API_TYPE_ID)
-            .exec_as_server()
-            .filter_by_ids(roles.map((r: RoleVO) => r.id), RoleVO.API_TYPE_ID)
-            .select_vos<DBBConfVO>();
+        let confs: DBBConfVO[] = null;
+        let all_widgets: DashboardWidgetVO[] = null;
+        await all_promises([
+            (async () => {
+                confs = await query(DBBConfVO.API_TYPE_ID)
+                    .exec_as_server()
+                    .filter_by_ids(roles.map((r: RoleVO) => r.id), RoleVO.API_TYPE_ID)
+                    .select_vos<DBBConfVO>();
+            })(),
+            (async () => {
+                all_widgets = await query(DashboardWidgetVO.API_TYPE_ID)
+                    .exec_as_server()
+                    .select_vos<DashboardWidgetVO>();
+            })(),
+        ]);
 
         // Si ya pas de conf on active tous les widgets
-        if (!confs || confs.length === 0) {
-
-            const all_widgets: DashboardWidgetVO[] = await query(DashboardWidgetVO.API_TYPE_ID)
-                .exec_as_server()
-                .select_vos<DashboardWidgetVO>();
+        if ((!confs) || (confs.length === 0)) {
             return all_widgets.map((w: DashboardWidgetVO) => w.id);
         }
 
         // Sinon active les widgets cités
+        // Si une des confs n'a pas de limitation de widgets, on active tous les widgets
         const valid_widget_id_ranges: NumRange[] = [];
         for (const conf of confs) {
-            if (conf && conf.valid_widget_id_ranges && conf.valid_widget_id_ranges.length > 0) {
+            if (!conf) {
+                continue;
+            }
+
+            if (!conf.valid_widget_id_ranges) {
+                // Si on a pas de contrainte de widget sur une conf, on active tous les widgets
+                return all_widgets.map((w: DashboardWidgetVO) => w.id);
+            }
+
+            if (conf.valid_widget_id_ranges.length > 0) {
                 valid_widget_id_ranges.push(...conf.valid_widget_id_ranges);
             }
         }
@@ -4357,6 +4408,19 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }
 
         await ModuleDashboardBuilderServer.getInstance().check_DashboardVO_weight(e);
+
+        // On doit activer le viewport par défaut à minima quand on crée le db
+        if (RangeHandler.getCardinalFromArray(e.activated_viewport_id_ranges) <= 0) {
+            const default_viewport = await query(DashboardViewportVO.API_TYPE_ID)
+                .filter_is_true(field_names<DashboardViewportVO>().is_default)
+                .exec_as_server()
+                .select_vo<DashboardViewportVO>();
+
+            if (!default_viewport) {
+                throw new Error('Impossible de créer un Dashboard sans viewport par défaut actif.');
+            }
+            e.activated_viewport_id_ranges = [RangeHandler.create_single_elt_NumRange(default_viewport.id, NumSegment.TYPE_INT)];
+        }
 
         return true;
     }
@@ -4383,25 +4447,8 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }
 
         await ModuleDashboardBuilderServer.getInstance().check_DashboardPageWidgetVO_i(e);
-        await ModuleDashboardBuilderServer.getInstance().check_DashboardPageWidgetVO_weight(e);
 
         return true;
-    }
-
-    private async check_DashboardPageWidgetVO_weight(e: DashboardPageWidgetVO) {
-        if (e.weight) {
-            return;
-        }
-
-        const query_res = await ModuleDAOServer.instance.query('SELECT max(weight) as max_weight from ' + ModuleTableController.module_tables_by_vo_type[DashboardPageWidgetVO.API_TYPE_ID].full_name, null, true);
-        let max_weight = (query_res && (query_res.length == 1) && (typeof query_res[0]['max_weight'] != 'undefined') && (query_res[0]['max_weight'] !== null)) ? query_res[0]['max_weight'] : null;
-        max_weight = max_weight ? parseInt(max_weight.toString()) : null;
-        if (!max_weight) {
-            max_weight = 1;
-        }
-        e.weight = max_weight + 1;
-
-        return;
     }
 
     private async check_DashboardPageWidgetVO_i(e: DashboardPageWidgetVO) {
@@ -4428,5 +4475,90 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         // }
 
         DashboardCycleChecker.detectCyclesForDashboards({ [wrapper.post_update_vo.dashboard_id]: true });
+    }
+
+    private async postUpdateDashboardViewport(update: DAOUpdateVOHolder<DashboardViewportVO>) {
+        if (!update || !update.pre_update_vo || !update.post_update_vo) {
+            return;
+        }
+
+        // S'il devient le viewport par défaut, on désactive les autres
+        if (update.post_update_vo.is_default) {
+            this.viewportBecomeDefault(update.post_update_vo);
+        }
+    }
+
+    private async postCreateDashboardViewport(viewport: DashboardViewportVO) {
+        if (!viewport) {
+            return;
+        }
+
+        const default_viewport = viewport.is_default
+            ? viewport
+            : await query(DashboardViewportVO.API_TYPE_ID).filter_is_true(field_names<DashboardViewportVO>().is_default).select_vo();
+
+        // Si le nouveau devient le défaut, on désactive les autres
+        if (viewport.is_default) {
+            this.viewportBecomeDefault(viewport);
+        }
+
+        // Liaison des dashboards au viewport
+        const dbb_pages: DashboardPageVO[] = await query(DashboardPageVO.API_TYPE_ID).select_vos();
+        const liaisons_dbbs_viewports: DashboardActiveonViewportVO[] = [];
+
+        for (const i in dbb_pages) {
+            const dbb = dbb_pages[i];
+
+            const liaison: DashboardActiveonViewportVO = new DashboardActiveonViewportVO();
+            liaison.dashboard_page_id = dbb.id;
+            liaison.dashboard_viewport_id = viewport.id;
+
+            // À la création, on n'active le dashboard que sur le viewport par défaut
+            if (viewport.is_default) {
+                liaison.active = true;
+            } else {
+                liaison.active = false;
+            }
+
+            liaisons_dbbs_viewports.push(liaison);
+        }
+
+        // Liaison des widgets aux viewports
+        const default_widgets: DashboardPageWidgetVO[] = await query(DashboardPageWidgetVO.API_TYPE_ID)
+            .filter_by_num_eq(field_names<DashboardPageWidgetVO>().dashboard_viewport_id, default_viewport.id)
+            .select_vos();
+
+        const new_widgets_viewport: DashboardPageWidgetVO[] = [];
+        for (const i in default_widgets) {
+            const widget = default_widgets[i];
+
+            const widget_position: DashboardPageWidgetVO = new DashboardPageWidgetVO();
+            widget_position.x = widget?.x;
+            widget_position.y = widget?.y;
+            widget_position.w = widget?.w;
+            widget_position.h = widget?.h;
+            widget_position.i = widget?.i;
+            widget_position.static = widget?.static;
+            widget_position.show_widget_on_viewport = true;
+            widget_position.dashboard_viewport_id = viewport.id;
+            widget_position.widget_id = widget.widget_id;
+
+            new_widgets_viewport.push(widget_position);
+        }
+
+        await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(liaisons_dbbs_viewports);
+        await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(new_widgets_viewport);
+    }
+
+    private async viewportBecomeDefault(viewport: DashboardViewportVO) {
+        const viewports: DashboardViewportVO[] = await query(DashboardViewportVO.API_TYPE_ID).select_vos();
+        for (const i in viewports) {
+            const vp = viewports[i];
+            if (vp.id != viewport.id) {
+                vp.is_default = false;
+            }
+        }
+
+        await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(viewports);
     }
 }

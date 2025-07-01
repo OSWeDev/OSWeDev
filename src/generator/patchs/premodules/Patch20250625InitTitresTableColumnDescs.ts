@@ -70,10 +70,10 @@ export default class Patch20250625InitTitresTableColumnDescs implements IGenerat
                 continue;
             }
 
-            const updated_columns_json = JSON.stringify(await this.update_titre_of_columns(current_options.columns, page_widget));
+            current_options.columns = await this.update_titre_of_columns(current_options.columns, page_widget);
 
             // On met à jour le json_options du widget avec les colonnes mises à jour
-            await db.query("UPDATE ref.module_dashboardbuilder_dashboard_pwidget SET json_options = $1 WHERE id = $2;", [updated_columns_json, page_widget.id]);
+            await db.query("UPDATE ref.module_dashboardbuilder_dashboard_pwidget SET json_options = $1 WHERE id = $2;", [JSON.stringify(current_options), page_widget.id]);
         }
 
         ConsoleHandler.log('Patch20250625InitTitresTableColumnDescs: Successfully added "titre" column and initialized existing table_column_desc.');

@@ -1,0 +1,11 @@
+include ../../../../../views/mixins/loading.pug
+
+.cms_boolean_button_widget_component.text-center
+    template(v-if="boolean_vo_value")
+        button(@click="switch_boolean_vo_value" :style="style")
+            i(v-if="!start_update" :class="icone_ok")
+            span {{ title_ok }}
+    template(v-else)
+        button(@click="switch_boolean_vo_value" :style="style")
+            i(v-if="!start_update" :class="icone_nok")
+            span {{ title_nok }}

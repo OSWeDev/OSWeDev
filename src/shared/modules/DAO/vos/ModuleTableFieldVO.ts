@@ -182,6 +182,8 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
 
     public is_unique: boolean; // false by default
 
+    public live_html_preview_when_editing: boolean; // false by default
+
     /**
      * Ajout pour expliquer le type de données, son usage, ... que ce soit pour les devs, les utilisateurs finaux, ou encore les assistants
      */
@@ -794,6 +796,12 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
 
         this.field_default_dynamic_value_module_name = field_default_dynamic_value_module_name;
         this.field_default_dynamic_value_function_name = field_default_dynamic_value_function_name;
+
+        return this;
+    }
+
+    public activate_live_html_preview_when_editing(): ModuleTableFieldVO {
+        this.live_html_preview_when_editing = true;
 
         return this;
     }
