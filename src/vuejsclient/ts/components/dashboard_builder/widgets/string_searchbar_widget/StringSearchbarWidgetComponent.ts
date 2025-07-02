@@ -87,6 +87,7 @@ export default class StringSearchbarWidgetComponent extends VueComponentBase {
     private advanced_string_filter: AdvancedStringFilter = new AdvancedStringFilter();
     private tooltip: string = null;
     private context_active_string_filter_table_rows: any[] = [];
+    private selectedTableRowIndex: number = null;
 
     private actual_query: string = null;
 
@@ -341,6 +342,8 @@ export default class StringSearchbarWidgetComponent extends VueComponentBase {
     }
 
     private onClickContextTableRow(row: any, rowIndex: number): void {
+        // marque la ligne sélectionnée
+        this.selectedTableRowIndex = rowIndex;
         // récupère la 1ere clé et sa valeur
         const firstKey = Object.keys(row)[0];
         const value = row[firstKey];
@@ -374,6 +377,32 @@ export default class StringSearchbarWidgetComponent extends VueComponentBase {
             }
 
             let multiple_res: any[] = [];
+
+            const base_moduletable = ModuleTableController.module_tables_by_vo_type[this.vo_field_ref.api_type_id];
+            const base_field = base_moduletable.get_field_by_id(this.vo_field_ref.field_id);
+
+            let base_query_: ContextQueryVO = await query(this.vo_field_ref.api_type_id)
+                .field(this.vo_field_ref.field_id);
+
+            if (!this.widget_options.is_res_mode_list) {
+                // On va ajouter un field pour chacun des multiples qui ont le même api_type_id que le champ principal
+                for (const k in multiple_field_id_from_vo_field_ref) {
+                    base_query_.field(multiple_field_id_from_vo_field_ref[k]);
+                }
+            }
+
+            base_query_ = this.apply_filter_from_AdvancedStringFilter(this.advanced_string_filter, base_field, this.vo_field_ref, base_query_);
+            const base_rows: any[] = await base_query_.select_all();
+
+            if (this.widget_options.is_res_mode_list) {
+                const values = base_rows.map((row) => Object.values(row)[0]);
+                // On insère dans multiple_res que les values
+                multiple_res.push(...values);
+            } else {
+                // on récupère tous les objets pour le tableau
+                multiple_res.push(...base_rows);
+            }
+
             for (const j in this.vo_field_ref_multiple) {
                 const vo_field_ref_multiple = this.vo_field_ref_multiple[j];
 

@@ -78,9 +78,15 @@ include ../../../../../views/mixins/loading.pug
                                     tr
                                         th(v-for="(header, i) in Object.keys(context_active_string_filter_table_rows[0] || {})" :key="i") {{ header }}
                                 tbody
-                                    tr(v-for="(row, rowIndex) in context_active_string_filter_table_rows" :key="rowIndex")
+                                    tr(
+                                        v-for="(row, rowIndex) in context_active_string_filter_table_rows" 
+                                        @click.prevent="onClickContextTableRow(row, rowIndex)" 
+                                        :class="{ 'selected-row': rowIndex === selectedTableRowIndex }" 
+                                        :key="rowIndex"
+                                        style="cursor:pointer;"
+                                    )
                                         td(v-for="(value, key, colIndex) in row" :key="key")
                                             template(v-if="colIndex === 0")
-                                                a(href="#" @click.prevent="onClickContextTableRow(row, rowIndex)" style="cursor:pointer;" ) {{ value }}
+                                                a(href="#") {{ value }}
                                             template(v-else)
                                                 | {{ value }}
