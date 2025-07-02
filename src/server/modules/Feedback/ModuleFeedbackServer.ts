@@ -285,6 +285,14 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
         POLICY_FO_ACCESS = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_FO_ACCESS, DefaultTranslationVO.create_new({
             'fr-fr': 'Accès front - Feedbacks'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+
+        let POLICY_MENU_ACCESS: AccessPolicyVO = new AccessPolicyVO();
+        POLICY_MENU_ACCESS.group_id = group.id;
+        POLICY_MENU_ACCESS.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        POLICY_MENU_ACCESS.translatable_name = ModuleFeedback.POLICY_MENU_ACCESS;
+        POLICY_MENU_ACCESS = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_MENU_ACCESS, DefaultTranslationVO.create_new({
+            'fr-fr': 'Accès menu - Feedbacks'
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
     }
 
     // istanbul ignore next: cannot test configure
