@@ -44,8 +44,6 @@ export default class DashboardViewerComponent extends VueComponentBase {
     private pages: DashboardPageVO[] = [];
     private page: DashboardPageVO = null;
 
-    private selected_widget: DashboardPageWidgetVO = null;
-
     private can_edit: boolean = false;
 
     get get_page_history(): DashboardPageVO[] {
@@ -231,15 +229,14 @@ export default class DashboardViewerComponent extends VueComponentBase {
         return this.vuexAct(reflect<this>().set_active_field_filters, param);
     }
 
+    public set_selected_widget(selected_widget: DashboardPageWidgetVO): void {
+        this.vuexAct(reflect<this>().set_selected_widget, selected_widget);
+    }
 
     private beforeDestroy() {
         this.$store.unregisterModule(this.storeNamespace);
     }
 
-
-    private select_widget(page_widget) {
-        this.selected_widget = page_widget;
-    }
     private select_previous_page() {
         this.page = this.get_page_history[this.get_page_history.length - 1];
         this.pop_page_history(null);
@@ -286,7 +283,7 @@ export default class DashboardViewerComponent extends VueComponentBase {
 
     private select_page(page: DashboardPageVO) {
         this.add_page_history(this.page);
-        this.select_widget(null);
+        this.set_selected_widget(null);
         this.page = page;
     }
 

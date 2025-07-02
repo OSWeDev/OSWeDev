@@ -13,7 +13,7 @@
                         .widget_icone(:is="widget_.icon_component" :widget='widget_')
 
         .widget_options_wrapper
-            template(v-if="!selected_widget")
+            template(v-if="!get_selected_widget")
                 .first_select_a_widget {{ label('dashboard_builder_widgets.first_select_a_widget') }}
                 
             template(v-else)
@@ -26,7 +26,7 @@
                             i.fa-solid.fa-times.fa-fw.pull-right(aria-hidden="true")
                     .widget_options(
                         :is="selected_widget_type.options_component" 
-                        :page_widget='selected_widget' 
+                        :page_widget='get_selected_widget' 
                         :dashboard='dashboard' 
                         :dashboard_pages="dashboard_pages" 
                         :dashboard_page="dashboard_page"

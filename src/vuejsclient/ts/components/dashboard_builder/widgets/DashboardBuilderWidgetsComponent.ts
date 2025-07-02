@@ -1,5 +1,5 @@
 import Component from 'vue-class-component';
-import { Prop, Watch } from 'vue-property-decorator';
+import { Inject, Prop, Watch } from 'vue-property-decorator';
 import DashboardPageVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
@@ -8,6 +8,7 @@ import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import VueComponentBase from '../../VueComponentBase';
 import './DashboardBuilderWidgetsComponent.scss';
 import DashboardBuilderWidgetsController from './DashboardBuilderWidgetsController';
+import { reflect } from '../../../../../shared/tools/ObjectHandler';
 
 @Component({
     template: require('./DashboardBuilderWidgetsComponent.pug'),
@@ -15,6 +16,7 @@ import DashboardBuilderWidgetsController from './DashboardBuilderWidgetsControll
     }
 })
 export default class DashboardBuilderWidgetsComponent extends VueComponentBase {
+    @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @Prop()
     private dashboard: DashboardVO;
@@ -24,9 +26,6 @@ export default class DashboardBuilderWidgetsComponent extends VueComponentBase {
 
     @Prop()
     private dashboard_pages: DashboardPageVO[];
-
-    @Prop({ default: null })
-    private selected_widget: DashboardPageWidgetVO;
 
     private widgets: DashboardWidgetVO[] = null;
     private selected_widget_type: DashboardWidgetVO = null;
@@ -53,9 +52,13 @@ export default class DashboardBuilderWidgetsComponent extends VueComponentBase {
         return this.t(this.selected_widget_type.label ?? null);
     }
 
-    @Watch('selected_widget', { immediate: true })
+    get get_selected_widget(): DashboardPageWidgetVO {
+        return this.vuexGet<DashboardPageWidgetVO>(reflect<this>().get_selected_widget);
+    }
+
+    @Watch(reflect<DashboardBuilderWidgetsComponent>().get_selected_widget, { immediate: true })
     private async onchange_selected_widget() {
-        if (!this.selected_widget) {
+        if (!this.get_selected_widget) {
             this.selected_widget_type = null;
             return;
         }
@@ -64,7 +67,15 @@ export default class DashboardBuilderWidgetsComponent extends VueComponentBase {
             return;
         }
 
-        this.selected_widget_type = this.widgets.find((w) => w.id == this.selected_widget.widget_id);
+        this.selected_widget_type = this.widgets.find((w) => w.id == this.get_selected_widget.widget_id);
+    }
+
+    // Accès dynamiques Vuex
+    public vuexGet<T>(getter: string): T {
+        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    }
+    public vuexAct<A>(action: string, payload?: A) {
+        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
     }
 
     private async mounted() {

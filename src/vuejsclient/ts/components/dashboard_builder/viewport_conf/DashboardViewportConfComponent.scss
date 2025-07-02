@@ -1,0 +1,32 @@
+.DashboardViewportConfComponent {
+
+    .db_previsualization_wrapper {
+        position: relative;
+
+        .edit_overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(255, 255, 255, 0.6);
+            opacity: 0;
+            cursor: pointer;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+
+            i.fa-solid.fa-pen-to-square {
+                font-size: 2rem;
+                color: #333;
+            }
+        }
+
+        &:hover .edit_overlay {
+            opacity: 1;
+            pointer-events: auto;
+        }
+    }
+}

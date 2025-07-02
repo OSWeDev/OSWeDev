@@ -297,15 +297,15 @@ export default class VueComponentBase extends Vue
 
     public readonly _uid!: number; // déclare explicitement la propriété interne
 
-    protected data_user = VueAppController.getInstance().data_user;
+    public data_user = VueAppController.getInstance().data_user;
 
     /**
      * On ajoute les fonctions d'auto-synchro CRUD via io rooms
      */
-    protected vo_events_registration_keys_by_room_id: { [room_id: string]: VOEventRegistrationKey[] } = {};
+    public vo_events_registration_keys_by_room_id: { [room_id: string]: VOEventRegistrationKey[] } = {};
 
     // FILTERS MIXIN
-    protected const_filters = {
+    public const_filters = {
         amount: amountFilter,
         percent: percentFilter,
         toFixed: toFixedFilter,
@@ -324,11 +324,11 @@ export default class VueComponentBase extends Vue
 
 
     // LOADING MIXIN
-    protected isLoading = true;
-    protected loadingProgression: number = 0;
-    protected nbLoadingSteps: number = 5;
+    public isLoading = true;
+    public loadingProgression: number = 0;
+    public nbLoadingSteps: number = 5;
 
-    protected fullscreen = screenfull.isFullscreen;
+    public fullscreen = screenfull.isFullscreen;
 
     //EDITION MIXIN
     get editionMode() {
@@ -378,37 +378,37 @@ export default class VueComponentBase extends Vue
         );
     }
 
-    protected toggleFullscreen() {
+    public toggleFullscreen() {
         screenfull.toggle();
     }
 
-    protected onFullscreenChange() {
+    public onFullscreenChange() {
         this.fullscreen = screenfull.isFullscreen;
     }
 
-    protected getVocusLink(API_TYPE_ID: string, vo_id: number): string {
+    public getVocusLink(API_TYPE_ID: string, vo_id: number): string {
         return VocusHandler.getVocusLink(API_TYPE_ID, vo_id);
     }
 
-    protected getCRUDLink(API_TYPE_ID: string): string {
+    public getCRUDLink(API_TYPE_ID: string): string {
         return CRUDHandler.getCRUDLink(API_TYPE_ID);
     }
 
-    protected getCRUDCreateLink(API_TYPE_ID: string, embed: boolean): string {
+    public getCRUDCreateLink(API_TYPE_ID: string, embed: boolean): string {
         return CRUDHandler.getCreateLink(API_TYPE_ID, embed);
     }
 
-    protected getCRUDUpdateLink(API_TYPE_ID: string, vo_id: number): string {
+    public getCRUDUpdateLink(API_TYPE_ID: string, vo_id: number): string {
         return CRUDHandler.getUpdateLink(API_TYPE_ID, vo_id);
     }
 
-    protected getCRUDDeleteLink(API_TYPE_ID: string, vo_id: number): string {
+    public getCRUDDeleteLink(API_TYPE_ID: string, vo_id: number): string {
         return CRUDHandler.getDeleteLink(API_TYPE_ID, vo_id);
     }
 
 
     // Permet de savoir si un module est actif ou pas
-    protected moduleIsActive(nom_module) {
+    public moduleIsActive(nom_module) {
         const module: Module = ModulesManager.getModuleByNameAndRole(
             nom_module,
             Module.SharedModuleRoleName,
@@ -418,7 +418,7 @@ export default class VueComponentBase extends Vue
     }
 
     // Le mixin du module format_dates_nombres
-    protected formatDate_MonthDay(dateToFormat) {
+    public formatDate_MonthDay(dateToFormat) {
         if (ModuleFormatDatesNombres.getInstance().actif) {
             return ModuleFormatDatesNombres.getInstance().formatDate_MonthDay(
                 dateToFormat,
@@ -427,7 +427,7 @@ export default class VueComponentBase extends Vue
         return dateToFormat;
     }
 
-    protected formatDate_FullyearMonth(dateToFormat) {
+    public formatDate_FullyearMonth(dateToFormat) {
         if (ModuleFormatDatesNombres.getInstance().actif) {
             return ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonth(
                 dateToFormat,
@@ -436,7 +436,7 @@ export default class VueComponentBase extends Vue
         return dateToFormat;
     }
 
-    protected formatDate_FullyearMonthDay(dateToFormat) {
+    public formatDate_FullyearMonthDay(dateToFormat) {
         if (ModuleFormatDatesNombres.getInstance().actif) {
             return ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(
                 dateToFormat,
@@ -445,7 +445,7 @@ export default class VueComponentBase extends Vue
         return dateToFormat;
     }
 
-    protected formatDate_Fullyear(dateToFormat) {
+    public formatDate_Fullyear(dateToFormat) {
         if (ModuleFormatDatesNombres.getInstance().actif) {
             return ModuleFormatDatesNombres.getInstance().formatDate_Fullyear(
                 dateToFormat,
@@ -453,14 +453,14 @@ export default class VueComponentBase extends Vue
         }
     }
 
-    protected format_date(date: number, format: string): string {
+    public format_date(date: number, format: string): string {
         if (date == null) {
             return null;
         }
         return Dates.format(date, format);
     }
 
-    protected formatNumber_nodecimal(numberToFormat) {
+    public formatNumber_nodecimal(numberToFormat) {
         if (ModuleFormatDatesNombres.getInstance().actif) {
             return ModuleFormatDatesNombres.getInstance().formatNumber_nodecimal(
                 numberToFormat,
@@ -469,7 +469,7 @@ export default class VueComponentBase extends Vue
         return numberToFormat;
     }
 
-    protected formatNumber_1decimal(numberToFormat) {
+    public formatNumber_1decimal(numberToFormat) {
         if (ModuleFormatDatesNombres.getInstance().actif) {
             return ModuleFormatDatesNombres.getInstance().formatNumber_n_decimals(
                 numberToFormat,
@@ -479,7 +479,7 @@ export default class VueComponentBase extends Vue
         return numberToFormat;
     }
 
-    protected formatNumber_2decimal(numberToFormat) {
+    public formatNumber_2decimal(numberToFormat) {
         if (ModuleFormatDatesNombres.getInstance().actif) {
             return ModuleFormatDatesNombres.getInstance().formatNumber_n_decimals(
                 numberToFormat,
@@ -489,14 +489,14 @@ export default class VueComponentBase extends Vue
         return numberToFormat;
     }
 
-    protected invalidateCache() {
+    public invalidateCache() {
         AjaxCacheClientController.getInstance().invalidateUsingURLRegexp(
             new RegExp(".*", "i"),
         );
     }
 
     // DATE MIXIN
-    protected parseDateWithFormat(date, format = "d-m-y") {
+    public parseDateWithFormat(date, format = "d-m-y") {
         const day = date.getDate() < 10 ? "0" + date.getDate() : date.getDate();
         const month =
             date.getMonth() + 1 < 10
@@ -510,7 +510,7 @@ export default class VueComponentBase extends Vue
             .replace("y", year);
     }
 
-    protected parseDateFR(date, separateur = "-") {
+    public parseDateFR(date, separateur = "-") {
         return (
             (date.getMonth() + 1 < 10
                 ? "0" + (date.getMonth() + 1)
@@ -519,7 +519,7 @@ export default class VueComponentBase extends Vue
             date.getFullYear()
         );
     }
-    protected parseDateEN(date) {
+    public parseDateEN(date) {
         return (
             date.getFullYear() +
             "-" +
@@ -532,16 +532,16 @@ export default class VueComponentBase extends Vue
     }
 
     // FILTERS MIXIN
-    protected newFilter() {
+    public newFilter() {
         return new FiltersHandler();
     }
 
     // LOADING MIXIN
-    protected startLoading() {
+    public startLoading() {
         this.isLoading = true;
         this.loadingProgression = 0;
     }
-    protected nextLoadingStep() {
+    public nextLoadingStep() {
         if (this.loadingProgression < 0) {
             this.loadingProgression = 0;
         }
@@ -554,13 +554,13 @@ export default class VueComponentBase extends Vue
             this.loadingProgression = 100;
         }
     }
-    protected stopLoading() {
+    public stopLoading() {
         this.isLoading = false;
         this.loadingProgression = 100;
     }
 
     // MOMENT MIXIN
-    protected getNbWeekInMonth(month: number) {
+    public getNbWeekInMonth(month: number) {
         const month_tmp = month;
         const res = Dates.startOf(Dates.endOf(month_tmp, TimeSegment.TYPE_MONTH), TimeSegment.TYPE_WEEK);
         return Dates.diff(
@@ -570,31 +570,31 @@ export default class VueComponentBase extends Vue
     }
 
     // MONTHS MIXIN
-    protected getMonthName(month_number) {
+    public getMonthName(month_number) {
         return months[month_number];
     }
-    protected getMonthInTexte(month: string) {
+    public getMonthInTexte(month: string) {
         return this.getMonthName(moment(month).utc(true).get("month"));
     }
-    protected getJourInText(jour_iso) {
+    public getJourInText(jour_iso) {
         return days[jour_iso];
     }
 
     // MOMENT for .pug usage
-    protected moment(...args) {
+    public moment(...args) {
         return moment(...args);
     }
 
     // SMALL MIXINS
-    protected filterMultiple(x, xs, strict?) {
+    public filterMultiple(x, xs, strict?) {
         return (xs.length == 0 && !strict) || xs.indexOf(x) != -1;
     }
 
-    protected varif_simplenumber_boolean_condition(value: VarDataBaseVO) {
+    public varif_simplenumber_boolean_condition(value: VarDataBaseVO) {
         return (!!value) && (!!value.value);
     }
 
-    protected simple_var_div(values: VarDataBaseVO[]): number {
+    public simple_var_div(values: VarDataBaseVO[]): number {
         if ((!values) || (!values[0]) || (!values[1])) {
             return null;
         }
@@ -606,7 +606,7 @@ export default class VueComponentBase extends Vue
         return values[0].value / values[1].value;
     }
 
-    protected simple_var_add(values: VarDataBaseVO[]): number {
+    public simple_var_add(values: VarDataBaseVO[]): number {
         if ((!values) || (!values.length)) {
             return null;
         }
@@ -629,7 +629,7 @@ export default class VueComponentBase extends Vue
         return res;
     }
 
-    protected simple_var_mean(values: VarDataBaseVO[]): number {
+    public simple_var_mean(values: VarDataBaseVO[]): number {
         if ((!values) || (!values.length)) {
             return null;
         }
@@ -658,7 +658,7 @@ export default class VueComponentBase extends Vue
         return res / length;
     }
 
-    protected simple_var_supp_zero(var_data: VarDataBaseVO): boolean {
+    public simple_var_supp_zero(var_data: VarDataBaseVO): boolean {
         if ((!var_data) || (var_data.value == null) || (typeof var_data.value == 'undefined')) {
             return false;
         }
@@ -666,7 +666,7 @@ export default class VueComponentBase extends Vue
         return var_data.value > 0;
     }
 
-    protected simple_var_supp_egal_zero(var_data: VarDataBaseVO): boolean {
+    public simple_var_supp_egal_zero(var_data: VarDataBaseVO): boolean {
         if ((!var_data) || (var_data.value == null) || (typeof var_data.value == 'undefined')) {
             return false;
         }
@@ -674,7 +674,7 @@ export default class VueComponentBase extends Vue
         return var_data.value >= 0;
     }
 
-    protected simple_var_sub(values: VarDataBaseVO[]): number {
+    public simple_var_sub(values: VarDataBaseVO[]): number {
         if ((!values) || (!values[0]) || (!values[1])) {
             return null;
         }
@@ -682,7 +682,7 @@ export default class VueComponentBase extends Vue
         return values[0].value - values[1].value;
     }
 
-    protected simple_var_times(values: VarDataBaseVO[]): number {
+    public simple_var_times(values: VarDataBaseVO[]): number {
         if ((!values) || (!values.length)) {
             return null;
         }
@@ -705,7 +705,7 @@ export default class VueComponentBase extends Vue
         return res;
     }
 
-    protected fire_modal_inert(class_selector: string) {
+    public fire_modal_inert(class_selector: string) {
         if (!class_selector) {
             return;
         }
@@ -731,7 +731,7 @@ export default class VueComponentBase extends Vue
         });
     }
 
-    protected simple_var_evolution(datas: VarDataBaseVO[]) {
+    public simple_var_evolution(datas: VarDataBaseVO[]) {
 
         try {
 
@@ -753,7 +753,7 @@ export default class VueComponentBase extends Vue
         return null;
     }
 
-    protected math_round(value: number, decimals: number = 0, convert_to_prct: boolean = false) {
+    public math_round(value: number, decimals: number = 0, convert_to_prct: boolean = false) {
 
         try {
 
@@ -771,7 +771,7 @@ export default class VueComponentBase extends Vue
         return null;
     }
 
-    protected math_floor(value: number, decimals: number = 0, convert_to_prct: boolean = false) {
+    public math_floor(value: number, decimals: number = 0, convert_to_prct: boolean = false) {
 
         try {
 
@@ -789,7 +789,7 @@ export default class VueComponentBase extends Vue
         return null;
     }
 
-    protected math_ceil(value: number, decimals: number = 0, convert_to_prct: boolean = false) {
+    public math_ceil(value: number, decimals: number = 0, convert_to_prct: boolean = false) {
 
         try {
 
@@ -807,7 +807,7 @@ export default class VueComponentBase extends Vue
         return null;
     }
 
-    protected addClassName(className: string, el) {
+    public addClassName(className: string, el) {
         if (!el?.className) {
             el.className = className;
             return;
@@ -832,7 +832,7 @@ export default class VueComponentBase extends Vue
         }
     }
 
-    protected removeClassName(className: string, el) {
+    public removeClassName(className: string, el) {
         if (!el?.className) {
             return;
         }
@@ -850,7 +850,7 @@ export default class VueComponentBase extends Vue
         el.className = (res ? res : '');
     }
 
-    protected on_every_update_green_if_supp_zero(varData: VarDataBaseVO, el, binding, vnode) {
+    public on_every_update_green_if_supp_zero(varData: VarDataBaseVO, el, binding, vnode) {
         const simple_value = (varData) ? ((varData as VarDataBaseVO).value) : null;
 
         this.removeClassName('text-success', el);
@@ -860,7 +860,7 @@ export default class VueComponentBase extends Vue
         this.addClassName(className, el);
     }
 
-    protected on_every_update_simple_number_sign_coloration_handler(varData: VarDataBaseVO, el, binding, vnode) {
+    public on_every_update_simple_number_sign_coloration_handler(varData: VarDataBaseVO, el, binding, vnode) {
         const simple_value = (varData) ? ((varData as VarDataBaseVO).value) : null;
 
         this.removeClassName('text-danger', el);
@@ -873,7 +873,7 @@ export default class VueComponentBase extends Vue
         this.addClassName(className, el);
     }
 
-    protected on_every_update_simple_revert_number_sign_coloration_handler(varData: VarDataBaseVO, el, binding, vnode) {
+    public on_every_update_simple_revert_number_sign_coloration_handler(varData: VarDataBaseVO, el, binding, vnode) {
         const simple_value = (varData) ? ((varData as VarDataBaseVO).value) : null;
 
         this.removeClassName('text-danger', el);
@@ -893,7 +893,7 @@ export default class VueComponentBase extends Vue
      * @param binding
      * @param vnode
      */
-    protected on_every_update_simple_number_1_coloration_handler(varData: VarDataBaseVO, el, binding, vnode) {
+    public on_every_update_simple_number_1_coloration_handler(varData: VarDataBaseVO, el, binding, vnode) {
         let simple_value = (varData) ? ((varData as VarDataBaseVO).value) : null;
         simple_value--;
 
@@ -907,7 +907,7 @@ export default class VueComponentBase extends Vue
         this.addClassName(className, el);
     }
 
-    protected on_every_update_simple_prct_supp_egal_100_coloration_handler(varData: VarDataBaseVO, el, binding, vnode) {
+    public on_every_update_simple_prct_supp_egal_100_coloration_handler(varData: VarDataBaseVO, el, binding, vnode) {
         const simple_value = (varData) ? ((varData as VarDataBaseVO).value) : null;
 
         this.removeClassName('text-success', el);
@@ -917,14 +917,14 @@ export default class VueComponentBase extends Vue
         }
     }
 
-    protected activateEdition() {
+    public activateEdition() {
         AppVuexStoreManager.getInstance().appVuexStore.commit("activateEdition");
     }
-    protected deactivateEdition() {
+    public deactivateEdition() {
         AppVuexStoreManager.getInstance().appVuexStore.commit("deactivateEdition");
     }
 
-    protected async export_to_xlsx() {
+    public async export_to_xlsx() {
         if (this.isExportableToXLSX) {
             // this.startLoading();
             const param: ExportDataToXLSXParamVO = await AppVuexStoreManager.getInstance().appVuexStore.getters.hook_export_data_to_XLSX();
@@ -945,11 +945,11 @@ export default class VueComponentBase extends Vue
         }
     }
 
-    protected humanizeDurationTo(date: Date): string {
+    public humanizeDurationTo(date: Date): string {
         return DateHandler.getInstance().humanizeDurationTo(moment(date).utc(true).unix());
     }
 
-    protected routeExists(url: string): boolean {
+    public routeExists(url: string): boolean {
         if (!url) {
             return false;
         }
@@ -961,7 +961,7 @@ export default class VueComponentBase extends Vue
         return false;
     }
 
-    protected async unregister_room_id_vo_event_callbacks(room_id: string) {
+    public async unregister_room_id_vo_event_callbacks(room_id: string) {
         const promises = [];
         for (const j in this.vo_events_registration_keys_by_room_id[room_id]) {
             const vo_event_registration_key = this.vo_events_registration_keys_by_room_id[room_id][j];
@@ -972,7 +972,7 @@ export default class VueComponentBase extends Vue
         this.vo_events_registration_keys_by_room_id = {};
     }
 
-    protected async unregister_all_vo_event_callbacks() {
+    public async unregister_all_vo_event_callbacks() {
 
         // if (true) { /** FIXME DEBUG */
         //     ConsoleHandler.log('unregister_all_vo_event_callbacks:IN:');
@@ -990,7 +990,7 @@ export default class VueComponentBase extends Vue
         // }
     }
 
-    protected handle_created_vo_event_callback(list_name: string, sort_function: (a, b) => number, created_vo: IDistantVOBase, map_name: string = null) {
+    public handle_created_vo_event_callback(list_name: string, sort_function: (a, b) => number, created_vo: IDistantVOBase, map_name: string = null) {
 
         if (map_name) {
             if (!this[map_name]) {
@@ -1042,7 +1042,7 @@ export default class VueComponentBase extends Vue
      * @param simple_sorts_by_on_api_type_id les étapes du sort à appliquer. Ne sont gérés que les sorts simples directement sur l'API_TYPE_ID à surveiller.
      * @param map_name si fourni, alors au lieu de stocker dans this[list_name], on stocke dans this[map_name][list_name]
      */
-    protected async register_vo_updates_on_list(
+    public async register_vo_updates_on_list(
         API_TYPE_ID: string,
         list_name: string,
         simple_filters_on_api_type_id: ContextFilterVO[] = [],
@@ -1160,7 +1160,7 @@ export default class VueComponentBase extends Vue
      * @param field_name le nom du vo dans lequel on stocke l'élément à jour correspondant au filtrage
      * @param vo_has_been_preloaded si on a déjà préchargé le vo - on ne le supprime pas du coup par défaut et on ne le recharge pas non plus
      */
-    protected async register_single_vo_updates(
+    public async register_single_vo_updates(
         API_TYPE_ID: string,
         vo_id: number,
         field_name: string,

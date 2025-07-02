@@ -93,6 +93,10 @@ export default class DashboardBuilderBoardItemComponent extends VueComponentBase
         return this.vuexAct(reflect<this>().set_page_widget_component_by_pwid, param);
     }
 
+    public set_selected_widget(page_widget: DashboardPageWidgetVO) {
+        return this.vuexAct(reflect<this>().set_selected_widget, page_widget);
+    }
+
 
     private mounted() {
         if ((!this.page_widget?.id) || (this.page_widget.page_id != this.dashboard_page?.id)) {
@@ -110,12 +114,6 @@ export default class DashboardBuilderBoardItemComponent extends VueComponentBase
 
     private delete_widget() {
         this.$emit('delete_widget', this.page_widget);
-    }
-
-    private select_widget() {
-        // event.stopPropagation();
-
-        this.$emit('select_widget', this.page_widget);
     }
 
     private select_page(page) {

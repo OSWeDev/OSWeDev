@@ -1,0 +1,14 @@
+.DashboardViewportConfComponent
+    .row
+        .col-md-4 
+            .db_viewport_conf
+                DashboardAllViewportsConfComponent
+                DashboardSelectedViewportConfComponent
+        .col-md-8 
+            .db_previsualization_wrapper(@click='onClickPrevisualization')
+                DashboardViewerComponent(
+                    :dashboard_id='dashboard.id'
+                    :viewport_id=''
+                )
+                .edit_overlay
+                    i.fa-solid.fa-pen-to-square

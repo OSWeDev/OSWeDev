@@ -74,6 +74,8 @@
                     .row.steps
                         .col-sm-3(v-if='POLICY_DBB_ACCESS_ONGLET_TABLE')
                             .step.select_vos(@click='select_vos' :class="{'selected' : show_select_vos}") {{ label('dashboard_builder.select_vos') }}
+                        .col-sm-3(v-if='POLICY_DBB_ACCESS_ONGLET_VIEWPORT')
+                            .step.select_vos(@click='viewport_conf' :class="{'selected' : show_viewport_conf}") {{ label('dashboard_builder.viewport_conf') }}
                         .col-sm-3(v-if='POLICY_DBB_ACCESS_ONGLET_WIDGETS')
                             .step.build_page(v-if='can_build_page' @click='build_page' :class="{'selected' : show_build_page}") {{ label('dashboard_builder.build_page') }}
                         .col-sm-3(v-if='POLICY_DBB_ACCESS_ONGLET_MENUS')
@@ -175,6 +177,14 @@
                         @addTable='addTable'
                     )
 
+            .row(v-if='show_viewport_conf_page && POLICY_DBB_ACCESS_ONGLET_VIEWPORT')
+                .col-sm-12.builder_wrapper
+                    DashboardViewportConfComponent(
+                        ref='DashboardViewportConfComponent'
+                        :dashboard_page='page' 
+                        :dashboard_pages='pages'
+                        :dashboard='dashboard' 
+                    )
 
             .fields_wrapper(v-if='show_build_page && POLICY_DBB_ACCESS_ONGLET_WIDGETS' :class='{"collapsed":collapsed_fields_wrapper}')
 
@@ -185,7 +195,6 @@
                 .collapsible_component_wrapper(:class='{"collapsed":collapsed_fields_wrapper}')
                     Dashboardbuilderwidgetscomponent(
                         :dashboard='dashboard' 
-                        :selected_widget='selected_widget'
                         :dashboard_page='page'
                         :dashboard_pages='pages'   
 
@@ -202,9 +211,7 @@
                         :dashboard_page='page' 
                         :dashboard_pages='pages'
                         :dashboard='dashboard' 
-                        :selected_widget='selected_widget' 
 
-                        @select_widget='select_widget'
                         @select_page='select_page'
 
                         @removed_widget_from_page='removed_widget_from_page'

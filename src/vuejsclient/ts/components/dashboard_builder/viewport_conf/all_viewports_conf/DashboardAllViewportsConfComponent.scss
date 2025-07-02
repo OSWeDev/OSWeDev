@@ -1,0 +1,74 @@
+.DashboardAllViewportsConfComponent {
+    .viewport_conf_wrapper {
+        display: flex;
+        align-items: center;
+        padding: 8px 12px;
+        cursor: pointer;
+        transition: background-color 0.3s, box-shadow 0.3s;
+        position: relative;
+
+        &:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+
+        &.selected {
+            background-color: rgba(0, 0, 0, 0.1);
+            font-weight: bold;
+        }
+
+        .viewport_conf {
+            display: flex;
+            align-items: center;
+            width: 100%;
+
+            .is_viewport_activated {
+                width: 24px;
+                height: 24px;
+                margin-right: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: color 0.3s;
+
+                &.activated {
+                    color: #55c57a; // vert activé
+                }
+
+                &.disabled {
+                    opacity: 0.3;
+                    pointer-events: none;
+                }
+            }
+
+            .name {
+                flex-grow: 1;
+                transition: color 0.3s;
+            }
+
+            .edit,
+            .delete {
+                width: 24px;
+                height: 24px;
+                opacity: 0;
+                transition: opacity 0.3s;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+
+                // &.edit {
+                //     color: #3498db; // bleu éditer
+                // }
+
+                // &.delete {
+                //     color: #e74c3c; // rouge supprimer
+                // }
+            }
+        }
+
+        &:hover .viewport_conf .edit,
+        &:hover .viewport_conf .delete {
+            opacity: 1;
+        }
+    }
+}

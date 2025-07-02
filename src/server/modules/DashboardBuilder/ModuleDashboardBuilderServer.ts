@@ -1,6 +1,4 @@
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
-import DashboardActiveonViewportVO from '../../../shared/modules/DashboardBuilder/vos/DashboardActiveonViewportVO';
-import DashboardViewportVO from '../../../shared/modules/DashboardBuilder/vos/DashboardViewportVO';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
@@ -13,18 +11,24 @@ import ModuleTableController from '../../../shared/modules/DAO/ModuleTableContro
 import ModuleDashboardBuilder from '../../../shared/modules/DashboardBuilder/ModuleDashboardBuilder';
 import DBBConfVO from '../../../shared/modules/DashboardBuilder/vos/DBBConfVO';
 import DashboardGraphVORefVO from '../../../shared/modules/DashboardBuilder/vos/DashboardGraphVORefVO';
+import DashboardPageVO from '../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../shared/modules/DashboardBuilder/vos/DashboardVO';
+import DashboardViewportPageWidgetVO from '../../../shared/modules/DashboardBuilder/vos/DashboardViewportPageWidgetVO';
+import DashboardViewportVO from '../../../shared/modules/DashboardBuilder/vos/DashboardViewportVO';
 import DashboardWidgetVO from '../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
 import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
+import NumSegment from '../../../shared/modules/DataRender/vos/NumSegment';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import { field_names, reflect } from '../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
+import DAOPostCreateTriggerHook from '../DAO/triggers/DAOPostCreateTriggerHook';
 import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
@@ -34,9 +38,6 @@ import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import DashboardBuilderCronWorkersHandler from './DashboardBuilderCronWorkersHandler';
 import DashboardCycleChecker from './DashboardCycleChecker';
 import FavoritesFiltersServerController from './favorite_filters/FavoritesFiltersServerController';
-import DashboardPageVO from '../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
-import DAOPostCreateTriggerHook from '../DAO/triggers/DAOPostCreateTriggerHook';
-import NumSegment from '../../../shared/modules/DataRender/vos/NumSegment';
 
 export default class ModuleDashboardBuilderServer extends ModuleServerBase {
 
@@ -1263,12 +1264,16 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'dashboard_menu_conf.menu_switch.label.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-            'fr-fr': '3 - Menus'
+            'fr-fr': 'Menus'
         }, 'dashboard_builder.menu_conf.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-            'fr-fr': '4 - Filtres Partagés'
+            'fr-fr': 'Filtres Partagés'
         }, 'dashboard_builder.shared_filters.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Écrans'
+        }, 'dashboard_builder.viewport_conf.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Pages du Dashboard'
@@ -2053,10 +2058,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'droppable_vos.title.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-            'fr-fr': '1 - Tables'
+            'fr-fr': 'Tables'
         }, 'dashboard_builder.select_vos.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-            'fr-fr': '2 - Widgets'
+            'fr-fr': 'Widgets'
         }, 'dashboard_builder.build_page.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
@@ -4024,13 +4029,41 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'crud_db_link.switch_option_template_update.off.___LABEL___'
         ));
 
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Supprimer DEFINITIVEMENT cet écran sur toutes les pages (CMS, ...) ?" },
+            'DashboardAllViewportsConfComponent.delete_viewport.body.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "ATTENTION suppression globale et définitive" },
+            'DashboardAllViewportsConfComponent.delete_viewport.title.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Suppression terminée" },
+            'DashboardAllViewportsConfComponent.delete_viewport.deleted.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Echec de la suppression" },
+            'DashboardAllViewportsConfComponent.delete_viewport.error.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Suppression annulée" },
+            'DashboardAllViewportsConfComponent.delete_viewport.canceled.___LABEL___'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Ajouter un type d'écran" },
+            'dashboard_builder.viewports_conf.add_viewport.___LABEL___'
+        ));
+
         const preCTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
-        preCTrigger.registerHandler(DashboardPageWidgetVO.API_TYPE_ID, this, this.onCDashboardPageWidgetVO);
+        preCTrigger.registerHandler(DashboardViewportPageWidgetVO.API_TYPE_ID, this, this.onprec_DashboardViewportPageWidgetVO);
+
         preCTrigger.registerHandler(DashboardVO.API_TYPE_ID, this, this.onCDashboardVO);
 
         const postUTrigger: DAOPostUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
         postUTrigger.registerHandler(DashboardGraphVORefVO.API_TYPE_ID, this, this.onUDashboardGraphVORefVO);
         postUTrigger.registerHandler(DashboardViewportVO.API_TYPE_ID, this, this.postUpdateDashboardViewport);
+        postUTrigger.registerHandler(DashboardVO.API_TYPE_ID, this, this.onpostu_DashboardVO_activated_viewport_id_ranges);
 
         const postCreateTrigger: DAOPostCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
         postCreateTrigger.registerHandler(DashboardViewportVO.API_TYPE_ID, this, this.postCreateDashboardViewport);
@@ -4127,6 +4160,20 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         POLICY_DBB_ACCESS_ONGLET_WIDGETS_bo_access_dependency.src_pol_id = POLICY_DBB_ACCESS_ONGLET_WIDGETS.id;
         POLICY_DBB_ACCESS_ONGLET_WIDGETS_bo_access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleDashboardBuilder.POLICY_BO_ACCESS).id;
         POLICY_DBB_ACCESS_ONGLET_WIDGETS_bo_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
+
+
+        let POLICY_DBB_ACCESS_ONGLET_VIEWPORT: AccessPolicyVO = new AccessPolicyVO();
+        POLICY_DBB_ACCESS_ONGLET_VIEWPORT.group_id = group.id;
+        POLICY_DBB_ACCESS_ONGLET_VIEWPORT.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        POLICY_DBB_ACCESS_ONGLET_VIEWPORT.translatable_name = ModuleDashboardBuilder.POLICY_DBB_ACCESS_ONGLET_VIEWPORT;
+        POLICY_DBB_ACCESS_ONGLET_VIEWPORT = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_DBB_ACCESS_ONGLET_VIEWPORT, DefaultTranslationVO.create_new({
+            'fr-fr': 'Accès à l\'onglet Écrans du DBB'
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        let POLICY_DBB_ACCESS_ONGLET_VIEWPORT_bo_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
+        POLICY_DBB_ACCESS_ONGLET_VIEWPORT_bo_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+        POLICY_DBB_ACCESS_ONGLET_VIEWPORT_bo_access_dependency.src_pol_id = POLICY_DBB_ACCESS_ONGLET_VIEWPORT.id;
+        POLICY_DBB_ACCESS_ONGLET_VIEWPORT_bo_access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleDashboardBuilder.POLICY_BO_ACCESS).id;
+        POLICY_DBB_ACCESS_ONGLET_VIEWPORT_bo_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
 
 
         let POLICY_DBB_ACCESS_ONGLET_MENUS: AccessPolicyVO = new AccessPolicyVO();
@@ -4441,28 +4488,112 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         return;
     }
 
-    private async onCDashboardPageWidgetVO(e: DashboardPageWidgetVO): Promise<boolean> {
-        if (!e) {
+    private async onprec_DashboardViewportPageWidgetVO(viewport_page_widget: DashboardViewportPageWidgetVO): Promise<boolean> {
+        if (!viewport_page_widget) {
             return false;
         }
 
-        await ModuleDashboardBuilderServer.getInstance().check_DashboardPageWidgetVO_i(e);
+        await all_promises([
+            ModuleDashboardBuilderServer.getInstance().check_DashboardViewportPageWidgetVO_i(viewport_page_widget),
+            ModuleDashboardBuilderServer.getInstance().check_default_width_vs_viewport(viewport_page_widget),
+            ModuleDashboardBuilderServer.getInstance().check_default_height(viewport_page_widget),
+            ModuleDashboardBuilderServer.getInstance().check_DashboardViewportPageWidgetVO_y(viewport_page_widget),
+        ]);
 
         return true;
     }
 
-    private async check_DashboardPageWidgetVO_i(e: DashboardPageWidgetVO) {
-        if (e.i) {
+    private async check_default_height(viewport_page_widget: DashboardViewportPageWidgetVO) {
+        if (viewport_page_widget.w) {
             return;
         }
 
-        const query_res = await ModuleDAOServer.instance.query('SELECT max(i) as max_i from ' + ModuleTableController.module_tables_by_vo_type[DashboardPageWidgetVO.API_TYPE_ID].full_name, null, true);
+        const widget = await query(DashboardWidgetVO.API_TYPE_ID)
+            .filter_by_id(viewport_page_widget.page_widget_id, DashboardPageWidgetVO.API_TYPE_ID)
+            .exec_as_server()
+            .select_vo<DashboardWidgetVO>();
+
+        if (!widget) {
+            ConsoleHandler.error(`Impossible de vérifier la hauteur du DashboardViewportPageWidgetVO ${viewport_page_widget.id} car le widget ${viewport_page_widget.page_widget_id} n'existe pas.`);
+            return;
+        }
+
+        viewport_page_widget.h = widget.default_height;
+
+        return;
+    }
+
+    private async check_default_width_vs_viewport(viewport_page_widget: DashboardViewportPageWidgetVO) {
+        if (viewport_page_widget.w) {
+            return;
+        }
+
+        const widget = await query(DashboardWidgetVO.API_TYPE_ID)
+            .filter_by_id(viewport_page_widget.page_widget_id, DashboardPageWidgetVO.API_TYPE_ID)
+            .exec_as_server()
+            .select_vo<DashboardWidgetVO>();
+
+        if (!widget) {
+            ConsoleHandler.error(`Impossible de vérifier la largeur du DashboardViewportPageWidgetVO ${viewport_page_widget.id} car le widget ${viewport_page_widget.page_widget_id} n'existe pas.`);
+            return;
+        }
+
+        const viewport = await query(DashboardViewportVO.API_TYPE_ID)
+            .filter_by_id(viewport_page_widget.viewport_id)
+            .exec_as_server()
+            .select_vo<DashboardViewportVO>();
+        if (!viewport) {
+            ConsoleHandler.error(`Impossible de vérifier la largeur du DashboardViewportPageWidgetVO ${viewport_page_widget.id} car le viewport ${viewport_page_widget.viewport_id} n'existe pas.`);
+            return;
+        }
+
+        viewport_page_widget.w = (widget.default_width > viewport.nb_columns) ? viewport.nb_columns : widget.default_width;
+
+        return;
+    }
+
+
+    private async check_DashboardViewportPageWidgetVO_i(viewport_page_widget: DashboardViewportPageWidgetVO) {
+        if (viewport_page_widget.i) {
+            return;
+        }
+
+        const query_res = await ModuleDAOServer.instance.query('SELECT max(i) as max_i from ' + ModuleTableController.module_tables_by_vo_type[DashboardViewportPageWidgetVO.API_TYPE_ID].full_name, null, true);
         let max_i = (query_res && (query_res.length == 1) && (typeof query_res[0]['max_i'] != 'undefined') && (query_res[0]['max_i'] !== null)) ? query_res[0]['max_i'] : null;
         max_i = max_i ? parseInt(max_i.toString()) : null;
         if (!max_i) {
             max_i = 1;
         }
-        e.i = max_i + 1;
+        viewport_page_widget.i = max_i + 1;
+
+        return;
+    }
+
+    private async check_DashboardViewportPageWidgetVO_y(viewport_page_widget: DashboardViewportPageWidgetVO) {
+        if (viewport_page_widget.y) {
+            return;
+        }
+
+        const this_page_widget = await query(DashboardPageWidgetVO.API_TYPE_ID)
+            .filter_by_id(viewport_page_widget.page_widget_id)
+            .exec_as_server()
+            .select_vo<DashboardPageWidgetVO>();
+        if (!this_page_widget?.page_id) {
+            ConsoleHandler.error(`Impossible de vérifier la position Y du DashboardViewportPageWidgetVO ${viewport_page_widget.id} car le DashboardPageWidgetVO ${viewport_page_widget.page_widget_id} n'existe pas ou n'a pas de page associée.`);
+            return;
+        }
+
+        const query_res = await ModuleDAOServer.instance.query(
+            'SELECT max(y + h) as max_y from ' + ModuleTableController.module_tables_by_vo_type[DashboardViewportPageWidgetVO.API_TYPE_ID].full_name + ' vpw ' +
+            ' join ' + ModuleTableController.module_tables_by_vo_type[DashboardPageWidgetVO.API_TYPE_ID].full_name + ' pw on vpw.page_widget_id = pw.id ' +
+            ' where pw.page_id = ' + this_page_widget?.page_id + ' and vpw.viewport_id = ' + viewport_page_widget.viewport_id, // le max de y+h des widgets de cette page, dans ce viewport
+            null, true);
+        let max_y = (query_res && (query_res.length == 1) && (typeof query_res[0]['max_y'] != 'undefined') && (query_res[0]['max_y'] !== null)) ? query_res[0]['max_y'] : null;
+        max_y = max_y ? parseInt(max_y.toString()) : null;
+        if (!max_y) {
+            max_y = 0;
+        }
+        viewport_page_widget.y = max_y;
 
         return;
     }
@@ -4493,61 +4624,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             return;
         }
 
-        const default_viewport = viewport.is_default
-            ? viewport
-            : await query(DashboardViewportVO.API_TYPE_ID).filter_is_true(field_names<DashboardViewportVO>().is_default).select_vo();
-
         // Si le nouveau devient le défaut, on désactive les autres
         if (viewport.is_default) {
-            this.viewportBecomeDefault(viewport);
+            await this.viewportBecomeDefault(viewport);
         }
-
-        // Liaison des dashboards au viewport
-        const dbb_pages: DashboardPageVO[] = await query(DashboardPageVO.API_TYPE_ID).select_vos();
-        const liaisons_dbbs_viewports: DashboardActiveonViewportVO[] = [];
-
-        for (const i in dbb_pages) {
-            const dbb = dbb_pages[i];
-
-            const liaison: DashboardActiveonViewportVO = new DashboardActiveonViewportVO();
-            liaison.dashboard_page_id = dbb.id;
-            liaison.dashboard_viewport_id = viewport.id;
-
-            // À la création, on n'active le dashboard que sur le viewport par défaut
-            if (viewport.is_default) {
-                liaison.active = true;
-            } else {
-                liaison.active = false;
-            }
-
-            liaisons_dbbs_viewports.push(liaison);
-        }
-
-        // Liaison des widgets aux viewports
-        const default_widgets: DashboardPageWidgetVO[] = await query(DashboardPageWidgetVO.API_TYPE_ID)
-            .filter_by_num_eq(field_names<DashboardPageWidgetVO>().dashboard_viewport_id, default_viewport.id)
-            .select_vos();
-
-        const new_widgets_viewport: DashboardPageWidgetVO[] = [];
-        for (const i in default_widgets) {
-            const widget = default_widgets[i];
-
-            const widget_position: DashboardPageWidgetVO = new DashboardPageWidgetVO();
-            widget_position.x = widget?.x;
-            widget_position.y = widget?.y;
-            widget_position.w = widget?.w;
-            widget_position.h = widget?.h;
-            widget_position.i = widget?.i;
-            widget_position.static = widget?.static;
-            widget_position.show_widget_on_viewport = true;
-            widget_position.dashboard_viewport_id = viewport.id;
-            widget_position.widget_id = widget.widget_id;
-
-            new_widgets_viewport.push(widget_position);
-        }
-
-        await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(liaisons_dbbs_viewports);
-        await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(new_widgets_viewport);
     }
 
     private async viewportBecomeDefault(viewport: DashboardViewportVO) {
@@ -4560,5 +4640,40 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }
 
         await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(viewports);
+    }
+
+    /**
+     * Le but c'est de créer ou supprimer les DashboardViewportPageWidgets en fonction des changement sur le champs activated_viewport_id_ranges
+     */
+    private async onpostu_DashboardVO_activated_viewport_id_ranges(update: DAOUpdateVOHolder<DashboardVO>) {
+
+        if ((!update) || (!update.pre_update_vo) || (!update.post_update_vo)) {
+            return;
+        }
+
+        const pre_update_activated_viewport_id_ranges = update.pre_update_vo.activated_viewport_id_ranges || [];
+        const post_update_activated_viewport_id_ranges = update.post_update_vo.activated_viewport_id_ranges || [];
+
+        const new_viewport_id_ranges = RangeHandler.cuts_ranges(pre_update_activated_viewport_id_ranges, post_update_activated_viewport_id_ranges)?.remaining_items;
+        const removed_viewport_id_ranges = RangeHandler.cuts_ranges(post_update_activated_viewport_id_ranges, pre_update_activated_viewport_id_ranges)?.remaining_items;
+
+        const all_page_widgets: DashboardPageWidgetVO[] = await query(DashboardPageWidgetVO.API_TYPE_ID)
+            .filter_by_num_eq(field_names<DashboardPageVO>().dashboard_id, update.post_update_vo.id, DashboardPageVO.API_TYPE_ID)
+            .exec_as_server()
+            .select_vos<DashboardPageWidgetVO>();
+
+        // On crée les DashboardViewportPageWidget pour les nouveaux viewports
+        await RangeHandler.foreach_ranges(new_viewport_id_ranges, (new_viewport_id: number) => {
+
+
+            for (const i in all_page_widgets) {
+                const page_widget: DashboardPageWidgetVO = all_page_widgets[i];
+
+                const new_viewport_page_widget = new DashboardViewportPageWidgetVO();
+
+                new_viewport_page_widget.activated = false; // On active pas par défaut sur le nouveau viewport
+                new_viewport_page_widget.
+            }
+        });
     }
 }

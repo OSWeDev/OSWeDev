@@ -48,6 +48,7 @@ import TablesGraphComponent from './tables_graph/TablesGraphComponent';
 import MaxGraphMapper from './tables_graph/graph_mapper/MaxGraphMapper';
 import DashboardBuilderWidgetsComponent from './widgets/DashboardBuilderWidgetsComponent';
 import DashboardBuilderWidgetsController from './widgets/DashboardBuilderWidgetsController';
+import DashboardViewportConfComponent from './viewport_conf/DashboardViewportConfComponent';
 
 @Component({
     template: require('./DashboardBuilderComponent.pug'),
@@ -61,6 +62,7 @@ import DashboardBuilderWidgetsController from './widgets/DashboardBuilderWidgets
         Dashboardsharedfilterscomponent: DashboardSharedFiltersComponent,
         Moduletablescomponent: ModuleTablesComponent,
         Cruddblinkcomponent: CrudDBLinkComponent,
+        DashboardViewportConfComponent: DashboardViewportConfComponent,
     },
 })
 export default class DashboardBuilderComponent extends VueComponentBase {
@@ -99,6 +101,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
     private show_menu_conf: boolean = false;
 
     private POLICY_DBB_ACCESS_ONGLET_TABLE: boolean = false;
+    private POLICY_DBB_ACCESS_ONGLET_VIEWPORT: boolean = false;
     private POLICY_DBB_ACCESS_ONGLET_WIDGETS: boolean = false;
     private POLICY_DBB_ACCESS_ONGLET_MENUS: boolean = false;
     private POLICY_DBB_ACCESS_ONGLET_FILTRES_PARTAGES: boolean = false;
@@ -108,8 +111,6 @@ export default class DashboardBuilderComponent extends VueComponentBase {
     private POLICY_DBB_CAN_DELETE_DB: boolean = false;
     private POLICY_DBB_CAN_SWITCH_DB: boolean = false;
     private POLICY_DBB_CAN_EDIT_PAGES: boolean = false;
-
-    private selected_widget: DashboardPageWidgetVO = null;
 
     private collapsed_fields_wrapper: boolean = true;
     private collapsed_fields_wrapper_2: boolean = true;
@@ -181,6 +182,10 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         return this.dashboards;
     }
 
+    get get_selected_widget(): DashboardPageWidgetVO {
+        return this.vuexGet<DashboardPageWidgetVO>(reflect<this>().get_selected_widget);
+    }
+
     get get_page_history(): DashboardPageVO[] {
         return this.vuexGet<DashboardPageVO[]>(reflect<this>().get_page_history);
     }
@@ -200,7 +205,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
 
     @Watch('page')
     private onchange_page() {
-        this.select_widget(null);
+        this.set_selected_widget(null);
 
         if (!this.page) {
             return;
@@ -262,6 +267,9 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         this.vuexAct(reflect<this>().set_dashboard_api_type_ids, dashboard_api_type_ids);
     }
 
+    public set_selected_widget(selected_widget: DashboardPageWidgetVO): void {
+        this.vuexAct(reflect<this>().set_selected_widget, selected_widget);
+    }
 
     public set_page_widgets_components_by_pwid(page_widgets_components_by_pwid: { [pwid: number]: VueComponentBase }): void {
         this.vuexAct(reflect<this>().set_page_widgets_components_by_pwid, page_widgets_components_by_pwid);
@@ -310,14 +318,34 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         this.vuexAct(reflect<this>().add_shared_filters_to_map, shared_filters);
     }
 
+    public set_callback_for_set_selected_widget(callback: (page_widget: DashboardPageWidgetVO) => void): void {
+        this.vuexAct(reflect<this>().set_callback_for_set_selected_widget, callback);
+    }
+
     // registre/déréf module
     public async created() {
+
         const instance = new DashboardPageStore();
         this.$store.registerModule(this.storeNamespace, instance);
+
+        this.set_callback_for_set_selected_widget((page_widget) => {
+
+            if (!this.get_selected_widget) {
+                this.set_selected_fields({});
+                return;
+            }
+
+            const name = VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets)[this.get_selected_widget.widget_id].name;
+            const get_selected_fields = DashboardBuilderWidgetsController.getInstance().widgets_get_selected_fields[name];
+            this.set_selected_fields(get_selected_fields ? get_selected_fields(page_widget) : {});
+        });
 
         await all_promises([
             (async () => {
                 this.POLICY_DBB_ACCESS_ONGLET_TABLE = await ModuleAccessPolicy.getInstance().testAccess(ModuleDashboardBuilder.POLICY_DBB_ACCESS_ONGLET_TABLE);
+            })(),
+            (async () => {
+                this.POLICY_DBB_ACCESS_ONGLET_VIEWPORT = await ModuleAccessPolicy.getInstance().testAccess(ModuleDashboardBuilder.POLICY_DBB_ACCESS_ONGLET_VIEWPORT);
             })(),
             (async () => {
                 this.POLICY_DBB_ACCESS_ONGLET_WIDGETS = await ModuleAccessPolicy.getInstance().testAccess(ModuleDashboardBuilder.POLICY_DBB_ACCESS_ONGLET_WIDGETS);
@@ -884,19 +912,6 @@ export default class DashboardBuilderComponent extends VueComponentBase {
     //     }
     // }
 
-    private select_widget(page_widget) {
-        this.selected_widget = page_widget;
-
-        if (!this.selected_widget) {
-            this.set_selected_fields({});
-            return;
-        }
-
-        const name = VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets)[this.selected_widget.widget_id].name;
-        const get_selected_fields = DashboardBuilderWidgetsController.getInstance().widgets_get_selected_fields[name];
-        this.set_selected_fields(get_selected_fields ? get_selected_fields(page_widget) : {});
-    }
-
     private async switch_hide_navigation(page: DashboardPageVO) {
         page.hide_navigation = !page.hide_navigation;
         await ModuleDAO.instance.insertOrUpdateVO(page);
@@ -1022,7 +1037,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
     }
 
     private close_widget_options() {
-        this.select_widget(null);
+        this.set_selected_widget(null);
     }
 
     private select_page(page: DashboardPageVO) {

@@ -60,9 +60,6 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
     @Prop()
     private dashboard: DashboardVO;
 
-    @Prop({ default: null })
-    private selected_widget: DashboardPageWidgetVO;
-
     @Prop({ default: true })
     private editable: boolean;
 
@@ -109,6 +106,10 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
         return this.vuexGet<FieldFiltersVO>(reflect<this>().get_active_field_filters);
     }
 
+    get get_selected_widget(): DashboardPageWidgetVO {
+        return this.vuexGet<DashboardPageWidgetVO>(reflect<this>().get_selected_widget);
+    }
+
 
     @Watch("dashboard", { immediate: true })
     private async onchange_dashboard() {
@@ -150,6 +151,10 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
 
     public set_page_widget(page_widget: DashboardPageWidgetVO) {
         return this.vuexAct(reflect<this>().set_page_widget, page_widget);
+    }
+
+    public set_selected_widget(page_widget: DashboardPageWidgetVO) {
+        return this.vuexAct(reflect<this>().set_selected_widget, page_widget);
     }
 
     public delete_page_widget(page_widget: DashboardPageWidgetVO) {
@@ -212,13 +217,13 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
         /**
          * Si on a une sélection qui correpond au widget qu'on est en train de recharger, on modifie aussi le lien
          */
-        if (this.selected_widget && this.selected_widget.id) {
+        if (this.get_selected_widget && this.get_selected_widget.id) {
             const page_widget = this.widgets.find(
-                (w) => w.id == this.selected_widget.id
+                (w) => w.id == this.get_selected_widget.id
             );
 
             this.set_page_widget(page_widget);
-            this.select_widget(page_widget);
+            this.set_selected_widget(page_widget);
         }
 
         this.is_filtres_deplie = this.dashboard_page?.collapse_filters;
@@ -323,7 +328,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
                     }, self.dashboard_page);
 
                     self.set_page_widget(page_widget);
-                    self.select_widget(page_widget);
+                    self.set_selected_widget(page_widget);
 
                     resolve({
                         body: self.label('DashboardBuilderBoardComponent.add_widget_to_page.ok'),
@@ -415,7 +420,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
                                     }
                                     self.widgets.splice(i, 1);
                                     self.delete_page_widget(page_widget);
-                                    self.select_widget(null);
+                                    self.set_selected_widget(null);
 
                                     self.$emit('removed_widget_from_page', page_widget);
 
@@ -457,10 +462,6 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
         });
     }
 
-    private select_widget(page_widget) {
-        this.$emit('select_widget', page_widget);
-    }
-
     private select_page(page) {
         this.$emit('select_page', page);
     }
@@ -470,7 +471,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
 
         // On reload les widgets
         await self.throttled_rebuild_page_layout();
-        self.select_widget(null);
+        self.set_selected_widget(null);
     }
     private isHide(item: DashboardPageWidgetVO): boolean {
         if (!item || !item.json_options) {
@@ -501,10 +502,4 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
             $("body").removeClass('filtre_deplie');
         }
     }
-
-    // private select_widget_and_stop(event, page_widget) {
-    //     event.stopPropagation();
-
-    //     this.$emit('select_widget', page_widget);
-    // }
 }

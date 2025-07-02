@@ -10,6 +10,7 @@ import IStoreModule from "../../../store/IStoreModule";
 import { store_mutations_names } from '../../../store/StoreModuleBase';
 import VueComponentBase from "../../VueComponentBase";
 import DashboardCopyWidgetComponent from "../copy_widget/DashboardCopyWidgetComponent";
+import DashboardViewportVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardViewportVO';
 
 export type DashboardPageContext = ActionContext<IDashboardPageState, any>;
 
@@ -18,6 +19,17 @@ export interface IDashboardPageState {
      * Stock tous les widgets du dashboard
      */
     page_widgets: DashboardPageWidgetVO[];
+
+    /**
+     * Current Viewport
+     */
+    selected_viewport: DashboardViewportVO;
+
+    /**
+     * Currently Selected Widget
+     */
+    selected_widget: DashboardPageWidgetVO;
+    callback_for_set_selected_widget: (page_widget: DashboardPageWidgetVO) => void;
 
     /**
      * Stock tous les composants du dashboard
@@ -54,6 +66,41 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
     public state: any;
     public getters: GetterTree<IDashboardPageState, DashboardPageContext>;
     public mutations = {
+
+        set_callback_for_set_selected_widget(state: IDashboardPageState, callback_for_set_selected_widget: (page_widget: DashboardPageWidgetVO) => void) {
+            if (state.callback_for_set_selected_widget === callback_for_set_selected_widget) {
+                return;
+            }
+
+            state.callback_for_set_selected_widget = callback_for_set_selected_widget;
+        },
+
+        set_selected_widget(state: IDashboardPageState, selected_widget: DashboardPageWidgetVO) {
+            if (state.selected_widget?.id == selected_widget?.id) {
+                return;
+            }
+
+            state.selected_widget = selected_widget;
+
+            if (!state.callback_for_set_selected_widget) {
+                return;
+            }
+
+            this.callback_for_set_selected_widget(selected_widget);
+        },
+
+        set_selected_viewport(state: IDashboardPageState, selected_viewport: DashboardViewportVO) {
+            if (!selected_viewport) {
+                // On ne peut pas désélectionner le viewport
+                return;
+            }
+
+            if (state.selected_viewport?.id == selected_viewport.id) {
+                return;
+            }
+
+            state.selected_viewport = selected_viewport;
+        },
 
         set_dashboard_api_type_ids(state: IDashboardPageState, dashboard_api_type_ids: string[]) {
             state.dashboard_api_type_ids = dashboard_api_type_ids;
@@ -241,6 +288,8 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
 
 
         this.state = {
+            selected_widget: null,
+            selected_viewport: null,
             page_widgets: [],
             page_widgets_components_by_pwid: {},
             active_field_filters: {},
@@ -264,6 +313,18 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
 
 
         this.getters = {
+
+            get_callback_for_set_selected_widget(state: IDashboardPageState): (page_widget: DashboardPageWidgetVO) => void {
+                return state.callback_for_set_selected_widget;
+            },
+
+            get_selected_widget(state: IDashboardPageState): DashboardPageWidgetVO {
+                return state.selected_widget;
+            },
+
+            get_selected_viewport(state: IDashboardPageState): DashboardViewportVO {
+                return state.selected_viewport;
+            },
 
             get_page_widgets_components_by_pwid(state: IDashboardPageState): { [pwid: number]: VueComponentBase } {
                 return state.page_widgets_components_by_pwid;
@@ -316,6 +377,9 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
         };
 
         this.actions = {
+            set_callback_for_set_selected_widget: (context: DashboardPageContext, callback_for_set_selected_widget: (page_widget: DashboardPageWidgetVO) => void) => context.commit(store_mutations_names(this).set_callback_for_set_selected_widget, callback_for_set_selected_widget),
+            set_selected_widget: (context: DashboardPageContext, selected_widget: DashboardPageWidgetVO) => context.commit(store_mutations_names(this).set_selected_widget, selected_widget),
+            set_selected_viewport: (context: DashboardPageContext, selected_viewport: DashboardViewportVO) => context.commit(store_mutations_names(this).set_selected_viewport, selected_viewport),
             set_page_widgets_components_by_pwid: (context: DashboardPageContext, page_widgets_components_by_pwid: { [pwid: number]: VueComponentBase }) => context.commit(store_mutations_names(this).set_page_widgets_components_by_pwid, page_widgets_components_by_pwid),
             set_discarded_field_paths: (context: DashboardPageContext, discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } }) => context.commit(store_mutations_names(this).set_discarded_field_paths, discarded_field_paths),
             set_widget_invisibility: (context: DashboardPageContext, w_id: number) => context.commit(store_mutations_names(this).set_widget_invisibility, w_id),

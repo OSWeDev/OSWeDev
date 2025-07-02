@@ -149,6 +149,7 @@ import Patch20250701SwitchTemplateWidgetsIds from './patchs/postmodules/Patch202
 import Patch20240923AddViewportDatas from './patchs/postmodules/Patch20240923AddViewportDatas';
 import Patch20250701ActivatePageWidgetsInDefaultDashboardViewPort from './patchs/postmodules/Patch20250701ActivatePageWidgetsInDefaultDashboardViewPort';
 import Patch20250701ActivateDefaultViewportOnAllDbs from './patchs/postmodules/Patch20250701ActivateDefaultViewportOnAllDbs';
+import Patch20250702ChangeDbbTrad from './patchs/postmodules/Patch20250702ChangeDbbTrad';
 
 export default class GeneratorPatchsListHandler {
 
@@ -332,5 +333,6 @@ export default class GeneratorPatchsListHandler {
         Patch20250701SwitchTemplateWidgetsIds.getInstance(),
         Patch20250701ActivatePageWidgetsInDefaultDashboardViewPort.getInstance(),
         Patch20250701ActivateDefaultViewportOnAllDbs.getInstance(),
+        Patch20250702ChangeDbbTrad.getInstance(),
     ];
 }

@@ -1,0 +1,9 @@
+.DashboardSelectedViewportConfComponent
+    template(v-for='page_widget in all_dashboard_page_widgets')
+        template(v-if='!!viewport_page_widgets_by_page_widget_id[page_widget.id]')
+            .page_widget_wrapper(@click='set_selected_widget(page_widget)' :class='{"selected": selected_page_widget?.id == page_widget.id}')
+                .page_widget
+                    .is_viewport_activated(@click='switch_page_widget_activation(viewport_page_widgets_by_page_widget_id[page_widget.id])' :class='{ "activated": viewport_page_widgets_by_page_widget_id[page_widget.id]?.activated }')
+                        i.fa-duotone.fa-check-circle.fa-fw(aria-hidden="true" v-if='viewport_page_widgets_by_page_widget_id[page_widget.id]?.activated')
+                    .name.display_inline_block
+                        Inlinetranslatabletext(:code_text="page_widget.widget_name" :is_editable="can_edit")

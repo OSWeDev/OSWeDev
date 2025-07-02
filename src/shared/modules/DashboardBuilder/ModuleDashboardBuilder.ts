@@ -57,6 +57,7 @@ export default class ModuleDashboardBuilder extends Module {
     public static POLICY_FO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleDashboardBuilder.MODULE_NAME + ".FO_ACCESS";
 
     public static POLICY_DBB_ACCESS_ONGLET_TABLE = AccessPolicyTools.POLICY_UID_PREFIX + ModuleDashboardBuilder.MODULE_NAME + ".DBB_ACCESS_ONGLET_TABLE";
+    public static POLICY_DBB_ACCESS_ONGLET_VIEWPORT = AccessPolicyTools.POLICY_UID_PREFIX + ModuleDashboardBuilder.MODULE_NAME + ".POLICY_DBB_ACCESS_ONGLET_VIEWPORT";
     public static POLICY_DBB_ACCESS_ONGLET_WIDGETS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleDashboardBuilder.MODULE_NAME + ".DBB_ACCESS_ONGLET_WIDGETS";
     public static POLICY_DBB_ACCESS_ONGLET_MENUS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleDashboardBuilder.MODULE_NAME + ".DBB_ACCESS_ONGLET_MENUS";
     public static POLICY_DBB_ACCESS_ONGLET_FILTRES_PARTAGES = AccessPolicyTools.POLICY_UID_PREFIX + ModuleDashboardBuilder.MODULE_NAME + ".DBB_ACCESS_ONGLET_FILTRES_PARTAGES";
