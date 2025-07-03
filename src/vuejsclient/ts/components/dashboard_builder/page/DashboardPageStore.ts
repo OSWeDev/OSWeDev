@@ -11,12 +11,14 @@ import { store_mutations_names } from '../../../store/StoreModuleBase';
 import VueComponentBase from "../../VueComponentBase";
 import DashboardCopyWidgetComponent from "../copy_widget/DashboardCopyWidgetComponent";
 import DashboardViewportVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardViewportVO';
+import DashboardVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
+import DashboardGraphVORefVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardGraphVORefVO';
 
 export type DashboardPageContext = ActionContext<IDashboardPageState, any>;
 
 export interface IDashboardPageState {
     /**
-     * Stock tous les widgets du dashboard
+     * Stock tous les widgets de la page du dashboard
      */
     page_widgets: DashboardPageWidgetVO[];
 
@@ -52,8 +54,9 @@ export interface IDashboardPageState {
 
     widgets_invisibility: { [w_id: number]: boolean };
 
-    dashboard_api_type_ids: string[];
-    discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
+    dashboard: DashboardVO;
+
+    db_graph_vo_refs: DashboardGraphVORefVO[];
 }
 
 export default class DashboardPageStore implements IStoreModule<IDashboardPageState, DashboardPageContext> {
@@ -66,6 +69,22 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
     public state: any;
     public getters: GetterTree<IDashboardPageState, DashboardPageContext>;
     public mutations = {
+
+        set_db_graph_vo_refs(state: IDashboardPageState, db_graph_vo_refs: DashboardGraphVORefVO[]) {
+            if (state.db_graph_vo_refs === db_graph_vo_refs) {
+                return;
+            }
+
+            state.db_graph_vo_refs = db_graph_vo_refs;
+        },
+
+        set_dashboard(state: IDashboardPageState, dashboard: DashboardVO) {
+            if (state.dashboard?.id == dashboard?.id) {
+                return;
+            }
+
+            state.dashboard = dashboard;
+        },
 
         set_callback_for_set_selected_widget(state: IDashboardPageState, callback_for_set_selected_widget: (page_widget: DashboardPageWidgetVO) => void) {
             if (state.callback_for_set_selected_widget === callback_for_set_selected_widget) {
@@ -102,10 +121,6 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
             state.selected_viewport = selected_viewport;
         },
 
-        set_dashboard_api_type_ids(state: IDashboardPageState, dashboard_api_type_ids: string[]) {
-            state.dashboard_api_type_ids = dashboard_api_type_ids;
-        },
-
         set_page_widgets_components_by_pwid(state: IDashboardPageState, page_widgets_components_by_pwid: { [pwid: number]: VueComponentBase }) {
             state.page_widgets_components_by_pwid = page_widgets_components_by_pwid;
         },
@@ -114,10 +129,6 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
         },
         set_page_widget_component_by_pwid(state: IDashboardPageState, param: { pwid: number, page_widget_component: VueComponentBase }) {
             Vue.set(state.page_widgets_components_by_pwid, param.pwid, param.page_widget_component);
-        },
-
-        set_discarded_field_paths(state: IDashboardPageState, discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } }) {
-            state.discarded_field_paths = discarded_field_paths;
         },
 
         set_widgets_invisibility(state: IDashboardPageState, widgets_invisibility: { [w_id: number]: boolean }) {
@@ -288,6 +299,7 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
 
 
         this.state = {
+            dashboard: null,
             selected_widget: null,
             selected_viewport: null,
             page_widgets: [],
@@ -308,11 +320,20 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
             shared_filters_map: [],
             widgets_invisibility: {},
             dashboard_api_type_ids: [],
-            discarded_field_paths: {}
+            discarded_field_paths: {},
+            db_graph_vo_refs: [], // DashboardGraphVORefVO[]
         };
 
 
         this.getters = {
+
+            get_db_graph_vo_refs(state: IDashboardPageState): DashboardGraphVORefVO[] {
+                return state.db_graph_vo_refs;
+            },
+
+            get_dashboard(state: IDashboardPageState): DashboardVO {
+                return state.dashboard;
+            },
 
             get_callback_for_set_selected_widget(state: IDashboardPageState): (page_widget: DashboardPageWidgetVO) => void {
                 return state.callback_for_set_selected_widget;
@@ -328,14 +349,6 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
 
             get_page_widgets_components_by_pwid(state: IDashboardPageState): { [pwid: number]: VueComponentBase } {
                 return state.page_widgets_components_by_pwid;
-            },
-
-            get_dashboard_api_type_ids(state: IDashboardPageState): string[] {
-                return state.dashboard_api_type_ids;
-            },
-
-            get_discarded_field_paths(state: IDashboardPageState): { [vo_type: string]: { [field_id: string]: boolean } } {
-                return state.discarded_field_paths;
             },
 
             get_custom_filters(state: IDashboardPageState): string[] {
@@ -374,14 +387,55 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
             get_active_field_filters(state: IDashboardPageState): FieldFiltersVO {
                 return state.active_field_filters;
             },
+
+            get_dashboard_api_type_ids(state: IDashboardPageState): string[] {
+                const api_type_ids: string[] = [];
+
+                if (!state.db_graph_vo_refs || state.db_graph_vo_refs.length <= 0) {
+                    return api_type_ids;
+                }
+
+                for (const i in state.db_graph_vo_refs) {
+                    api_type_ids.push(state.db_graph_vo_refs[i].vo_type);
+                }
+
+                return api_type_ids;
+            },
+
+            get_dashboard_discarded_field_paths(state: IDashboardPageState): { [vo_type: string]: { [field_id: string]: boolean } } {
+
+                const discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } } = {};
+
+                for (const i in state.db_graph_vo_refs) {
+                    const db_graph_vo_ref = state.db_graph_vo_refs[i];
+
+                    if (!db_graph_vo_ref.values_to_exclude) {
+                        continue;
+                    }
+
+                    for (const key in db_graph_vo_ref.values_to_exclude) {
+                        const field_id: string = db_graph_vo_ref.values_to_exclude[key];
+
+                        if (!discarded_field_paths[db_graph_vo_ref.vo_type]) {
+                            discarded_field_paths[db_graph_vo_ref.vo_type] = {};
+                        }
+
+                        discarded_field_paths[db_graph_vo_ref.vo_type][field_id] = true;
+                    }
+                }
+
+                return discarded_field_paths;
+            }
+
         };
 
         this.actions = {
+            set_db_graph_vo_refs: (context: DashboardPageContext, db_graph_vo_refs: DashboardGraphVORefVO[]) => context.commit(store_mutations_names(this).set_db_graph_vo_refs, db_graph_vo_refs),
+            set_dashboard: (context: DashboardPageContext, dashboard: DashboardVO) => context.commit(store_mutations_names(this).set_dashboard, dashboard),
             set_callback_for_set_selected_widget: (context: DashboardPageContext, callback_for_set_selected_widget: (page_widget: DashboardPageWidgetVO) => void) => context.commit(store_mutations_names(this).set_callback_for_set_selected_widget, callback_for_set_selected_widget),
             set_selected_widget: (context: DashboardPageContext, selected_widget: DashboardPageWidgetVO) => context.commit(store_mutations_names(this).set_selected_widget, selected_widget),
             set_selected_viewport: (context: DashboardPageContext, selected_viewport: DashboardViewportVO) => context.commit(store_mutations_names(this).set_selected_viewport, selected_viewport),
             set_page_widgets_components_by_pwid: (context: DashboardPageContext, page_widgets_components_by_pwid: { [pwid: number]: VueComponentBase }) => context.commit(store_mutations_names(this).set_page_widgets_components_by_pwid, page_widgets_components_by_pwid),
-            set_discarded_field_paths: (context: DashboardPageContext, discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } }) => context.commit(store_mutations_names(this).set_discarded_field_paths, discarded_field_paths),
             set_widget_invisibility: (context: DashboardPageContext, w_id: number) => context.commit(store_mutations_names(this).set_widget_invisibility, w_id),
             set_widget_visibility: (context: DashboardPageContext, w_id: number) => context.commit(store_mutations_names(this).set_widget_visibility, w_id),
             set_widgets_invisibility: (context: DashboardPageContext, widgets_invisibility: { [w_id: number]: boolean }) => context.commit(store_mutations_names(this).set_widgets_invisibility, widgets_invisibility),
@@ -403,7 +457,6 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
             set_page_widget: (context: DashboardPageContext, page_widget: DashboardPageWidgetVO) => context.commit(store_mutations_names(this).set_page_widget, page_widget),
             delete_page_widget: (context: DashboardPageContext, page_widget: DashboardPageWidgetVO) => context.commit(store_mutations_names(this).delete_page_widget, page_widget),
             remove_page_widgets_components_by_pwid: (context: DashboardPageContext, pwid: number) => context.commit(store_mutations_names(this).remove_page_widgets_components_by_pwid, pwid),
-            set_dashboard_api_type_ids: (context: DashboardPageContext, dashboard_api_type_ids: string[]) => context.commit(store_mutations_names(this).set_dashboard_api_type_ids, dashboard_api_type_ids),
             set_page_widget_component_by_pwid: (context: DashboardPageContext, param: { pwid: number, page_widget_component: VueComponentBase }) => context.commit(store_mutations_names(this).set_page_widget_component_by_pwid, param),
         };
     }

@@ -41,11 +41,13 @@ export default class DashboardBuilderController {
     }
 
     public addRouteForDashboard(path: string, name: string, component: any, crud: boolean): RouteConfig[] {
-        const routes = [{
+        const routes: RouteConfig[] = [{
             path: path,
             name: name,
             component: component,
-            props: true,
+            props: (route) => ({
+                dashboard_id: parseInt(route.params.dashboard_id),
+            })
         }];
 
         if (crud) {
@@ -55,7 +57,11 @@ export default class DashboardBuilderController {
                 path: path + '/:dashboard_vo_action/:dashboard_vo_id',
                 name: name,
                 component: component,
-                props: true,
+                props: (route) => ({
+                    dashboard_id: parseInt(route.params.dashboard_id),
+                    dashboard_vo_action: route.params.dashboard_vo_action,
+                    dashboard_vo_id: route.params.dashboard_vo_id,
+                })
             });
 
             name += DashboardBuilderController.ROUTE_NAME_CRUD_ALL;
@@ -64,7 +70,12 @@ export default class DashboardBuilderController {
                 path: path + '/:dashboard_vo_action/:dashboard_vo_id/:api_type_id_action',
                 name: name,
                 component: component,
-                props: true,
+                props: (route) => ({
+                    dashboard_id: parseInt(route.params.dashboard_id),
+                    api_type_id_action: route.params.api_type_id_action,
+                    dashboard_vo_action: route.params.dashboard_vo_action,
+                    dashboard_vo_id: route.params.dashboard_vo_id,
+                })
             });
         }
 

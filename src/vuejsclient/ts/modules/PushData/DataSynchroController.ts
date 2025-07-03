@@ -365,7 +365,7 @@ export default class DataSynchroController {
             promises.push(VOEventRegistrationsHandler.unregister_vo_event_callback(vo_event_registration_key));
         }
         await all_promises(promises);
-        DataSynchroController.vo_events_registration_keys_by_room_id = {};
+        delete DataSynchroController.vo_events_registration_keys_by_room_id[room_id];
     }
 
     public static async unregister_all_vo_event_callbacks() {

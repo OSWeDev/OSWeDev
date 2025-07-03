@@ -24,7 +24,10 @@
                                 multiselect(
                                     :preselect-first="false"
                                     :multiple="false"
-                                    v-model="dashboard"
+
+                                    :value="dashboard"
+                                    @input="on_dashboard_selection"
+
                                     :placeholder="label('dashboard_builder.select_dashboard')"
                                     :options="dashboards_options"
                                     :custom-label="dashboard_label"
@@ -159,14 +162,6 @@
                     )
 
                 .col-sm-9.tables_graph_wrapper(v-if="POLICY_DBB_ACCESS_ONGLET_TABLE_TABLES_GRAPH")
-                    //- Tablesgraphcomponent(
-                    //-     :key='"Tablesgraphcomponent__" + dashboard.id' 
-                    //-     :dashboard='dashboard' 
-                    //-     @add_api_type_id='add_api_type_id' 
-                    //-     @del_api_type_id='del_api_type_id'
-                    //-     @update_discarded_field_paths='update_discarded_field_paths'
-                    //- )
-
                     Moduletablescomponent(
                         :fields_by_table_name_and_field_name='fields_by_table_name_and_field_name'
                         :tables_by_table_name='tables_by_table_name'

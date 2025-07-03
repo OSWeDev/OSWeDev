@@ -74,7 +74,6 @@
                                                     :deselect-label='label("multiselect.deselectLabel")'
                                                     :select-label='label("multiselect.selectLabel")'
 
-                                                    @search-change="handle_load_selectionnable_dashboards_options"
                                                     @select="(option) => on_select_selectionnable_dashboard('shared_from', option)"
                                                     @remove="(option) => on_remove_selected_dashboard('shared_from', option)",
                                                 )
@@ -104,7 +103,6 @@
                                                     :deselect-label='label("multiselect.deselectLabel")'
                                                     :select-label='label("multiselect.selectLabel")'
 
-                                                    @search-change="handle_load_selectionnable_dashboards_options"
                                                     @select="(option) => on_select_selectionnable_dashboard('shared_with', option)"
                                                     @remove="(option) => on_remove_selected_dashboard('shared_with', option)",
                                                 )

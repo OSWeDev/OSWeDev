@@ -44,11 +44,13 @@ import { ModuleDroppableVoFieldsAction } from './droppable_vo_fields/DroppableVo
 import DashboardMenuConfComponent from './menu_conf/DashboardMenuConfComponent';
 import DashboardPageStore from './page/DashboardPageStore';
 import DashboardSharedFiltersComponent from './shared_filters/DashboardSharedFiltersComponent';
-import TablesGraphComponent from './tables_graph/TablesGraphComponent';
 import MaxGraphMapper from './tables_graph/graph_mapper/MaxGraphMapper';
 import DashboardBuilderWidgetsComponent from './widgets/DashboardBuilderWidgetsComponent';
 import DashboardBuilderWidgetsController from './widgets/DashboardBuilderWidgetsController';
 import DashboardViewportConfComponent from './viewport_conf/DashboardViewportConfComponent';
+import { SyncVOs } from '../../tools/annotations/SyncVOs';
+import { filter } from '../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import { SyncVO } from '../../tools/annotations/SyncVO';
 
 @Component({
     template: require('./DashboardBuilderComponent.pug'),
@@ -57,7 +59,6 @@ import DashboardViewportConfComponent from './viewport_conf/DashboardViewportCon
         Droppablevofieldscomponent: DroppableVoFieldsComponent,
         Dashboardbuilderwidgetscomponent: DashboardBuilderWidgetsComponent,
         Dashboardbuilderboardcomponent: DashboardBuilderBoardComponent,
-        Tablesgraphcomponent: TablesGraphComponent,
         Dashboardmenuconfcomponent: DashboardMenuConfComponent,
         Dashboardsharedfilterscomponent: DashboardSharedFiltersComponent,
         Moduletablescomponent: ModuleTablesComponent,
@@ -69,57 +70,104 @@ export default class DashboardBuilderComponent extends VueComponentBase {
 
 
     @Prop({ default: null })
-    private readonly dashboard_id: string;
+    public readonly dashboard_id: number;
 
     @Prop({ default: null })
-    private readonly dashboard_vo_action: string;
+    public readonly dashboard_vo_action: string;
 
     @Prop({ default: null })
-    private readonly dashboard_vo_id: string;
+    public readonly dashboard_vo_id: string;
 
     @Prop({ default: null })
-    private readonly api_type_id_action: string;
+    public readonly api_type_id_action: string;
 
     @ModuleDroppableVoFieldsAction
-    private set_selected_fields: (selected_fields: { [api_type_id: string]: { [field_id: string]: boolean } }) => void;
+    public set_selected_fields: (selected_fields: { [api_type_id: string]: { [field_id: string]: boolean } }) => void;
 
     // namespace dynamique
     // eslint-disable-next-line @typescript-eslint/member-ordering
     @Provide('storeNamespace')
-    private readonly storeNamespace = `dashboardStore_${DashboardPageStore.__UID++}`;
+    public readonly storeNamespace = `dashboardStore_${DashboardPageStore.__UID++}`;
 
-    private dashboards: DashboardVO[] = [];
-    private dashboard: DashboardVO = null;
-    private loading: boolean = true;
+    @SyncVOs(DashboardVO.API_TYPE_ID)
+    public dashboards: DashboardVO[] = [];
 
-    private pages: DashboardPageVO[] = [];
-    private page: DashboardPageVO = null; // The current page
+    @SyncVOs(DashboardPageVO.API_TYPE_ID, {
+        watch_fields: [reflect<DashboardBuilderComponent>().dashboard],
+        filters_factory: (self) => {
+            if (!self.dashboard) {
+                return null;
+            }
 
-    private show_shared_filters: boolean = false;
-    private show_build_page: boolean = false;
-    private show_select_vos: boolean = true;
-    private show_menu_conf: boolean = false;
+            return [filter(DashboardPageVO.API_TYPE_ID, field_names<DashboardPageVO>().dashboard_id).by_num_eq(self.dashboard.id)];
+        },
+        simple_sorts_by_on_api_type_id: [new SortByVO(DashboardPageVO.API_TYPE_ID, field_names<DashboardPageVO>().weight, true)],
+    })
+    public pages: DashboardPageVO[] = [];
 
-    private POLICY_DBB_ACCESS_ONGLET_TABLE: boolean = false;
-    private POLICY_DBB_ACCESS_ONGLET_VIEWPORT: boolean = false;
-    private POLICY_DBB_ACCESS_ONGLET_WIDGETS: boolean = false;
-    private POLICY_DBB_ACCESS_ONGLET_MENUS: boolean = false;
-    private POLICY_DBB_ACCESS_ONGLET_FILTRES_PARTAGES: boolean = false;
-    private POLICY_DBB_ACCESS_ONGLET_TABLE_TABLES_GRAPH: boolean = false;
-    private POLICY_DBB_CAN_EXPORT_IMPORT_JSON: boolean = false;
-    private POLICY_DBB_CAN_CREATE_NEW_DB: boolean = false;
-    private POLICY_DBB_CAN_DELETE_DB: boolean = false;
-    private POLICY_DBB_CAN_SWITCH_DB: boolean = false;
-    private POLICY_DBB_CAN_EDIT_PAGES: boolean = false;
+    @SyncVOs(DashboardPageWidgetVO.API_TYPE_ID, {
+        watch_fields: [reflect<DashboardBuilderComponent>().page],
+        filters_factory: (self) => {
+            if (!self.page) {
+                return null;
+            }
 
-    private collapsed_fields_wrapper: boolean = true;
-    private collapsed_fields_wrapper_2: boolean = true;
+            return [filter(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().page_id).by_num_eq(self.page.id)];
+        },
+        sync_to_store_namespace: (self) => self.storeNamespace,
+        // sync_to_store_property: reflect<DashboardBuilderComponent>().page_widgets, // Nom iso, pas utile
+    })
+    public page_widgets: DashboardPageWidgetVO[] = []; // The widgets of the current page, used in the board component
 
-    private can_use_clipboard: boolean = false;
+    @SyncVO(DashboardVO.API_TYPE_ID, {
+        watch_fields: [reflect<DashboardBuilderComponent>().dashboard_id],
+        id_factory: (self) => self.dashboard_id,
+    })
+    public dashboard: DashboardVO = null; // The current dashboard
 
-    private export_vos_to_json_conf: ExportVOsToJSONConfVO = null;
 
-    private all_tables_by_table_name: { [table_name: string]: ModuleTableVO } = {};
+    @SyncVOs(DashboardGraphVORefVO.API_TYPE_ID, {
+        watch_fields: [reflect<DashboardBuilderComponent>().dashboard_id],
+        filters_factory: (self) => {
+            if (!self.dashboard_id) {
+                return null;
+            }
+
+            return [filter(DashboardGraphVORefVO.API_TYPE_ID, field_names<DashboardGraphVORefVO>().dashboard_id).by_num_eq(self.dashboard_id)];
+        },
+        sync_to_store_namespace: (self) => self.storeNamespace,
+        // sync_to_store_property: reflect<DashboardBuilderComponent>().db_graph_vo_refs, // Nom iso, pas utile
+    })
+    public db_graph_vo_refs: DashboardGraphVORefVO[] = []; // The tables references of the current dashboard
+
+    public loading: boolean = true;
+    public page: DashboardPageVO = null; // The current page
+
+    public show_shared_filters: boolean = false;
+    public show_build_page: boolean = false;
+    public show_select_vos: boolean = true;
+    public show_menu_conf: boolean = false;
+
+    public POLICY_DBB_ACCESS_ONGLET_TABLE: boolean = false;
+    public POLICY_DBB_ACCESS_ONGLET_VIEWPORT: boolean = false;
+    public POLICY_DBB_ACCESS_ONGLET_WIDGETS: boolean = false;
+    public POLICY_DBB_ACCESS_ONGLET_MENUS: boolean = false;
+    public POLICY_DBB_ACCESS_ONGLET_FILTRES_PARTAGES: boolean = false;
+    public POLICY_DBB_ACCESS_ONGLET_TABLE_TABLES_GRAPH: boolean = false;
+    public POLICY_DBB_CAN_EXPORT_IMPORT_JSON: boolean = false;
+    public POLICY_DBB_CAN_CREATE_NEW_DB: boolean = false;
+    public POLICY_DBB_CAN_DELETE_DB: boolean = false;
+    public POLICY_DBB_CAN_SWITCH_DB: boolean = false;
+    public POLICY_DBB_CAN_EDIT_PAGES: boolean = false;
+
+    public collapsed_fields_wrapper: boolean = true;
+    public collapsed_fields_wrapper_2: boolean = true;
+
+    public can_use_clipboard: boolean = false;
+
+    public export_vos_to_json_conf: ExportVOsToJSONConfVO = null;
+
+    public all_tables_by_table_name: { [table_name: string]: ModuleTableVO } = {};
 
     // private has_access_to_POLICY_BO_MODULES_MANAGMENT_ACCESS: boolean = null;
     // private use_new_export_vos_to_json_confs_for_dbb: boolean = null;
@@ -214,12 +262,9 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         this.loading = false;
     }
 
-    @Watch("dashboard_id")
+    @Watch(reflect<DashboardBuilderComponent>().dashboard_id)
     private async onchange_dashboard_id() {
         this.loading = true;
-
-        // Load all the dashboards
-        this.dashboards = await this.load_all_dashboards();
 
         if (!this.dashboard_id) {
             await this.init_dashboard();
@@ -227,15 +272,13 @@ export default class DashboardBuilderComponent extends VueComponentBase {
             this.init_dashboard_tab();
             return;
         }
-
-        // The current dashboard (should have been loaded in cache previously)
-        this.dashboard = await DashboardVOManager.find_dashboard_by_id(
-            parseInt(this.dashboard_id),
-        );
-        this.throttle_on_dashboard_loaded();
     }
 
-    @Watch('dashboard')
+    private on_dashboard_selection(dashboard: DashboardVO): void {
+        this.goto_dashboard_id(dashboard.id);
+    }
+
+    DELETE ME @Watch(reflect<DashboardBuilderComponent>().dashboard)
     private async onchange_dashboard() {
         this.loading = true;
 
@@ -250,21 +293,40 @@ export default class DashboardBuilderComponent extends VueComponentBase {
             this.$router.push({
                 name: 'DashboardBuilder_id',
                 params: {
-                    dashboard_id: this.dashboard.id.toString(),
+                    dashboard_id: this.dashboard.id,
                 },
             });
         }
-
         this.throttle_on_dashboard_loaded();
     }
 
-    public set_discarded_field_paths(discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } }): void {
-        this.vuexAct(reflect<this>().set_discarded_field_paths, discarded_field_paths);
-    }
+    private goto_dashboard_id(dashboard_id: number): void {
+
+        if (this.dashboard_id === dashboard_id) {
+            return;
+        }
+
+        if (!dashboard_id) {
+            ConsoleHandler.error('goto_dashboard_id called with null or undefined dashboard_id');
+            return;
+        }
+
+        // Update the dashboard navigation history
+        DashboardVOManager.update_dashboard_navigation_history(
+            this.dashboard.id,
+            this.get_dashboard_navigation_history,
+            this.set_dashboard_navigation_history,
+        );
+
+        this.$router.push({
+            name: 'DashboardBuilder_id',
+            params: {
+                dashboard_id: dashboard_id.toString(),
+            },
+        });
 
 
-    public set_dashboard_api_type_ids(dashboard_api_type_ids: string[]): void {
-        this.vuexAct(reflect<this>().set_dashboard_api_type_ids, dashboard_api_type_ids);
+        DELETE ME this.throttle_on_dashboard_loaded();
     }
 
     public set_selected_widget(selected_widget: DashboardPageWidgetVO): void {
@@ -320,6 +382,16 @@ export default class DashboardBuilderComponent extends VueComponentBase {
 
     public set_callback_for_set_selected_widget(callback: (page_widget: DashboardPageWidgetVO) => void): void {
         this.vuexAct(reflect<this>().set_callback_for_set_selected_widget, callback);
+    }
+
+    public beforeDestroy() {
+        const body = document.getElementById('page-top');
+
+        if (body) {
+            body.classList.remove("sidenav-toggled");
+        }
+
+        this.$store.unregisterModule(this.storeNamespace);
     }
 
     // registre/déréf module
@@ -459,56 +531,16 @@ export default class DashboardBuilderComponent extends VueComponentBase {
                         throw new Error('No new dashboard found after import');
                     }
 
-                    self.loading = true;
-
-                    self.dashboards = await self.load_all_dashboards(
-                        { refresh: true },
-                    );
-
-                    self.throttle_on_dashboard_loaded();
+                    self.loading = true; // ?
 
                     // On crée des trads, on les recharge
                     await LocaleManager.get_all_flat_locale_translations(true);
 
                     if ((!import_on_vo) && new_db) {
                         // on récupère le nouveau db
-                        self.dashboard = new_db as DashboardVO;
+                        this.goto_dashboard_id(new_db.id);
                     }
-                    self.loading = false;
-
-                    // } else {
-
-                    //     if ((!!import_on_vo) && (import_on_vo.id)) {
-                    //         const old_pages = self.pages = await this.load_dashboard_pages_by_dashboard_id(
-                    //             self.dashboard.id,
-                    //             { refresh: true },
-                    //         );
-
-                    //         await ModuleDAO.instance.deleteVOs(
-                    //             old_pages,
-                    //         );
-                    //     }
-
-                    //     const imported_datas = await ModuleDataImport.getInstance().importJSON(text, import_on_vo);
-
-                    //     self.loading = true;
-
-                    //     self.dashboards = await self.load_all_dashboards(
-                    //         { refresh: true },
-                    //     );
-
-                    //     self.throttle_on_dashboard_loaded();
-
-                    //     // On crée des trads, on les recharge
-                    //     await LocaleManager.get_all_flat_locale_translations(true);
-
-                    //     if ((!import_on_vo) && imported_datas && imported_datas.length) {
-                    //         // on récupère le nouveau db
-                    //         const new_db = imported_datas.find((i) => i._type == DashboardVO.API_TYPE_ID);
-                    //         self.dashboard = new_db ? new_db as DashboardVO : self.dashboard;
-                    //     }
-                    //     self.loading = false;
-                    // }
+                    self.loading = false; // ?
 
                     resolve({
                         body: self.label('paste_dashboard.ok'),
@@ -606,11 +638,6 @@ export default class DashboardBuilderComponent extends VueComponentBase {
 
                 try {
                     await ModuleDAO.instance.insertOrUpdateVOs(self.pages);
-
-                    self.pages = await this.load_dashboard_pages_by_dashboard_id(
-                        self.dashboard.id,
-                        { refresh: true },
-                    );
 
                     resolve({
                         body: self.label('move_page.ok'),
@@ -969,30 +996,20 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         return dashboard_pages;
     }
 
-    private async on_dashboard_loaded() {
+    get onglet_a_afficher(): string {
+        // l'onglet à afficher est celui qui a été sélectionné, si il est valide (on a le droit, le dbb conf du db accepte cet onglet, ...)
+        // sinon c'est le premier onglet dispo
+    }
 
-        if (!this.dashboard) {
-            await this.init_dashboard();
-            await this.init_api_type_ids_and_discarded_field_paths();
-            this.init_dashboard_tab();
-            return;
-        }
-
+    @Watch(reflect<DashboardBuilderComponent>().dashboard)
+    private async on_change_dashboard() {
         this.set_page_widgets_components_by_pwid({});
-        await all_promises([
-            this.init_api_type_ids_and_discarded_field_paths(),
-            (async () => {
-                this.pages = await this.load_dashboard_pages_by_dashboard_id(
-                    this.dashboard.id,
-                );
-            })(),
-        ]);
+        await this.init_api_type_ids_and_discarded_field_paths();
         this.init_dashboard_tab();
+    }
 
-        if (!this.pages) {
-            await this.create_dashboard_page();
-        }
-
+    private async on_dashboard_loaded() {
+TODO suppression en court
         const page_widgets: DashboardPageWidgetVO[] = await this.load_page_widgets_by_page_ids(
             this.pages.map((p) => p.id),
         );
@@ -1079,67 +1096,17 @@ export default class DashboardBuilderComponent extends VueComponentBase {
     }
 
 
-    private async create_dashboard_page() {
+    @Watch(reflect<DashboardBuilderComponent>().dashboards)
+    private async onchange_dashboards(): Promise<void> {
 
-        if (!this.dashboard) {
-            return;
-        }
-
-        const page = new DashboardPageVO();
-        page.dashboard_id = this.dashboard.id;
-        page.weight = 0;
-        const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.instance.insertOrUpdateVO(page);
-        if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
-            this.snotify.error(this.label('DashboardBuilderComponent.create_new_dashboard.ko'));
-            this.dashboard = null;
-            return;
-        }
-
-        page.id = insertOrDeleteQueryResult.id;
-
-        this.pages = await this.load_dashboard_pages_by_dashboard_id(
-            this.dashboard.id,
-            { refresh: true },
-        );
-
-        WeightHandler.getInstance().sortByWeight(this.pages);
-        this.page = page;
-    }
-
-    /**
-     * init_dashboard
-     * - Initialize the dashboard
-     * - Create a new dashboard if none exists
-     * - Create a new page if none exists
-     *
-     * @returns {Promise<void>}
-     */
-    private async init_dashboard(): Promise<void> {
-
+        // On vérifie simplement que si on a pas de db actuellement sélectionné, on sélectionne le premier dispo
         if (!(this.dashboards?.length > 0)) {
-            this.dashboards = [];
-            await this.create_new_dashboard();
             return;
         }
 
-        this.dashboard = this.dashboards[0];
-
-        this.pages = await this.load_dashboard_pages_by_dashboard_id(
-            this.dashboard.id,
-        );
-
-        if (!this.pages) {
-            await this.create_dashboard_page();
-        } else {
-            WeightHandler.getInstance().sortByWeight(this.pages);
-            this.page = this.pages[0];
+        if (!this.dashboard_id) {
+            this.goto_dashboard_id(this.dashboards[0].id);
         }
-    }
-
-    private async init_api_type_ids_and_discarded_field_paths() {
-        const { api_type_ids, discarded_field_paths } = await DashboardBuilderBoardManager.get_api_type_ids_and_discarded_field_paths(this.dashboard.id);
-        this.set_dashboard_api_type_ids(api_type_ids);
-        this.set_discarded_field_paths(discarded_field_paths);
     }
 
     /**
@@ -1147,6 +1114,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
      *  - Initialize the dashboard tab to show in case when the dashboard is loaded or changed
      */
     private init_dashboard_tab() {
+        A REVOIR la logique des show ongles je pense qu'on affiche simplement le 1er onglet dispo et basta'
         this.show_build_page = this.can_build_page;
         this.show_select_vos = !this.show_build_page;
         this.show_shared_filters = false;
@@ -1154,61 +1122,16 @@ export default class DashboardBuilderComponent extends VueComponentBase {
     }
 
     private async create_new_dashboard() {
-        this.dashboard = new (ModuleTableController.vo_constructor_by_vo_type[DashboardVO.API_TYPE_ID])() as DashboardVO; // On passe par le moduletablecontroller comme ça on a les inits par défaut des champs aussi
-        this.set_dashboard_api_type_ids([]);
+        const new_db = new (ModuleTableController.vo_constructor_by_vo_type[DashboardVO.API_TYPE_ID])() as DashboardVO; // On passe par le moduletablecontroller comme ça on a les inits par défaut des champs aussi
 
-        const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.instance.insertOrUpdateVO(
-            this.dashboard,
-        );
+        await ModuleDAO.instance.insertOrUpdateVO(new_db);
 
-        if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
+        if (!new_db.id) {
             this.snotify.error(this.label('DashboardBuilderComponent.create_new_dashboard.ko'));
-            this.dashboard = null;
             return;
         }
 
-        this.dashboard = await DashboardVOManager.find_dashboard_by_id(
-            insertOrDeleteQueryResult.id,
-        );
-
-        if ((!this.dashboard) || (!this.dashboard.id)) {
-            this.snotify.error(this.label('DashboardBuilderComponent.create_new_dashboard.ko'));
-            this.dashboard = null;
-            return;
-        }
-
-        // On crée la trad
-        // dans la création par défaut on a un nouveau code, reste à enrigistrer la nouvelle trad
-        const translation_code = new TranslatableTextVO();
-        translation_code.code_text = this.dashboard.title;
-        await ModuleDAO.getInstance().insertOrUpdateVO(translation_code);
-
-        if (!translation_code.id) {
-            ConsoleHandler.error('Error creating translation code for dashboard title');
-            this.snotify.error(this.label('DashboardBuilderComponent.create_new_dashboard.ko'));
-            this.dashboard = null;
-            return;
-        }
-
-        if (!VueAppController.getInstance().data_user_lang?.id) {
-            ConsoleHandler.error('User language ID not found');
-            this.snotify.error(this.label('DashboardBuilderComponent.create_new_dashboard.ko'));
-            this.dashboard = null;
-            return;
-        }
-
-        const translation = new TranslationVO();
-        translation.lang_id = VueAppController.getInstance().data_user_lang?.id;
-        translation.text_id = translation_code.id;
-        translation.translated = "Dashboard [" + this.dashboard.id + "]";
-        await ModuleDAO.getInstance().insertOrUpdateVO(translation);
-
-        // On crée la première page du dashboard
-        await this.create_dashboard_page();
-        const page = new DashboardPageVO();
-        page.dashboard_id = this.dashboard.id;
-
-        this.dashboards.push(this.dashboard);
+        this.goto_dashboard_id(new_db.id);
     }
 
     private async switch_group_filters(page: DashboardPageVO) {
@@ -1362,18 +1285,6 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         this.select_configuration_tab('shared_filters');
     }
 
-    private async add_api_type_id(api_type_id: string) {
-        if (!this.get_dashboard_api_type_ids) {
-            this.set_dashboard_api_type_ids([]);
-        }
-        if (this.get_dashboard_api_type_ids.indexOf(api_type_id) >= 0) {
-            return;
-        }
-        const tmp = Array.from(this.get_dashboard_api_type_ids);
-        tmp.push(api_type_id);
-        this.set_dashboard_api_type_ids(tmp);
-    }
-
     private async del_api_type_id(api_type_id: string) {
         if (!this.get_dashboard_api_type_ids) {
             return;
@@ -1398,16 +1309,6 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         if (body) {
             body.classList.add("sidenav-toggled");
         }
-    }
-
-    private beforeDestroy() {
-        const body = document.getElementById('page-top');
-
-        if (body) {
-            body.classList.remove("sidenav-toggled");
-        }
-
-        this.$store.unregisterModule(this.storeNamespace);
     }
 
     private reverse_collapse_fields_wrapper() {

@@ -26,30 +26,27 @@ export default class DashboardSelectedViewportConfComponent extends VueComponent
     @Prop()
     public dashboard: DashboardVO;
 
-    @SyncVOs(
-        DashboardPageVO.API_TYPE_ID,
-        [reflect<DashboardSelectedViewportConfComponent>().dashboard],
-        (self) => self.dashboard?.id ? [filter(DashboardPageVO.API_TYPE_ID, field_names<DashboardPageVO>().dashboard_id).by_num_eq(self.dashboard.id)] : null,
-    )
+    @SyncVOs(DashboardPageVO.API_TYPE_ID, {
+        watch_fields: [reflect<DashboardSelectedViewportConfComponent>().dashboard],
+        filters_factory: (self) => self.dashboard?.id ? [filter(DashboardPageVO.API_TYPE_ID, field_names<DashboardPageVO>().dashboard_id).by_num_eq(self.dashboard.id)] : null,
+    })
     public all_pages: DashboardPageVO[] = [];
 
-    @SyncVOs(
-        DashboardPageWidgetVO.API_TYPE_ID,
-        [reflect<DashboardSelectedViewportConfComponent>().all_pages],
-        (self) => {
+    @SyncVOs(DashboardPageWidgetVO.API_TYPE_ID, {
+        watch_fields: [reflect<DashboardSelectedViewportConfComponent>().all_pages],
+        filters_factory: (self) => {
             if (!self.dashboard || !self.all_pages || self.all_pages.length <= 0) {
                 return null;
             }
 
             return [filter(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().page_id).by_num_has(self.all_pages.map(page => page.id))];
         },
-    )
+    })
     public all_dashboard_page_widgets: DashboardPageWidgetVO[] = [];
 
-    @SyncVOs(
-        DashboardViewportPageWidgetVO.API_TYPE_ID,
-        [reflect<DashboardSelectedViewportConfComponent>().all_dashboard_page_widgets, reflect<DashboardSelectedViewportConfComponent>().get_selected_viewport],
-        (self) => {
+    @SyncVOs(DashboardViewportPageWidgetVO.API_TYPE_ID, {
+        watch_fields: [reflect<DashboardSelectedViewportConfComponent>().all_dashboard_page_widgets, reflect<DashboardSelectedViewportConfComponent>().get_selected_viewport],
+        filters_factory: (self) => {
             if (!self.dashboard || !self.all_dashboard_page_widgets || self.all_dashboard_page_widgets.length <= 0 || !self.get_selected_viewport) {
                 return null;
             }
@@ -59,7 +56,7 @@ export default class DashboardSelectedViewportConfComponent extends VueComponent
                 filter(DashboardViewportPageWidgetVO.API_TYPE_ID, field_names<DashboardViewportPageWidgetVO>().viewport_id).by_num_eq(self.get_selected_viewport.id),
             ];
         },
-    )
+    })
     public viewport_page_widgets: DashboardViewportPageWidgetVO[] = [];
 
     @TestAccess(DAOController.getAccessPolicyName(DashboardPageWidgetVO.API_TYPE_ID, ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE))
