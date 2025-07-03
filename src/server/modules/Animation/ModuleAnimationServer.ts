@@ -34,7 +34,6 @@ import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import { field_names } from '../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../shared/tools/RangeHandler';
-import StackContext from '../../StackContext';
 import ConfigurationService from '../../env/ConfigurationService';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
@@ -623,7 +622,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
      */
     private async filterAnimationModuleContextAccessHook(moduletable: ModuleTableVO, uid: number, user: UserVO, user_data: IUserData, user_roles: RoleVO[]): Promise<ContextQueryVO> {
 
-        if (this.isAdmin()) {
+        if (ModuleAccessPolicyServer.getInstance().isAdmin()) {
             return null;
         }
 
@@ -652,7 +651,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
      * @deprecated access_hook à remplacer petit à petit par les context_access_hooks
      */
     private async filterAnimationModule(datatable: ModuleTableVO, vos: AnimationModuleVO[], uid: number): Promise<AnimationModuleVO[]> {
-        if (this.isAdmin()) {
+        if (ModuleAccessPolicyServer.getInstance().isAdmin()) {
             return vos;
         }
 
@@ -690,27 +689,6 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         }
 
         return res;
-    }
-
-    private isAdmin(): boolean {
-        if (!StackContext.get('IS_CLIENT')) {
-            return false;
-        }
-
-        const uid: number = StackContext.get('UID');
-
-        if (!uid) {
-            return false;
-        }
-
-        const user_roles: RoleVO[] = AccessPolicyServerController.get_user_roles_by_uid(uid);
-
-        for (const i in user_roles) {
-            if (user_roles[i].translatable_name == ModuleAccessPolicy.ROLE_ADMIN) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private async initializeTranslations() {
