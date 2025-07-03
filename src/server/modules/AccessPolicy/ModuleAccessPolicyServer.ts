@@ -66,6 +66,7 @@ import { RunsOnBgThread } from '../BGThread/annotations/RunsOnBGThread';
 import APIBGThread from '../API/bgthreads/APIBGThread';
 import { IRequestStackContext } from '../../ServerExpressController';
 import ExpressDBSessionsServerCacheHolder from '../ExpressDBSessions/ExpressDBSessionsServerCacheHolder';
+import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 
 
 export default class ModuleAccessPolicyServer extends ModuleServerBase {
@@ -432,6 +433,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return null;
         }
     }
+
 
     /**
      * DELETE ME Post suppression StackContext: Does not need StackContext
@@ -1084,6 +1086,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     public registerAccessHooks(): void {
 
         ModuleDAOServer.instance.registerContextAccessHook(AccessPolicyVO.API_TYPE_ID, this, this.filterPolicyByActivModulesContextAccessHook);
+        ModuleDAOServer.instance.registerContextAccessHook(RoleVO.API_TYPE_ID, this, this.filterRoleVOContextAccessHook);
         ModuleDAOServer.instance.registerAccessHook(AccessPolicyVO.API_TYPE_ID, ModuleDAO.DAO_ACCESS_TYPE_READ, this, this.filterPolicyByActivModules);
     }
 
@@ -1970,6 +1973,28 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         return false;
     }
 
+    public isAdmin(): boolean {
+        if (!StackContext.get('IS_CLIENT')) {
+            return false;
+        }
+
+        const uid: number = StackContext.get('UID');
+
+        if (!uid) {
+            return false;
+        }
+
+        const user_roles: RoleVO[] = AccessPolicyServerController.get_user_roles_by_uid(uid);
+
+        for (const i in user_roles) {
+            if (user_roles[i].translatable_name == ModuleAccessPolicy.ROLE_ADMIN) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private async togglePolicy(policy_id: number, role_id: number): Promise<boolean> {
         if ((!policy_id) || (!role_id)) {
             return false;
@@ -2072,26 +2097,6 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }
 
         const userRoles: UserRoleVO = await query(UserRoleVO.API_TYPE_ID).filter_by_num_eq(field_names<UserRoleVO>().user_id, uid).filter_by_text_eq(field_names<RoleVO>().translatable_name, text, RoleVO.API_TYPE_ID).select_vo<UserRoleVO>();
-
-        if (userRoles) {
-            return true;
-        }
-
-        return false;
-    }
-
-    private async isAdmin(): Promise<boolean> {
-        if (!StackContext.get('IS_CLIENT')) {
-            return false;
-        }
-
-        const uid: number = StackContext.get('UID');
-
-        if (!uid) {
-            return false;
-        }
-
-        const userRoles: UserRoleVO = await query(UserRoleVO.API_TYPE_ID).filter_by_num_eq(field_names<UserRoleVO>().user_id, uid).filter_by_text_eq(field_names<RoleVO>().translatable_name, ModuleAccessPolicy.ROLE_ADMIN, RoleVO.API_TYPE_ID).select_vo<UserRoleVO>();
 
         if (userRoles) {
             return true;
@@ -2405,6 +2410,18 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         res.exec_as_server();
 
         return res;
+    }
+
+    private async filterRoleVOContextAccessHook(moduletable: ModuleTableVO, uid: number, user: UserVO, user_data: IUserData, user_roles: RoleVO[]): Promise<ContextQueryVO> {
+        if ((!uid && !StackContext.get('IS_CLIENT')) || this.isAdmin()) {
+            // pas de queryContext donc acces à tous
+            return null;
+        }
+
+        return query(RoleVO.API_TYPE_ID)
+            .field(field_names<IDistantVOBase>().id)
+            .filter_is_true(field_names<RoleVO>().actif)
+            .exec_as_server();
     }
 
     /**

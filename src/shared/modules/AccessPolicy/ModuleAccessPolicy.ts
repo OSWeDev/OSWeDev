@@ -496,7 +496,8 @@ export default class ModuleAccessPolicy extends Module {
         const datatable_fields = [
             label_field,
             parent_role_id,
-            ModuleTableFieldController.create_new(RoleVO.API_TYPE_ID, field_names<RoleVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true, true, 0)
+            ModuleTableFieldController.create_new(RoleVO.API_TYPE_ID, field_names<RoleVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true, true, 0),
+            ModuleTableFieldController.create_new(RoleVO.API_TYPE_ID, field_names<RoleVO>().actif, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Actif', true, true, true),
         ];
 
         const datatable: ModuleTableVO = ModuleTableController.create_new(this.name, RoleVO, label_field, DefaultTranslationVO.create_new({ 'fr-fr': "Rôles" }));
