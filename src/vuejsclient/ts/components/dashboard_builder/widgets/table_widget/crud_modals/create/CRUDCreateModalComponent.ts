@@ -5,6 +5,7 @@ import CRUDComponentManager from '../../../../../crud/CRUDComponentManager';
 import VueComponentBase from '../../../../../VueComponentBase';
 import "./CRUDCreateModalComponent.scss";
 import CRUDFormServices from '../../../../../crud/component/CRUDFormServices';
+import ModuleTableController from '../../../../../../../../shared/modules/DAO/ModuleTableController';
 
 @Component({
     template: require('./CRUDCreateModalComponent.pug'),
@@ -47,6 +48,11 @@ export default class CRUDCreateModalComponent extends VueComponentBase {
                 false,
                 storeDatas,
             );
+
+            if (!vo_init) {
+                vo_init = new ModuleTableController.vo_constructor_by_vo_type[api_type_id]();
+            }
+
             await crud.callback_handle_modal_show_hide(vo_init, 'create');
         }
 
