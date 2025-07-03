@@ -158,7 +158,6 @@
                 .col-sm-3.crud_db_link_wrapper
                     Cruddblinkcomponent(
                         :dashboard='dashboard' 
-                        @addTable='addTable'
                     )
 
                 .col-sm-9.tables_graph_wrapper(v-if="POLICY_DBB_ACCESS_ONGLET_TABLE_TABLES_GRAPH")
@@ -167,9 +166,9 @@
                         :tables_by_table_name='tables_by_table_name'
                         :discarded_field_paths='get_discarded_field_paths'
                         :all_tables_by_table_name='all_tables_by_table_name'
+                        :dashboard_id='dashboard_id'
                         @setDiscardedField='setDiscardedField'
                         @removeTable='removeTable'
-                        @addTable='addTable'
                     )
 
             .row(v-if='show_viewport_conf_page && POLICY_DBB_ACCESS_ONGLET_VIEWPORT')

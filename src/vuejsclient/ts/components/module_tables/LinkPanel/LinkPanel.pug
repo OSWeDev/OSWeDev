@@ -4,7 +4,7 @@
         input(
             type="checkbox"
             :checked="!discarded_field_paths[selectedLink.table]?.[selectedLink.field]"
-            @change="onSwitchDiscard(selectedLink.table, selectedLink.field, $event.target.checked)"
+            @change="switch_discarded_field(selectedLink.table, selectedLink.field)"
         )
         | {{ selectedLink.table }}.{{ selectedLink.field }} => {{ selectedLink.target_table }}
 

@@ -2,11 +2,11 @@ import Vue from 'vue';
 import Component from 'vue-class-component';
 import { Prop } from 'vue-property-decorator';
 
-import CanvasDiagram from './CanvasDiagram/CanvasDiagram';
-import SelectionPanel from './SelectionPanel/SelectionPanel';
-import LinkPanel from './LinkPanel/LinkPanel';
 import AddPanel from './AddPanel/AddPanel';
+import CanvasDiagram from './CanvasDiagram/CanvasDiagram';
+import LinkPanel from './LinkPanel/LinkPanel';
 import './ModuleTablesComponent.scss';
+import SelectionPanel from './SelectionPanel/SelectionPanel';
 
 import ModuleTableFieldVO from '../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import ModuleTableVO from '../../../../shared/modules/DAO/vos/ModuleTableVO';
@@ -34,6 +34,9 @@ export default class ModuleTablesComponent extends Vue {
     @Prop({ default: () => ({}) })
     readonly all_tables_by_table_name!: { [table_name: string]: ModuleTableVO };
 
+    @Prop()
+    readonly dashboard_id: number;
+
     selectedTable: string | null = null;
     selectedLink: { table: string; field: string } | null = null;
     showAddPanel: boolean = false;
@@ -47,15 +50,6 @@ export default class ModuleTablesComponent extends Vue {
         if (this.selectedTable === tableName) {
             this.selectedTable = null;
         }
-    }
-
-    onSwitchDiscard(table: string, field: string, discard: boolean) {
-        this.$emit('setDiscardedField', table, field, discard);
-    }
-
-    onAddTable(tableName: string) {
-        this.$emit('addTable', tableName);
-        // this.showAddPanel = false;
     }
 
     select_table(tableName: string) {

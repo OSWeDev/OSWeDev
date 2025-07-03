@@ -1,5 +1,5 @@
 import Component from 'vue-class-component';
-import { Prop, Watch } from 'vue-property-decorator';
+import { Inject, Prop, Watch } from 'vue-property-decorator';
 import Throttle from '../../../../../shared/annotations/Throttle';
 import ModuleAccessPolicy from '../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
@@ -14,6 +14,8 @@ import ObjectHandler, { field_names, reflect } from '../../../../../shared/tools
 import { all_promises } from '../../../../../shared/tools/PromiseTools';
 import VueComponentBase from '../../VueComponentBase';
 import './CrudDBLinkComponent.scss';
+import DashboardGraphVORefVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardGraphVORefVO';
+import ModuleTablesComponent from '../../module_tables/ModuleTablesComponent';
 
 @Component({
     template: require('./CrudDBLinkComponent.pug'),
@@ -23,6 +25,8 @@ import './CrudDBLinkComponent.scss';
 export default class CrudDBLinkComponent extends VueComponentBase {
     @Prop({ default: null })
     public readonly dashboard: DashboardVO;
+
+    @Inject('storeNamespace') readonly storeNamespace!: string;
 
     public selected_vo_type: string = null;
 
@@ -38,6 +42,10 @@ export default class CrudDBLinkComponent extends VueComponentBase {
     private POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_CREATE: boolean = false;
     private POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_READ: boolean = false;
     private POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_UPDATE: boolean = false;
+
+    get active_api_type_ids(): string[] {
+        return this.vuexGet<string[]>(reflect<this>().active_api_type_ids);
+    }
 
     @Watch(reflect<CrudDBLinkComponent>().dashboard, { immediate: true })
     private async onchange_dashboard() {
@@ -102,9 +110,15 @@ export default class CrudDBLinkComponent extends VueComponentBase {
     }
 
     @Watch(reflect<CrudDBLinkComponent>().selected_vo_type)
-    private onchange_selected_vo_type() {
+    private async onchange_selected_vo_type() {
         if (!!this.selected_vo_type) {
-            this.$emit("addTable", this.selected_vo_type);
+            // Si la table est déjà liée au DB, osef, sinon on doit l'ajouter
+            if (this.active_api_type_ids.indexOf(this.selected_vo_type) >= 0) {
+                // La table est déjà liée, on ne fait rien
+            } else {
+                // On ajoute la table au DB en l'ajoutant au graph
+                await ModuleTablesComponent.add_new_default_table(this.dashboard.id, this.selected_vo_type);
+            }
         } else {
             if (!!this.option_formulaire) {
                 this.option_formulaire = false;
@@ -154,6 +168,14 @@ export default class CrudDBLinkComponent extends VueComponentBase {
                 this.POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_UPDATE = await ModuleAccessPolicy.getInstance().testAccess(ModuleDashboardBuilder.POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_UPDATE);
             })(),
         ]);
+    }
+
+    // Accès dynamiques Vuex
+    public vuexGet<T>(getter: string): T {
+        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    }
+    public vuexAct<A>(action: string, payload?: A) {
+        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
     }
 
     private vo_type_label(vo_type: string): string {

@@ -44,7 +44,6 @@ import { ModuleDroppableVoFieldsAction } from './droppable_vo_fields/DroppableVo
 import DashboardMenuConfComponent from './menu_conf/DashboardMenuConfComponent';
 import DashboardPageStore from './page/DashboardPageStore';
 import DashboardSharedFiltersComponent from './shared_filters/DashboardSharedFiltersComponent';
-import MaxGraphMapper from './tables_graph/graph_mapper/MaxGraphMapper';
 import DashboardBuilderWidgetsComponent from './widgets/DashboardBuilderWidgetsComponent';
 import DashboardBuilderWidgetsController from './widgets/DashboardBuilderWidgetsController';
 import DashboardViewportConfComponent from './viewport_conf/DashboardViewportConfComponent';
@@ -1318,104 +1317,7 @@ TODO suppression en court
         this.collapsed_fields_wrapper_2 = !this.collapsed_fields_wrapper_2;
     }
 
-    private async setDiscardedField(table: string, field: string, new_discard: boolean) {
 
-        // On utilise le add pour récupérer la table en base de données
-        const table_vo_ref = await this.addTable(table);
-        if (!table_vo_ref) {
-            return;
-        }
-
-        if (!table_vo_ref.values_to_exclude) {
-            table_vo_ref.values_to_exclude = [];
-        }
-
-        if (!table_vo_ref.values_to_exclude.find((e) => e == field)) {
-            table_vo_ref.values_to_exclude.push(field);
-        } else {
-            table_vo_ref.values_to_exclude = table_vo_ref.values_to_exclude.filter((e) => e != field);
-        }
-        const update_res = await ModuleDAO.instance.insertOrUpdateVO(table_vo_ref);
-        if (!update_res || !update_res.id) {
-            ConsoleHandler.error('Impossible de mettre à jour le graphvoref');
-            this.$snotify.error(this.label('TablesGraphEditFormComponent.switch_edge_acceptance.error'));
-            return;
-        }
-
-        const new_descarded_field_paths = Object.assign({}, this.get_discarded_field_paths);
-        if (new_discard) {
-            if (!new_descarded_field_paths[table]) {
-                new_descarded_field_paths[table] = {};
-            }
-            new_descarded_field_paths[table][field] = true;
-        } else {
-            if (new_descarded_field_paths[table]) {
-                delete new_descarded_field_paths[table][field];
-            }
-        }
-        this.set_discarded_field_paths(new_descarded_field_paths);
-    }
-
-    private async removeTable(table_name: string) {
-
-        if ((!this.dashboard) || (!this.dashboard.id)) {
-            return;
-        }
-
-        if (!table_name) {
-            return;
-        }
-
-        try {
-            await query(DashboardGraphVORefVO.API_TYPE_ID)
-                .filter_by_id(this.dashboard.id, DashboardVO.API_TYPE_ID)
-                .filter_by_text_eq(field_names<DashboardGraphVORefVO>().vo_type, table_name)
-                .delete_vos();
-        } catch (error) {
-            ConsoleHandler.error('DashboardBuilderComponent.removeTable:' + error);
-        }
-
-        this.del_api_type_id(table_name);
-    }
-
-    private async addTable(table_name: string) {
-
-        if ((!this.dashboard) || (!this.dashboard.id)) {
-            return;
-        }
-
-        if (!table_name) {
-            return;
-        }
-
-        let ref: DashboardGraphVORefVO = null;
-        try {
-            ref = await query(DashboardGraphVORefVO.API_TYPE_ID)
-                .filter_by_id(this.dashboard.id, DashboardVO.API_TYPE_ID)
-                .filter_by_text_eq(field_names<DashboardGraphVORefVO>().vo_type, table_name)
-                .select_vo<DashboardGraphVORefVO>();
-            if (!!ref) {
-                return ref;
-            }
-
-            ref = new DashboardGraphVORefVO();
-
-            ref.x = 800;
-            ref.y = 80;
-            ref.width = MaxGraphMapper.default_width;
-            ref.height = MaxGraphMapper.default_height;
-            ref.vo_type = table_name;
-            ref.dashboard_id = this.dashboard.id;
-            await ModuleDAO.instance.insertOrUpdateVO(ref);
-
-        } catch (error) {
-            ConsoleHandler.error('DashboardBuilderComponent.addTable:' + error);
-        }
-
-        this.add_api_type_id(table_name);
-
-        return ref;
-    }
 
     private async init_all_valid_tables() {
 

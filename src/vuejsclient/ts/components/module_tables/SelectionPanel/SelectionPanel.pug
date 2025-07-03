@@ -8,7 +8,7 @@
             input(
                 type="checkbox"
                 :checked="!discarded_field_paths[selectedTable]?.[fName]"
-                @change="onSwitchDiscard(selectedTable, fName, $event.target.checked)"
+                @change="switch_discarded_field(selectedTable, fName)"
             )
             | {{ fieldVO.module_table_vo_type }}.{{ fName }} => {{ fieldVO.foreign_ref_vo_type }}
     h4(v-if='has_foreignKeyFieldsTOSelectedTable') X => {{ selectedTable }}
@@ -17,6 +17,6 @@
             input(
                 type="checkbox"
                 :checked="!discarded_field_paths[fieldVO.module_table_vo_type]?.[fieldVO.field_id]"
-                @change="onSwitchDiscard(fieldVO.module_table_vo_type, fieldVO.field_id, $event.target.checked)"
+                @change="switch_discarded_field(fieldVO.module_table_vo_type, fieldVO.field_id)"
             )
             | {{ fieldVO.module_table_vo_type }}.{{ fieldVO.field_id }} => {{ fieldVO.foreign_ref_vo_type }}

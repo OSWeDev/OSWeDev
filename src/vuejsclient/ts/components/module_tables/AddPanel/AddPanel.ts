@@ -5,6 +5,7 @@ import ModuleTableVO from '../../../../../shared/modules/DAO/vos/ModuleTableVO';
 import ModuleDataImport from '../../../../../shared/modules/DataImport/ModuleDataImport';
 import SupervisionController from '../../../../../shared/modules/Supervision/SupervisionController';
 import './AddPanel.scss';
+import ModuleTablesClientController from '../ModuleTablesClientController';
 
 @Component({
     template: require('./AddPanel.pug'),
@@ -16,6 +17,9 @@ export default class AddPanel extends Vue {
 
     @Prop({ default: () => ({}) })
     readonly tables_by_table_name!: { [table_name: string]: ModuleTableVO };
+
+    @Prop()
+    readonly dashboard_id: number;
 
     hideVersioned: boolean = true;
     hideInternalImport: boolean = true;
@@ -43,8 +47,8 @@ export default class AddPanel extends Vue {
         return res.sort();
     }
 
-    onAddTable(tn: string) {
-        this.$emit('addTable', tn);
+    private async add_table(tn: string) {
+        await ModuleTablesClientController.add_new_default_table(this.dashboard_id, tn);
     }
 
     private isVersionedAuxTable(tn: string): boolean {

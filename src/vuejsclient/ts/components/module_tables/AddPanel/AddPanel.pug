@@ -12,5 +12,5 @@
 
     input(type="text" v-model="addSearch" placeholder="Rechercher...")
     ul
-        li(v-for="tableName in filteredTables" :key="tableName" @click="onAddTable(tableName)" style="cursor:pointer;")
+        li(v-for="tableName in filteredTables" :key="tableName" @click="add_table(tableName)" style="cursor:pointer;")
             | {{ tableName }}

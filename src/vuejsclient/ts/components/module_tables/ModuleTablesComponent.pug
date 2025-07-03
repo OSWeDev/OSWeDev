@@ -16,22 +16,22 @@
         :selectedTable="selectedTable"
         :fields_by_table_name_and_field_name="fields_by_table_name_and_field_name"
         :discarded_field_paths="discarded_field_paths"
+        :dashboard_id="dashboard_id"
         @removeTable="onRemoveSelectedTable"
-        @switchDiscard="onSwitchDiscard"
     )
 
     LinkPanel(
         v-if="selectedLink"
         :selectedLink="selectedLink"
         :discarded_field_paths="discarded_field_paths"
-        @switchDiscard="onSwitchDiscard"
+        :dashboard_id="dashboard_id"
     )
 
     AddPanel(
         v-if="showAddPanel"
         :all_tables_by_table_name="all_tables_by_table_name"
         :tables_by_table_name="tables_by_table_name"
-        @addTable="onAddTable"
+        :dashboard_id="dashboard_id"
     )
 
     button(
