@@ -230,6 +230,18 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         POLICY_DBB_ACCESS_ONGLET_TABLE_TABLES_GRAPH_bo_access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleDashboardBuilder.POLICY_BO_ACCESS).id;
         POLICY_DBB_ACCESS_ONGLET_TABLE_TABLES_GRAPH_bo_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
 
+        let POLICY_DBB_ACCESS_ONGLET_RIGHTS: AccessPolicyVO = new AccessPolicyVO();
+        POLICY_DBB_ACCESS_ONGLET_RIGHTS.group_id = group.id;
+        POLICY_DBB_ACCESS_ONGLET_RIGHTS.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        POLICY_DBB_ACCESS_ONGLET_RIGHTS.translatable_name = ModuleDashboardBuilder.POLICY_DBB_ACCESS_ONGLET_RIGHTS;
+        POLICY_DBB_ACCESS_ONGLET_RIGHTS = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_DBB_ACCESS_ONGLET_RIGHTS, DefaultTranslationVO.create_new({
+            'fr-fr': 'Accès à l\'onglet Droits d\'accès du DBB'
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        let POLICY_DBB_ACCESS_ONGLET_RIGHTS_bo_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
+        POLICY_DBB_ACCESS_ONGLET_RIGHTS_bo_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+        POLICY_DBB_ACCESS_ONGLET_RIGHTS_bo_access_dependency.src_pol_id = POLICY_DBB_ACCESS_ONGLET_RIGHTS.id;
+        POLICY_DBB_ACCESS_ONGLET_RIGHTS_bo_access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleDashboardBuilder.POLICY_BO_ACCESS).id;
+        POLICY_DBB_ACCESS_ONGLET_RIGHTS_bo_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
 
         let POLICY_DBB_CAN_EXPORT_IMPORT_JSON: AccessPolicyVO = new AccessPolicyVO();
         POLICY_DBB_CAN_EXPORT_IMPORT_JSON.group_id = group.id;

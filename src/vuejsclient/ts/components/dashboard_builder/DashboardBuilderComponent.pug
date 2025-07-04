@@ -1,12 +1,14 @@
 .dashboard_builder
     template(v-if="!dashboard")
-        template(v-if="loading")
-            .is_loading
-                i.fa-duotone.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
-        template(v-else)
-            .loading_failed 
-                i.fa-duotone.fa-exclamation-triangle.fa-fw.icon_error(aria-hidden="true")
-                | {{ label('dashboard_builder.loading_failed') }}
+        .is_loading
+            i.fa-duotone.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
+        //- template(v-if="loading")
+        //-     .is_loading
+        //-         i.fa-duotone.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
+        //- template(v-else)
+        //-     .loading_failed 
+        //-         i.fa-duotone.fa-exclamation-triangle.fa-fw.icon_error(aria-hidden="true")
+        //-         | {{ label('dashboard_builder.loading_failed') }}
     template(v-else)
         .row 
             .col-sm-12
@@ -29,7 +31,7 @@
                                     @input="on_dashboard_selection"
 
                                     :placeholder="label('dashboard_builder.select_dashboard')"
-                                    :options="dashboards_options"
+                                    :options="dashboards"
                                     :custom-label="dashboard_label"
                                     :allow-empty="false",
 
@@ -61,17 +63,21 @@
                             .btn-primary.create_dashboard_from(v-if="can_use_clipboard && POLICY_DBB_CAN_EXPORT_IMPORT_JSON")
                                 i.fa-duotone.fa-upload.fa-fw.btn_icon(aria-hidden="true" @click="paste_dashboard(null)" v-tooltip='label("dashboard_builder.create_dashboard_from")')
 
+        .row
+            .col-sm-12 {{ TODO FIXME ADD VIEWPORT SELECTOR }}
 
         .row 
             .col-sm-12
                 template(v-if='!pages')
-                    template(v-if="loading")
-                        .is_loading
-                            i.fa-duotone.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
-                    template(v-else)
-                        .loading_failed 
-                            i.fa-duotone.fa-exclamation-triangle.fa-fw.icon_error(aria-hidden="true")
-                            | {{ label('dashboard_builder.loading_failed') }}
+                    .is_loading
+                        i.fa-duotone.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
+                    //- template(v-if="loading")
+                    //-     .is_loading
+                    //-         i.fa-duotone.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
+                    //- template(v-else)
+                    //-     .loading_failed 
+                    //-         i.fa-duotone.fa-exclamation-triangle.fa-fw.icon_error(aria-hidden="true")
+                    //-         | {{ label('dashboard_builder.loading_failed') }}
 
                 template(v-else)
                     .row.steps
@@ -144,16 +150,18 @@
         template(v-if='!page')
             .row
                 .col-sm-12
-                    template(v-if="loading")
-                        .is_loading
-                            i.fa-duotone.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
-                    template(v-else)
-                        .loading_failed 
-                            i.fa-duotone.fa-exclamation-triangle.fa-fw.icon_error(aria-hidden="true")
-                            | {{ label('dashboard_builder.loading_failed') }}
+                    .is_loading
+                        i.fa-duotone.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
+                    //- template(v-if="loading")
+                    //-     .is_loading
+                    //-         i.fa-duotone.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
+                    //- template(v-else)
+                    //-     .loading_failed 
+                    //-         i.fa-duotone.fa-exclamation-triangle.fa-fw.icon_error(aria-hidden="true")
+                    //-         | {{ label('dashboard_builder.loading_failed') }}
 
         template(v-else)
-            .row(v-if='show_select_vos && dashboard && dashboard.id && POLICY_DBB_ACCESS_ONGLET_TABLE')
+            .row(v-if='selected_onglet == "onglet_table"')
                 
                 .col-sm-3.crud_db_link_wrapper
                     Cruddblinkcomponent(
@@ -167,54 +175,39 @@
                         :discarded_field_paths='get_discarded_field_paths'
                         :all_tables_by_table_name='all_tables_by_table_name'
                         :dashboard_id='dashboard_id'
-                        @setDiscardedField='setDiscardedField'
-                        @removeTable='removeTable'
                     )
 
-            .row(v-if='show_viewport_conf_page && POLICY_DBB_ACCESS_ONGLET_VIEWPORT')
+            .row(v-if='selected_onglet == "onglet_viewport"')
                 .col-sm-12.builder_wrapper
                     DashboardViewportConfComponent(
                         ref='DashboardViewportConfComponent'
-                        :dashboard_page='page' 
-                        :dashboard_pages='pages'
-                        :dashboard='dashboard' 
                     )
 
-            .fields_wrapper(v-if='show_build_page && POLICY_DBB_ACCESS_ONGLET_WIDGETS' :class='{"collapsed":collapsed_fields_wrapper}')
+            .fields_wrapper(v-if='selected_onglet == "onglet_widgets"' :class='{"collapsed":collapsed_fields_wrapper}')
 
                 .collapse_fields_wrapper(@click='reverse_collapse_fields_wrapper' :class='{"collapsed":collapsed_fields_wrapper}')
                     i.fa-duotone.fa-square-caret-right.fa-fw(aria-hidden="true" v-if='!collapsed_fields_wrapper')
                     i.fa-duotone.fa-square-caret-left.fa-fw(aria-hidden="true" v-if='collapsed_fields_wrapper')
 
                 .collapsible_component_wrapper(:class='{"collapsed":collapsed_fields_wrapper}')
-                    Dashboardbuilderwidgetscomponent(
-                        :dashboard='dashboard' 
-                        :dashboard_page='page'
-                        :dashboard_pages='pages'   
-
-                        @update_layout_widget='update_layout_widget'
-                        @added_widget_to_page='added_widget_to_page'
-                        @close_widget_options='close_widget_options'
-                    )
+                    Dashboardbuilderwidgetscomponent
+                    //- @update_layout_widget='update_layout_widget'
                     Droppablevofieldscomponent(:dashboard='dashboard')
 
-            .row(v-if='show_build_page && POLICY_DBB_ACCESS_ONGLET_WIDGETS')
+            .row(v-show='selected_onglet == "onglet_widgets"') // On est en v-show pour charger toujours le Dashboardbuilderboardcomponent et toutes les synchros de données que ce composant initie
                 .col-sm-12.builder_wrapper
                     Dashboardbuilderboardcomponent(
                         ref='Dashboardbuilderboardcomponent'
-                        :dashboard_page='page' 
-                        :dashboard_pages='pages'
-                        :dashboard='dashboard' 
-
-                        @select_page='select_page'
-
-                        @removed_widget_from_page='removed_widget_from_page'
                     )
 
-            .row(v-if='show_menu_conf && POLICY_DBB_ACCESS_ONGLET_MENUS')
+            .row(v-if='selected_onglet == "onglet_menus"')
                 .col-sm-12.menu_conf_wrapper 
-                    Dashboardmenuconfcomponent(:dashboard='dashboard')
+                    Dashboardmenuconfcomponent
 
-            .row(v-if='show_shared_filters && POLICY_DBB_ACCESS_ONGLET_FILTRES_PARTAGES')
+            .row(v-if='selected_onglet == "onglet_shared_filters"')
                 .col-sm-12.shared_filters_wrapper 
-                    Dashboardsharedfilterscomponent(:dashboard='dashboard')
+                    Dashboardsharedfilterscomponent
+
+            .row(v-if='selected_onglet == "onglet_rights"')
+                .col-sm-12.shared_filters_wrapper 
+                    DashboardRightscomponent

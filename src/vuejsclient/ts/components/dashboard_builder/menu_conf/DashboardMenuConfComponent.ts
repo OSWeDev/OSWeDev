@@ -1,5 +1,5 @@
 import Component from 'vue-class-component';
-import { Prop, Vue, Watch } from 'vue-property-decorator';
+import { Inject, Vue, Watch } from 'vue-property-decorator';
 import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
@@ -11,7 +11,7 @@ import TranslatableTextVO from '../../../../../shared/modules/Translation/vos/Tr
 import TranslationVO from '../../../../../shared/modules/Translation/vos/TranslationVO';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import LocaleManager from '../../../../../shared/tools/LocaleManager';
-import { field_names } from '../../../../../shared/tools/ObjectHandler';
+import { field_names, reflect } from '../../../../../shared/tools/ObjectHandler';
 import MenuController from '../../menu/MenuController';
 import MenuOrganizerComponent from '../../menu/organizer/MenuOrganizerComponent';
 import VueComponentBase from '../../VueComponentBase';
@@ -25,19 +25,22 @@ import './DashboardMenuConfComponent.scss';
 })
 export default class DashboardMenuConfComponent extends VueComponentBase {
 
-    @Prop()
-    private dashboard: DashboardVO;
+    @Inject('storeNamespace') readonly storeNamespace!: string;
 
     private menu_app: { [app_name: string]: number } = {};
     private app_names: string[] = [];
 
     private is_loading: boolean = true;
 
-    @Watch('dashboard', { immediate: true })
+    get get_dashboard(): DashboardVO {
+        return this.vuexGet<DashboardVO>(reflect<this>().get_dashboard);
+    }
+
+    @Watch(reflect<DashboardMenuConfComponent>().get_dashboard, { immediate: true })
     private async onchange_dashboard() {
         this.is_loading = true;
 
-        if (!this.dashboard) {
+        if (!this.get_dashboard) {
             this.menu_app = {};
             this.is_loading = false;
 
@@ -56,7 +59,7 @@ export default class DashboardMenuConfComponent extends VueComponentBase {
             const app_name = this.app_names[i];
 
             const db_menu: MenuElementVO = await ModuleDAO.instance.getNamedVoByName<MenuElementVO>(
-                MenuElementVO.API_TYPE_ID, 'dashboard__menu__' + app_name + '__' + this.dashboard.id);
+                MenuElementVO.API_TYPE_ID, 'dashboard__menu__' + app_name + '__' + this.get_dashboard.id);
             if (db_menu) {
                 this.menu_app[db_menu.app_name] = db_menu.id;
             }
@@ -64,8 +67,16 @@ export default class DashboardMenuConfComponent extends VueComponentBase {
         this.is_loading = false;
     }
 
+    // Accès dynamiques Vuex
+    public vuexGet<T>(getter: string): T {
+        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    }
+    public vuexAct<A>(action: string, payload?: A) {
+        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    }
+
     private get_menu(app_name: string): MenuElementVO {
-        if (!this.dashboard) {
+        if (!this.get_dashboard) {
             return null;
         }
 
@@ -76,10 +87,10 @@ export default class DashboardMenuConfComponent extends VueComponentBase {
         res.fa_class = "fa-area-chart";
         res.hidden = true;
         res.menu_parent_id = null;
-        res.name = 'dashboard__menu__' + app_name + '__' + this.dashboard.id;
+        res.name = 'dashboard__menu__' + app_name + '__' + this.get_dashboard.id;
         res.target = 'Dashboard View';
         res.target_is_routename = true;
-        res.target_route_params = '{ "dashboard_id": ' + this.dashboard.id + ' }';
+        res.target_route_params = '{ "dashboard_id": ' + this.get_dashboard.id + ' }';
         res.weight = -1;
 
         return res;
@@ -88,10 +99,10 @@ export default class DashboardMenuConfComponent extends VueComponentBase {
     private async switch_menu_app(app_name: string) {
         this.is_loading = true;
 
-        if (this.dashboard) {
+        if (this.get_dashboard) {
 
             let db_menu: MenuElementVO = await ModuleDAO.instance.getNamedVoByName<MenuElementVO>(
-                MenuElementVO.API_TYPE_ID, 'dashboard__menu__' + app_name + '__' + this.dashboard.id);
+                MenuElementVO.API_TYPE_ID, 'dashboard__menu__' + app_name + '__' + this.get_dashboard.id);
 
             if (this.menu_app[app_name]) {
 
@@ -129,7 +140,7 @@ export default class DashboardMenuConfComponent extends VueComponentBase {
                 /**
                  * On se base sur la trad actuelle du dashboard
                  */
-                const db_translatable_text = await ModuleTranslation.getInstance().getTranslatableText(this.dashboard.title);
+                const db_translatable_text = await ModuleTranslation.getInstance().getTranslatableText(this.get_dashboard.title);
                 if (db_translatable_text) {
 
                     const translations: TranslationVO[] = await query(TranslationVO.API_TYPE_ID).filter_by_num_eq(field_names<TranslationVO>().text_id, db_translatable_text.id).select_vos<TranslationVO>();

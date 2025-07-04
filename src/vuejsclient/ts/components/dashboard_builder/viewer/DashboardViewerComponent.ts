@@ -20,6 +20,7 @@ import VueComponentBase from '../../VueComponentBase';
 import DashboardBuilderBoardComponent from '../board/DashboardBuilderBoardComponent';
 import DashboardPageStore from '../page/DashboardPageStore';
 import './DashboardViewerComponent.scss';
+import { SyncVO } from '../../../tools/annotations/SyncVO';
 
 @Component({
     template: require('./DashboardViewerComponent.pug'),
@@ -31,20 +32,26 @@ import './DashboardViewerComponent.scss';
 export default class DashboardViewerComponent extends VueComponentBase {
 
     @Prop({ default: null })
-    private dashboard_id: number;
+    public dashboard_id: number;
 
-    private dashboard: DashboardVO = null;
-    private loading: boolean = true;
+    @SyncVO(DashboardVO.API_TYPE_ID, {
+        watch_fields: [reflect<DashboardViewerComponent>().dashboard_id],
+        id_factory: (self) => self.dashboard_id,
+    })
+    public dashboard: DashboardVO = null; // The current dashboard
+
+
+    public loading: boolean = true;
 
     // namespace dynamique
     // eslint-disable-next-line @typescript-eslint/member-ordering
     @Provide('storeNamespace')
-    private readonly storeNamespace = `dashboardStore_${DashboardPageStore.__UID++}`;
+    public readonly storeNamespace = `dashboardStore_${DashboardPageStore.__UID++}`;
 
-    private pages: DashboardPageVO[] = [];
-    private page: DashboardPageVO = null;
+    public pages: DashboardPageVO[] = [];
+    public page: DashboardPageVO = null;
 
-    private can_edit: boolean = false;
+    public can_edit: boolean = false;
 
     get get_page_history(): DashboardPageVO[] {
         return this.vuexGet<DashboardPageVO[]>(reflect<this>().get_page_history);
@@ -82,7 +89,7 @@ export default class DashboardViewerComponent extends VueComponentBase {
     }
 
     @Watch("dashboard")
-    private async onchange_dashboard() {
+    public async onchange_dashboard() {
         // We should load the shared_filters with the current dashboard
         await DashboardVOManager.load_shared_filters_with_dashboard(
             this.dashboard,
@@ -98,7 +105,7 @@ export default class DashboardViewerComponent extends VueComponentBase {
      *  et on pourrait vouloir garder tous les filtres => non implémenté (il faut un switch et simplement ne pas supprimer les filtres)
      */
     @Watch("dashboard_id")
-    private async onchange_dashboard_id() {
+    public async onchange_dashboard_id() {
         this.loading = true;
 
         if (!this.dashboard_id) {
@@ -136,21 +143,6 @@ export default class DashboardViewerComponent extends VueComponentBase {
             this.can_edit = false;
             this.loading = false;
             return;
-        }
-
-        await this.init_api_type_ids_and_discarded_field_paths();
-
-        // // FIXME : JNE pour MDU : Je remets le clear en place, en le supprimant tu as juste partagé tous les filtres de tous les dashboards entre eux,
-        // // ya aucune notion de paramétrage associée... donc je remets dans l'état inital et on corrigera le partage par la suite...
-        // this.clear_active_field_filters();
-
-        const shared_filters: SharedFiltersVO[] = await DashboardVOManager.load_shared_filters_with_dashboard_id(
-            this.dashboard.id,
-        );
-
-        if (shared_filters?.length > 0) {
-
-            this.add_shared_filters_to_map(shared_filters);
         }
 
         this.pages = await this.load_dashboard_pages_by_dashboard_id(
@@ -193,14 +185,6 @@ export default class DashboardViewerComponent extends VueComponentBase {
     }
 
 
-    public set_discarded_field_paths(discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } }) {
-        return this.vuexAct(reflect<this>().set_discarded_field_paths, discarded_field_paths);
-    }
-
-    public set_dashboard_api_type_ids(dashboard_api_type_ids: string[]) {
-        return this.vuexAct(reflect<this>().set_dashboard_api_type_ids, dashboard_api_type_ids);
-    }
-
     public add_shared_filters_to_map(shared_filters: SharedFiltersVO[]) {
         return this.vuexAct(reflect<this>().add_shared_filters_to_map, shared_filters);
     }
@@ -233,26 +217,20 @@ export default class DashboardViewerComponent extends VueComponentBase {
         this.vuexAct(reflect<this>().set_selected_widget, selected_widget);
     }
 
-    private beforeDestroy() {
+    public beforeDestroy() {
         this.$store.unregisterModule(this.storeNamespace);
     }
 
-    private select_previous_page() {
+    public select_previous_page() {
         this.page = this.get_page_history[this.get_page_history.length - 1];
         this.pop_page_history(null);
     }
 
-    private select_page_clear_navigation(page: DashboardPageVO) {
+    public select_page_clear_navigation(page: DashboardPageVO) {
         this.set_page_history([]);
         this.page = page;
     }
 
-
-    private async init_api_type_ids_and_discarded_field_paths() {
-        const { api_type_ids, discarded_field_paths } = await DashboardBuilderBoardManager.get_api_type_ids_and_discarded_field_paths(this.dashboard.id);
-        this.set_dashboard_api_type_ids(api_type_ids);
-        this.set_discarded_field_paths(discarded_field_paths);
-    }
 
     /**
      * load_dashboard_pages_by_dashboard_id
@@ -262,7 +240,7 @@ export default class DashboardViewerComponent extends VueComponentBase {
      * @param {boolean} [options.refresh]
      * @returns {Promise<DashboardVO[]>}
      */
-    private async load_dashboard_pages_by_dashboard_id(
+    public async load_dashboard_pages_by_dashboard_id(
         dashboard_id: number,
         options?: { refresh?: boolean }
     ): Promise<DashboardPageVO[]> {
@@ -281,18 +259,18 @@ export default class DashboardViewerComponent extends VueComponentBase {
         return dashboard_pages;
     }
 
-    private select_page(page: DashboardPageVO) {
+    public select_page(page: DashboardPageVO) {
         this.add_page_history(this.page);
         this.set_selected_widget(null);
         this.page = page;
     }
 
-    // private mounted() {
+    // public mounted() {
     //     let body = document.getElementById('page-top');
     //     body.classList.add("sidenav-toggled");
     // }
 
-    // private beforeDestroy() {
+    // public beforeDestroy() {
     //     let body = document.getElementById('page-top');
     //     body.classList.remove("sidenav-toggled");
     // }

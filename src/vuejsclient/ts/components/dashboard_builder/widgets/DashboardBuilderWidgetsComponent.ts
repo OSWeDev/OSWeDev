@@ -8,7 +8,11 @@ import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import VueComponentBase from '../../VueComponentBase';
 import './DashboardBuilderWidgetsComponent.scss';
 import DashboardBuilderWidgetsController from './DashboardBuilderWidgetsController';
-import { reflect } from '../../../../../shared/tools/ObjectHandler';
+import { field_names, reflect } from '../../../../../shared/tools/ObjectHandler';
+import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
+import DashboardViewportPageWidgetVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardViewportPageWidgetVO';
+import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import DashboardViewportVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardViewportVO';
 
 @Component({
     template: require('./DashboardBuilderWidgetsComponent.pug'),
@@ -18,56 +22,40 @@ import { reflect } from '../../../../../shared/tools/ObjectHandler';
 export default class DashboardBuilderWidgetsComponent extends VueComponentBase {
     @Inject('storeNamespace') readonly storeNamespace!: string;
 
-    @Prop()
-    private dashboard: DashboardVO;
-
-    @Prop()
-    private dashboard_page: DashboardPageVO;
-
-    @Prop()
-    private dashboard_pages: DashboardPageVO[];
-
-    private widgets: DashboardWidgetVO[] = null;
     private selected_widget_type: DashboardWidgetVO = null;
 
-    private loading: boolean = true;
-
-    get widgets_name(): string[] {
-        const res: string[] = [];
-
-        for (const i in this.widgets) {
-            const widget = this.widgets[i];
-
-            res.push(this.t(widget.label ?? null));
-        }
-
-        return res;
+    get get_dashboard_page(): DashboardVO {
+        return this.vuexGet<DashboardVO>(reflect<this>().get_dashboard_page);
+    }
+    get get_dashboard(): DashboardPageVO {
+        return this.vuexGet<DashboardPageVO>(reflect<this>().get_dashboard);
+    }
+    get get_dashboard_pages(): DashboardPageVO[] {
+        return this.vuexGet<DashboardPageVO[]>(reflect<this>().get_dashboard_pages);
     }
 
-    get selected_widget_type_label(): string {
-        if (!this.selected_widget_type) {
-            return null;
-        }
-
-        return this.t(this.selected_widget_type.label ?? null);
+    get get_all_widgets(): DashboardWidgetVO[] {
+        return this.vuexGet<DashboardWidgetVO[]>(reflect<this>().get_all_widgets);
     }
 
     get get_selected_widget(): DashboardPageWidgetVO {
         return this.vuexGet<DashboardPageWidgetVO>(reflect<this>().get_selected_widget);
     }
 
-    @Watch(reflect<DashboardBuilderWidgetsComponent>().get_selected_widget, { immediate: true })
-    private async onchange_selected_widget() {
+    get get_dashboard_current_viewport(): DashboardViewportVO {
+        return this.vuexGet<DashboardViewportVO>(reflect<this>().get_dashboard_current_viewport);
+    }
+
+    get selected_widget_type(): DashboardWidgetVO {
         if (!this.get_selected_widget) {
-            this.selected_widget_type = null;
-            return;
+            return null;
         }
 
-        if (!this.widgets) {
-            return;
+        if (!this.get_all_widgets) {
+            return null;
         }
 
-        this.selected_widget_type = this.widgets.find((w) => w.id == this.get_selected_widget.widget_id);
+        return this.get_all_widgets.find((w) => w.id == this.get_selected_widget.widget_id);
     }
 
     // Accès dynamiques Vuex
@@ -78,31 +66,87 @@ export default class DashboardBuilderWidgetsComponent extends VueComponentBase {
         return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
     }
 
-    private async mounted() {
-
-        await DashboardBuilderWidgetsController.getInstance().initialize();
-        this.widgets = DashboardBuilderWidgetsController.getInstance().sorted_widgets;
-
-        await this.onchange_selected_widget();
-
-        this.loading = false;
-    }
-
-    private update_layout_widget(widget: DashboardPageWidgetVO) {
-        this.$emit('update_layout_widget', widget);
-    }
-
     private async add_widget_to_page(widget: DashboardWidgetVO) {
 
-        if (!DashboardBuilderWidgetsController.getInstance().add_widget_to_page_handler) {
-            ConsoleHandler.error("!add_widget_to_page_handler");
-            return;
+        if (!this.get_dashboard_page) {
+            return null;
         }
-        const page_widget = await DashboardBuilderWidgetsController.getInstance().add_widget_to_page_handler(widget);
-        this.$emit('added_widget_to_page', page_widget);
+
+        if (!this.get_dashboard_current_viewport) {
+            return null;
+        }
+
+        if (!widget) {
+            return null;
+        }
+
+        const self = this;
+        self.snotify.async(
+            self.label('DashboardBuilderBoardComponent.add_widget_to_page.start'), () => new Promise(async (resolve, reject) => {
+                const page_widget = new DashboardPageWidgetVO();
+                try {
+                    page_widget.page_id = self.get_dashboard_page.id;
+                    page_widget.widget_id = widget.id;
+
+                    try {
+                        if (DashboardBuilderWidgetsController.getInstance().widgets_options_constructor[widget?.name]) {
+                            const options = DashboardBuilderWidgetsController.getInstance().widgets_options_constructor[widget?.name]();
+                            page_widget.json_options = JSON.stringify(options);
+                        }
+                    } catch (error) {
+                        ConsoleHandler.error(error);
+                    }
+
+                    await ModuleDAO.instance.insertOrUpdateVO(page_widget);
+
+                    if ((!page_widget) || (!page_widget.id)) {
+                        throw new Error('Failed to create page widget');
+                    }
+
+                    // on active le viewport page widget
+                    const new_viewport_page_widget: DashboardViewportPageWidgetVO = await query(DashboardViewportPageWidgetVO.API_TYPE_ID)
+                        .filter_by_num_eq(field_names<DashboardViewportPageWidgetVO>().page_widget_id, page_widget.id)
+                        .filter_by_num_eq(field_names<DashboardViewportPageWidgetVO>().viewport_id, self.get_dashboard_current_viewport.id)
+                        .select_vo<DashboardViewportPageWidgetVO>();
+                    if (!new_viewport_page_widget) {
+                        throw new Error('No viewport page widget found for the newly created page widget');
+                    }
+
+                    if (!new_viewport_page_widget.activated) {
+                        new_viewport_page_widget.activated = true;
+                        await ModuleDAO.instance.insertOrUpdateVO(new_viewport_page_widget);
+                    }
+                } catch (error) {
+                    ConsoleHandler.error(error);
+                    reject({
+                        body: self.label('DashboardBuilderBoardComponent.add_widget_to_page.ko'),
+                        config: {
+                            timeout: 10000,
+                            showProgressBar: true,
+                            closeOnClick: false,
+                            pauseOnHover: true,
+                        },
+                    });
+                    return null;
+                }
+
+                resolve({
+                    body: self.label('DashboardBuilderBoardComponent.add_widget_to_page.ok'),
+                    config: {
+                        timeout: 10000,
+                        showProgressBar: true,
+                        closeOnClick: false,
+                        pauseOnHover: true,
+                    },
+                });
+            })
+        );
+
+        self.set_selected_widget(page_widget);
+
     }
 
     private close_widget_options() {
-        this.$emit('close_widget_options');
+        this.set_selected_widget(null);
     }
 }

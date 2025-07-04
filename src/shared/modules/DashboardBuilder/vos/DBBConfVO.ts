@@ -42,12 +42,11 @@ export default class DBBConfVO implements IDistantVOBase {
     public has_access_to_tables_tab_graph: boolean;
     public has_access_to_templating_options: boolean;
     public has_access_to_create_or_update_crud_templating_option: boolean;
-
+    public has_access_to_viewport_tab: boolean;
     public has_access_to_widgets_tab: boolean;
-
     public has_access_to_menus_tab: boolean;
-
     public has_access_to_shared_filters_tab: boolean;
+    public has_access_to_rights_tab: boolean;
 
     public has_access_to_export_to_json: boolean;
     public has_access_to_import_from_json: boolean;

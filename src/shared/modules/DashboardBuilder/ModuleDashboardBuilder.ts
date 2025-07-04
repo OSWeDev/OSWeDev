@@ -64,6 +64,8 @@ export default class ModuleDashboardBuilder extends Module {
 
     public static POLICY_DBB_ACCESS_ONGLET_TABLE_TABLES_GRAPH = AccessPolicyTools.POLICY_UID_PREFIX + ModuleDashboardBuilder.MODULE_NAME + ".DBB_ACCESS_ONGLET_TABLE_TABLES_GRAPH";
 
+    public static POLICY_DBB_ACCESS_ONGLET_RIGHTS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleDashboardBuilder.MODULE_NAME + ".DBB_ACCESS_ONGLET_RIGHTS";
+
     public static POLICY_DBB_CAN_EXPORT_IMPORT_JSON = AccessPolicyTools.POLICY_UID_PREFIX + ModuleDashboardBuilder.MODULE_NAME + ".DBB_CAN_EXPORT_IMPORT_JSON";
     public static POLICY_DBB_CAN_CREATE_NEW_DB = AccessPolicyTools.POLICY_UID_PREFIX + ModuleDashboardBuilder.MODULE_NAME + ".DBB_CAN_CREATE_NEW_DB";
     public static POLICY_DBB_CAN_DELETE_DB = AccessPolicyTools.POLICY_UID_PREFIX + ModuleDashboardBuilder.MODULE_NAME + ".DBB_CAN_DELETE_DB";
@@ -173,7 +175,31 @@ export default class ModuleDashboardBuilder extends Module {
         ModuleTableFieldController.create_new(DBBConfVO.API_TYPE_ID, field_names<DBBConfVO>().valid_widget_id_ranges, ModuleTableFieldVO.FIELD_TYPE_refrange_array, 'Widgets visibles', true)
             .set_many_to_one_target_moduletable_name(DashboardWidgetVO.API_TYPE_ID);
 
-        ModuleTableController.create_new(this.name, DBBConfVO, null, "Configuration de DashboardBuilder");
+        const label = ModuleTableFieldController.create_new(DBBConfVO.API_TYPE_ID, field_names<DBBConfVO>().name, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Nom de la conf', true).unique();
+        ModuleTableFieldController.create_new(DBBConfVO.API_TYPE_ID, field_names<DBBConfVO>().description, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Description de la conf', true);
+        ModuleTableFieldController.create_new(DBBConfVO.API_TYPE_ID, field_names<DBBConfVO>().is_main_admin_conf, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Conf principale pour les admins', true, true, false);
+        ModuleTableFieldController.create_new(DBBConfVO.API_TYPE_ID, field_names<DBBConfVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true, true, 0); // Permet de trier les confs dans l'interface pour présélectionner la conf la plus pertinente pour l'utilisateur en fonction de son rôle (les confs auxquelles il a accès)
+        ModuleTableFieldController.create_new(DBBConfVO.API_TYPE_ID, field_names<DBBConfVO>().is_active, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Active', true, true, true); // Si false, la conf n'est pas active et ne sera pas utilisée
+        ModuleTableFieldController.create_new(DBBConfVO.API_TYPE_ID, field_names<DBBConfVO>().role_id_ranges, ModuleTableFieldVO.FIELD_TYPE_refrange_array, 'Rôles concernés', true)
+            .set_many_to_one_target_moduletable_name(RoleVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(DBBConfVO.API_TYPE_ID, field_names<DBBConfVO>().valid_moduletable_id_ranges, ModuleTableFieldVO.FIELD_TYPE_refrange_array, 'Tables utilisables', false)
+            .set_many_to_one_target_moduletable_name(ModuleTableVO.API_TYPE_ID); // Si null, toutes les tables sont visibles, le filtre n'est pas appliqué
+        ModuleTableFieldController.create_new(DBBConfVO.API_TYPE_ID, field_names<DBBConfVO>().valid_widget_id_ranges, ModuleTableFieldVO.FIELD_TYPE_refrange_array, 'Widgets utilisables', false)
+            .set_many_to_one_target_moduletable_name(DashboardWidgetVO.API_TYPE_ID); // Si null, tous les widgets sont visibles, le filtre n'est pas appliqué
+
+        ModuleTableFieldController.create_new(DBBConfVO.API_TYPE_ID, field_names<DBBConfVO>().has_access_to_tables_tab, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Accès à l\'onglet Tables', true, true, false);
+        ModuleTableFieldController.create_new(DBBConfVO.API_TYPE_ID, field_names<DBBConfVO>().has_access_to_tables_tab_graph, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Accès à l\'onglet Graph des tables', true, true, false);
+        ModuleTableFieldController.create_new(DBBConfVO.API_TYPE_ID, field_names<DBBConfVO>().has_access_to_templating_options, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Accès aux options de templating', true, true, false);
+        ModuleTableFieldController.create_new(DBBConfVO.API_TYPE_ID, field_names<DBBConfVO>().has_access_to_create_or_update_crud_templating_option, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Accès à la création ou modification des templates CRUD', true, true, false);
+        ModuleTableFieldController.create_new(DBBConfVO.API_TYPE_ID, field_names<DBBConfVO>().has_access_to_viewport_tab, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Accès à l\'onglet Viewport', true, true, false);
+        ModuleTableFieldController.create_new(DBBConfVO.API_TYPE_ID, field_names<DBBConfVO>().has_access_to_widgets_tab, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Accès à l\'onglet Widgets', true, true, true);
+        ModuleTableFieldController.create_new(DBBConfVO.API_TYPE_ID, field_names<DBBConfVO>().has_access_to_menus_tab, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Accès à l\'onglet Menus', true, true, false);
+        ModuleTableFieldController.create_new(DBBConfVO.API_TYPE_ID, field_names<DBBConfVO>().has_access_to_shared_filters_tab, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Accès à l\'onglet Filtres partagés', true, true, false);
+        ModuleTableFieldController.create_new(DBBConfVO.API_TYPE_ID, field_names<DBBConfVO>().has_access_to_rights_tab, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Accès à l\'onglet Droits', true, true, false);
+        ModuleTableFieldController.create_new(DBBConfVO.API_TYPE_ID, field_names<DBBConfVO>().has_access_to_export_to_json, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Accès à l\'export JSON', true, true, false);
+        ModuleTableFieldController.create_new(DBBConfVO.API_TYPE_ID, field_names<DBBConfVO>().has_access_to_import_from_json, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Accès à l\'import JSON', true, true, false);
+
+        ModuleTableController.create_new(this.name, DBBConfVO, label, "Configuration de DashboardBuilder");
     }
 
     /**

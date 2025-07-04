@@ -82,9 +82,9 @@ export default class SelectionPanel extends Vue {
         return res;
     }
 
-    onRemoveSelectedTable() {
+    public async onRemoveSelectedTable() {
         if (!this.selectedTable) return;
-        this.$emit('removeTable', this.selectedTable);
+        await ModuleTablesClientController.removeTable(this.dashboard_id, this.selectedTable);
     }
 
     switch_discarded_field(table: string, field: string) {

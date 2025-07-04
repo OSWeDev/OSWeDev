@@ -17,16 +17,19 @@ interface VueWithSyncVO extends Vue {
     );
 }
 
-interface SyncVOParameters<T extends VueWithSyncVO> {
+interface SyncVOParameters<T extends VueWithSyncVO, V extends IDistantVOBase> {
     watch_fields?: string[];
-    id_factory: (vm: T) => number | IDistantVOBase;
+    id_factory: (vm: T) => number | V;
     deep_watch?: boolean;
     throttle_ms?: number;
+
+    sync_to_store_namespace?: string | ((vm: T) => string);
+    sync_to_store_property?: string;
 }
 
-export function SyncVO<T extends VueWithSyncVO>(
+export function SyncVO<T extends VueWithSyncVO, V extends IDistantVOBase>(
     api_type_id: string,
-    params: SyncVOParameters<T>,
+    params: SyncVOParameters<T, V>,
 ) {
     params.watch_fields = params.watch_fields || [];
 
@@ -56,6 +59,27 @@ export function SyncVO<T extends VueWithSyncVO>(
             if (originalBeforeDestroy) await originalBeforeDestroy.call(this);
             await this.unregister_all_vo_event_callbacks();
         };
+
+        if (params.sync_to_store_namespace) {
+            const updateStore = function (vm: T) {
+
+                // Ajout de la synchro du store en même temps
+                const namespace = typeof params.sync_to_store_namespace === 'function'
+                    ? params.sync_to_store_namespace(vm)
+                    : params.sync_to_store_namespace;
+
+                if (namespace) {
+                    vm.$store.dispatch(
+                        `${namespace}/set_${params.sync_to_store_property || propertyKey}`,
+                        vm[propertyKey]
+                    );
+                }
+            };
+
+            Watch(propertyKey, { deep: true })(target, `__storeWatcher_${propertyKey}`, {
+                value: function () { updateStore(this); }
+            });
+        }
 
         if (params.watch_fields.length && params.id_factory) {
             const watcherMethodName = `__syncVOWatcher_${propertyKey}`;

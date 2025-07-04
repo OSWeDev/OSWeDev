@@ -93,6 +93,8 @@ export default class Patch20250701AddBasicDBBConfs implements IGeneratorWorker {
         conf.has_access_to_shared_filters_tab = true; // Accès à l'onglet Filtres partagés
         conf.has_access_to_export_to_json = true; // Accès à l'export des DB en JSON
         conf.has_access_to_import_from_json = true; // Accès à l'import des DB en JSON
+        conf.has_access_to_viewport_tab = true;
+        conf.has_access_to_rights_tab = true;
 
         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(conf);
     }
@@ -142,6 +144,9 @@ export default class Patch20250701AddBasicDBBConfs implements IGeneratorWorker {
         conf.has_access_to_shared_filters_tab = false; // Par défaut on part du principe que les CMS n'ont pas de filtres
         conf.has_access_to_export_to_json = false; // Par défaut on part du principe que les imports/exports sont pas utiles sur le CMS
         conf.has_access_to_import_from_json = false; // Par défaut on part du principe que les imports/exports sont pas utiles sur le CMS
+
+        conf.has_access_to_viewport_tab = true;
+        conf.has_access_to_rights_tab = false; // Pour le moment ya juste pas d'onglet de gestion des droits...
 
         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(conf);
     }
@@ -204,6 +209,9 @@ export default class Patch20250701AddBasicDBBConfs implements IGeneratorWorker {
         conf.has_access_to_shared_filters_tab = false; // Par défaut on part du principe que les templates de consultation n'ont pas de filtres partagés
         conf.has_access_to_export_to_json = false; // Par défaut on part du principe que les imports/exports sont pas utile sur les templates de consultation
         conf.has_access_to_import_from_json = false; // Par défaut on part du principe que les imports/exports sont pas utiles sur les templates de consultation
+
+        conf.has_access_to_viewport_tab = true;
+        conf.has_access_to_rights_tab = false; // Pour le moment ya juste pas d'onglet de gestion des droits...
 
         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(conf);
     }
@@ -270,6 +278,9 @@ export default class Patch20250701AddBasicDBBConfs implements IGeneratorWorker {
         conf.has_access_to_shared_filters_tab = false; // Par défaut on part du principe que les templates de création / modification n'ont pas de filtres partagés
         conf.has_access_to_export_to_json = false; // Par défaut on part du principe que les imports/exports sont pas utile sur les templates de création / modification
         conf.has_access_to_import_from_json = false; // Par défaut on part du principe que les imports/exports sont pas utiles sur les templates de création / modification
+
+        conf.has_access_to_viewport_tab = true;
+        conf.has_access_to_rights_tab = false; // Pour le moment ya juste pas d'onglet de gestion des droits...
 
         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(conf);
     }

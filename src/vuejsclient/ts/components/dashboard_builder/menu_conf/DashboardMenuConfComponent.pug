@@ -1,5 +1,5 @@
 .dashboard_menu_conf
-    .menus_switches(v-if='dashboard && dashboard.id && !is_loading')
+    .menus_switches(v-if='get_dashboard && get_dashboard.id && !is_loading')
         template(v-for='app_name in app_names')
             .menu_switch
                 .toggle_wrapper

@@ -226,39 +226,13 @@ export default class WidgetOptionsVOManager {
 
     protected static instance: WidgetOptionsVOManager;
 
-    public add_widget_to_page_handler: (widget: DashboardWidgetVO) => Promise<DashboardPageWidgetVO> = null;
+    // public add_widget_to_page_handler: (widget: DashboardWidgetVO) => Promise<DashboardPageWidgetVO> = null;
     public widgets_options_constructor_by_widget_id: { [widget_id: number]: () => any } = {};
     public widgets_options_constructor: { [name: string]: () => any } = {};
     public widgets_get_selected_fields: { [name: string]: (page_widget: DashboardPageWidgetVO) => { [api_type_id: string]: { [field_id: string]: boolean } } } = {};
-    public initialized: boolean = false;
     public sorted_widgets_types: DashboardWidgetVO[] = []; // sorted_widgets_types
     public checked_access: { [access_type: string]: boolean } = {};
 
-    /**
-     * @deprecated use sorted_widgets_types instead
-     */
-    public sorted_widgets: DashboardWidgetVO[] = []; // sorted_widgets_types
-
-    protected constructor() {
-    }
-
-    public async initialize() {
-
-        if (this.initialized) {
-            return;
-        }
-
-        // Check access
-        const has_access = await WidgetOptionsVOManager.check_dashboard_widget_access();
-        if (!has_access) {
-            this.initialized = true;
-            return;
-        }
-
-        await WidgetOptionsVOManager.find_all_sorted_widgets_types({ check_access: false });
-
-        this.initialized = true;
-    }
 
     /**
      * @deprecated use register_widget_type instead

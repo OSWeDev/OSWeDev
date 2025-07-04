@@ -1,6 +1,7 @@
 import { query } from "../../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 import ModuleDAO from "../../../../shared/modules/DAO/ModuleDAO";
 import DashboardGraphVORefVO from "../../../../shared/modules/DashboardBuilder/vos/DashboardGraphVORefVO";
+import DashboardVO from "../../../../shared/modules/DashboardBuilder/vos/DashboardVO";
 import ConsoleHandler from "../../../../shared/tools/ConsoleHandler";
 import LocaleManager from "../../../../shared/tools/LocaleManager";
 import { field_names } from "../../../../shared/tools/ObjectHandler";
@@ -50,9 +51,9 @@ export default class ModuleTablesClientController {
         }
     }
 
-    public static async removeTable(table_name: string) {
+    public static async removeTable(dashboard_id: number, table_name: string) {
 
-        if ((!this.dashboard) || (!this.dashboard.id)) {
+        if (!dashboard_id) {
             return;
         }
 
@@ -62,14 +63,11 @@ export default class ModuleTablesClientController {
 
         try {
             await query(DashboardGraphVORefVO.API_TYPE_ID)
-                .filter_by_id(this.dashboard.id, DashboardVO.API_TYPE_ID)
+                .filter_by_id(dashboard_id, DashboardVO.API_TYPE_ID)
                 .filter_by_text_eq(field_names<DashboardGraphVORefVO>().vo_type, table_name)
                 .delete_vos();
         } catch (error) {
-            ConsoleHandler.error('DashboardBuilderComponent.removeTable:' + error);
+            ConsoleHandler.error('ModuleTablesClientController.removeTable:' + error);
         }
-
-        this.del_api_type_id(table_name);
     }
-
 }

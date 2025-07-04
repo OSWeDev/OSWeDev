@@ -10,6 +10,7 @@ import SelectionPanel from './SelectionPanel/SelectionPanel';
 
 import ModuleTableFieldVO from '../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import ModuleTableVO from '../../../../shared/modules/DAO/vos/ModuleTableVO';
+import ModuleTablesClientController from './ModuleTablesClientController';
 
 @Component({
     components: {
@@ -45,11 +46,11 @@ export default class ModuleTablesComponent extends Vue {
         return Object.keys(this.all_tables_by_table_name).some(tn => !this.tables_by_table_name[tn]);
     }
 
-    onRemoveSelectedTable(tableName: string) {
-        this.$emit('removeTable', tableName);
+    public async onRemoveSelectedTable(tableName: string) {
         if (this.selectedTable === tableName) {
             this.selectedTable = null;
         }
+        await ModuleTablesClientController.removeTable(this.dashboard_id, tableName);
     }
 
     select_table(tableName: string) {

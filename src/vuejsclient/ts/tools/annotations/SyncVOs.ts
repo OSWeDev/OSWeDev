@@ -4,6 +4,7 @@ import EventifyEventListenerConfVO from '../../../../shared/modules/Eventify/vos
 import ContextFilterVO from '../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import SortByVO from '../../../../shared/modules/ContextFilter/vos/SortByVO';
 import DataSynchroController from '../../modules/PushData/DataSynchroController';
+import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 
 interface VueWithSyncVOs extends Vue {
     created?: () => void | Promise<void>;
@@ -18,23 +19,27 @@ interface VueWithSyncVOs extends Vue {
     );
 }
 
-interface SyncVOsParameters<T extends VueWithSyncVOs> {
+interface SyncVOsParameters<T extends VueWithSyncVOs, V extends IDistantVOBase> {
     watch_fields?: string[];
     filters_factory?: (vm: T) => any | null;
     simple_sorts_by_on_api_type_id?: SortByVO[];
     deep_watch?: boolean;
     throttle_ms?: number;
+
     sync_to_store_namespace?: string | ((vm: T) => string);
     sync_to_store_property?: string;
 }
 
-export function SyncVOs<T extends VueWithSyncVOs>(
+export function SyncVOs<T extends VueWithSyncVOs, V extends IDistantVOBase>(
     api_type_id: string,
-    params: SyncVOsParameters<T> = {},
+    params: SyncVOsParameters<T, V> = {},
 ) {
     params.watch_fields = params.watch_fields || [];
     params.simple_sorts_by_on_api_type_id = params.simple_sorts_by_on_api_type_id || [];
-    return function (target: T, propertyKey: string) {
+    return function (
+        target: T,
+        propertyKey: { [K in keyof T]: T[K] extends Array<V> ? K : never }[keyof T],
+    ) {
         const originalCreated = target.created;
 
         target.created = async function () {
@@ -63,19 +68,19 @@ export function SyncVOs<T extends VueWithSyncVOs>(
 
                 if (namespace) {
                     vm.$store.dispatch(
-                        `${namespace}/set_${params.sync_to_store_property || propertyKey}`,
+                        `${namespace}/set_${params.sync_to_store_property || propertyKey as string}`,
                         vm[propertyKey]
                     );
                 }
             };
 
-            Watch(propertyKey, { deep: true })(target, `__storeWatcher_${propertyKey}`, {
+            Watch(propertyKey as string, { deep: true })(target, `__storeWatcher_${propertyKey as string}`, {
                 value: function () { updateStore(this); }
             });
         }
 
         if (params.watch_fields.length && params.filters_factory) {
-            const watcherMethodName = `__syncVOsWatcher_${propertyKey}`;
+            const watcherMethodName = `__syncVOsWatcher_${propertyKey as string}`;
 
             Object.defineProperty(target, watcherMethodName, {
                 value: Throttle({
@@ -113,7 +118,7 @@ export function SyncVOs<T extends VueWithSyncVOs>(
 
                         this.__previousSyncVOFilters = newFilters;
 
-                        await (this as VueWithSyncVOs).register_vo_updates_on_list(api_type_id, propertyKey, newFilters, params.simple_sorts_by_on_api_type_id);
+                        await (this as VueWithSyncVOs).register_vo_updates_on_list(api_type_id, propertyKey as string, newFilters, params.simple_sorts_by_on_api_type_id);
                     }
                 }).value
             });

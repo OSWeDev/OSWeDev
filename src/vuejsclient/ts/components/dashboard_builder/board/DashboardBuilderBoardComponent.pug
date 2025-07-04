@@ -9,8 +9,8 @@
     )
 
     //- (@click="(event) => select_widget_and_stop(event, null)")
-    .grid_wrapper(:class="{ filter_plie: (dashboard_page.group_filters && !is_filtres_deplie) }")
-        template(v-if='(!editable_dashboard_page) || (editable_dashboard_page.id != dashboard_page.id)')
+    .grid_wrapper(:class="{ filter_plie: (get_dashboard_page.group_filters && !is_filtres_deplie) }")
+        template(v-if='(!editable_dashboard_page) || (editable_dashboard_page.id != get_dashboard_page.id)')
             i.fa-solid.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
         template(v-else)
             Gridlayout(
@@ -24,13 +24,13 @@
                 :prevent-collision="true"
                 :use-css-transforms="true"
                 :margin="[10, 10]"
-                :key="'Gridlayout__' + dashboard_page.id"
+                :key="'Gridlayout__' + get_dashboard_page.id"
             )
-                template(v-if="dashboard_page.group_filters")
+                template(v-if="get_dashboard_page.group_filters")
                     .filters-bloc.mt-3
                         .header-filters-bloc.clickable(@click="change_is_filtres_deplie")
                             .text-center.mb-2
-                                Inlinetranslatabletext(:code_text="dashboard_page.titre_groupe_filtres" :is_editable="editable" default_translation="Filtres")
+                                Inlinetranslatabletext(:code_text="get_dashboard_page.titre_groupe_filtres" :is_editable="editable" default_translation="Filtres")
                             .text-right.chevron
                                 template(v-if="is_filtres_deplie")
                                     i.fa-solid.fa-chevron-up
@@ -40,13 +40,13 @@
                         .row.body-filters-bloc(v-show="is_filtres_deplie")
                             template(v-for="item in editable_dashboard_page.layout")
                                 template(v-if='!item.hide')
-                                    template(v-if='widgets_by_id[item.widget_id].is_filter')
+                                    template(v-if='get_widgets_by_id[item.widget_id].is_filter')
                                         include ./grid_item.pug
 
                     .datatable-bloc
                         template(v-for="item in editable_dashboard_page.layout")
                             template(v-if='!item.hide')
-                                template(v-if='!widgets_by_id[item.widget_id].is_filter')
+                                template(v-if='!get_widgets_by_id[item.widget_id].is_filter')
                                     include ./grid_item.pug
 
                 template(v-else)
