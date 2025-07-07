@@ -164,10 +164,8 @@
             .row(v-if='selected_onglet == "onglet_table"')
                 
                 .col-sm-3.crud_db_link_wrapper
-                    Cruddblinkcomponent(
-                        :dashboard='dashboard' 
-                    )
-
+                    Cruddblinkcomponent
+                    
                 .col-sm-9.tables_graph_wrapper(v-if="POLICY_DBB_ACCESS_ONGLET_TABLE_TABLES_GRAPH")
                     Moduletablescomponent(
                         :fields_by_table_name_and_field_name='fields_by_table_name_and_field_name'

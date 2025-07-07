@@ -1,5 +1,5 @@
 import Component from 'vue-class-component';
-import { Inject, Prop, Watch } from 'vue-property-decorator';
+import { Inject, Watch } from 'vue-property-decorator';
 import Throttle from '../../../../../shared/annotations/Throttle';
 import ModuleAccessPolicy from '../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
@@ -12,10 +12,9 @@ import DashboardVO from '../../../../../shared/modules/DashboardBuilder/vos/Dash
 import EventifyEventListenerConfVO from '../../../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO';
 import ObjectHandler, { field_names, reflect } from '../../../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../../../shared/tools/PromiseTools';
+import ModuleTablesClientController from '../../module_tables/ModuleTablesClientController';
 import VueComponentBase from '../../VueComponentBase';
 import './CrudDBLinkComponent.scss';
-import DashboardGraphVORefVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardGraphVORefVO';
-import ModuleTablesComponent from '../../module_tables/ModuleTablesComponent';
 
 @Component({
     template: require('./CrudDBLinkComponent.pug'),
@@ -23,9 +22,6 @@ import ModuleTablesComponent from '../../module_tables/ModuleTablesComponent';
     }
 })
 export default class CrudDBLinkComponent extends VueComponentBase {
-    @Prop({ default: null })
-    public readonly dashboard: DashboardVO;
-
     @Inject('storeNamespace') readonly storeNamespace!: string;
 
     public selected_vo_type: string = null;
@@ -43,39 +39,43 @@ export default class CrudDBLinkComponent extends VueComponentBase {
     private POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_READ: boolean = false;
     private POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_UPDATE: boolean = false;
 
-    get active_api_type_ids(): string[] {
-        return this.vuexGet<string[]>(reflect<this>().active_api_type_ids);
+    get get_dashboard(): DashboardVO {
+        return this.vuexGet<DashboardVO>(reflect<CrudDBLinkComponent>().get_dashboard);
     }
 
-    @Watch(reflect<CrudDBLinkComponent>().dashboard, { immediate: true })
+    get get_active_api_type_ids(): string[] {
+        return this.vuexGet<string[]>(reflect<this>().get_active_api_type_ids);
+    }
+
+    @Watch(reflect<CrudDBLinkComponent>().get_dashboard, { immediate: true })
     private async onchange_dashboard() {
-        if (this.dashboard) {
+        if (this.get_dashboard) {
 
             // Init selected_vo_type
-            if (this.dashboard.moduletable_crud_template_ref_id && ModuleTableController.module_tables_by_vo_id[this.dashboard.moduletable_crud_template_ref_id].vo_type != this.selected_vo_type) {
-                this.selected_vo_type = ModuleTableController.module_tables_by_vo_id[this.dashboard.moduletable_crud_template_ref_id].vo_type;
-            } else if ((!this.dashboard.moduletable_crud_template_ref_id) && (!!this.selected_vo_type)) {
+            if (this.get_dashboard.moduletable_crud_template_ref_id && ModuleTableController.module_tables_by_vo_id[this.get_dashboard.moduletable_crud_template_ref_id].vo_type != this.selected_vo_type) {
+                this.selected_vo_type = ModuleTableController.module_tables_by_vo_id[this.get_dashboard.moduletable_crud_template_ref_id].vo_type;
+            } else if ((!this.get_dashboard.moduletable_crud_template_ref_id) && (!!this.selected_vo_type)) {
                 this.selected_vo_type = null;
             }
 
             // Init option_formulaire
-            if (this.dashboard.moduletable_crud_template_form != this.option_formulaire) {
-                this.option_formulaire = this.dashboard.moduletable_crud_template_form;
+            if (this.get_dashboard.moduletable_crud_template_form != this.option_formulaire) {
+                this.option_formulaire = this.get_dashboard.moduletable_crud_template_form;
             }
 
             // Init option_template_xxx
             let target_option_template_create: boolean = false;
             let target_option_template_read: boolean = false;
             let target_option_template_update: boolean = false;
-            if (this.dashboard.moduletable_crud_template_ref_id) {
+            if (this.get_dashboard.moduletable_crud_template_ref_id) {
                 const crud_db_link_vo: CRUDDBLinkVO = await query(CRUDDBLinkVO.API_TYPE_ID)
-                    .filter_by_id(this.dashboard.moduletable_crud_template_ref_id, ModuleTableVO.API_TYPE_ID)
+                    .filter_by_id(this.get_dashboard.moduletable_crud_template_ref_id, ModuleTableVO.API_TYPE_ID)
                     .select_vo<CRUDDBLinkVO>();
 
                 if (crud_db_link_vo) {
-                    target_option_template_create = crud_db_link_vo.template_create_db_ref_id == this.dashboard.id;
-                    target_option_template_read = crud_db_link_vo.template_read_db_ref_id == this.dashboard.id;
-                    target_option_template_update = crud_db_link_vo.template_update_db_ref_id == this.dashboard.id;
+                    target_option_template_create = crud_db_link_vo.template_create_db_ref_id == this.get_dashboard.id;
+                    target_option_template_read = crud_db_link_vo.template_read_db_ref_id == this.get_dashboard.id;
+                    target_option_template_update = crud_db_link_vo.template_update_db_ref_id == this.get_dashboard.id;
                 }
             }
 
@@ -113,11 +113,11 @@ export default class CrudDBLinkComponent extends VueComponentBase {
     private async onchange_selected_vo_type() {
         if (!!this.selected_vo_type) {
             // Si la table est déjà liée au DB, osef, sinon on doit l'ajouter
-            if (this.active_api_type_ids.indexOf(this.selected_vo_type) >= 0) {
+            if (this.get_active_api_type_ids.indexOf(this.selected_vo_type) >= 0) {
                 // La table est déjà liée, on ne fait rien
             } else {
                 // On ajoute la table au DB en l'ajoutant au graph
-                await ModuleTablesComponent.add_new_default_table(this.dashboard.id, this.selected_vo_type);
+                await ModuleTablesClientController.add_new_default_table(this.get_dashboard.id, this.selected_vo_type);
             }
         } else {
             if (!!this.option_formulaire) {
@@ -219,41 +219,41 @@ export default class CrudDBLinkComponent extends VueComponentBase {
     }
 
     private async update_dashboard_vo() {
-        if (!this.dashboard) {
+        if (!this.get_dashboard) {
             return;
         }
 
         const diffs = {};
-        if (this.dashboard.moduletable_crud_template_ref_id != ModuleTableController.module_tables_by_vo_type[this.selected_vo_type].id) {
-            this.dashboard.moduletable_crud_template_ref_id = ModuleTableController.module_tables_by_vo_type[this.selected_vo_type].id;
-            diffs[field_names<DashboardVO>().moduletable_crud_template_ref_id] = this.dashboard.moduletable_crud_template_ref_id;
+        if (this.get_dashboard.moduletable_crud_template_ref_id != ModuleTableController.module_tables_by_vo_type[this.selected_vo_type].id) {
+            this.get_dashboard.moduletable_crud_template_ref_id = ModuleTableController.module_tables_by_vo_type[this.selected_vo_type].id;
+            diffs[field_names<DashboardVO>().moduletable_crud_template_ref_id] = this.get_dashboard.moduletable_crud_template_ref_id;
         }
 
-        if (this.dashboard.moduletable_crud_template_form != this.option_formulaire) {
-            this.dashboard.moduletable_crud_template_form = this.option_formulaire;
-            diffs[field_names<DashboardVO>().moduletable_crud_template_form] = this.dashboard.moduletable_crud_template_form;
+        if (this.get_dashboard.moduletable_crud_template_form != this.option_formulaire) {
+            this.get_dashboard.moduletable_crud_template_form = this.option_formulaire;
+            diffs[field_names<DashboardVO>().moduletable_crud_template_form] = this.get_dashboard.moduletable_crud_template_form;
         }
 
         if (ObjectHandler.hasAtLeastOneAttribute(diffs)) {
             await query(DashboardVO.API_TYPE_ID)
                 .exec_as_server()
-                .filter_by_id(this.dashboard.id)
+                .filter_by_id(this.get_dashboard.id)
                 .update_vos<DashboardVO>(diffs);
         }
     }
 
     private async update_crud_db_link_vo() {
-        if (!this.dashboard) {
+        if (!this.get_dashboard) {
             return;
         }
 
 
-        if ((!this.dashboard.moduletable_crud_template_ref_id) || (!this.option_template_create && !this.option_template_read && !this.option_template_update)) {
+        if ((!this.get_dashboard.moduletable_crud_template_ref_id) || (!this.option_template_create && !this.option_template_read && !this.option_template_update)) {
 
             // Si on a une conf de crud db link, et qu'elle fait référence à ce db, on doit retirer le lien
             const template_create_db_ref_id_crud_db_link_vo: CRUDDBLinkVO = await query(CRUDDBLinkVO.API_TYPE_ID)
                 .exec_as_server()
-                .filter_by_num_eq(field_names<CRUDDBLinkVO>().template_create_db_ref_id, this.dashboard.id)
+                .filter_by_num_eq(field_names<CRUDDBLinkVO>().template_create_db_ref_id, this.get_dashboard.id)
                 .select_vo<CRUDDBLinkVO>();
             if (template_create_db_ref_id_crud_db_link_vo) {
                 template_create_db_ref_id_crud_db_link_vo.template_create_db_ref_id = null;
@@ -262,7 +262,7 @@ export default class CrudDBLinkComponent extends VueComponentBase {
 
             const template_read_db_ref_id_crud_db_link_vo: CRUDDBLinkVO = await query(CRUDDBLinkVO.API_TYPE_ID)
                 .exec_as_server()
-                .filter_by_num_eq(field_names<CRUDDBLinkVO>().template_read_db_ref_id, this.dashboard.id)
+                .filter_by_num_eq(field_names<CRUDDBLinkVO>().template_read_db_ref_id, this.get_dashboard.id)
                 .select_vo<CRUDDBLinkVO>();
             if (template_read_db_ref_id_crud_db_link_vo) {
                 template_read_db_ref_id_crud_db_link_vo.template_read_db_ref_id = null;
@@ -272,7 +272,7 @@ export default class CrudDBLinkComponent extends VueComponentBase {
 
             const template_update_db_ref_id_crud_db_link_vo: CRUDDBLinkVO = await query(CRUDDBLinkVO.API_TYPE_ID)
                 .exec_as_server()
-                .filter_by_num_eq(field_names<CRUDDBLinkVO>().template_update_db_ref_id, this.dashboard.id)
+                .filter_by_num_eq(field_names<CRUDDBLinkVO>().template_update_db_ref_id, this.get_dashboard.id)
                 .select_vo<CRUDDBLinkVO>();
             if (template_update_db_ref_id_crud_db_link_vo) {
                 template_update_db_ref_id_crud_db_link_vo.template_update_db_ref_id = null;
@@ -285,15 +285,15 @@ export default class CrudDBLinkComponent extends VueComponentBase {
         // Pour chacun, si on trouve la ref, on met à jour au besoin, sinon on crée
         let crud_db_link_vo: CRUDDBLinkVO = await query(CRUDDBLinkVO.API_TYPE_ID)
             .exec_as_server()
-            .filter_by_id(this.dashboard.moduletable_crud_template_ref_id)
+            .filter_by_id(this.get_dashboard.moduletable_crud_template_ref_id)
             .select_vo<CRUDDBLinkVO>();
 
         if ((!crud_db_link_vo) && ((this.option_formulaire && (this.option_template_create || this.option_template_update)) || this.option_template_read)) {
             crud_db_link_vo = new CRUDDBLinkVO();
             crud_db_link_vo.moduletable_ref_id = ModuleTableController.module_tables_by_vo_type[this.selected_vo_type].id;
-            crud_db_link_vo.template_create_db_ref_id = this.option_template_create ? this.dashboard.id : null;
-            crud_db_link_vo.template_read_db_ref_id = this.option_template_read ? this.dashboard.id : null;
-            crud_db_link_vo.template_update_db_ref_id = this.option_template_update ? this.dashboard.id : null;
+            crud_db_link_vo.template_create_db_ref_id = this.option_template_create ? this.get_dashboard.id : null;
+            crud_db_link_vo.template_read_db_ref_id = this.option_template_read ? this.get_dashboard.id : null;
+            crud_db_link_vo.template_update_db_ref_id = this.option_template_update ? this.get_dashboard.id : null;
 
             await ModuleDAO.getInstance().insertOrUpdateVO(crud_db_link_vo);
             return;
@@ -302,24 +302,24 @@ export default class CrudDBLinkComponent extends VueComponentBase {
         if (crud_db_link_vo) {
             // On a une conf, on met à jour au besoin
             let need_update = false;
-            if (this.option_template_create && (crud_db_link_vo.template_create_db_ref_id != this.dashboard.id)) {
-                crud_db_link_vo.template_create_db_ref_id = this.dashboard.id;
+            if (this.option_template_create && (crud_db_link_vo.template_create_db_ref_id != this.get_dashboard.id)) {
+                crud_db_link_vo.template_create_db_ref_id = this.get_dashboard.id;
                 need_update = true;
-            } else if (!this.option_template_create && (crud_db_link_vo.template_create_db_ref_id == this.dashboard.id)) {
+            } else if (!this.option_template_create && (crud_db_link_vo.template_create_db_ref_id == this.get_dashboard.id)) {
                 crud_db_link_vo.template_create_db_ref_id = null;
                 need_update = true;
             }
-            if (this.option_template_read && (crud_db_link_vo.template_read_db_ref_id != this.dashboard.id)) {
-                crud_db_link_vo.template_read_db_ref_id = this.dashboard.id;
+            if (this.option_template_read && (crud_db_link_vo.template_read_db_ref_id != this.get_dashboard.id)) {
+                crud_db_link_vo.template_read_db_ref_id = this.get_dashboard.id;
                 need_update = true;
-            } else if (!this.option_template_read && (crud_db_link_vo.template_read_db_ref_id == this.dashboard.id)) {
+            } else if (!this.option_template_read && (crud_db_link_vo.template_read_db_ref_id == this.get_dashboard.id)) {
                 crud_db_link_vo.template_read_db_ref_id = null;
                 need_update = true;
             }
-            if (this.option_template_update && (crud_db_link_vo.template_update_db_ref_id != this.dashboard.id)) {
-                crud_db_link_vo.template_update_db_ref_id = this.dashboard.id;
+            if (this.option_template_update && (crud_db_link_vo.template_update_db_ref_id != this.get_dashboard.id)) {
+                crud_db_link_vo.template_update_db_ref_id = this.get_dashboard.id;
                 need_update = true;
-            } else if (!this.option_template_update && (crud_db_link_vo.template_update_db_ref_id == this.dashboard.id)) {
+            } else if (!this.option_template_update && (crud_db_link_vo.template_update_db_ref_id == this.get_dashboard.id)) {
                 crud_db_link_vo.template_update_db_ref_id = null;
                 need_update = true;
             }

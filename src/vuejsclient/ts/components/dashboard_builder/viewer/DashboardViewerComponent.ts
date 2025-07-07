@@ -3,10 +3,8 @@ import { Prop, Provide, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import SortByVO from '../../../../../shared/modules/ContextFilter/vos/SortByVO';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
-import DashboardBuilderBoardManager from '../../../../../shared/modules/DashboardBuilder/manager/DashboardBuilderBoardManager';
 import DashboardPageVOManager from '../../../../../shared/modules/DashboardBuilder/manager/DashboardPageVOManager';
 import DashboardVOManager from '../../../../../shared/modules/DashboardBuilder/manager/DashboardVOManager';
-import WidgetOptionsVOManager from '../../../../../shared/modules/DashboardBuilder/manager/WidgetOptionsVOManager';
 import ModuleDashboardBuilder from '../../../../../shared/modules/DashboardBuilder/ModuleDashboardBuilder';
 import DashboardPageVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
@@ -14,13 +12,12 @@ import DashboardVO from '../../../../../shared/modules/DashboardBuilder/vos/Dash
 import FieldFiltersVO from '../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import SharedFiltersVO from '../../../../../shared/modules/DashboardBuilder/vos/SharedFiltersVO';
 import { field_names, reflect } from '../../../../../shared/tools/ObjectHandler';
-import WeightHandler from '../../../../../shared/tools/WeightHandler';
+import { SyncVO } from '../../../tools/annotations/SyncVO';
 import InlineTranslatableText from '../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../VueComponentBase';
 import DashboardBuilderBoardComponent from '../board/DashboardBuilderBoardComponent';
 import DashboardPageStore from '../page/DashboardPageStore';
 import './DashboardViewerComponent.scss';
-import { SyncVO } from '../../../tools/annotations/SyncVO';
 
 @Component({
     template: require('./DashboardViewerComponent.pug'),
@@ -48,10 +45,15 @@ export default class DashboardViewerComponent extends VueComponentBase {
     @Provide('storeNamespace')
     public readonly storeNamespace = `dashboardStore_${DashboardPageStore.__UID++}`;
 
-    public pages: DashboardPageVO[] = [];
-    public page: DashboardPageVO = null;
-
     public can_edit: boolean = false;
+
+    get get_dashboard_page(): DashboardPageVO {
+        return this.vuexGet<DashboardPageVO>(reflect<this>().get_dashboard_page);
+    }
+
+    get get_dashboard_pages(): DashboardPageVO[] {
+        return this.vuexGet<DashboardPageVO[]>(reflect<this>().get_dashboard_pages);
+    }
 
     get get_page_history(): DashboardPageVO[] {
         return this.vuexGet<DashboardPageVO[]>(reflect<this>().get_page_history);
@@ -72,14 +74,14 @@ export default class DashboardViewerComponent extends VueComponentBase {
 
     get visible_pages(): DashboardPageVO[] {
 
-        if (!this.pages) {
+        if (!this.get_dashboard_pages) {
             return null;
         }
 
         const res: DashboardPageVO[] = [];
 
-        for (const i in this.pages) {
-            const page = this.pages[i];
+        for (const i in this.get_dashboard_pages) {
+            const page = this.get_dashboard_pages[i];
             if (!page.hide_navigation) {
                 res.push(page);
             }
@@ -88,7 +90,12 @@ export default class DashboardViewerComponent extends VueComponentBase {
         return res;
     }
 
-    @Watch("dashboard")
+    @Watch(reflect<DashboardViewerComponent>().get_dashboard_page)
+    public onchange_page() {
+        this.set_selected_widget(null);
+    }
+
+    @Watch(reflect<DashboardViewerComponent>().dashboard)
     public async onchange_dashboard() {
         // We should load the shared_filters with the current dashboard
         await DashboardVOManager.load_shared_filters_with_dashboard(
@@ -104,7 +111,7 @@ export default class DashboardViewerComponent extends VueComponentBase {
      *  on pourrait vouloir garder les filtres communs aussi => non implémenté (il faut un switch et supprimer les filtres non applicables aux widgets du dashboard)
      *  et on pourrait vouloir garder tous les filtres => non implémenté (il faut un switch et simplement ne pas supprimer les filtres)
      */
-    @Watch("dashboard_id")
+    @Watch(reflect<DashboardViewerComponent>().dashboard_id)
     public async onchange_dashboard_id() {
         this.loading = true;
 
@@ -134,31 +141,6 @@ export default class DashboardViewerComponent extends VueComponentBase {
             this.loading = false;
             return;
         }
-
-        this.dashboard = await DashboardVOManager.find_dashboard_by_id(
-            this.dashboard_id
-        );
-
-        if (!this.dashboard) {
-            this.can_edit = false;
-            this.loading = false;
-            return;
-        }
-
-        this.pages = await this.load_dashboard_pages_by_dashboard_id(
-            this.dashboard.id
-        );
-
-        if (!this.pages) {
-            this.isLoading = false;
-            this.can_edit = false;
-            return;
-        }
-
-        WidgetOptionsVOManager.getInstance().initialize();
-
-        WeightHandler.getInstance().sortByWeight(this.pages);
-        this.page = this.pages[0];
 
         this.can_edit = await ModuleAccessPolicy.getInstance().testAccess(
             ModuleDashboardBuilder.POLICY_BO_ACCESS
@@ -221,15 +203,20 @@ export default class DashboardViewerComponent extends VueComponentBase {
         this.$store.unregisterModule(this.storeNamespace);
     }
 
+    public set_dashboard_page(page: DashboardPageVO) {
+        this.vuexAct<DashboardPageVO>(reflect<this>().set_dashboard_page, page);
+    }
+
     public select_previous_page() {
-        this.page = this.get_page_history[this.get_page_history.length - 1];
+        this.set_dashboard_page(this.get_page_history[this.get_page_history.length - 1]);
         this.pop_page_history(null);
     }
 
     public select_page_clear_navigation(page: DashboardPageVO) {
         this.set_page_history([]);
-        this.page = page;
+        this.set_dashboard_page(page);
     }
+
 
 
     /**
@@ -260,18 +247,7 @@ export default class DashboardViewerComponent extends VueComponentBase {
     }
 
     public select_page(page: DashboardPageVO) {
-        this.add_page_history(this.page);
-        this.set_selected_widget(null);
-        this.page = page;
+        this.add_page_history(this.get_dashboard_page);
+        this.set_dashboard_page(page);
     }
-
-    // public mounted() {
-    //     let body = document.getElementById('page-top');
-    //     body.classList.add("sidenav-toggled");
-    // }
-
-    // public beforeDestroy() {
-    //     let body = document.getElementById('page-top');
-    //     body.classList.remove("sidenav-toggled");
-    // }
 }

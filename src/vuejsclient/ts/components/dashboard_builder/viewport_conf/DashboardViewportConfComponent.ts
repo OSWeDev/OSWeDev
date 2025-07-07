@@ -23,11 +23,12 @@ export default class DashboardViewportConfComponent extends VueComponentBase {
 
     @Inject('storeNamespace') readonly storeNamespace!: string;
 
-    @Prop()
-    private dashboard: DashboardVO;
-
     get get_selected_viewport(): DashboardViewportVO {
         return this.vuexGet<DashboardViewportVO>(reflect<this>().get_selected_viewport);
+    }
+
+    get get_dashboard(): DashboardVO {
+        return this.vuexGet<DashboardVO>(reflect<this>().get_dashboard);
     }
 
     // Accès dynamiques Vuex
