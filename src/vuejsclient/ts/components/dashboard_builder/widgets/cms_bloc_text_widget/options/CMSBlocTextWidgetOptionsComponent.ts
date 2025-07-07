@@ -3,16 +3,16 @@ import 'quill/dist/quill.bubble.css'; // Compliqué à lazy load
 import 'quill/dist/quill.core.css'; // Compliqué à lazy load
 import 'quill/dist/quill.snow.css'; // Compliqué à lazy load
 import Component from 'vue-class-component';
-import { Prop, Watch } from 'vue-property-decorator';
+import { Inject, Prop, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import CMSBlocTextWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/CMSBlocTextWidgetOptionsVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
+import { reflect } from '../../../../../../../shared/tools/ObjectHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../../VueComponentBase';
 import SingleVoFieldRefHolderComponent from '../../../options_tools/single_vo_field_ref_holder/SingleVoFieldRefHolderComponent';
-import { ModuleDashboardPageAction } from '../../../page/DashboardPageStore';
 import './CMSBlocTextWidgetOptionsComponent.scss';
 
 @Component({
@@ -22,33 +22,31 @@ import './CMSBlocTextWidgetOptionsComponent.scss';
     }
 })
 export default class CMSBlocTextWidgetOptionsComponent extends VueComponentBase {
+    @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @Prop({ default: null })
-    private page_widget: DashboardPageWidgetVO;
+    public page_widget: DashboardPageWidgetVO;
 
-    @ModuleDashboardPageAction
-    private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
+    public titre: string = null;
+    public sous_titre: string = null;
+    public sur_titre: string = null;
+    public contenu: string = null;
+    public use_for_template: boolean = false;
+    public titre_field_ref_for_template: VOFieldRefVO = null;
+    public sous_titre_field_ref_for_template: VOFieldRefVO = null;
+    public sur_titre_field_ref_for_template: VOFieldRefVO = null;
+    public contenu_field_ref_for_template: VOFieldRefVO = null;
+    public titre_template_is_date: boolean = false;
+    public sous_titre_template_is_date: boolean = false;
+    public sur_titre_template_is_date: boolean = false;
+    public contenu_template_is_date: boolean = false;
+    public sous_titre_symbole: string = null;
+    public titre_class: string = null;
+    public sous_titre_class: string = null;
+    public sur_titre_class: string = null;
+    public contenu_class: string = null;
 
-    private titre: string = null;
-    private sous_titre: string = null;
-    private sur_titre: string = null;
-    private contenu: string = null;
-    private use_for_template: boolean = false;
-    private titre_field_ref_for_template: VOFieldRefVO = null;
-    private sous_titre_field_ref_for_template: VOFieldRefVO = null;
-    private sur_titre_field_ref_for_template: VOFieldRefVO = null;
-    private contenu_field_ref_for_template: VOFieldRefVO = null;
-    private titre_template_is_date: boolean = false;
-    private sous_titre_template_is_date: boolean = false;
-    private sur_titre_template_is_date: boolean = false;
-    private contenu_template_is_date: boolean = false;
-    private sous_titre_symbole: string = null;
-    private titre_class: string = null;
-    private sous_titre_class: string = null;
-    private sur_titre_class: string = null;
-    private contenu_class: string = null;
-
-    private optionsEditeur = {
+    public optionsEditeur = {
         modules: {
             toolbar: [
                 ['bold', 'italic', 'underline', 'strike'],      // Boutons pour le gras, italique, souligné, barré
@@ -64,8 +62,8 @@ export default class CMSBlocTextWidgetOptionsComponent extends VueComponentBase 
         }
     };
 
-    private next_update_options: CMSBlocTextWidgetOptionsVO = null;
-    private throttled_update_options = ThrottleHelper.declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
+    public next_update_options: CMSBlocTextWidgetOptionsVO = null;
+    public throttled_update_options = ThrottleHelper.declare_throttle_without_args('CMSBlocTextWidgetOptionsComponent.update_options', this.update_options.bind(this), 50, false);
 
 
     get widget_options(): CMSBlocTextWidgetOptionsVO {
@@ -86,8 +84,8 @@ export default class CMSBlocTextWidgetOptionsComponent extends VueComponentBase 
         return options;
     }
 
-    @Watch('widget_options', { immediate: true, deep: true })
-    private async onchange_widget_options() {
+    @Watch(reflect<CMSBlocTextWidgetOptionsComponent>().widget_options, { immediate: true, deep: true })
+    public async onchange_widget_options() {
         if (!this.widget_options) {
             this.titre = null;
             this.sous_titre = null;
@@ -130,25 +128,25 @@ export default class CMSBlocTextWidgetOptionsComponent extends VueComponentBase 
         this.contenu_field_ref_for_template = this.widget_options.contenu_field_ref_for_template ? Object.assign(new VOFieldRefVO(), this.widget_options.contenu_field_ref_for_template) : null;
     }
 
-    @Watch('titre')
-    @Watch('sous_titre')
-    @Watch('sur_titre')
-    @Watch('contenu')
-    @Watch('sous_titre_symbole')
-    @Watch('use_for_template')
-    @Watch('titre_template_is_date')
-    @Watch('sous_titre_template_is_date')
-    @Watch('sur_titre_template_is_date')
-    @Watch('contenu_template_is_date')
-    @Watch('titre_field_ref_for_template')
-    @Watch('sous_titre_field_ref_for_template')
-    @Watch('sur_titre_field_ref_for_template')
-    @Watch('contenu_field_ref_for_template')
-    @Watch('titre_class')
-    @Watch('sous_titre_class')
-    @Watch('sur_titre_class')
-    @Watch('contenu_class')
-    private async onchange_bloc_text() {
+    @Watch(reflect<CMSBlocTextWidgetOptionsComponent>().titre)
+    @Watch(reflect<CMSBlocTextWidgetOptionsComponent>().sous_titre)
+    @Watch(reflect<CMSBlocTextWidgetOptionsComponent>().sur_titre)
+    @Watch(reflect<CMSBlocTextWidgetOptionsComponent>().contenu)
+    @Watch(reflect<CMSBlocTextWidgetOptionsComponent>().sous_titre_symbole)
+    @Watch(reflect<CMSBlocTextWidgetOptionsComponent>().use_for_template)
+    @Watch(reflect<CMSBlocTextWidgetOptionsComponent>().titre_template_is_date)
+    @Watch(reflect<CMSBlocTextWidgetOptionsComponent>().sous_titre_template_is_date)
+    @Watch(reflect<CMSBlocTextWidgetOptionsComponent>().sur_titre_template_is_date)
+    @Watch(reflect<CMSBlocTextWidgetOptionsComponent>().contenu_template_is_date)
+    @Watch(reflect<CMSBlocTextWidgetOptionsComponent>().titre_field_ref_for_template)
+    @Watch(reflect<CMSBlocTextWidgetOptionsComponent>().sous_titre_field_ref_for_template)
+    @Watch(reflect<CMSBlocTextWidgetOptionsComponent>().sur_titre_field_ref_for_template)
+    @Watch(reflect<CMSBlocTextWidgetOptionsComponent>().contenu_field_ref_for_template)
+    @Watch(reflect<CMSBlocTextWidgetOptionsComponent>().titre_class)
+    @Watch(reflect<CMSBlocTextWidgetOptionsComponent>().sous_titre_class)
+    @Watch(reflect<CMSBlocTextWidgetOptionsComponent>().sur_titre_class)
+    @Watch(reflect<CMSBlocTextWidgetOptionsComponent>().contenu_class)
+    public async onchange_bloc_text() {
         if (!this.widget_options) {
             return;
         }
@@ -195,7 +193,7 @@ export default class CMSBlocTextWidgetOptionsComponent extends VueComponentBase 
         }
     }
 
-    private async mounted() {
+    public async mounted() {
 
         if (!this.widget_options) {
 
@@ -208,7 +206,7 @@ export default class CMSBlocTextWidgetOptionsComponent extends VueComponentBase 
         await this.throttled_update_options();
     }
 
-    private get_default_options(): CMSBlocTextWidgetOptionsVO {
+    public get_default_options(): CMSBlocTextWidgetOptionsVO {
         return CMSBlocTextWidgetOptionsVO.createNew(
             "",
             "",
@@ -231,7 +229,20 @@ export default class CMSBlocTextWidgetOptionsComponent extends VueComponentBase 
         );
     }
 
-    private async update_options() {
+    // Accès dynamiques Vuex
+    public vuexGet<T>(getter: string): T {
+        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    }
+    public vuexAct<A>(action: string, payload?: A) {
+        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    }
+
+    public set_page_widget(page_widget: DashboardPageWidgetVO): void {
+        this.vuexAct<DashboardPageWidgetVO>(reflect<CMSBlocTextWidgetOptionsComponent>().set_page_widget, page_widget);
+    }
+
+
+    public async update_options() {
         try {
             this.page_widget.json_options = JSON.stringify(this.next_update_options);
         } catch (error) {
@@ -248,7 +259,7 @@ export default class CMSBlocTextWidgetOptionsComponent extends VueComponentBase 
         this.$emit('update_layout_widget', this.page_widget);
     }
 
-    private async switch_titre_template_is_date() {
+    public async switch_titre_template_is_date() {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
@@ -260,7 +271,7 @@ export default class CMSBlocTextWidgetOptionsComponent extends VueComponentBase 
         await this.throttled_update_options();
     }
 
-    private async switch_sous_titre_template_is_date() {
+    public async switch_sous_titre_template_is_date() {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
@@ -272,7 +283,7 @@ export default class CMSBlocTextWidgetOptionsComponent extends VueComponentBase 
         await this.throttled_update_options();
     }
 
-    private async switch_sur_titre_template_is_date() {
+    public async switch_sur_titre_template_is_date() {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
@@ -284,7 +295,7 @@ export default class CMSBlocTextWidgetOptionsComponent extends VueComponentBase 
         await this.throttled_update_options();
     }
 
-    private async switch_contenu_template_is_date() {
+    public async switch_contenu_template_is_date() {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
@@ -296,7 +307,7 @@ export default class CMSBlocTextWidgetOptionsComponent extends VueComponentBase 
         await this.throttled_update_options();
     }
 
-    private async switch_use_for_template() {
+    public async switch_use_for_template() {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
@@ -308,22 +319,22 @@ export default class CMSBlocTextWidgetOptionsComponent extends VueComponentBase 
         await this.throttled_update_options();
     }
 
-    private async add_titre_field_ref_for_template(api_type_id: string, field_id: string) {
+    public async add_titre_field_ref_for_template(api_type_id: string, field_id: string) {
         await this.add_vo_field_ref(api_type_id, field_id, 'titre_field_ref_for_template');
     }
 
-    private async add_sous_titre_field_ref_for_template(api_type_id: string, field_id: string) {
+    public async add_sous_titre_field_ref_for_template(api_type_id: string, field_id: string) {
         await this.add_vo_field_ref(api_type_id, field_id, 'sous_titre_field_ref_for_template');
     }
-    private async add_sur_titre_field_ref_for_template(api_type_id: string, field_id: string) {
+    public async add_sur_titre_field_ref_for_template(api_type_id: string, field_id: string) {
         await this.add_vo_field_ref(api_type_id, field_id, 'sur_titre_field_ref_for_template');
     }
 
-    private async add_contenu_field_ref_for_template(api_type_id: string, field_id: string) {
+    public async add_contenu_field_ref_for_template(api_type_id: string, field_id: string) {
         await this.add_vo_field_ref(api_type_id, field_id, 'contenu_field_ref_for_template');
     }
 
-    private async add_vo_field_ref(api_type_id: string, field_id: string, field_name: string) {
+    public async add_vo_field_ref(api_type_id: string, field_id: string, field_name: string) {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
@@ -340,22 +351,22 @@ export default class CMSBlocTextWidgetOptionsComponent extends VueComponentBase 
         await this.throttled_update_options();
     }
 
-    private async remove_titre_field_ref_for_template() {
+    public async remove_titre_field_ref_for_template() {
         await this.remove_vo_field_ref('titre_field_ref_for_template');
     }
 
-    private async remove_sous_titre_field_ref_for_template() {
+    public async remove_sous_titre_field_ref_for_template() {
         await this.remove_vo_field_ref('sous_titre_field_ref_for_template');
     }
-    private async remove_sur_titre_field_ref_for_template() {
+    public async remove_sur_titre_field_ref_for_template() {
         await this.remove_vo_field_ref('sur_titre_field_ref_for_template');
     }
 
-    private async remove_contenu_field_ref_for_template() {
+    public async remove_contenu_field_ref_for_template() {
         await this.remove_vo_field_ref('contenu_field_ref_for_template');
     }
 
-    private async remove_vo_field_ref(field_name: string) {
+    public async remove_vo_field_ref(field_name: string) {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {

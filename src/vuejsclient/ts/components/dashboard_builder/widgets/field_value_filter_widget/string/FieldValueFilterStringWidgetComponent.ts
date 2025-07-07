@@ -35,7 +35,7 @@ import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import { ModuleTranslatableTextGetter } from '../../../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/DroppableVoFieldsStore';
-import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
+import WidgetOptionsVOManager from '../../WidgetOptionsVOManager';
 import ResetFiltersWidgetController from '../../reset_filters_widget/ResetFiltersWidgetController';
 import ValidationFiltersCallUpdaters from '../../validation_filters_widget/ValidationFiltersCallUpdaters';
 import ValidationFiltersWidgetController from '../../validation_filters_widget/ValidationFiltersWidgetController';
@@ -487,8 +487,12 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         return 'filter_opt_' + this.page_widget.id + '_';
     }
 
-    get widgets_by_id(): { [id: number]: DashboardWidgetVO } {
-        return VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets);
+    get get_all_widgets(): DashboardWidgetVO[] {
+        return this.vuexGet<DashboardWidgetVO[]>(reflect<this>().get_all_widgets);
+    }
+
+    get get_widgets_by_id(): { [id: number]: DashboardWidgetVO } {
+        return this.vuexGet<{ [id: number]: DashboardWidgetVO }>(reflect<this>().get_widgets_by_id);
     }
 
     get div_column_class(): string {

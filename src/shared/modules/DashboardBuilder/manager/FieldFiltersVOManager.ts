@@ -78,11 +78,10 @@ export default class FieldFiltersVOManager {
         // Get widgets of the given favorites filters page
         const page_widgets: DashboardPageWidgetVO[] = await DashboardPageWidgetVOManager.find_page_widgets_by_page_id(
             dashboard_page_id,
-            { refresh: options?.refresh }
         );
 
         // Get all widgets_types
-        const widgets_types = await WidgetOptionsVOManager.find_all_sorted_widgets_types();
+        const widgets_types = await WidgetOptionsVOManager.get_all_sorted_widgets_types();
 
         // Create Default FieldFilters from each page_widget
         for (const key in widgets_types) {
@@ -222,6 +221,8 @@ export default class FieldFiltersVOManager {
 
                 // The actual label of the filter
                 const label_code_text: string = await VOFieldRefVOManager.create_readable_vo_field_ref_label(
+                    // TODO FIXME : il faut current_page_page_widgets
+                    null,
                     vo_field_ref,
                     page_id
                 );
@@ -313,6 +314,8 @@ export default class FieldFiltersVOManager {
 
                 // The actual label of the filter
                 const label_code_text: string = await VOFieldRefVOManager.create_readable_vo_field_ref_label(
+                    // TODO FIXME : il faut current_page_page_widgets
+                    null,
                     vo_field_ref,
                     page_id
                 );

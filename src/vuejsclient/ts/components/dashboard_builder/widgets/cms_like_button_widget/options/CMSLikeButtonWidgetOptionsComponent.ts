@@ -2,35 +2,33 @@ import 'quill/dist/quill.bubble.css'; // Compliqué à lazy load
 import 'quill/dist/quill.core.css'; // Compliqué à lazy load
 import 'quill/dist/quill.snow.css'; // Compliqué à lazy load
 import Component from 'vue-class-component';
-import { Prop, Watch } from 'vue-property-decorator';
+import { Inject, Prop, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import CMSLikeButtonWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/CMSLikeButtonWidgetOptionsVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../../VueComponentBase';
-import { ModuleDashboardPageAction } from '../../../page/DashboardPageStore';
 import './CMSLikeButtonWidgetOptionsComponent.scss';
 import NumRange from '../../../../../../../shared/modules/DataRender/vos/NumRange';
+import { reflect } from '../../../../../../../shared/tools/ObjectHandler';
 
 @Component({
     template: require('./CMSLikeButtonWidgetOptionsComponent.pug')
 })
 export default class CMSLikeButtonWidgetOptionsComponent extends VueComponentBase {
+    @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @Prop({ default: null })
-    private page_widget: DashboardPageWidgetVO;
+    public page_widget: DashboardPageWidgetVO;
 
-    @ModuleDashboardPageAction
-    private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
+    public color: string = null;
+    public icon_color: string = null;
+    public user_list: NumRange[] = [];
+    public radius: number = null;
 
-    private color: string = null;
-    private icon_color: string = null;
-    private user_list: NumRange[] = [];
-    private radius: number = null;
-
-    private next_update_options: CMSLikeButtonWidgetOptionsVO = null;
-    private throttled_update_options = ThrottleHelper.declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
+    public next_update_options: CMSLikeButtonWidgetOptionsVO = null;
+    public throttled_update_options = ThrottleHelper.declare_throttle_without_args('CMSLikeButtonWidgetOptionsComponent.update_options', this.update_options.bind(this), 50, false);
 
     get widget_options(): CMSLikeButtonWidgetOptionsVO {
         if (!this.page_widget) {
@@ -51,7 +49,7 @@ export default class CMSLikeButtonWidgetOptionsComponent extends VueComponentBas
     }
 
     @Watch('widget_options', { immediate: true, deep: true })
-    private async onchange_widget_options() {
+    public async onchange_widget_options() {
         if (!this.widget_options) {
             this.color = '#003c7d';
             this.radius = 0;
@@ -67,7 +65,7 @@ export default class CMSLikeButtonWidgetOptionsComponent extends VueComponentBas
     @Watch('color')
     @Watch('user_list')
     @Watch('radius')
-    private async onchange_bloc_text() {
+    public async onchange_bloc_text() {
         if (!this.widget_options) {
             return;
         }
@@ -84,7 +82,7 @@ export default class CMSLikeButtonWidgetOptionsComponent extends VueComponentBas
         }
     }
 
-    private async mounted() {
+    public async mounted() {
 
         if (!this.widget_options) {
 
@@ -97,7 +95,7 @@ export default class CMSLikeButtonWidgetOptionsComponent extends VueComponentBas
         await this.throttled_update_options();
     }
 
-    private get_default_options(): CMSLikeButtonWidgetOptionsVO {
+    public get_default_options(): CMSLikeButtonWidgetOptionsVO {
 
         return CMSLikeButtonWidgetOptionsVO.createNew(
             '#003c7d',
@@ -106,7 +104,19 @@ export default class CMSLikeButtonWidgetOptionsComponent extends VueComponentBas
         );
     }
 
-    private async update_options() {
+    // Accès dynamiques Vuex
+    public vuexGet<T>(getter: string): T {
+        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    }
+    public vuexAct<A>(action: string, payload?: A) {
+        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    }
+
+    public set_page_widget(page_widget: DashboardPageWidgetVO): void {
+        this.vuexAct<DashboardPageWidgetVO>(reflect<this>().set_page_widget, page_widget);
+    }
+
+    public async update_options() {
         try {
             this.page_widget.json_options = JSON.stringify(this.next_update_options);
         } catch (error) {

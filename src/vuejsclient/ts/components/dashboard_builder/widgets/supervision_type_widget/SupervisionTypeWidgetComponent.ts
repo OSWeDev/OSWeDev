@@ -93,6 +93,15 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
         return this.vuexGet<string[]>(reflect<this>().get_query_api_type_ids);
     }
 
+    get get_dashboard_api_type_ids(): string[] {
+        return this.vuexGet<string[]>(reflect<this>().get_dashboard_api_type_ids);
+    }
+
+    get get_dashboard_discarded_field_paths(): { [vo_type: string]: { [field_id: string]: boolean } } {
+        return this.vuexGet<{ [vo_type: string]: { [field_id: string]: boolean } }>(reflect<this>().get_dashboard_discarded_field_paths);
+    }
+
+
     /**
      * Supervision Api Type Ids
      * - Used to filter the supervision items (sondes) from each datatable
@@ -271,6 +280,8 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
             this.dashboard,
             this.widget_options,
             this.get_active_field_filters,
+            this.get_dashboard_api_type_ids,
+            this.get_dashboard_discarded_field_paths,
             {
                 categories_by_name: (!!this.categories_ordered?.length
                     ? ObjectHandler.map_array_by_object_field_value(this.categories_ordered, field_names<SupervisedCategoryVO>().name)
@@ -454,6 +465,8 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
             this.widget_options,
             this.get_active_field_filters,
             this.get_active_api_type_ids,
+            this.get_dashboard_api_type_ids,
+            this.get_dashboard_discarded_field_paths,
             {
                 active_api_type_ids: this.available_api_type_ids,
                 all_states: this.all_states,

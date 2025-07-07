@@ -1,11 +1,11 @@
-import DashboardPageWidgetVOManager from "./DashboardPageWidgetVOManager";
-import YearFilterWidgetOptionsVO from "../vos/YearFilterWidgetOptionsVO";
-import ContextFilterVO from "../../ContextFilter/vos/ContextFilterVO";
-import DashboardPageWidgetVO from "../vos/DashboardPageWidgetVO";
 import RangeHandler from "../../../tools/RangeHandler";
-import NumSegment from "../../DataRender/vos/NumSegment";
+import ContextFilterVO from "../../ContextFilter/vos/ContextFilterVO";
 import NumRange from "../../DataRender/vos/NumRange";
+import NumSegment from "../../DataRender/vos/NumSegment";
 import Dates from "../../FormatDatesNombres/Dates/Dates";
+import DashboardPageWidgetVO from "../vos/DashboardPageWidgetVO";
+import YearFilterWidgetOptionsVO from "../vos/YearFilterWidgetOptionsVO";
+import DashboardPageWidgetVOManager from "./DashboardPageWidgetVOManager";
 
 /**
  * @class YearFilterWidgetManager
@@ -237,6 +237,7 @@ export default class YearFilterWidgetManager {
     public static async get_year_filters_widgets_options_metadata(
         dashboard_page_id: number,
         page_widget: DashboardPageWidgetVO,
+        selected_page_page_widgets: DashboardPageWidgetVO[],
     ): Promise<
         {
             [title_name_code: string]: { widget_options: YearFilterWidgetOptionsVO, widget_name: string, dashboard_page_id: number, page_widget_id: number }
@@ -245,7 +246,10 @@ export default class YearFilterWidgetManager {
 
         const year_page_widgets: {
             [page_widget_id: string]: { widget_options: any, widget_name: string, dashboard_page_id: number, page_widget_id: number }
-        } = await DashboardPageWidgetVOManager.filter_all_page_widgets_options_by_widget_name([dashboard_page_id], 'yearfilter');
+        } = await DashboardPageWidgetVOManager.filter_all_page_widgets_options_by_widget_name(
+            dashboard_page_id,
+            selected_page_page_widgets,
+            'yearfilter');
 
         const res: {
             [title_name_code: string]: { widget_options: YearFilterWidgetOptionsVO, widget_name: string, dashboard_page_id: number, page_widget_id: number }
@@ -267,14 +271,4 @@ export default class YearFilterWidgetManager {
 
         return res;
     }
-
-    // istanbul ignore next: nothing to test
-    public static getInstance(): YearFilterWidgetManager {
-        if (!YearFilterWidgetManager.instance) {
-            YearFilterWidgetManager.instance = new YearFilterWidgetManager();
-        }
-        return YearFilterWidgetManager.instance;
-    }
-
-    private static instance: YearFilterWidgetManager = null;
 }

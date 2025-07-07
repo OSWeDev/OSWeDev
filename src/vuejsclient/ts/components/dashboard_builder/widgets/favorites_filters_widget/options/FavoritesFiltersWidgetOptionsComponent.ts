@@ -3,13 +3,14 @@ import { Inject, Prop, Watch } from 'vue-property-decorator';
 import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../../../../../shared/modules/ContextFilter/vos/SortByVO';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
+import WidgetOptionsVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/WidgetOptionsVOManager';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
+import DashboardWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
 import FavoritesFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersVO';
 import FavoritesFiltersWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersWidgetOptionsVO';
 import FieldFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
-import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import { reflect } from '../../../../../../../shared/tools/ObjectHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
@@ -17,7 +18,6 @@ import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTra
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/DroppableVoFieldsStore';
 import SingleVoFieldRefHolderComponent from '../../../options_tools/single_vo_field_ref_holder/SingleVoFieldRefHolderComponent';
-import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
 import './FavoritesFiltersWidgetOptionsComponent.scss';
 
 @Component({
@@ -69,6 +69,24 @@ export default class FavoritesFiltersWidgetOptionsComponent extends VueComponent
 
     get get_active_field_filters(): FieldFiltersVO {
         return this.vuexGet<FieldFiltersVO>(reflect<this>().get_active_field_filters);
+    }
+
+    /**
+     * Get vo_field_ref
+     */
+    get vo_field_ref(): VOFieldRefVO {
+        return new VOFieldRefVO().from({
+            api_type_id: FavoritesFiltersVO.API_TYPE_ID,
+            field_id: "name"
+        });
+    }
+
+    get get_all_widgets(): DashboardWidgetVO[] {
+        return this.vuexGet<DashboardWidgetVO[]>(reflect<this>().get_all_widgets);
+    }
+
+    get get_widgets_by_id(): { [id: number]: DashboardWidgetVO } {
+        return this.vuexGet<{ [id: number]: DashboardWidgetVO }>(reflect<this>().get_widgets_by_id);
     }
 
     /**
@@ -241,8 +259,8 @@ export default class FavoritesFiltersWidgetOptionsComponent extends VueComponent
         this.set_page_widget(this.page_widget);
         this.$emit('update_layout_widget', this.page_widget);
 
-        const name = VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets)[this.page_widget.widget_id].name;
-        const get_selected_fields = DashboardBuilderWidgetsController.getInstance().widgets_get_selected_fields[name];
+        const name = this.get_widgets_by_id[this.page_widget.widget_id].name;
+        const get_selected_fields = WidgetOptionsVOManager.widgets_get_selected_fields[name];
         this.set_selected_fields(get_selected_fields ? get_selected_fields(this.page_widget) : {});
 
         this.throttled_update_visible_options();
@@ -332,15 +350,5 @@ export default class FavoritesFiltersWidgetOptionsComponent extends VueComponent
             false,
             false,
         ).from(props);
-    }
-
-    /**
-     * Get vo_field_ref
-     */
-    get vo_field_ref(): VOFieldRefVO {
-        return new VOFieldRefVO().from({
-            api_type_id: FavoritesFiltersVO.API_TYPE_ID,
-            field_id: "name"
-        });
     }
 }

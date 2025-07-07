@@ -1,19 +1,19 @@
+import { isEqual } from 'lodash';
 import 'quill/dist/quill.bubble.css'; // Compliqué à lazy load
 import 'quill/dist/quill.core.css'; // Compliqué à lazy load
 import 'quill/dist/quill.snow.css'; // Compliqué à lazy load
 import Component from 'vue-class-component';
-import { Prop, Watch } from 'vue-property-decorator';
+import { Inject, Prop, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import CMSBooleanButtonWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/CMSBooleanButtonWidgetOptionsVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
+import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../../VueComponentBase';
-import { ModuleDashboardPageAction } from '../../../page/DashboardPageStore';
-import './CMSBooleanButtonWidgetOptionsComponent.scss';
-import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
-import { isEqual } from 'lodash';
 import SingleVoFieldRefHolderComponent from '../../../options_tools/single_vo_field_ref_holder/SingleVoFieldRefHolderComponent';
+import './CMSBooleanButtonWidgetOptionsComponent.scss';
+import { reflect } from '../../../../../../../shared/tools/ObjectHandler';
 
 @Component({
     template: require('./CMSBooleanButtonWidgetOptionsComponent.pug'),
@@ -22,25 +22,23 @@ import SingleVoFieldRefHolderComponent from '../../../options_tools/single_vo_fi
     }
 })
 export default class CMSBooleanButtonWidgetOptionsComponent extends VueComponentBase {
+    @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @Prop({ default: null })
-    private page_widget: DashboardPageWidgetVO;
+    public page_widget: DashboardPageWidgetVO;
 
-    @ModuleDashboardPageAction
-    private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
+    public title_ok: string = null;
+    public title_nok: string = null;
+    public color: string = null;
+    public text_color: string = null;
+    public vo_field_ref: VOFieldRefVO = null;
+    public user_field_ref: VOFieldRefVO = null;
+    public radius: number = null;
+    public icone_ok: string = null;
+    public icone_nok: string = null;
 
-    private title_ok: string = null;
-    private title_nok: string = null;
-    private color: string = null;
-    private text_color: string = null;
-    private vo_field_ref: VOFieldRefVO = null;
-    private user_field_ref: VOFieldRefVO = null;
-    private radius: number = null;
-    private icone_ok: string = null;
-    private icone_nok: string = null;
-
-    private next_update_options: CMSBooleanButtonWidgetOptionsVO = null;
-    private throttled_update_options = ThrottleHelper.declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
+    public next_update_options: CMSBooleanButtonWidgetOptionsVO = null;
+    public throttled_update_options = ThrottleHelper.declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
 
     get widget_options(): CMSBooleanButtonWidgetOptionsVO {
         if (!this.page_widget) {
@@ -61,7 +59,7 @@ export default class CMSBooleanButtonWidgetOptionsComponent extends VueComponent
     }
 
     @Watch('widget_options', { immediate: true, deep: true })
-    private async onchange_widget_options() {
+    public async onchange_widget_options() {
         if (!this.widget_options) {
             this.title_ok = null;
             this.title_nok = null;
@@ -95,7 +93,7 @@ export default class CMSBooleanButtonWidgetOptionsComponent extends VueComponent
     @Watch('icone_ok')
     @Watch('icone_nok')
     @Watch('user_field_ref')
-    private async onchange_bloc_text() {
+    public async onchange_bloc_text() {
         if (!this.widget_options) {
             return;
         }
@@ -124,7 +122,7 @@ export default class CMSBooleanButtonWidgetOptionsComponent extends VueComponent
         }
     }
 
-    private async mounted() {
+    public async mounted() {
 
         if (!this.widget_options) {
 
@@ -137,7 +135,7 @@ export default class CMSBooleanButtonWidgetOptionsComponent extends VueComponent
         await this.throttled_update_options();
     }
 
-    private get_default_options(): CMSBooleanButtonWidgetOptionsVO {
+    public get_default_options(): CMSBooleanButtonWidgetOptionsVO {
 
         return CMSBooleanButtonWidgetOptionsVO.createNew(
             null,
@@ -152,7 +150,7 @@ export default class CMSBooleanButtonWidgetOptionsComponent extends VueComponent
         );
     }
 
-    private async update_options() {
+    public async update_options() {
         try {
             this.page_widget.json_options = JSON.stringify(this.next_update_options);
         } catch (error) {
@@ -169,14 +167,14 @@ export default class CMSBooleanButtonWidgetOptionsComponent extends VueComponent
         this.$emit('update_layout_widget', this.page_widget);
     }
 
-    private async add_vo_field_ref(api_type_id: string, field_id: string) {
+    public async add_vo_field_ref(api_type_id: string, field_id: string) {
         await this.add_field_ref(api_type_id, field_id, 'vo_field_ref');
     }
-    private async add_user_field_ref(api_type_id: string, field_id: string) {
+    public async add_user_field_ref(api_type_id: string, field_id: string) {
         await this.add_field_ref(api_type_id, field_id, 'user_field_ref');
     }
 
-    private async add_field_ref(api_type_id: string, field_id: string, field_name: string) {
+    public async add_field_ref(api_type_id: string, field_id: string, field_name: string) {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
@@ -193,14 +191,27 @@ export default class CMSBooleanButtonWidgetOptionsComponent extends VueComponent
         await this.throttled_update_options();
     }
 
-    private async remove_vo_field_ref() {
+    public async remove_vo_field_ref() {
         await this.remove_field_ref('vo_field_ref');
     }
-    private async remove_user_field_ref() {
+    public async remove_user_field_ref() {
         await this.remove_field_ref('user_field_ref');
     }
 
-    private async remove_field_ref(field_name: string) {
+    // Accès dynamiques Vuex
+    public vuexGet<T>(getter: string): T {
+        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    }
+    public vuexAct<A>(action: string, payload?: A) {
+        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    }
+
+    public set_page_widget(page_widget: DashboardPageWidgetVO): void {
+        this.vuexAct<DashboardPageWidgetVO>(reflect<this>().set_page_widget, page_widget);
+    }
+
+
+    public async remove_field_ref(field_name: string) {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {

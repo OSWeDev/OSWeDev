@@ -95,6 +95,19 @@ export default class VueAnimationReportingComponent extends VueComponentBase {
 
     private debounced_reloadAums = debounce(this.reloadAums, 300);
 
+
+    get like_vote_labels(): { [like_vote_id: number]: string } {
+        return AnimationUserModuleVO.LIKE_VOTE_LABELS;
+    }
+
+    get support_labels(): { [support_id: number]: string } {
+        return AnimationUserModuleVO.SUPPORT_LABELS;
+    }
+
+    get is_filter_module_termine_active_no(): boolean {
+        return this.get_filter_module_termine_active_option ? (this.get_filter_module_termine_active_option.id == AnimationController.OPTION_NO) : false;
+    }
+
     @Watch('get_filter_anim_theme_active_options')
     @Watch('get_filter_anim_module_active_options')
     @Watch('get_filter_role_active_options')
@@ -322,17 +335,5 @@ export default class VueAnimationReportingComponent extends VueComponentBase {
         }
 
         return res.join(' - ');
-    }
-
-    get like_vote_labels(): { [like_vote_id: number]: string } {
-        return AnimationUserModuleVO.LIKE_VOTE_LABELS;
-    }
-
-    get support_labels(): { [support_id: number]: string } {
-        return AnimationUserModuleVO.SUPPORT_LABELS;
-    }
-
-    get is_filter_module_termine_active_no(): boolean {
-        return this.get_filter_module_termine_active_option ? (this.get_filter_module_termine_active_option.id == AnimationController.OPTION_NO) : false;
     }
 }

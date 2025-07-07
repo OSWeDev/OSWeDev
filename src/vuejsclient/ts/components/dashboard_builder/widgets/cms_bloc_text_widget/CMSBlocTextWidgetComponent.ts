@@ -1,5 +1,5 @@
 import Component from 'vue-class-component';
-import { Prop, Watch } from 'vue-property-decorator';
+import { Inject, Prop, Watch } from 'vue-property-decorator';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
@@ -11,41 +11,43 @@ import 'quill/dist/quill.bubble.css'; // Compliqué à lazy load
 import 'quill/dist/quill.core.css'; // Compliqué à lazy load
 import 'quill/dist/quill.snow.css'; // Compliqué à lazy load
 import VOFieldRefVO from '../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
-import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 import TSRange from '../../../../../../shared/modules/DataRender/vos/TSRange';
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import TimeSegment from '../../../../../../shared/modules/DataRender/vos/TimeSegment';
+import { reflect } from '../../../../../../shared/tools/ObjectHandler';
 
 @Component({
     template: require('./CMSBlocTextWidgetComponent.pug'),
     components: {}
 })
 export default class CMSBlocTextWidgetComponent extends VueComponentBase {
+    @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @Prop({ default: null })
-    private page_widget: DashboardPageWidgetVO;
+    public page_widget: DashboardPageWidgetVO;
 
     @Prop({ default: null })
-    private all_page_widget: DashboardPageWidgetVO[];
+    public all_page_widget: DashboardPageWidgetVO[];
 
     @Prop({ default: null })
-    private dashboard: DashboardVO;
+    public dashboard: DashboardVO;
 
     @Prop({ default: null })
-    private dashboard_page: DashboardPageVO;
+    public dashboard_page: DashboardPageVO;
 
-    @ModuleDashboardPageGetter
-    private get_cms_vo: IDistantVOBase;
+    public titre: string = null;
+    public sous_titre: string = null;
+    public sur_titre: string = null;
+    public contenu: string = null;
+    public sur_titre_class: string = null;
+    public titre_class: string = null;
+    public sous_titre_class: string = null;
+    public contenu_class: string = null;
 
-    private titre: string = null;
-    private sous_titre: string = null;
-    private sur_titre: string = null;
-    private contenu: string = null;
-    private sur_titre_class: string = null;
-    private titre_class: string = null;
-    private sous_titre_class: string = null;
-    private contenu_class: string = null;
+    get get_crud_vo(): IDistantVOBase {
+        return this.vuexGet<IDistantVOBase>(reflect<this>().get_crud_vo);
+    }
 
     get widget_options(): CMSBlocTextWidgetOptionsVO {
         if (!this.page_widget) {
@@ -65,8 +67,8 @@ export default class CMSBlocTextWidgetComponent extends VueComponentBase {
         return options;
     }
 
-    @Watch('get_cms_vo')
-    private onchange_get_cms_vo() {
+    @Watch('get_crud_vo')
+    public onchange_get_crud_vo() {
         this.titre = this.get_value(this.widget_options.titre, this.widget_options.titre_field_ref_for_template, this.widget_options.titre_template_is_date);
         this.sous_titre = this.get_value(this.widget_options.sous_titre, this.widget_options.sous_titre_field_ref_for_template, this.widget_options.sous_titre_template_is_date);
         if (this.widget_options.sous_titre_symbole) {
@@ -77,7 +79,7 @@ export default class CMSBlocTextWidgetComponent extends VueComponentBase {
     }
 
     @Watch('widget_options', { immediate: true, deep: true })
-    private async onchange_widget_options() {
+    public async onchange_widget_options() {
         if (!this.widget_options) {
             this.titre = null;
             this.sous_titre = null;
@@ -104,13 +106,13 @@ export default class CMSBlocTextWidgetComponent extends VueComponentBase {
         this.contenu_class = this.widget_options.contenu_class;
     }
 
-    private async mounted() {
+    public async mounted() {
         this.onchange_widget_options();
     }
 
-    private get_value(data: any, field_ref: VOFieldRefVO, is_date: boolean): string {
-        if (this.widget_options.use_for_template && is_date && this.get_cms_vo && field_ref?.field_id) {
-            return Dates.format(this.get_cms_vo[field_ref.field_id], "DD/MM/YYYY");
+    public get_value(data: any, field_ref: VOFieldRefVO, is_date: boolean): string {
+        if (this.widget_options.use_for_template && is_date && this.get_crud_vo && field_ref?.field_id) {
+            return Dates.format(this.get_crud_vo[field_ref.field_id], "DD/MM/YYYY");
         }
 
         if (!this.widget_options.use_for_template) {
@@ -128,23 +130,32 @@ export default class CMSBlocTextWidgetComponent extends VueComponentBase {
             return data;
         }
 
-        if (this.get_cms_vo && field_ref?.field_id) {
+        if (this.get_crud_vo && field_ref?.field_id) {
 
-            if (this.get_cms_vo[field_ref.field_id] instanceof TSRange) {
+            if (this.get_crud_vo[field_ref.field_id] instanceof TSRange) {
                 return (
-                    this.get_cms_vo[field_ref.field_id].min_inclusiv
-                        ? Dates.format(this.get_cms_vo[field_ref.field_id].min, "DD/MM/YYYY")
-                        : Dates.format(Dates.add(this.get_cms_vo[field_ref.field_id].min, 1, TimeSegment.TYPE_DAY), "DD/MM/YYYY"))
+                    this.get_crud_vo[field_ref.field_id].min_inclusiv
+                        ? Dates.format(this.get_crud_vo[field_ref.field_id].min, "DD/MM/YYYY")
+                        : Dates.format(Dates.add(this.get_crud_vo[field_ref.field_id].min, 1, TimeSegment.TYPE_DAY), "DD/MM/YYYY"))
                     + ' - '
                     + (
-                        this.get_cms_vo[field_ref.field_id].max_inclusiv
-                            ? Dates.format(this.get_cms_vo[field_ref.field_id].max, "DD/MM/YYYY")
-                            : Dates.format(Dates.add(this.get_cms_vo[field_ref.field_id].max, -1, TimeSegment.TYPE_DAY), "DD/MM/YYYY"));
+                        this.get_crud_vo[field_ref.field_id].max_inclusiv
+                            ? Dates.format(this.get_crud_vo[field_ref.field_id].max, "DD/MM/YYYY")
+                            : Dates.format(Dates.add(this.get_crud_vo[field_ref.field_id].max, -1, TimeSegment.TYPE_DAY), "DD/MM/YYYY"));
             }
 
-            return this.get_cms_vo[field_ref.field_id];
+            return this.get_crud_vo[field_ref.field_id];
         }
 
         return null;
     }
+
+    // Accès dynamiques Vuex
+    public vuexGet<T>(getter: string): T {
+        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    }
+    public vuexAct<A>(action: string, payload?: A) {
+        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    }
+
 }

@@ -579,6 +579,7 @@ export default class FieldValueFilterWidgetManager {
     public static async get_field_value_filters_widgets_options_metadata(
         dashboard_page_id: number,
         page_widget: DashboardPageWidgetVO,
+        selected_page_page_widgets: DashboardPageWidgetVO[],
     ): Promise<
         {
             [title_name_code: string]: { widget_options: FieldValueFilterWidgetOptionsVO, widget_name: string, dashboard_page_id: number, page_widget_id: number }
@@ -587,7 +588,10 @@ export default class FieldValueFilterWidgetManager {
 
         const valuetable_page_widgets: {
             [page_widget_id: string]: { widget_options: any, widget_name: string, dashboard_page_id: number, page_widget_id: number }
-        } = await DashboardPageWidgetVOManager.filter_all_page_widgets_options_by_widget_name([dashboard_page_id], 'fieldvaluefilter');
+        } = await DashboardPageWidgetVOManager.filter_all_page_widgets_options_by_widget_name(
+            dashboard_page_id,
+            selected_page_page_widgets,
+            'fieldvaluefilter');
 
         const res: {
             [title_name_code: string]: {
@@ -733,17 +737,4 @@ export default class FieldValueFilterWidgetManager {
 
         return context_query;
     }
-
-    // istanbul ignore next: nothing to test
-    public static getInstance(): FieldValueFilterWidgetManager {
-        if (!this.instance) {
-            this.instance = new FieldValueFilterWidgetManager();
-        }
-
-        return this.instance;
-    }
-
-    protected static instance = null;
-
-    constructor() { }
 }

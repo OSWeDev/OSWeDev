@@ -1,46 +1,45 @@
 import Component from 'vue-class-component';
-import { Prop, Watch } from 'vue-property-decorator';
+import { Inject, Prop, Watch } from 'vue-property-decorator';
+import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ModuleTableFieldController from '../../../../../../shared/modules/DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
+import CMSVisionneusePdfWidgetOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/CMSVisionneusePdfWidgetOptionsVO';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
+import VOFieldRefVO from '../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
+import FileVO from '../../../../../../shared/modules/File/vos/FileVO';
+import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
+import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
+import { reflect } from '../../../../../../shared/tools/ObjectHandler';
 import VueComponentBase from '../../../VueComponentBase';
 import './CMSVisionneusePdfWidgetComponent.scss';
-import CMSVisionneusePdfWidgetOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/CMSVisionneusePdfWidgetOptionsVO';
-import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
-import FileVO from '../../../../../../shared/modules/File/vos/FileVO';
-import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import VOFieldRefVO from '../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
-import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
-import ModuleTableFieldVO from '../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
-import ModuleTableFieldController from '../../../../../../shared/modules/DAO/ModuleTableFieldController';
 
 @Component({
     template: require('./CMSVisionneusePdfWidgetComponent.pug'),
     components: {}
 })
 export default class CMSVisionneusePdfWidgetComponent extends VueComponentBase {
+    @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @Prop({ default: null })
-    private page_widget: DashboardPageWidgetVO;
+    public page_widget: DashboardPageWidgetVO;
 
     @Prop({ default: null })
-    private all_page_widget: DashboardPageWidgetVO[];
+    public all_page_widget: DashboardPageWidgetVO[];
 
     @Prop({ default: null })
-    private dashboard: DashboardVO;
+    public dashboard: DashboardVO;
 
     @Prop({ default: null })
-    private dashboard_page: DashboardPageVO;
+    public dashboard_page: DashboardPageVO;
 
-    @ModuleDashboardPageGetter
-    private get_cms_vo: IDistantVOBase;
+    public file_id: number = null;
+    public file_path: string = null;
+    public use_for_template: boolean = false;
+    public field_ref_for_template: VOFieldRefVO = null;
 
-    private file_id: number = null;
-    private file_path: string = null;
-    private use_for_template: boolean = false;
-    private field_ref_for_template: VOFieldRefVO = null;
-
-    private pdfjs_viewer: string = '/public/client/js/pdfjs/web/viewer.html?file=';
+    public pdfjs_viewer: string = '/public/client/js/pdfjs/web/viewer.html?file=';
 
     get widget_options(): CMSVisionneusePdfWidgetOptionsVO {
         if (!this.page_widget) {
@@ -60,13 +59,17 @@ export default class CMSVisionneusePdfWidgetComponent extends VueComponentBase {
         return options;
     }
 
-    @Watch('get_cms_vo')
-    private async onchange_get_cms_vo() {
+    get get_crud_vo(): IDistantVOBase {
+        return this.vuexGet<IDistantVOBase>(reflect<this>().get_crud_vo);
+    }
+
+    @Watch('get_crud_vo')
+    public async onchange_get_crud_vo() {
         this.file_path = await this.get_value(this.widget_options.file_id, this.widget_options.field_ref_for_template);
     }
 
     @Watch('widget_options', { immediate: true, deep: true })
-    private async onchange_widget_options() {
+    public async onchange_widget_options() {
         if (!this.widget_options) {
             this.file_id = null;
             this.use_for_template = false;
@@ -81,11 +84,19 @@ export default class CMSVisionneusePdfWidgetComponent extends VueComponentBase {
         this.file_path = await this.get_value(this.widget_options.file_id, this.widget_options.field_ref_for_template);
     }
 
-    private async mounted() {
+    public async mounted() {
         this.onchange_widget_options();
     }
 
-    private async get_value(data: any, field_ref: VOFieldRefVO): Promise<string> {
+    // Accès dynamiques Vuex
+    public vuexGet<T>(getter: string): T {
+        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    }
+    public vuexAct<A>(action: string, payload?: A) {
+        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    }
+
+    public async get_value(data: any, field_ref: VOFieldRefVO): Promise<string> {
         if (!this.widget_options.use_for_template) {
             if (data) {
                 const file: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(data).select_vo();
@@ -95,7 +106,7 @@ export default class CMSVisionneusePdfWidgetComponent extends VueComponentBase {
             return null;
         }
 
-        if (this.get_cms_vo && field_ref?.field_id && this.get_cms_vo[field_ref.field_id]) {
+        if (this.get_crud_vo && field_ref?.field_id && this.get_crud_vo[field_ref.field_id]) {
             const field: ModuleTableFieldVO = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[field_ref.api_type_id][field_ref.field_id];
 
             if (!field) {
@@ -114,13 +125,13 @@ export default class CMSVisionneusePdfWidgetComponent extends VueComponentBase {
                         return null;
                     }
 
-                    file = await query(field.foreign_ref_vo_type).filter_by_id(this.get_cms_vo[field_ref.field_id]).select_vo();
+                    file = await query(field.foreign_ref_vo_type).filter_by_id(this.get_crud_vo[field_ref.field_id]).select_vo();
                     return file?.path ? (this.pdfjs_viewer + '' + file.path.replace('./', '/')) : null;
 
                 case ModuleTableFieldVO.FIELD_TYPE_file_field:
                 case ModuleTableFieldVO.FIELD_TYPE_string:
                     // on retourne le chemin absolu du fichier base-url + path auquel on retire le ./
-                    return (this.pdfjs_viewer + '' + this.get_cms_vo[field_ref.field_id].replace('./', '/'));
+                    return (this.pdfjs_viewer + '' + this.get_crud_vo[field_ref.field_id].replace('./', '/'));
             }
         }
 

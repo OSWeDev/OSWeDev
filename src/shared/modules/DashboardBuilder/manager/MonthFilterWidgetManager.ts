@@ -1,13 +1,13 @@
-import DashboardPageWidgetVOManager from "./DashboardPageWidgetVOManager";
-import MonthFilterWidgetOptionsVO from "../vos/MonthFilterWidgetOptionsVO";
-import ContextFilterVO from "../../ContextFilter/vos/ContextFilterVO";
-import WidgetOptionsMetadataVO from "../vos/WidgetOptionsMetadataVO";
-import DashboardPageWidgetVO from "../vos/DashboardPageWidgetVO";
-import Dates from "../../FormatDatesNombres/Dates/Dates";
 import RangeHandler from "../../../tools/RangeHandler";
-import NumSegment from "../../DataRender/vos/NumSegment";
+import ContextFilterVO from "../../ContextFilter/vos/ContextFilterVO";
 import NumRange from "../../DataRender/vos/NumRange";
+import NumSegment from "../../DataRender/vos/NumSegment";
+import Dates from "../../FormatDatesNombres/Dates/Dates";
+import DashboardPageWidgetVO from "../vos/DashboardPageWidgetVO";
 import DashboardWidgetVO from "../vos/DashboardWidgetVO";
+import MonthFilterWidgetOptionsVO from "../vos/MonthFilterWidgetOptionsVO";
+import WidgetOptionsMetadataVO from "../vos/WidgetOptionsMetadataVO";
+import DashboardPageWidgetVOManager from "./DashboardPageWidgetVOManager";
 
 /**
  * MonthFilterWidgetManager
@@ -252,6 +252,7 @@ export default class MonthFilterWidgetManager {
     public static async get_month_filters_widgets_options_metadata(
         dashboard_page_id: number,
         page_widget: DashboardPageWidgetVO,
+        selected_page_page_widgets: DashboardPageWidgetVO[],
     ): Promise<
         {
             [title_name_code: string]: WidgetOptionsMetadataVO
@@ -261,7 +262,8 @@ export default class MonthFilterWidgetManager {
         const month_page_widgets: {
             [page_widget_id: string]: WidgetOptionsMetadataVO
         } = await DashboardPageWidgetVOManager.filter_all_page_widgets_options_by_widget_name(
-            [dashboard_page_id],
+            dashboard_page_id,
+            selected_page_page_widgets,
             DashboardWidgetVO.WIDGET_NAME_monthfilter
         );
 
@@ -283,14 +285,4 @@ export default class MonthFilterWidgetManager {
 
         return res;
     }
-
-    // istanbul ignore next: nothing to test
-    public static getInstance(): MonthFilterWidgetManager {
-        if (!MonthFilterWidgetManager.instance) {
-            MonthFilterWidgetManager.instance = new MonthFilterWidgetManager();
-        }
-        return MonthFilterWidgetManager.instance;
-    }
-
-    private static instance: MonthFilterWidgetManager = null;
 }

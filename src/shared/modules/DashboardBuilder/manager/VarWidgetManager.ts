@@ -2,6 +2,7 @@ import ContextFilterVO from "../../ContextFilter/vos/ContextFilterVO";
 import ExportVarIndicatorVO from "../../DataExport/vos/ExportVarIndicatorVO";
 import ExportVarcolumnConfVO from "../../DataExport/vos/ExportVarcolumnConfVO";
 import FieldFiltersVOHandler from "../handlers/FieldFiltersVOHandler";
+import DashboardPageWidgetVO from "../vos/DashboardPageWidgetVO";
 import FieldFiltersVO from "../vos/FieldFiltersVO";
 import VarWidgetOptionsVO from "../vos/VarWidgetOptionsVO";
 import WidgetOptionsMetadataVO from "../vos/WidgetOptionsMetadataVO";
@@ -61,6 +62,7 @@ export default class VarWidgetManager {
      */
     public static async get_exportable_vars_indicator(
         dashboard_page_id: number,
+        selected_page_page_widgets: DashboardPageWidgetVO[],
     ): Promise<ExportVarIndicatorVO> {
 
         const varcolumn_conf: { [xlsx_sheet_row_code_name: string]: ExportVarcolumnConfVO } = {};
@@ -68,7 +70,8 @@ export default class VarWidgetManager {
         const var_page_widgets: {
             [page_widget_id: string]: WidgetOptionsMetadataVO
         } = await DashboardPageWidgetVOManager.filter_all_page_widgets_options_by_widget_name(
-            [dashboard_page_id],
+            dashboard_page_id,
+            selected_page_page_widgets,
             'var'
         );
 
@@ -94,14 +97,4 @@ export default class VarWidgetManager {
             varcolumn_conf
         );
     }
-
-    // istanbul ignore next: nothing to test
-    public static getInstance(): VarWidgetManager {
-        if (!VarWidgetManager.instance) {
-            VarWidgetManager.instance = new VarWidgetManager();
-        }
-        return VarWidgetManager.instance;
-    }
-
-    private static instance: VarWidgetManager = null;
 }

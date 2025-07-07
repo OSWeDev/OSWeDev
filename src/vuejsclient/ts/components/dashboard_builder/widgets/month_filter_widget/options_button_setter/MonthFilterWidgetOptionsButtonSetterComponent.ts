@@ -25,59 +25,59 @@ export default class MonthFilterWidgetOptionsButtonSetterComponent extends VueCo
     @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @Prop({ default: null })
-    private page_widget: DashboardPageWidgetVO; // TODO: find the page_widget_id and then configure the widget_options
+    public page_widget: DashboardPageWidgetVO; // TODO: find the page_widget_id and then configure the widget_options
 
     @ModuleTranslatableTextGetter
-    private get_flat_locale_translations: { [code_text: string]: string };
+    public get_flat_locale_translations: { [code_text: string]: string };
 
-    private next_update_options: MonthFilterWidgetOptionsVO = null;
+    public next_update_options: MonthFilterWidgetOptionsVO = null;
 
-    private throttled_update_page_widget = ThrottleHelper.declare_throttle_without_args(
+    public throttled_update_page_widget = ThrottleHelper.declare_throttle_without_args(
         'MonthFilterWidgetOptionsButtonSetterComponent.throttled_update_page_widget',
         this.update_page_widget.bind(this),
         50,
         false
     );
 
-    private hide_filter: boolean = false;
+    public hide_filter: boolean = false;
 
-    private month_relative_mode: boolean = true;
+    public month_relative_mode: boolean = true;
 
-    private selected_months: { [month: number]: boolean } = {};
+    public selected_months: { [month: number]: boolean } = {};
 
     // Is All Months Selected Toggle Button
     // - Shall be highlight or true when selected_months empty
     // - Shall be false when selected_months has at least one selected
-    private is_all_months_selected: boolean = false;
-    private force_selected_months_reset: boolean = false;
+    public is_all_months_selected: boolean = false;
+    public force_selected_months_reset: boolean = false;
 
-    private auto_select_month: boolean = null;
-    private auto_select_month_relative_mode: boolean = null;
+    public auto_select_month: boolean = null;
+    public auto_select_month_relative_mode: boolean = null;
 
-    private min_month: number = null;
-    private max_month: number = null;
+    public min_month: number = null;
+    public max_month: number = null;
 
-    private auto_select_month_min: number = null;
-    private auto_select_month_max: number = null;
+    public auto_select_month_min: number = null;
+    public auto_select_month_max: number = null;
 
-    private old_widget_options: MonthFilterWidgetOptionsVO = null;
-    private is_relative_to_other_filter: boolean = false;
-    private relative_to_other_filter_id: number = null;
-
-    // Relative page widget (if relative_to_other_filter_id is set)
-    private all_months_page_widgets: DashboardPageWidgetVO[] = null;
+    public old_widget_options: MonthFilterWidgetOptionsVO = null;
+    public is_relative_to_other_filter: boolean = false;
+    public relative_to_other_filter_id: number = null;
 
     // Relative page widget (if relative_to_other_filter_id is set)
-    private relative_page_widget: DashboardPageWidgetVO = null;
+    public all_months_page_widgets: DashboardPageWidgetVO[] = null;
+
+    // Relative page widget (if relative_to_other_filter_id is set)
+    public relative_page_widget: DashboardPageWidgetVO = null;
 
     // Current filter may cumulate months
-    private is_month_cumulated_selected: boolean = false;
+    public is_month_cumulated_selected: boolean = false;
 
-    private can_configure_auto_select_month_relative_mode: boolean = true;
+    public can_configure_auto_select_month_relative_mode: boolean = true;
 
-    private widget_options: MonthFilterWidgetOptionsVO = null;
+    public widget_options: MonthFilterWidgetOptionsVO = null;
 
-    private throttled_load_all_months_page_widgets = ThrottleHelper.declare_throttle_without_args(
+    public throttled_load_all_months_page_widgets = ThrottleHelper.declare_throttle_without_args(
         'MonthFilterWidgetOptionsButtonSetterComponent.throttled_load_all_months_page_widgets',
         this.load_all_months_page_widgets.bind(this),
         50,
@@ -139,8 +139,8 @@ export default class MonthFilterWidgetOptionsButtonSetterComponent extends VueCo
      *
      * @returns {void}
      */
-    @Watch('page_widget', { immediate: true, deep: true })
-    private onchange_page_widget(): void {
+    @Watch(reflect<MonthFilterWidgetOptionsButtonSetterComponent>().page_widget, { immediate: true, deep: true })
+    public onchange_page_widget(): void {
         if (!this.page_widget) {
             return;
         }
@@ -148,8 +148,8 @@ export default class MonthFilterWidgetOptionsButtonSetterComponent extends VueCo
         this.widget_options = this.get_widget_options();
     }
 
-    @Watch('widget_options', { immediate: true, deep: true })
-    private onchange_widget_options() {
+    @Watch(reflect<MonthFilterWidgetOptionsButtonSetterComponent>().widget_options, { immediate: true, deep: true })
+    public onchange_widget_options() {
         if (this.old_widget_options) {
             if (isEqual(this.widget_options, this.old_widget_options)) {
                 return;
@@ -198,8 +198,8 @@ export default class MonthFilterWidgetOptionsButtonSetterComponent extends VueCo
         );
     }
 
-    @Watch('relative_to_other_filter_id')
-    private onchange_relative_to_other_filter_id() {
+    @Watch(reflect<MonthFilterWidgetOptionsButtonSetterComponent>().relative_to_other_filter_id)
+    public onchange_relative_to_other_filter_id() {
         if (!this.widget_options) {
             return;
         }
@@ -212,8 +212,8 @@ export default class MonthFilterWidgetOptionsButtonSetterComponent extends VueCo
         }
     }
 
-    @Watch('min_month')
-    private onchange_min_month() {
+    @Watch(reflect<MonthFilterWidgetOptionsButtonSetterComponent>().min_month)
+    public onchange_min_month() {
         if (!this.widget_options) {
             return;
         }
@@ -227,8 +227,8 @@ export default class MonthFilterWidgetOptionsButtonSetterComponent extends VueCo
         }
     }
 
-    @Watch('auto_select_month_min')
-    private onchange_auto_select_month_min() {
+    @Watch(reflect<MonthFilterWidgetOptionsButtonSetterComponent>().auto_select_month_min)
+    public onchange_auto_select_month_min() {
         if (!this.widget_options) {
             return;
         }
@@ -242,8 +242,8 @@ export default class MonthFilterWidgetOptionsButtonSetterComponent extends VueCo
         }
     }
 
-    @Watch('auto_select_month_max')
-    private onchange_auto_select_month_max() {
+    @Watch(reflect<MonthFilterWidgetOptionsButtonSetterComponent>().auto_select_month_max)
+    public onchange_auto_select_month_max() {
         if (!this.widget_options) {
             return;
         }
@@ -257,8 +257,8 @@ export default class MonthFilterWidgetOptionsButtonSetterComponent extends VueCo
         }
     }
 
-    @Watch('max_month')
-    private onchange_max_month() {
+    @Watch(reflect<MonthFilterWidgetOptionsButtonSetterComponent>().max_month)
+    public onchange_max_month() {
         if (!this.widget_options) {
             return;
         }
@@ -272,8 +272,8 @@ export default class MonthFilterWidgetOptionsButtonSetterComponent extends VueCo
         }
     }
 
-    @Watch('custom_filter_name')
-    private onchange_custom_filter_name() {
+    @Watch(reflect<MonthFilterWidgetOptionsButtonSetterComponent>().custom_filter_name)
+    public onchange_custom_filter_name() {
         if (!this.widget_options) {
             return;
         }
@@ -286,8 +286,8 @@ export default class MonthFilterWidgetOptionsButtonSetterComponent extends VueCo
         }
     }
 
-    @Watch('is_month_cumulated_selected')
-    private onchange_is_month_cumulated_selected() {
+    @Watch(reflect<MonthFilterWidgetOptionsButtonSetterComponent>().is_month_cumulated_selected)
+    public onchange_is_month_cumulated_selected() {
         if (!this.widget_options) {
             return;
         }
@@ -300,8 +300,8 @@ export default class MonthFilterWidgetOptionsButtonSetterComponent extends VueCo
         }
     }
 
-    @Watch('is_all_months_selected')
-    private onchange_is_all_months_selected() {
+    @Watch(reflect<MonthFilterWidgetOptionsButtonSetterComponent>().is_all_months_selected)
+    public onchange_is_all_months_selected() {
         if (!this.widget_options) {
             return;
         }
@@ -322,7 +322,7 @@ export default class MonthFilterWidgetOptionsButtonSetterComponent extends VueCo
         return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
     }
 
-    private update_page_widget() {
+    public update_page_widget() {
         try {
             this.page_widget.json_options = JSON.stringify(this.next_update_options);
         } catch (error) {
@@ -336,7 +336,7 @@ export default class MonthFilterWidgetOptionsButtonSetterComponent extends VueCo
      * load_all_months_page_widgets
      *  - Load all months page widgets (to be used in relative_to_other_filter_id)
      */
-    private async load_all_months_page_widgets() {
+    public async load_all_months_page_widgets() {
         this.all_months_page_widgets = await DashboardPageWidgetVOManager.find_page_widgets_by_widget_name(
             this.page_widget.id,
             DashboardWidgetVO.WIDGET_NAME_monthfilter
@@ -346,7 +346,7 @@ export default class MonthFilterWidgetOptionsButtonSetterComponent extends VueCo
     // /**
     //  * toggle_can_configure_auto_select_month_relative_mode
     //  */
-    // private toggle_can_configure_auto_select_month_relative_mode(): void {
+    // public toggle_can_configure_auto_select_month_relative_mode(): void {
     //     this.can_configure_auto_select_month_relative_mode = !this.can_configure_auto_select_month_relative_mode;
     //     if (!this.can_configure_auto_select_month_relative_mode) {
     //         this.auto_select_month_min = 0;
@@ -357,11 +357,11 @@ export default class MonthFilterWidgetOptionsButtonSetterComponent extends VueCo
     /**
      * Handle Select All Change
      */
-    private handle_all_months_selected_change(is_all_months_selected: boolean): void {
+    public handle_all_months_selected_change(is_all_months_selected: boolean): void {
         this.is_all_months_selected = is_all_months_selected;
     }
 
-    private mounted() {
+    public mounted() {
         this.throttled_load_all_months_page_widgets();
     }
 
@@ -369,19 +369,19 @@ export default class MonthFilterWidgetOptionsButtonSetterComponent extends VueCo
     /**
      * Handle Selected Month Change
      */
-    private handle_selected_month_change(selected_months: { [month: number]: boolean }): void {
+    public handle_selected_month_change(selected_months: { [month: number]: boolean }): void {
         this.selected_months = selected_months;
     }
 
     /**
      * Handle Cumulative Months Change
      */
-    private handle_month_cumulated_change(is_month_cumulated_selected: boolean): void {
+    public handle_month_cumulated_change(is_month_cumulated_selected: boolean): void {
         // this.selected_months = selected_months;
         this.is_month_cumulated_selected = is_month_cumulated_selected;
     }
 
-    private switch_hide_filter() {
+    public switch_hide_filter() {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
@@ -395,7 +395,7 @@ export default class MonthFilterWidgetOptionsButtonSetterComponent extends VueCo
         this.throttled_update_page_widget();
     }
 
-    private switch_is_relative_to_other_filter() {
+    public switch_is_relative_to_other_filter() {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
@@ -409,7 +409,7 @@ export default class MonthFilterWidgetOptionsButtonSetterComponent extends VueCo
         this.throttled_update_page_widget();
     }
 
-    private switch_month_relative_mode() {
+    public switch_month_relative_mode() {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
@@ -423,7 +423,7 @@ export default class MonthFilterWidgetOptionsButtonSetterComponent extends VueCo
         this.throttled_update_page_widget();
     }
 
-    private switch_auto_select_month() {
+    public switch_auto_select_month() {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
@@ -437,7 +437,7 @@ export default class MonthFilterWidgetOptionsButtonSetterComponent extends VueCo
         this.throttled_update_page_widget();
     }
 
-    private switch_auto_select_month_relative_mode() {
+    public switch_auto_select_month_relative_mode() {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
@@ -455,7 +455,7 @@ export default class MonthFilterWidgetOptionsButtonSetterComponent extends VueCo
      * toggle_is_month_cumulated
      * - Allow to the user to cumulate the months
      */
-    private toggle_is_month_cumulated() {
+    public toggle_is_month_cumulated() {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
@@ -469,7 +469,7 @@ export default class MonthFilterWidgetOptionsButtonSetterComponent extends VueCo
         this.throttled_update_page_widget();
     }
 
-    private switch_is_vo_field_ref() {
+    public switch_is_vo_field_ref() {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
@@ -483,7 +483,7 @@ export default class MonthFilterWidgetOptionsButtonSetterComponent extends VueCo
         this.throttled_update_page_widget();
     }
 
-    private remove_field_ref() {
+    public remove_field_ref() {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
@@ -504,7 +504,7 @@ export default class MonthFilterWidgetOptionsButtonSetterComponent extends VueCo
      *
      * @returns MonthFilterWidgetOptionsVO
      */
-    private get_widget_options(): MonthFilterWidgetOptionsVO {
+    public get_widget_options(): MonthFilterWidgetOptionsVO {
         if (!this.page_widget) {
             return null;
         }
@@ -522,7 +522,7 @@ export default class MonthFilterWidgetOptionsButtonSetterComponent extends VueCo
         return options;
     }
 
-    private add_field_ref(api_type_id: string, field_id: string) {
+    public add_field_ref(api_type_id: string, field_id: string) {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
@@ -546,7 +546,7 @@ export default class MonthFilterWidgetOptionsButtonSetterComponent extends VueCo
      * - Return default widget options
      * @returns {MonthFilterWidgetOptionsVO}
      */
-    private create_widget_options(
+    public create_widget_options(
         props?: Partial<MonthFilterWidgetOptionsVO>
     ): MonthFilterWidgetOptionsVO {
 

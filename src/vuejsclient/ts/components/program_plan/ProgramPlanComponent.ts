@@ -31,7 +31,7 @@ import ModuleProgramPlanBase from '../../../../shared/modules/ProgramPlan/Module
 import VOsTypesManager from '../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../../shared/tools/DateHandler';
-import ObjectHandler, { field_names } from '../../../../shared/tools/ObjectHandler';
+import ObjectHandler, { field_names, reflect } from '../../../../shared/tools/ObjectHandler';
 import ThrottleHelper from '../../../../shared/tools/ThrottleHelper';
 import TimeSegmentHandler from '../../../../shared/tools/TimeSegmentHandler';
 import WeightHandler from '../../../../shared/tools/WeightHandler';
@@ -237,33 +237,33 @@ export default class ProgramPlanComponent extends VueComponentBase {
     @Prop({ default: null })
     public program_plan_controller: ProgramPlanControllerBase;
 
-    private user = VueAppController.getInstance().data_user;
-    private fcEvents: EventInput[] = [];
+    public user = VueAppController.getInstance().data_user;
+    public fcEvents: EventInput[] = [];
 
-    private calendar_date: string = DateHandler.getInstance().formatDayForIndex(Dates.now());
-    private viewname: string = 'timelineWeek';
-    private show_targets: boolean = true;
+    public calendar_date: string = DateHandler.getInstance().formatDayForIndex(Dates.now());
+    public viewname: string = 'timelineWeek';
+    public show_targets: boolean = true;
 
-    private valid_targets: IPlanTarget[] = [];
-    private valid_target_by_ids: { [id: number]: IPlanTarget } = {};
+    public valid_targets: IPlanTarget[] = [];
+    public valid_target_by_ids: { [id: number]: IPlanTarget } = {};
 
-    private valid_facilitators: IPlanFacilitator[] = [];
-    private valid_rdvs: IPlanRDV[] = [];
+    public valid_facilitators: IPlanFacilitator[] = [];
+    public valid_rdvs: IPlanRDV[] = [];
 
-    private calendar_key: number = 1;
+    public calendar_key: number = 1;
 
-    private debounced_onchange_calendar_date = debounce(this.onchange_calendar_date, 1000);
+    public debounced_onchange_calendar_date = debounce(this.onchange_calendar_date, 1000);
 
-    private debounced_async_load = debounce(this.async_load, 100);
+    public debounced_async_load = debounce(this.async_load, 100);
 
-    private reset_targets = ThrottleHelper.declare_throttle_without_args(
+    public reset_targets = ThrottleHelper.declare_throttle_without_args(
         'ProgramPlanComponent.reset_targets',
         this.reset_targets_throttled.bind(this),
         100,
         false
     );
 
-    private fcSegment: TimeSegment = TimeSegmentHandler.getCorrespondingTimeSegment(
+    public fcSegment: TimeSegment = TimeSegmentHandler.getCorrespondingTimeSegment(
         moment(this.calendar_date).utc(true).unix(),
         (this.viewname == "timelineWeek") ? TimeSegment.TYPE_WEEK : TimeSegment.TYPE_MONTH
     );
@@ -537,19 +537,19 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
         await this.handle_modal_show_hide();
     }
-    @Watch('program_plan_shared_module')
+    @Watch(reflect<ProgramPlanComponent>().program_plan_shared_module)
     public async onchange_program_plan_shared_module() {
         this.startLoading();
         await this.debounced_async_load();
     }
 
-    @Watch('getTargetsByIds', { deep: true, immediate: true })
-    private onchange_getTargetsByIds() {
+    @Watch(reflect<ProgramPlanComponent>().getTargetsByIds, { deep: true, immediate: true })
+    public onchange_getTargetsByIds() {
         this.reset_targets();
     }
 
-    @Watch('fcSegment', { deep: true, immediate: true })
-    private async onChangeFCSegment() {
+    @Watch(reflect<ProgramPlanComponent>().fcSegment, { deep: true, immediate: true })
+    public async onChangeFCSegment() {
 
         const promises: Array<Promise<any>> = [];
         const self = this;
@@ -589,8 +589,8 @@ export default class ProgramPlanComponent extends VueComponentBase {
         // this.filter_changed();
     }
 
-    @Watch('selected_rdv', { immediate: true })
-    private async onChangeSelectedRDV() {
+    @Watch(reflect<ProgramPlanComponent>().selected_rdv, { immediate: true })
+    public async onChangeSelectedRDV() {
 
         if (!this.selected_rdv) {
             return;
@@ -644,8 +644,8 @@ export default class ProgramPlanComponent extends VueComponentBase {
         await all_promises(promises);
     }
 
-    @Watch('getFacilitatorsByIds', { deep: true, immediate: true })
-    private reset_facilitators() {
+    @Watch(reflect<ProgramPlanComponent>().getFacilitatorsByIds, { deep: true, immediate: true })
+    public reset_facilitators() {
         this.valid_facilitators = [];
         for (const i in this.getFacilitatorsByIds) {
             const facilitator: IPlanFacilitator = this.getFacilitatorsByIds[i];
@@ -657,14 +657,14 @@ export default class ProgramPlanComponent extends VueComponentBase {
         }
     }
 
-    @Watch('valid_targets', { deep: true, immediate: true })
-    @Watch('getRdvsByIds', { deep: true, immediate: true })
-    private debounce_reset_rdvs() {
+    @Watch(reflect<ProgramPlanComponent>().valid_targets, { deep: true, immediate: true })
+    @Watch(reflect<ProgramPlanComponent>().getRdvsByIds, { deep: true, immediate: true })
+    public debounce_reset_rdvs() {
         this.debounced_reset_rdvs();
     }
 
-    @Watch('valid_rdvs', { immediate: true, deep: true })
-    private onchange_rdvsByIds() {
+    @Watch(reflect<ProgramPlanComponent>().valid_rdvs, { immediate: true, deep: true })
+    public onchange_rdvsByIds() {
         this.fcEvents = [];
 
         for (const i in this.valid_rdvs) {
@@ -680,14 +680,14 @@ export default class ProgramPlanComponent extends VueComponentBase {
     }
 
 
-    @Watch('calendar_date')
-    private onchange_calendar_date_direct() {
+    @Watch(reflect<ProgramPlanComponent>().calendar_date)
+    public onchange_calendar_date_direct() {
 
         this.debounced_onchange_calendar_date();
     }
 
-    @Watch('viewname')
-    private onchange_calendar_date() {
+    @Watch(reflect<ProgramPlanComponent>().viewname)
+    public onchange_calendar_date() {
 
         if (!moment(this.calendar_date).utc(true).isValid()) {
             return;
@@ -777,7 +777,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
         });
     }
 
-    protected async handle_modal_show_hide() {
+    public async handle_modal_show_hide() {
         if (!this.modal_show) {
             $('#rdv_modal').modal('hide');
             this.show_targets = true;
@@ -796,7 +796,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
         }
     }
 
-    private init_print() {
+    public init_print() {
         const self = this;
 
         AppVuexStoreManager.getInstance().appVuexStore.commit('PRINT_ENABLE');
@@ -810,7 +810,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
         }
     }
 
-    private async reloadAsyncData() {
+    public async reloadAsyncData() {
 
         const self = this;
 
@@ -1156,7 +1156,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
         self.stopLoading();
     }
 
-    private onFCEventSelected(calEvent: EventInput, jsEvent, view: ViewApi) {
+    public onFCEventSelected(calEvent: EventInput, jsEvent, view: ViewApi) {
 
         if ((!calEvent) || (!calEvent.rdv_id) || (!this.getRdvsByIds) || (!this.getRdvsByIds[calEvent.rdv_id])) {
             this.$router.push(this.route_path);
@@ -1165,7 +1165,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
         this.$router.push(this.route_path + '/rdv/' + calEvent.rdv_id);
     }
 
-    private select_rdv(rdv_id: number) {
+    public select_rdv(rdv_id: number) {
 
         if ((!rdv_id) || (!this.getRdvsByIds) || (!this.getRdvsByIds[rdv_id])) {
             this.$router.push(this.route_path);
@@ -1174,12 +1174,12 @@ export default class ProgramPlanComponent extends VueComponentBase {
         this.$router.push(this.route_path + '/rdv/' + rdv_id);
     }
 
-    private getResourceName(first_name, name) {
+    public getResourceName(first_name, name) {
         const resource_name = ProgramPlanTools.getResourceName(first_name, name);
         return resource_name;
     }
 
-    private getPlanningEventFromRDV(rdv: IPlanRDV): EventInput[] {
+    public getPlanningEventFromRDV(rdv: IPlanRDV): EventInput[] {
         // exemple :
         // {
         //   id: '1',
@@ -1294,7 +1294,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
      * @param view https://fullcalendar.io/docs/view-object
      * @param element is a jQuery element for the container of the new view.
      */
-    private onFCViewRender(view: ViewApi, element) {
+    public onFCViewRender(view: ViewApi, element) {
         // if ((!view) || (!view.start) || (!view.end)) {
         //     return;
         // }
@@ -1314,7 +1314,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
      * Triggered when dragging stops and the event has moved to a different day/time.
      * @param event https://fullcalendar.io/docs/event-object
      */
-    private async onFCEventDrop(event: EventInput, delta, revertFunc, jsEvent, ui, view: ViewApi) {
+    public async onFCEventDrop(event: EventInput, delta, revertFunc, jsEvent, ui, view: ViewApi) {
         await this.updateEvent(event, revertFunc, view);
     }
 
@@ -1322,11 +1322,11 @@ export default class ProgramPlanComponent extends VueComponentBase {
      * Triggered when resizing stops and the event has changed in duration.
      * @param event https://fullcalendar.io/docs/event-object
      */
-    private async onFCEventResize(event: EventInput, delta, revertFunc, jsEvent, ui, view: ViewApi) {
+    public async onFCEventResize(event: EventInput, delta, revertFunc, jsEvent, ui, view: ViewApi) {
         await this.updateEvent(event, revertFunc, view);
     }
 
-    private async updateEvent(event: EventInput, revertFunc, view: ViewApi) {
+    public async updateEvent(event: EventInput, revertFunc, view: ViewApi) {
         // Il faut modifier le vo source, mettre à jour côté serveur et notifier en cas d'échec et annuler la modif (remettre la resource et les dates précédentes)
 
         const self = this;
@@ -1501,7 +1501,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
      * Called when a valid external jQuery UI draggable, containing event data, has been dropped onto the calendar.
      * @param event
      */
-    private async onFCEventReceive(event: EventInput) {
+    public async onFCEventReceive(event: EventInput) {
 
         const self = this;
         let errormsg = 'programplan.fc.create.error';
@@ -1714,7 +1714,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
         );
     }
 
-    private can_edit_rdv(facilitator_id: number, new_facilitator_id: number = null): boolean {
+    public can_edit_rdv(facilitator_id: number, new_facilitator_id: number = null): boolean {
         if (!this.can_edit_any) {
             return false;
         }
@@ -1776,7 +1776,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
         return false;
     }
 
-    private async deleteSelectedEvent() {
+    public async deleteSelectedEvent() {
         if (!this.selected_rdv) {
             return;
         }
@@ -1938,11 +1938,11 @@ export default class ProgramPlanComponent extends VueComponentBase {
         });
     }
 
-    private onFCEventRender(event: EventInput, element, view: ViewApi) {
+    public onFCEventRender(event: EventInput, element, view: ViewApi) {
         this.program_plan_controller.onFCEventRender(event, element, view);
     }
 
-    private get_printable_table_weeks() {
+    public get_printable_table_weeks() {
         const res = [];
 
         const date_debut = (Dates.day(this.filter_date_debut) == 1) ? this.filter_date_debut : Dates.day(this.filter_date_debut, 1);
@@ -1977,7 +1977,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
         return res;
     }
 
-    private get_printable_table_days(date_debut: number, date_fin: number) {
+    public get_printable_table_days(date_debut: number, date_fin: number) {
         const res = [];
 
         let d: number = date_debut;
@@ -1991,7 +1991,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
         return res;
     }
 
-    private get_printable_table_rows(date_debut: number, date_fin: number) {
+    public get_printable_table_rows(date_debut: number, date_fin: number) {
         const res = [];
 
         for (const i in this.valid_facilitators) {
@@ -2121,7 +2121,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
         return res;
     }
 
-    private reset_targets_throttled() {
+    public reset_targets_throttled() {
         const valid_target_by_ids: { [id: number]: IPlanTarget } = {};
         const valid_targets: IPlanTarget[] = [];
 
@@ -2143,11 +2143,11 @@ export default class ProgramPlanComponent extends VueComponentBase {
         this.calendar_key++;
     }
 
-    private filter_ready() {
+    public filter_ready() {
         this.reset_targets();
     }
 
-    private reset_rdvs() {
+    public reset_rdvs() {
         this.valid_rdvs = [];
         for (const i in this.getRdvsByIds) {
             const rdv: IPlanRDV = this.getRdvsByIds[i];
@@ -2159,14 +2159,14 @@ export default class ProgramPlanComponent extends VueComponentBase {
         }
     }
 
-    private filter_changed() {
+    public filter_changed() {
 
         this.reset_targets();
         this.reset_facilitators();
         this.reset_rdvs();
     }
 
-    private async reload_rdvs() {
+    public async reload_rdvs() {
         this.setRdvsByIds(
             VOsTypesManager.vosArray_to_vosByIds(
                 await this.program_plan_shared_module.getRDVsOfProgramSegment(this.program_id, this.fcSegment)

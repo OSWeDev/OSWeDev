@@ -11,8 +11,9 @@ import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/DroppableVoFieldsStore';
 import SingleVoFieldRefHolderComponent from '../../../options_tools/single_vo_field_ref_holder/SingleVoFieldRefHolderComponent';
-import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
 import './MonthFilterWidgetOptionsComponent.scss';
+import WidgetOptionsVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/WidgetOptionsVOManager';
+import DashboardWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
 
 @Component({
     template: require('./MonthFilterWidgetOptionsComponent.pug'),
@@ -24,41 +25,41 @@ export default class MonthFilterWidgetOptionsComponent extends VueComponentBase 
     @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @Prop({ default: null })
-    private page_widget: DashboardPageWidgetVO;
+    public page_widget: DashboardPageWidgetVO;
 
     @ModuleDroppableVoFieldsAction
-    private set_selected_fields: (selected_fields: { [api_type_id: string]: { [field_id: string]: boolean } }) => void;
+    public set_selected_fields: (selected_fields: { [api_type_id: string]: { [field_id: string]: boolean } }) => void;
 
-    private is_vo_field_ref: boolean = true;
-    private month_relative_mode: boolean = true;
-    private auto_select_month: boolean = true;
-    private auto_select_month_relative_mode: boolean = true;
+    public is_vo_field_ref: boolean = true;
+    public month_relative_mode: boolean = true;
+    public auto_select_month: boolean = true;
+    public auto_select_month_relative_mode: boolean = true;
 
-    private custom_filter_name: string = null;
+    public custom_filter_name: string = null;
 
-    private min_month: string = null;
-    private max_month: string = null;
-    private auto_select_month_min: string = null;
-    private auto_select_month_max: string = null;
+    public min_month: string = null;
+    public max_month: string = null;
+    public auto_select_month_min: string = null;
+    public auto_select_month_max: string = null;
 
-    private next_update_options: MonthFilterWidgetOptionsVO = null;
-    private throttled_update_options = ThrottleHelper.declare_throttle_without_args(
+    public next_update_options: MonthFilterWidgetOptionsVO = null;
+    public throttled_update_options = ThrottleHelper.declare_throttle_without_args(
         'MonthFilterWidgetOptionsComponent.throttled_update_options',
         this.update_options.bind(this), 50, false);
 
-    private relative_to_other_filter_id: number = null;
-    private is_relative_to_other_filter: boolean = false;
-    private hide_filter: boolean = false;
+    public relative_to_other_filter_id: number = null;
+    public is_relative_to_other_filter: boolean = false;
+    public hide_filter: boolean = false;
 
-    private can_ytd: boolean = false;
-    private ytd_option_m_minus_x: string = "1";
+    public can_ytd: boolean = false;
+    public ytd_option_m_minus_x: string = "1";
 
     // Current filter may show select_all of selectable months
-    private can_select_all: boolean = false;
+    public can_select_all: boolean = false;
     // Current filter may cumulate months
-    private is_month_cumulated_selected: boolean = false;
+    public is_month_cumulated_selected: boolean = false;
 
-    private widget_options: MonthFilterWidgetOptionsVO = null;
+    public widget_options: MonthFilterWidgetOptionsVO = null;
 
     get get_custom_filters(): string[] {
         return this.vuexGet<string[]>(reflect<this>().get_custom_filters);
@@ -66,6 +67,30 @@ export default class MonthFilterWidgetOptionsComponent extends VueComponentBase 
 
     get get_page_widgets(): DashboardPageWidgetVO[] {
         return this.vuexGet<DashboardPageWidgetVO[]>(reflect<this>().get_page_widgets);
+    }
+
+
+    get default_placeholder_translation(): string {
+        return this.label('DOWFilterWidget.filter_placeholder');
+    }
+
+
+    get vo_field_ref(): VOFieldRefVO {
+        const options: MonthFilterWidgetOptionsVO = this.widget_options;
+
+        if ((!options) || (!options.vo_field_ref)) {
+            return null;
+        }
+
+        return Object.assign(new VOFieldRefVO(), options.vo_field_ref);
+    }
+
+    get get_all_widgets(): DashboardWidgetVO[] {
+        return this.vuexGet<DashboardWidgetVO[]>(reflect<this>().get_all_widgets);
+    }
+
+    get get_widgets_by_id(): { [id: number]: DashboardWidgetVO } {
+        return this.vuexGet<{ [id: number]: DashboardWidgetVO }>(reflect<this>().get_widgets_by_id);
     }
 
 
@@ -150,34 +175,126 @@ export default class MonthFilterWidgetOptionsComponent extends VueComponentBase 
         return this.get_custom_filters;
     }
 
-    // Accès dynamiques Vuex
-    public vuexGet<T>(getter: string): T {
-        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
-    }
-    public vuexAct<A>(action: string, payload?: A) {
-        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    /**
+     * onchange_page_widget
+     *  - Called when page_widget is changed
+     *
+     * @returns {void}
+     */
+    @Watch(reflect<MonthFilterWidgetOptionsComponent>().page_widget, { immediate: true, deep: true })
+    public onchange_page_widget(): void {
+        if (!this.page_widget) {
+            return;
+        }
+
+        this.widget_options = this.get_widget_options();
     }
 
-    public set_page_widget(page_widget: DashboardPageWidgetVO) {
-        return this.vuexAct(reflect<this>().set_page_widget, page_widget);
-    }
+    @Watch(reflect<MonthFilterWidgetOptionsComponent>().relative_to_other_filter_id)
+    public async onchange_relative_to_other_filter_id() {
+        if (!this.widget_options) {
+            return;
+        }
 
-    public set_custom_filters(custom_filters: string[]) {
-        return this.vuexAct(reflect<this>().set_custom_filters, custom_filters);
-    }
+        if (this.widget_options.relative_to_other_filter_id != this.relative_to_other_filter_id) {
+            this.next_update_options = this.widget_options;
+            this.next_update_options.relative_to_other_filter_id = this.relative_to_other_filter_id;
 
-
-    private change_custom_filter(custom_filter: string) {
-        this.custom_filter_name = custom_filter;
-        if (this.get_custom_filters && (this.get_custom_filters.indexOf(custom_filter) < 0)) {
-            const custom_filters = Array.from(this.get_custom_filters);
-            custom_filters.push(custom_filter);
-            this.set_custom_filters(custom_filters);
+            this.throttled_update_options();
         }
     }
 
-    @Watch('widget_options', { immediate: true })
-    private onchange_widget_options() {
+    @Watch(reflect<MonthFilterWidgetOptionsComponent>().min_month)
+    public async onchange_min_month() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        const month = (this.min_month == null) ? null : parseInt(this.min_month);
+        if (this.widget_options.min_month != month) {
+            this.next_update_options = this.widget_options;
+            this.next_update_options.min_month = month;
+
+            this.throttled_update_options();
+        }
+    }
+
+    @Watch(reflect<MonthFilterWidgetOptionsComponent>().auto_select_month_min)
+    public async onchange_auto_select_month_min() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        const month = (this.auto_select_month_min == null) ? null : parseInt(this.auto_select_month_min);
+        if (this.widget_options.auto_select_month_min != month) {
+            this.next_update_options = this.widget_options;
+            this.next_update_options.auto_select_month_min = month;
+
+            this.throttled_update_options();
+        }
+    }
+
+    @Watch(reflect<MonthFilterWidgetOptionsComponent>().auto_select_month_max)
+    public async onchange_auto_select_month_max() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        const month = (this.auto_select_month_max == null) ? null : parseInt(this.auto_select_month_max);
+        if (this.widget_options.auto_select_month_max != month) {
+            this.next_update_options = this.widget_options;
+            this.next_update_options.auto_select_month_max = month;
+
+            this.throttled_update_options();
+        }
+    }
+
+    @Watch(reflect<MonthFilterWidgetOptionsComponent>().ytd_option_m_minus_x)
+    public async onchange_ytd_option_m_minus_x() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        const month = (this.ytd_option_m_minus_x == null) ? 1 : parseInt(this.ytd_option_m_minus_x);
+        if (this.widget_options.ytd_option_m_minus_x != month) {
+            this.next_update_options = this.widget_options;
+            this.next_update_options.ytd_option_m_minus_x = month;
+
+            this.throttled_update_options();
+        }
+    }
+
+    @Watch(reflect<MonthFilterWidgetOptionsComponent>().max_month)
+    public async onchange_max_month() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        const month = (this.max_month == null) ? null : parseInt(this.max_month);
+        if (this.widget_options.max_month != month) {
+            this.next_update_options = this.widget_options;
+            this.next_update_options.max_month = month;
+
+            this.throttled_update_options();
+        }
+    }
+
+    @Watch(reflect<MonthFilterWidgetOptionsComponent>().custom_filter_name)
+    public async onchange_custom_filter_name() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (this.widget_options.custom_filter_name != this.custom_filter_name) {
+            this.next_update_options = this.widget_options;
+            this.next_update_options.custom_filter_name = this.custom_filter_name;
+
+            this.throttled_update_options();
+        }
+    }
+
+    @Watch(reflect<MonthFilterWidgetOptionsComponent>().widget_options, { immediate: true })
+    public onchange_widget_options() {
         if (!this.widget_options) {
             this.is_vo_field_ref = true;
             this.month_relative_mode = true;
@@ -216,7 +333,33 @@ export default class MonthFilterWidgetOptionsComponent extends VueComponentBase 
         this.is_month_cumulated_selected = this.widget_options.is_month_cumulated_selected;
     }
 
-    private async switch_hide_filter() {
+    // Accès dynamiques Vuex
+    public vuexGet<T>(getter: string): T {
+        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    }
+    public vuexAct<A>(action: string, payload?: A) {
+        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    }
+
+    public set_page_widget(page_widget: DashboardPageWidgetVO) {
+        return this.vuexAct(reflect<this>().set_page_widget, page_widget);
+    }
+
+    public set_custom_filters(custom_filters: string[]) {
+        return this.vuexAct(reflect<this>().set_custom_filters, custom_filters);
+    }
+
+
+    public change_custom_filter(custom_filter: string) {
+        this.custom_filter_name = custom_filter;
+        if (this.get_custom_filters && (this.get_custom_filters.indexOf(custom_filter) < 0)) {
+            const custom_filters = Array.from(this.get_custom_filters);
+            custom_filters.push(custom_filter);
+            this.set_custom_filters(custom_filters);
+        }
+    }
+
+    public async switch_hide_filter() {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
@@ -230,7 +373,7 @@ export default class MonthFilterWidgetOptionsComponent extends VueComponentBase 
         this.throttled_update_options();
     }
 
-    private async switch_is_relative_to_other_filter() {
+    public async switch_is_relative_to_other_filter() {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
@@ -244,125 +387,7 @@ export default class MonthFilterWidgetOptionsComponent extends VueComponentBase 
         this.throttled_update_options();
     }
 
-    /**
-     * onchange_page_widget
-     *  - Called when page_widget is changed
-     *
-     * @returns {void}
-     */
-    @Watch('page_widget', { immediate: true, deep: true })
-    private onchange_page_widget(): void {
-        if (!this.page_widget) {
-            return;
-        }
-
-        this.widget_options = this.get_widget_options();
-    }
-
-    @Watch('relative_to_other_filter_id')
-    private async onchange_relative_to_other_filter_id() {
-        if (!this.widget_options) {
-            return;
-        }
-
-        if (this.widget_options.relative_to_other_filter_id != this.relative_to_other_filter_id) {
-            this.next_update_options = this.widget_options;
-            this.next_update_options.relative_to_other_filter_id = this.relative_to_other_filter_id;
-
-            this.throttled_update_options();
-        }
-    }
-
-    @Watch('min_month')
-    private async onchange_min_month() {
-        if (!this.widget_options) {
-            return;
-        }
-
-        const month = (this.min_month == null) ? null : parseInt(this.min_month);
-        if (this.widget_options.min_month != month) {
-            this.next_update_options = this.widget_options;
-            this.next_update_options.min_month = month;
-
-            this.throttled_update_options();
-        }
-    }
-
-    @Watch('auto_select_month_min')
-    private async onchange_auto_select_month_min() {
-        if (!this.widget_options) {
-            return;
-        }
-
-        const month = (this.auto_select_month_min == null) ? null : parseInt(this.auto_select_month_min);
-        if (this.widget_options.auto_select_month_min != month) {
-            this.next_update_options = this.widget_options;
-            this.next_update_options.auto_select_month_min = month;
-
-            this.throttled_update_options();
-        }
-    }
-
-    @Watch('auto_select_month_max')
-    private async onchange_auto_select_month_max() {
-        if (!this.widget_options) {
-            return;
-        }
-
-        const month = (this.auto_select_month_max == null) ? null : parseInt(this.auto_select_month_max);
-        if (this.widget_options.auto_select_month_max != month) {
-            this.next_update_options = this.widget_options;
-            this.next_update_options.auto_select_month_max = month;
-
-            this.throttled_update_options();
-        }
-    }
-
-    @Watch('ytd_option_m_minus_x')
-    private async onchange_ytd_option_m_minus_x() {
-        if (!this.widget_options) {
-            return;
-        }
-
-        const month = (this.ytd_option_m_minus_x == null) ? 1 : parseInt(this.ytd_option_m_minus_x);
-        if (this.widget_options.ytd_option_m_minus_x != month) {
-            this.next_update_options = this.widget_options;
-            this.next_update_options.ytd_option_m_minus_x = month;
-
-            this.throttled_update_options();
-        }
-    }
-
-    @Watch('max_month')
-    private async onchange_max_month() {
-        if (!this.widget_options) {
-            return;
-        }
-
-        const month = (this.max_month == null) ? null : parseInt(this.max_month);
-        if (this.widget_options.max_month != month) {
-            this.next_update_options = this.widget_options;
-            this.next_update_options.max_month = month;
-
-            this.throttled_update_options();
-        }
-    }
-
-    @Watch('custom_filter_name')
-    private async onchange_custom_filter_name() {
-        if (!this.widget_options) {
-            return;
-        }
-
-        if (this.widget_options.custom_filter_name != this.custom_filter_name) {
-            this.next_update_options = this.widget_options;
-            this.next_update_options.custom_filter_name = this.custom_filter_name;
-
-            this.throttled_update_options();
-        }
-    }
-
-    private async switch_month_relative_mode() {
+    public async switch_month_relative_mode() {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
@@ -376,7 +401,7 @@ export default class MonthFilterWidgetOptionsComponent extends VueComponentBase 
         this.throttled_update_options();
     }
 
-    private async switch_auto_select_month() {
+    public async switch_auto_select_month() {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
@@ -390,7 +415,7 @@ export default class MonthFilterWidgetOptionsComponent extends VueComponentBase 
         this.throttled_update_options();
     }
 
-    private async switch_auto_select_month_relative_mode() {
+    public async switch_auto_select_month_relative_mode() {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
@@ -408,7 +433,7 @@ export default class MonthFilterWidgetOptionsComponent extends VueComponentBase 
      * Toggle Can Select All
      *  - Allow to the user to show select_all of the active filter (months) options
      */
-    private async toggle_can_select_all() {
+    public async toggle_can_select_all() {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
@@ -422,7 +447,7 @@ export default class MonthFilterWidgetOptionsComponent extends VueComponentBase 
         this.throttled_update_options();
     }
 
-    private toggle_can_ytd() {
+    public toggle_can_ytd() {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
@@ -441,7 +466,7 @@ export default class MonthFilterWidgetOptionsComponent extends VueComponentBase 
      * toggle_is_month_cumulated
      * - Allow to the user to cumulate the months
      */
-    private async toggle_is_month_cumulated() {
+    public async toggle_is_month_cumulated() {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
@@ -455,7 +480,7 @@ export default class MonthFilterWidgetOptionsComponent extends VueComponentBase 
         this.throttled_update_options();
     }
 
-    private async switch_is_vo_field_ref() {
+    public async switch_is_vo_field_ref() {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
@@ -469,7 +494,7 @@ export default class MonthFilterWidgetOptionsComponent extends VueComponentBase 
         this.throttled_update_options();
     }
 
-    private async update_options() {
+    public async update_options() {
 
         try {
             this.page_widget.json_options = JSON.stringify(this.next_update_options);
@@ -482,22 +507,12 @@ export default class MonthFilterWidgetOptionsComponent extends VueComponentBase 
         this.set_page_widget(this.page_widget);
         this.$emit('update_layout_widget', this.page_widget);
 
-        const name = VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets)[this.page_widget.widget_id].name;
-        const get_selected_fields = DashboardBuilderWidgetsController.getInstance().widgets_get_selected_fields[name];
+        const name = this.get_widgets_by_id[this.page_widget.widget_id].name;
+        const get_selected_fields = WidgetOptionsVOManager.widgets_get_selected_fields[name];
         this.set_selected_fields(get_selected_fields ? get_selected_fields(this.page_widget) : {});
     }
 
-    get vo_field_ref(): VOFieldRefVO {
-        const options: MonthFilterWidgetOptionsVO = this.widget_options;
-
-        if ((!options) || (!options.vo_field_ref)) {
-            return null;
-        }
-
-        return Object.assign(new VOFieldRefVO(), options.vo_field_ref);
-    }
-
-    private async remove_field_ref() {
+    public async remove_field_ref() {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
@@ -513,16 +528,12 @@ export default class MonthFilterWidgetOptionsComponent extends VueComponentBase 
         this.throttled_update_options();
     }
 
-    get default_placeholder_translation(): string {
-        return this.label('DOWFilterWidget.filter_placeholder');
-    }
-
     /**
      * get_widget_options
      *
      * @returns MonthFilterWidgetOptionsVO
      */
-    private get_widget_options(): MonthFilterWidgetOptionsVO {
+    public get_widget_options(): MonthFilterWidgetOptionsVO {
         if (!this.page_widget) {
             return null;
         }
@@ -540,7 +551,7 @@ export default class MonthFilterWidgetOptionsComponent extends VueComponentBase 
         return options;
     }
 
-    private async add_field_ref(api_type_id: string, field_id: string) {
+    public async add_field_ref(api_type_id: string, field_id: string) {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
@@ -564,7 +575,7 @@ export default class MonthFilterWidgetOptionsComponent extends VueComponentBase 
      * - Return default widget options
      * @returns {MonthFilterWidgetOptionsVO}
      */
-    private create_widget_options(
+    public create_widget_options(
         props?: Partial<MonthFilterWidgetOptionsVO>
     ): MonthFilterWidgetOptionsVO {
 

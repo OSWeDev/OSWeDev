@@ -16,7 +16,7 @@ import ObjectHandler, { reflect } from '../../../../../../shared/tools/ObjectHan
 import InlineTranslatableText from '../../../InlineTranslatableText/InlineTranslatableText';
 import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../../VueComponentBase';
-import DashboardBuilderWidgetsController from '../DashboardBuilderWidgetsController';
+import WidgetOptionsVOManager from '../WidgetOptionsVOManager';
 import ValidationFiltersWidgetController from '../validation_filters_widget/ValidationFiltersWidgetController';
 import './VarWidgetComponent.scss';
 import VarWidgetOptions from './options/VarWidgetOptions';
@@ -101,8 +101,12 @@ export default class VarWidgetComponent extends VueComponentBase {
         return ObjectHandler.hasAtLeastOneAttribute(this.widget_options.filter_custom_field_filters) ? this.widget_options.filter_custom_field_filters : null;
     }
 
-    get widgets_by_id(): { [id: number]: DashboardWidgetVO } {
-        return VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets);
+    get get_all_widgets(): DashboardWidgetVO[] {
+        return this.vuexGet<DashboardWidgetVO[]>(reflect<this>().get_all_widgets);
+    }
+
+    get get_widgets_by_id(): { [id: number]: DashboardWidgetVO } {
+        return this.vuexGet<{ [id: number]: DashboardWidgetVO }>(reflect<this>().get_widgets_by_id);
     }
 
     get widget_options() {
@@ -200,7 +204,7 @@ export default class VarWidgetComponent extends VueComponentBase {
         }
 
         for (const i in this.all_page_widget) {
-            const widget: DashboardWidgetVO = this.widgets_by_id[this.all_page_widget[i].widget_id];
+            const widget: DashboardWidgetVO = this.get_widgets_by_id[this.all_page_widget[i].widget_id];
 
             if (!widget) {
                 continue;

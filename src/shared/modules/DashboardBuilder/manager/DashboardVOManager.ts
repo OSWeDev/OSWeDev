@@ -123,31 +123,4 @@ export default class DashboardVOManager {
             });
         }
     }
-
-    /**
-     * load_shared_filters_with_dashboard_id
-     * - Load the shared filters with dashboard id and sort them by weight
-     *
-     * @param {number} [dashboard_id]
-     * @param {boolean} [options.refresh]
-     * @returns {Promise<DashboardVO[]>}
-     */
-    public static async load_shared_filters_with_dashboard_id(
-        dashboard_id: number,
-        options?: { refresh?: boolean }
-    ): Promise<SharedFiltersVO[]> {
-
-        const shared_filters = await SharedFiltersVOManager.find_shared_filters_with_dashboard_ids(
-            [dashboard_id],
-            {
-                sorts: [
-                    // new SortByVO(DashboardVO.API_TYPE_ID, field_names<DashboardVO>().weight, true),
-                    new SortByVO(DashboardVO.API_TYPE_ID, field_names<DashboardVO>().id, true)
-                ]
-            },
-            options
-        );
-
-        return shared_filters;
-    }
 }

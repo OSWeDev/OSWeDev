@@ -100,6 +100,10 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
         return this.vuexGet<string[]>(reflect<this>().get_dashboard_api_type_ids);
     }
 
+    get get_dashboard_discarded_field_paths(): { [vo_type: string]: { [field_id: string]: boolean } } {
+        return this.vuexGet<{ [vo_type: string]: { [field_id: string]: boolean } }>(reflect<this>().get_dashboard_discarded_field_paths);
+    }
+
     get get_active_api_type_ids(): string[] {
         return this.vuexGet<string[]>(reflect<this>().get_active_api_type_ids);
     }
@@ -229,6 +233,7 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
             return;
         }
 
+        // eslint-disable-next-line no-constant-condition
         while (true) {
             if (!this.widget_options.auto_refresh) {
                 return;
@@ -299,6 +304,8 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
             this.get_active_api_type_ids,
             this.groups,
             this.probes_by_ids,
+            this.get_dashboard_api_type_ids,
+            this.get_dashboard_discarded_field_paths,
             {
                 offset: this.pagination_offset,
                 limit: this.limit,

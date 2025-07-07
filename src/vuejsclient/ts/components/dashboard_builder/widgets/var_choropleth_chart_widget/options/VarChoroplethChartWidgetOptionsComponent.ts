@@ -30,33 +30,33 @@ export default class VarChoroplethChartWidgetOptionsComponent extends VueCompone
     @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @Prop({ default: null })
-    private page_widget: DashboardPageWidgetVO;
+    public page_widget: DashboardPageWidgetVO;
 
-    private next_update_options: VarChoroplethChartWidgetOptions = null;
-    private throttled_reload_options = ThrottleHelper.declare_throttle_without_args(
+    public next_update_options: VarChoroplethChartWidgetOptions = null;
+    public throttled_reload_options = ThrottleHelper.declare_throttle_without_args(
         'VarChoroplethChartWidgetOptionsComponent.throttled_reload_options',
         this.reload_options.bind(this), 50, false);
-    private throttled_update_options = ThrottleHelper.declare_throttle_without_args(
+    public throttled_update_options = ThrottleHelper.declare_throttle_without_args(
         'VarChoroplethChartWidgetOptionsComponent.throttled_update_options',
         this.update_options.bind(this), 50, false);
-    private throttled_update_colors = ThrottleHelper.declare_throttle_without_args(
+    public throttled_update_colors = ThrottleHelper.declare_throttle_without_args(
         'VarChoroplethChartWidgetOptionsComponent.throttled_update_colors',
         this.update_colors.bind(this), 800, false);
 
-    private tmp_selected_var_name_1: string = null;
-    private tmp_selected_var_name_2: string = null;
-    private tmp_selected_color_palette: string = null;
+    public tmp_selected_var_name_1: string = null;
+    public tmp_selected_var_name_2: string = null;
+    public tmp_selected_color_palette: string = null;
 
-    private custom_filter_names_1: { [field_id: string]: string } = {};
-    private custom_filter_names_2: { [field_id: string]: string } = {};
-    private dimension_custom_filter_name: string = null;
-    private color_palettes_labels: string[] = [
+    public custom_filter_names_1: { [field_id: string]: string } = {};
+    public custom_filter_names_2: { [field_id: string]: string } = {};
+    public dimension_custom_filter_name: string = null;
+    public color_palettes_labels: string[] = [
         "Tableau",
         "ColorBrewer",
         "Matplotlib",
         "Coolors",
     ];
-    private color_palettes: string[][] = [
+    public color_palettes: string[][] = [
         [
             '#4E79A7', // Bleu
             '#F28E2B', // Orange
@@ -100,43 +100,43 @@ export default class VarChoroplethChartWidgetOptionsComponent extends VueCompone
         ]
     ];
 
-    private bg_color_1: string = null;
-    private bg_color_2: string = null;
-    private border_color_1: string = null;
-    private border_color_2: string = null;
-    private bg_color: string = null;
-    private bg_colors: string[] = null;
-    private bg_gradient: boolean = false;
-    private legend_font_color: string = null;
-    private title_font_color: string = null;
+    public bg_color_1: string = null;
+    public bg_color_2: string = null;
+    public border_color_1: string = null;
+    public border_color_2: string = null;
+    public bg_color: string = null;
+    public bg_colors: string[] = null;
+    public bg_gradient: boolean = false;
+    public legend_font_color: string = null;
+    public title_font_color: string = null;
 
-    private legend_display: boolean = false;
-    private label_display: boolean = false;
-    private max_is_sum_of_var_1_and_2: boolean = false;
-    private legend_use_point_style: boolean = false;
-    private title_display: boolean = false;
-    private has_dimension: boolean = true;
-    private sort_dimension_by_asc: boolean = false;
-    private dimension_is_vo_field_ref: boolean = false;
+    public legend_display: boolean = false;
+    public label_display: boolean = false;
+    public max_is_sum_of_var_1_and_2: boolean = false;
+    public legend_use_point_style: boolean = false;
+    public title_display: boolean = false;
+    public has_dimension: boolean = true;
+    public sort_dimension_by_asc: boolean = false;
+    public dimension_is_vo_field_ref: boolean = false;
 
-    private legend_font_size: string = null;
-    private legend_box_width: string = null;
-    private legend_padding: string = null;
-    private title_font_size: string = null;
-    private title_padding: string = null;
-    private cutout_percentage: string = null;
-    private rotation: string = null;
-    private circumference: string = null;
-    private max_dimension_values: string = null;
-    private border_width_1: string = null;
-    private border_width_2: string = null;
+    public legend_font_size: string = null;
+    public legend_box_width: string = null;
+    public legend_padding: string = null;
+    public title_font_size: string = null;
+    public title_padding: string = null;
+    public cutout_percentage: string = null;
+    public rotation: string = null;
+    public circumference: string = null;
+    public max_dimension_values: string = null;
+    public border_width_1: string = null;
+    public border_width_2: string = null;
 
-    private tmp_selected_legend_position: string = null;
-    private tmp_selected_dimension_custom_filter_segment_type: string = null;
+    public tmp_selected_legend_position: string = null;
+    public tmp_selected_dimension_custom_filter_segment_type: string = null;
 
-    private widget_options: VarChoroplethChartWidgetOptions = null;
+    public widget_options: VarChoroplethChartWidgetOptions = null;
 
-    private dimension_custom_filter_segment_types: { [index: number]: string } =
+    public dimension_custom_filter_segment_types: { [index: number]: string } =
         {
             [TimeSegment.TYPE_YEAR]: this.label('VarChoroplethChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_YEAR),
             [TimeSegment.TYPE_MONTH]: this.label('VarChoroplethChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_MONTH),
@@ -148,8 +148,8 @@ export default class VarChoroplethChartWidgetOptionsComponent extends VueCompone
             [TimeSegment.TYPE_SECOND]: this.label('VarChoroplethChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_SECOND)
         };
 
-    private dimension_custom_filter_segment_types_values: string[] = Object.values(this.dimension_custom_filter_segment_types);
-    private legend_positions: string[] = [
+    public dimension_custom_filter_segment_types_values: string[] = Object.values(this.dimension_custom_filter_segment_types);
+    public legend_positions: string[] = [
         'top',
         'left',
         'bottom',
@@ -239,18 +239,18 @@ export default class VarChoroplethChartWidgetOptionsComponent extends VueCompone
         return Object.assign(new VOFieldRefVO(), options.sort_dimension_by_vo_field_ref);
     }
 
-    @Watch('page_widget', { immediate: true, deep: true })
-    private async onchange_page_widget() {
+    @Watch(reflect<VarChoroplethChartWidgetOptionsComponent>().page_widget, { immediate: true, deep: true })
+    public async onchange_page_widget() {
         await this.throttled_reload_options();
     }
 
-    @Watch('widget_options')
-    private async onchange_widget_options() {
+    @Watch(reflect<VarChoroplethChartWidgetOptionsComponent>().widget_options)
+    public async onchange_widget_options() {
         await this.throttled_reload_options();
     }
 
-    @Watch('tmp_selected_color_palette')
-    private async onchange_tmp_selected_color_palette() {
+    @Watch(reflect<VarChoroplethChartWidgetOptionsComponent>().tmp_selected_color_palette)
+    public async onchange_tmp_selected_color_palette() {
         if (!this.widget_options) {
             return;
         }
@@ -280,8 +280,8 @@ export default class VarChoroplethChartWidgetOptionsComponent extends VueCompone
 
 
 
-    @Watch('tmp_selected_var_name_1')
-    private async onchange_tmp_selected_var_name_1() {
+    @Watch(reflect<VarChoroplethChartWidgetOptionsComponent>().tmp_selected_var_name_1)
+    public async onchange_tmp_selected_var_name_1() {
         if (!this.widget_options) {
             return;
         }
@@ -312,8 +312,8 @@ export default class VarChoroplethChartWidgetOptionsComponent extends VueCompone
         }
     }
 
-    @Watch('tmp_selected_dimension_custom_filter_segment_type')
-    private async onchange_tmp_selected_dimension_custom_filter_segment_type() {
+    @Watch(reflect<VarChoroplethChartWidgetOptionsComponent>().tmp_selected_dimension_custom_filter_segment_type)
+    public async onchange_tmp_selected_dimension_custom_filter_segment_type() {
         if (!this.widget_options) {
             return;
         }
@@ -340,8 +340,8 @@ export default class VarChoroplethChartWidgetOptionsComponent extends VueCompone
         }
     }
 
-    @Watch('tmp_selected_legend_position')
-    private async onchange_tmp_selected_legend_position() {
+    @Watch(reflect<VarChoroplethChartWidgetOptionsComponent>().tmp_selected_legend_position)
+    public async onchange_tmp_selected_legend_position() {
         if (!this.widget_options) {
             return;
         }
@@ -368,8 +368,8 @@ export default class VarChoroplethChartWidgetOptionsComponent extends VueCompone
         }
     }
 
-    @Watch('legend_font_size')
-    private async onchange_legend_font_size() {
+    @Watch(reflect<VarChoroplethChartWidgetOptionsComponent>().legend_font_size)
+    public async onchange_legend_font_size() {
         if (!this.widget_options) {
             return;
         }
@@ -397,8 +397,8 @@ export default class VarChoroplethChartWidgetOptionsComponent extends VueCompone
         }
     }
 
-    @Watch('legend_box_width')
-    private async onchange_legend_box_width() {
+    @Watch(reflect<VarChoroplethChartWidgetOptionsComponent>().legend_box_width)
+    public async onchange_legend_box_width() {
         if (!this.widget_options) {
             return;
         }
@@ -426,8 +426,8 @@ export default class VarChoroplethChartWidgetOptionsComponent extends VueCompone
         }
     }
 
-    @Watch('legend_padding')
-    private async onchange_legend_padding() {
+    @Watch(reflect<VarChoroplethChartWidgetOptionsComponent>().legend_padding)
+    public async onchange_legend_padding() {
         if (!this.widget_options) {
             return;
         }
@@ -455,8 +455,8 @@ export default class VarChoroplethChartWidgetOptionsComponent extends VueCompone
         }
     }
 
-    @Watch('title_font_size')
-    private async onchange_title_font_size() {
+    @Watch(reflect<VarChoroplethChartWidgetOptionsComponent>().title_font_size)
+    public async onchange_title_font_size() {
         if (!this.widget_options) {
             return;
         }
@@ -484,8 +484,8 @@ export default class VarChoroplethChartWidgetOptionsComponent extends VueCompone
         }
     }
 
-    @Watch('title_padding')
-    private async onchange_title_padding() {
+    @Watch(reflect<VarChoroplethChartWidgetOptionsComponent>().title_padding)
+    public async onchange_title_padding() {
         if (!this.widget_options) {
             return;
         }
@@ -514,8 +514,8 @@ export default class VarChoroplethChartWidgetOptionsComponent extends VueCompone
     }
 
 
-    @Watch('border_width_1')
-    private async onchange_border_width_1() {
+    @Watch(reflect<VarChoroplethChartWidgetOptionsComponent>().border_width_1)
+    public async onchange_border_width_1() {
         if (!this.widget_options) {
             return;
         }
@@ -543,8 +543,8 @@ export default class VarChoroplethChartWidgetOptionsComponent extends VueCompone
         }
     }
 
-    @Watch('max_dimension_values')
-    private async onchange_max_dimension_values() {
+    @Watch(reflect<VarChoroplethChartWidgetOptionsComponent>().max_dimension_values)
+    public async onchange_max_dimension_values() {
         if (!this.widget_options) {
             return;
         }
@@ -596,7 +596,7 @@ export default class VarChoroplethChartWidgetOptionsComponent extends VueCompone
         return this.vuexAct(reflect<this>().set_page_widget, page_widget);
     }
 
-    private async remove_dimension_vo_field_ref() {
+    public async remove_dimension_vo_field_ref() {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
@@ -612,7 +612,7 @@ export default class VarChoroplethChartWidgetOptionsComponent extends VueCompone
         await this.throttled_update_options();
     }
 
-    private async add_dimension_vo_field_ref(api_type_id: string, field_id: string) {
+    public async add_dimension_vo_field_ref(api_type_id: string, field_id: string) {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
@@ -629,7 +629,7 @@ export default class VarChoroplethChartWidgetOptionsComponent extends VueCompone
         await this.throttled_update_options();
     }
 
-    private async remove_sort_dimension_by_vo_field_ref() {
+    public async remove_sort_dimension_by_vo_field_ref() {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
@@ -645,7 +645,7 @@ export default class VarChoroplethChartWidgetOptionsComponent extends VueCompone
         await this.throttled_update_options();
     }
 
-    private async add_sort_dimension_by_vo_field_ref(api_type_id: string, field_id: string) {
+    public async add_sort_dimension_by_vo_field_ref(api_type_id: string, field_id: string) {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
@@ -662,11 +662,11 @@ export default class VarChoroplethChartWidgetOptionsComponent extends VueCompone
         await this.throttled_update_options();
     }
 
-    private get_default_options(): VarChoroplethChartWidgetOptions {
+    public get_default_options(): VarChoroplethChartWidgetOptions {
         return VarChoroplethChartWidgetOptions.createDefault();
     }
 
-    private async switch_bg_gradient() {
+    public async switch_bg_gradient() {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
@@ -678,7 +678,7 @@ export default class VarChoroplethChartWidgetOptionsComponent extends VueCompone
         await this.throttled_update_options();
     }
 
-    private async switch_legend_display() {
+    public async switch_legend_display() {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
@@ -690,7 +690,7 @@ export default class VarChoroplethChartWidgetOptionsComponent extends VueCompone
         await this.throttled_update_options();
     }
 
-    private async switch_label_display() {
+    public async switch_label_display() {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
@@ -702,7 +702,7 @@ export default class VarChoroplethChartWidgetOptionsComponent extends VueCompone
         await this.throttled_update_options();
     }
 
-    private async switch_dimension_is_vo_field_ref() {
+    public async switch_dimension_is_vo_field_ref() {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
@@ -714,7 +714,7 @@ export default class VarChoroplethChartWidgetOptionsComponent extends VueCompone
         await this.throttled_update_options();
     }
 
-    private async switch_sort_dimension_by_asc() {
+    public async switch_sort_dimension_by_asc() {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
@@ -726,7 +726,7 @@ export default class VarChoroplethChartWidgetOptionsComponent extends VueCompone
         await this.throttled_update_options();
     }
 
-    private async switch_has_dimension() {
+    public async switch_has_dimension() {
         if (!this.has_dimension) {
             this.snotify.error('Not implemented yet');
         }
@@ -741,7 +741,7 @@ export default class VarChoroplethChartWidgetOptionsComponent extends VueCompone
         // await this.throttled_update_options();
     }
 
-    private async switch_title_display() {
+    public async switch_title_display() {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
@@ -753,7 +753,7 @@ export default class VarChoroplethChartWidgetOptionsComponent extends VueCompone
         await this.throttled_update_options();
     }
 
-    private async switch_legend_use_point_style() {
+    public async switch_legend_use_point_style() {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
@@ -765,7 +765,7 @@ export default class VarChoroplethChartWidgetOptionsComponent extends VueCompone
         await this.throttled_update_options();
     }
 
-    private async update_colors() {
+    public async update_colors() {
         if (!this.widget_options) {
             return;
         }
@@ -781,7 +781,7 @@ export default class VarChoroplethChartWidgetOptionsComponent extends VueCompone
         await this.throttled_update_options();
     }
 
-    private async change_custom_filter_1(field_id: string, custom_filter: string) {
+    public async change_custom_filter_1(field_id: string, custom_filter: string) {
         if (!this.widget_options) {
             return;
         }
@@ -795,7 +795,7 @@ export default class VarChoroplethChartWidgetOptionsComponent extends VueCompone
     }
 
 
-    private async change_custom_filter_dimension(custom_filter: string) {
+    public async change_custom_filter_dimension(custom_filter: string) {
         if (!this.widget_options) {
             return;
         }
@@ -808,7 +808,7 @@ export default class VarChoroplethChartWidgetOptionsComponent extends VueCompone
         await this.throttled_update_options();
     }
 
-    private reload_options() {
+    public reload_options() {
         if (!this.page_widget) {
             this.widget_options = null;
         } else {
@@ -1048,7 +1048,7 @@ export default class VarChoroplethChartWidgetOptionsComponent extends VueCompone
         }
     }
 
-    private get_dimension_custom_filter_segment_type_from_selected_option(selected_option: string): number {
+    public get_dimension_custom_filter_segment_type_from_selected_option(selected_option: string): number {
         if (this.dimension_custom_filter_segment_types) {
             for (const key in Object.keys(this.dimension_custom_filter_segment_types)) {
                 if (this.dimension_custom_filter_segment_types[Object.keys(this.dimension_custom_filter_segment_types)[key]] == selected_option) {
@@ -1060,7 +1060,7 @@ export default class VarChoroplethChartWidgetOptionsComponent extends VueCompone
         }
     }
 
-    private searchIndexOfArray(target: any, source: any): number {
+    public searchIndexOfArray(target: any, source: any): number {
         for (let i = 0; i <= source.length; i++) {
             if (JSON.stringify(target) === JSON.stringify(source[i])) {
                 return i;
@@ -1070,7 +1070,7 @@ export default class VarChoroplethChartWidgetOptionsComponent extends VueCompone
     }
 
 
-    private async update_options() {
+    public async update_options() {
         try {
             this.page_widget.json_options = JSON.stringify(this.next_update_options);
         } catch (error) {
@@ -1082,7 +1082,7 @@ export default class VarChoroplethChartWidgetOptionsComponent extends VueCompone
         this.$emit('update_layout_widget', this.page_widget);
     }
 
-    private async update_title_name_code_text() {
+    public async update_title_name_code_text() {
         if (!this.widget_options) {
             return;
         }

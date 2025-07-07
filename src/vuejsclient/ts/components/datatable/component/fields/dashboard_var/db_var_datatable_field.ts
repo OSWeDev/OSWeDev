@@ -23,7 +23,7 @@ import { all_promises } from '../../../../../../../shared/tools/PromiseTools';
 import ThreadHandler from '../../../../../../../shared/tools/ThreadHandler';
 import VarDataRefComponent from '../../../../Var/components/dataref/VarDataRefComponent';
 import VueComponentBase from '../../../../VueComponentBase';
-import DashboardBuilderWidgetsController from '../../../../dashboard_builder/widgets/DashboardBuilderWidgetsController';
+import WidgetOptionsVOManager from '../../../../dashboard_builder/widgets/WidgetOptionsVOManager';
 import ValidationFiltersWidgetController from '../../../../dashboard_builder/widgets/validation_filters_widget/ValidationFiltersWidgetController';
 import VarWidgetComponent from '../../../../dashboard_builder/widgets/var_widget/VarWidgetComponent';
 import './db_var_datatable_field.scss';
@@ -69,9 +69,6 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
     private columns: TableColumnDescVO[];
 
     @Prop({ default: null })
-    private all_page_widget: DashboardPageWidgetVO[];
-
-    @Prop({ default: null })
     private page_widget: DashboardPageWidgetVO;
 
     @Prop({ default: null })
@@ -100,8 +97,12 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
         return ObjectHandler.hasAtLeastOneAttribute(this.filter_custom_field_filters) ? this.filter_custom_field_filters : null;
     }
 
-    get widgets_by_id(): { [id: number]: DashboardWidgetVO } {
-        return VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets);
+    get get_page_widgets(): DashboardPageWidgetVO[] {
+        return this.vuexGet<DashboardPageWidgetVO[]>(reflect<this>().get_page_widgets);
+    }
+
+    get get_selected_page_page_widgets_by_id(): { [id: number]: DashboardWidgetVO } {
+        return this.vuexGet<{ [id: number]: DashboardWidgetVO }>(reflect<this>().get_selected_page_page_widgets_by_id);
     }
 
     get var_filter(): string {
@@ -176,12 +177,12 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
 
     private has_widget_validation_filtres(): boolean {
 
-        if (!this.all_page_widget) {
+        if (!this.get_page_widgets) {
             return false;
         }
 
-        for (const i in this.all_page_widget) {
-            const widget: DashboardWidgetVO = this.widgets_by_id[this.all_page_widget[i].widget_id];
+        for (const i in this.get_page_widgets) {
+            const widget: DashboardWidgetVO = this.get_selected_page_page_widgets_by_id[this.get_page_widgets[i].widget_id];
 
             if (!widget) {
                 continue;

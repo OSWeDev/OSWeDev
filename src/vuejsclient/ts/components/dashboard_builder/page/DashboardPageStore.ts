@@ -12,6 +12,7 @@ import DashboardWidgetVO from '../../../../../shared/modules/DashboardBuilder/vo
 import DBBConfVO from '../../../../../shared/modules/DashboardBuilder/vos/DBBConfVO';
 import FieldFiltersVO from '../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import SharedFiltersVO from '../../../../../shared/modules/DashboardBuilder/vos/SharedFiltersVO';
+import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import ObjectHandler from '../../../../../shared/tools/ObjectHandler';
 import RangeHandler from '../../../../../shared/tools/RangeHandler';
 import VueAppController from '../../../../VueAppController';
@@ -82,6 +83,8 @@ export interface IDashboardPageState {
 
     dbb_confs: DBBConfVO[]; // All the DBB configurations available in the system
     current_dbb_conf: DBBConfVO; // Current DBB configuration used (from the dashboard or selected by the user in the DBB)
+
+    crud_vo: IDistantVOBase; // VO used for CRUD operations (read, create, update) in the dashboard / used by template widgets
 }
 
 export default class DashboardPageStore implements IStoreModule<IDashboardPageState, DashboardPageContext> {
@@ -94,6 +97,14 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
     public state: any;
     public getters: GetterTree<IDashboardPageState, DashboardPageContext>;
     public mutations = {
+
+        set_crud_vo(state: IDashboardPageState, crud_vo: IDistantVOBase) {
+            if (state.crud_vo === crud_vo) {
+                return;
+            }
+
+            state.crud_vo = crud_vo;
+        },
 
         set_dbb_confs(state: IDashboardPageState, dbb_confs: DBBConfVO[]) {
             if (state.dbb_confs === dbb_confs) {
@@ -409,6 +420,7 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
 
 
         this.state = {
+            crud_vo: null, // VO used for CRUD operations (read, create, update) in the dashboard / used by template widgets
             dashboard_page: null, // Current dashboard page
             dashboard_id: null, // Dashboard id of the current dashboard
             selected_page_page_widgets: [], // DashboardPageWidgetVO[] - Page widgets of the currently selected page
@@ -449,6 +461,10 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
 
 
         this.getters = {
+
+            get_crud_vo(state: IDashboardPageState): IDistantVOBase {
+                return state.crud_vo;
+            },
 
             get_dbb_confs(state: IDashboardPageState): DBBConfVO[] {
                 return state.dbb_confs;
@@ -538,6 +554,17 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
                 return state.selected_page_page_widgets;
             },
 
+            get_selected_page_page_widgets_by_id(state: IDashboardPageState): { [id: number]: DashboardPageWidgetVO } {
+                const selected_page_page_widgets_by_id: { [id: number]: DashboardPageWidgetVO } = {};
+
+                for (const i in state.selected_page_page_widgets) {
+                    const page_widget = state.selected_page_page_widgets[i];
+                    selected_page_page_widgets_by_id[page_widget.id] = page_widget;
+                }
+
+                return selected_page_page_widgets_by_id;
+            },
+
             get_db_graph_vo_refs(state: IDashboardPageState): DashboardGraphVORefVO[] {
                 return state.db_graph_vo_refs;
             },
@@ -613,6 +640,26 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
                 return api_type_ids;
             },
 
+            get_page_widgets_by_page_id(state: IDashboardPageState): { [page_id: number]: DashboardPageWidgetVO[] } {
+                const page_widgets_by_page_id: { [page_id: number]: DashboardPageWidgetVO[] } = {};
+
+                if (!state.page_widgets || state.page_widgets.length <= 0) {
+                    return page_widgets_by_page_id;
+                }
+
+                for (const i in state.page_widgets) {
+                    const page_widget = state.page_widgets[i];
+
+                    if (!page_widgets_by_page_id[page_widget.page_id]) {
+                        page_widgets_by_page_id[page_widget.page_id] = [];
+                    }
+
+                    page_widgets_by_page_id[page_widget.page_id].push(page_widget);
+                }
+
+                return page_widgets_by_page_id;
+            },
+
             get_dashboard_discarded_field_paths(state: IDashboardPageState): { [vo_type: string]: { [field_id: string]: boolean } } {
 
                 const discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } } = {};
@@ -641,6 +688,7 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
         };
 
         this.actions = {
+            set_crud_vo: (context: DashboardPageContext, crud_vo: IDistantVOBase) => context.commit(store_mutations_names(this).set_crud_vo, crud_vo),
             set_dbb_confs: (context: DashboardPageContext, dbb_confs: DBBConfVO[]) => context.commit(store_mutations_names(this).set_dbb_confs, dbb_confs),
             set_current_dbb_conf: (context: DashboardPageContext, current_dbb_conf: DBBConfVO) => context.commit(store_mutations_names(this).set_current_dbb_conf, current_dbb_conf),
             set_page_widgets: (context: DashboardPageContext, page_widgets: DashboardPageWidgetVO[]) => context.commit(store_mutations_names(this).set_page_widgets, page_widgets),
@@ -682,19 +730,4 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
             remove_page_widgets_components_by_pwid: (context: DashboardPageContext, pwid: number) => context.commit(store_mutations_names(this).remove_page_widgets_components_by_pwid, pwid),
         };
     }
-
-    // // istanbul ignore next: nothing to test
-    // public static getInstance(): DashboardPageStore {
-    //     if (!DashboardPageStore.instance) {
-    //         DashboardPageStore.instance = new DashboardPageStore();
-    //     }
-    //     return DashboardPageStore.instance;
-    // }
 }
-
-
-// export const DashboardPageStoreInstance = DashboardPageStore.getInstance();
-
-// const __namespace = namespace('DashboardPageStore');
-// export const ModuleDashboardPageGetter = __namespace.Getter;
-// export const ModuleDashboardPageAction = __namespace.Action;

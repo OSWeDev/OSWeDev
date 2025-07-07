@@ -9,7 +9,6 @@ import YearFilterWidgetManager from '../../../../../../../shared/modules/Dashboa
 import DashboardPageVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
-import DashboardWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
 import FavoritesFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersVO';
 import FavoritesFiltersWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersWidgetOptionsVO';
 import FieldFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
@@ -21,7 +20,6 @@ import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import { reflect } from '../../../../../../../shared/tools/ObjectHandler';
 import { ModuleModalsAndBasicPageComponentsHolderGetter } from '../../../../modals_and_basic_page_components_holder/ModalsAndBasicPageComponentsHolderStore';
 import VueComponentBase from '../../../../VueComponentBase';
-import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
 import FieldValueFilterWidgetOptions from '../../field_value_filter_widget/options/FieldValueFilterWidgetOptions';
 import MonthFilterWidgetOptions from '../../month_filter_widget/options/MonthFilterWidgetOptions';
 import ReloadFiltersWidgetController from '../../reload_filters_widget/RealoadFiltersWidgetController';
@@ -41,28 +39,34 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
     @Prop({ default: null })
     private page_widget: DashboardPageWidgetVO;
 
-    @Prop({ default: null })
-    private dashboard_page: DashboardPageVO;
-
-    @Prop({ default: null })
-    private all_page_widget: DashboardPageWidgetVO[];
-
-    @Prop({ default: null })
-    private dashboard: DashboardVO;
-
     private start_update: boolean = false;
 
     get get_active_field_filters(): FieldFiltersVO {
         return this.vuexGet<FieldFiltersVO>(reflect<this>().get_active_field_filters);
     }
 
-    /**
-     * Get Widgets By Id
-     *
-     * @return { [id: number]: DashboardWidgetVO }
-     */
-    get widgets_by_id(): { [id: number]: DashboardWidgetVO } {
-        return VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets);
+    get get_dashboard_api_type_ids(): string[] {
+        return this.vuexGet<string[]>(reflect<this>().get_dashboard_api_type_ids);
+    }
+
+    get get_dashboard_discarded_field_paths(): { [vo_type: string]: { [field_id: string]: boolean } } {
+        return this.vuexGet<{ [vo_type: string]: { [field_id: string]: boolean } }>(reflect<this>().get_dashboard_discarded_field_paths);
+    }
+
+    get get_dashboard(): DashboardVO {
+        return this.vuexGet<DashboardVO>(reflect<this>().get_dashboard);
+    }
+
+    get get_selected_page_page_widgets(): DashboardPageWidgetVO[] {
+        return this.vuexGet<DashboardPageWidgetVO[]>(reflect<this>().get_selected_page_page_widgets);
+    }
+
+    get get_dashboard_page(): DashboardPageVO {
+        return this.vuexGet<DashboardPageVO>(reflect<this>().get_dashboard_page);
+    }
+
+    get get_page_widgets(): DashboardPageWidgetVO[] {
+        return this.vuexGet<DashboardPageWidgetVO[]>(reflect<this>().get_page_widgets);
     }
 
     /**
@@ -95,7 +99,7 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
      * @return {{ [id: number]: DashboardPageWidgetVO }}
      */
     get all_page_widgets_by_id(): { [id: number]: DashboardPageWidgetVO } {
-        return VOsTypesManager.vosArray_to_vosByIds(this.all_page_widget);
+        return VOsTypesManager.vosArray_to_vosByIds(this.get_page_widgets);
     }
 
     // Accès dynamiques Vuex
@@ -118,7 +122,7 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
 
         this.get_Favoritesfiltersmodalcomponent.open_modal_for_creation(
             {
-                dashboard_page: this.dashboard_page,
+                dashboard_page: this.get_dashboard_page,
                 page_widget: this.page_widget,
                 selectionnable_active_field_filters,
                 exportable_data,
@@ -146,7 +150,7 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
         this.start_update = true;
 
         const favorites_filters = new FavoritesFiltersVO().from({
-            page_id: this.dashboard_page.id,
+            page_id: this.get_dashboard_page.id,
             owner_id: this.data_user.id,
             ...props,
         });
@@ -229,10 +233,13 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
     private async get_exportable_xlsx_params(limit_to_page: boolean = true): Promise<{ [title_name_code: string]: ExportContextQueryToXLSXParamVO }> {
 
         const exportable_xlsx_params = await TableWidgetManager.create_exportable_datatables_xlsx_params(
-            this.dashboard,
-            this.dashboard_page,
+            this.get_dashboard,
+            this.get_dashboard_page,
             this.get_active_field_filters,
-            this.all_page_widgets_by_id
+            this.all_page_widgets_by_id,
+            this.get_selected_page_page_widgets,
+            this.get_dashboard_api_type_ids,
+            this.get_dashboard_discarded_field_paths,
         );
 
         return exportable_xlsx_params;
@@ -244,11 +251,11 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
      * @return {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO }}
      */
     private async get_selectionnable_active_field_filters(): Promise<FieldFiltersVO> {
-        const dashboard_page_id = this.dashboard_page.id;
+        const dashboard_page_id = this.get_dashboard_page.id;
 
-        const field_value_filters_widgets_options = await FieldValueFilterWidgetManager.get_field_value_filters_widgets_options_metadata(dashboard_page_id, this.page_widget);
-        const month_filters_widgets_options = await MonthFilterWidgetManager.get_month_filters_widgets_options_metadata(dashboard_page_id, this.page_widget);
-        const year_filters_widgets_options = await YearFilterWidgetManager.get_year_filters_widgets_options_metadata(dashboard_page_id, this.page_widget);
+        const field_value_filters_widgets_options = await FieldValueFilterWidgetManager.get_field_value_filters_widgets_options_metadata(dashboard_page_id, this.page_widget, this.get_selected_page_page_widgets);
+        const month_filters_widgets_options = await MonthFilterWidgetManager.get_month_filters_widgets_options_metadata(dashboard_page_id, this.page_widget, this.get_selected_page_page_widgets);
+        const year_filters_widgets_options = await YearFilterWidgetManager.get_year_filters_widgets_options_metadata(dashboard_page_id, this.page_widget, this.get_selected_page_page_widgets);
 
         const widgets_options: any[] = [];
 

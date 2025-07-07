@@ -1,18 +1,18 @@
 import Component from 'vue-class-component';
-import { Inject, Prop, Watch } from 'vue-property-decorator';
+import { Inject } from 'vue-property-decorator';
+import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
+import WidgetOptionsVOManager from '../../../../../shared/modules/DashboardBuilder/manager/WidgetOptionsVOManager';
 import DashboardPageVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
+import DashboardViewportPageWidgetVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardViewportPageWidgetVO';
+import DashboardViewportVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardViewportVO';
 import DashboardVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import DashboardWidgetVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
+import { field_names, reflect } from '../../../../../shared/tools/ObjectHandler';
 import VueComponentBase from '../../VueComponentBase';
 import './DashboardBuilderWidgetsComponent.scss';
-import DashboardBuilderWidgetsController from './DashboardBuilderWidgetsController';
-import { field_names, reflect } from '../../../../../shared/tools/ObjectHandler';
-import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
-import DashboardViewportPageWidgetVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardViewportPageWidgetVO';
-import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import DashboardViewportVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardViewportVO';
 
 @Component({
     template: require('./DashboardBuilderWidgetsComponent.pug'),
@@ -21,8 +21,6 @@ import DashboardViewportVO from '../../../../../shared/modules/DashboardBuilder/
 })
 export default class DashboardBuilderWidgetsComponent extends VueComponentBase {
     @Inject('storeNamespace') readonly storeNamespace!: string;
-
-    private selected_widget_type: DashboardWidgetVO = null;
 
     get get_dashboard_page(): DashboardVO {
         return this.vuexGet<DashboardVO>(reflect<this>().get_dashboard_page);
@@ -46,16 +44,20 @@ export default class DashboardBuilderWidgetsComponent extends VueComponentBase {
         return this.vuexGet<DashboardViewportVO>(reflect<this>().get_dashboard_current_viewport);
     }
 
+    get get_widgets_by_id(): { [id: number]: DashboardWidgetVO } {
+        return this.vuexGet<{ [id: number]: DashboardWidgetVO }>(reflect<this>().get_widgets_by_id);
+    }
+
     get selected_widget_type(): DashboardWidgetVO {
         if (!this.get_selected_widget) {
             return null;
         }
 
-        if (!this.get_all_widgets) {
+        if (!this.get_widgets_by_id) {
             return null;
         }
 
-        return this.get_all_widgets.find((w) => w.id == this.get_selected_widget.widget_id);
+        return this.get_widgets_by_id[this.get_selected_widget.widget_id];
     }
 
     // Accès dynamiques Vuex
@@ -64,6 +66,10 @@ export default class DashboardBuilderWidgetsComponent extends VueComponentBase {
     }
     public vuexAct<A>(action: string, payload?: A) {
         return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    }
+
+    public set_selected_widget(page_widget: DashboardPageWidgetVO) {
+        this.vuexAct<DashboardPageWidgetVO>(reflect<this>().set_selected_widget, page_widget);
     }
 
     private async add_widget_to_page(widget: DashboardWidgetVO) {
@@ -81,16 +87,17 @@ export default class DashboardBuilderWidgetsComponent extends VueComponentBase {
         }
 
         const self = this;
+        const page_widget = new DashboardPageWidgetVO();
+
         self.snotify.async(
             self.label('DashboardBuilderBoardComponent.add_widget_to_page.start'), () => new Promise(async (resolve, reject) => {
-                const page_widget = new DashboardPageWidgetVO();
                 try {
                     page_widget.page_id = self.get_dashboard_page.id;
                     page_widget.widget_id = widget.id;
 
                     try {
-                        if (DashboardBuilderWidgetsController.getInstance().widgets_options_constructor[widget?.name]) {
-                            const options = DashboardBuilderWidgetsController.getInstance().widgets_options_constructor[widget?.name]();
+                        if (WidgetOptionsVOManager.widgets_options_constructor[widget?.name]) {
+                            const options = WidgetOptionsVOManager.widgets_options_constructor[widget?.name]();
                             page_widget.json_options = JSON.stringify(options);
                         }
                     } catch (error) {

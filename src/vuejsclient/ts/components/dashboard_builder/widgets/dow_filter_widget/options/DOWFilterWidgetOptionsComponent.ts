@@ -10,9 +10,10 @@ import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/DroppableVoFieldsStore';
 import SingleVoFieldRefHolderComponent from '../../../options_tools/single_vo_field_ref_holder/SingleVoFieldRefHolderComponent';
-import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
 import DOWFilterWidgetOptions from './DOWFilterWidgetOptions';
 import './DOWFilterWidgetOptionsComponent.scss';
+import DashboardWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
+import WidgetOptionsVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/WidgetOptionsVOManager';
 
 @Component({
     template: require('./DOWFilterWidgetOptionsComponent.pug'),
@@ -47,6 +48,14 @@ export default class DOWFilterWidgetOptionsComponent extends VueComponentBase {
 
     get get_custom_filters(): string[] {
         return this.vuexGet<string[]>(reflect<this>().get_custom_filters);
+    }
+
+    get get_all_widgets(): DashboardWidgetVO[] {
+        return this.vuexGet<DashboardWidgetVO[]>(reflect<this>().get_all_widgets);
+    }
+
+    get get_widgets_by_id(): { [id: number]: DashboardWidgetVO } {
+        return this.vuexGet<{ [id: number]: DashboardWidgetVO }>(reflect<this>().get_widgets_by_id);
     }
 
 
@@ -169,8 +178,8 @@ export default class DOWFilterWidgetOptionsComponent extends VueComponentBase {
         this.set_page_widget(this.page_widget);
         this.$emit('update_layout_widget', this.page_widget);
 
-        const name = VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets)[this.page_widget.widget_id].name;
-        const get_selected_fields = DashboardBuilderWidgetsController.getInstance().widgets_get_selected_fields[name];
+        const name = this.get_widgets_by_id[this.page_widget.widget_id].name;
+        const get_selected_fields = WidgetOptionsVOManager.widgets_get_selected_fields[name];
         this.set_selected_fields(get_selected_fields ? get_selected_fields(this.page_widget) : {});
     }
 

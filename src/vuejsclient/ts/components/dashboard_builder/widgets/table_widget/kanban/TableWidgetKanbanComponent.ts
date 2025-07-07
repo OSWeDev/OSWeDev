@@ -65,7 +65,7 @@ import DatatableRowController from '../../../../datatable/component/DatatableRow
 import DatatableComponentField from '../../../../datatable/component/fields/DatatableComponentField';
 import { ModuleModalsAndBasicPageComponentsHolderGetter } from '../../../../modals_and_basic_page_components_holder/ModalsAndBasicPageComponentsHolderStore';
 import SortableListComponent from '../../../../sortable/SortableListComponent';
-import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
+import WidgetOptionsVOManager from '../../WidgetOptionsVOManager';
 import FieldValueFilterWidgetOptions from '../../field_value_filter_widget/options/FieldValueFilterWidgetOptions';
 import ValidationFiltersWidgetController from '../../validation_filters_widget/ValidationFiltersWidgetController';
 import VarWidgetComponent from '../../var_widget/VarWidgetComponent';
@@ -605,8 +605,13 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         return this.$route.params.api_type_id_action;
     }
 
-    get widgets_by_id(): { [id: number]: DashboardWidgetVO } {
-        return VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets);
+
+    get get_all_widgets(): DashboardWidgetVO[] {
+        return this.vuexGet<DashboardWidgetVO[]>(reflect<this>().get_all_widgets);
+    }
+
+    get get_widgets_by_id(): { [id: number]: DashboardWidgetVO } {
+        return this.vuexGet<{ [id: number]: DashboardWidgetVO }>(reflect<this>().get_widgets_by_id);
     }
 
     get kanban_columns_drag_options() {
@@ -2253,7 +2258,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         // Si on a des widgets, on va ajouter les exclude values si y'en a
         for (const i in this.all_page_widget) {
             const page_widget: DashboardPageWidgetVO = this.all_page_widget[i];
-            const widget: DashboardWidgetVO = this.widgets_by_id[page_widget.widget_id];
+            const widget: DashboardWidgetVO = this.get_widgets_by_id[page_widget.widget_id];
 
             if (!widget) {
                 continue;
@@ -2902,7 +2907,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         }
 
         for (const i in this.all_page_widget) {
-            const widget: DashboardWidgetVO = this.widgets_by_id[this.all_page_widget[i].widget_id];
+            const widget: DashboardWidgetVO = this.get_widgets_by_id[this.all_page_widget[i].widget_id];
 
             if (!widget) {
                 continue;

@@ -17,7 +17,6 @@ import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vo
 import FavoritesFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersVO';
 import FavoritesFiltersWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersWidgetOptionsVO';
 import FieldFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
-import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import ExportContextQueryToXLSXParamVO from '../../../../../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
 import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
@@ -25,12 +24,12 @@ import { field_names, reflect } from '../../../../../../../shared/tools/ObjectHa
 import { all_promises } from '../../../../../../../shared/tools/PromiseTools';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import { ModuleTranslatableTextGetter } from '../../../../InlineTranslatableText/TranslatableTextStore';
+import { ModuleModalsAndBasicPageComponentsHolderGetter } from '../../../../modals_and_basic_page_components_holder/ModalsAndBasicPageComponentsHolderStore';
 import VueComponentBase from '../../../../VueComponentBase';
 import ReloadFiltersWidgetController from '../../reload_filters_widget/RealoadFiltersWidgetController';
 import ResetFiltersWidgetController from '../../reset_filters_widget/ResetFiltersWidgetController';
 import FavoritesFiltersModalComponent from '../modal/FavoritesFiltersModalComponent';
 import './ShowFavoritesFiltersWidgetComponent.scss';
-import { ModuleModalsAndBasicPageComponentsHolderGetter } from '../../../../modals_and_basic_page_components_holder/ModalsAndBasicPageComponentsHolderStore';
 
 @Component({
     template: require('./ShowFavoritesFiltersWidgetComponent.pug'),
@@ -49,15 +48,6 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
 
     @Prop({ default: null })
     private page_widget: DashboardPageWidgetVO;
-
-    @Prop({ default: null })
-    private dashboard: DashboardVO;
-
-    @Prop({ default: null })
-    private dashboard_page: DashboardPageVO;
-
-    @Prop({ default: null })
-    private all_page_widget: DashboardPageWidgetVO[];
 
     private tmp_active_favorites_filters_option: FavoritesFiltersVO = null;
     private old_tmp_active_favorites_filters_option: FavoritesFiltersVO = null;
@@ -93,11 +83,33 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
         false
     );
 
+    get get_page_widgets(): DashboardPageWidgetVO[] {
+        return this.vuexGet<DashboardPageWidgetVO[]>(reflect<this>().get_page_widgets);
+    }
+
+    get get_selected_page_page_widgets(): DashboardPageWidgetVO[] {
+        return this.vuexGet<DashboardPageWidgetVO[]>(reflect<this>().get_selected_page_page_widgets);
+    }
 
     get get_active_field_filters(): FieldFiltersVO {
         return this.vuexGet<FieldFiltersVO>(reflect<this>().get_active_field_filters);
     }
 
+    get get_dashboard_api_type_ids(): string[] {
+        return this.vuexGet<string[]>(reflect<this>().get_dashboard_api_type_ids);
+    }
+
+    get get_dashboard_discarded_field_paths(): { [vo_type: string]: { [field_id: string]: boolean } } {
+        return this.vuexGet<{ [vo_type: string]: { [field_id: string]: boolean } }>(reflect<this>().get_dashboard_discarded_field_paths);
+    }
+
+    get get_dashboard(): DashboardVO {
+        return this.vuexGet<DashboardVO>(reflect<this>().get_dashboard);
+    }
+
+    get get_dashboard_page(): DashboardPageVO {
+        return this.vuexGet<DashboardPageVO>(reflect<this>().get_dashboard_page);
+    }
 
     /**
      * Get widget_options
@@ -142,7 +154,7 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
      * @return {{ [id: number]: DashboardPageWidgetVO }}
      */
     get all_page_widgets_by_id(): { [id: number]: DashboardPageWidgetVO } {
-        return VOsTypesManager.vosArray_to_vosByIds(this.all_page_widget);
+        return VOsTypesManager.vosArray_to_vosByIds(this.get_page_widgets);
     }
 
     /**
@@ -261,7 +273,7 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
      */
     private mounted(): void {
         ReloadFiltersWidgetController.getInstance().register_reloader(
-            this.dashboard_page,
+            this.get_dashboard_page,
             this.page_widget,
             this.reload_visible_options.bind(this),
         );
@@ -353,7 +365,7 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
         let tmp: FavoritesFiltersVO[] = [];
 
         tmp = await query(FavoritesFiltersVO.API_TYPE_ID) // ???????? FIXME TODO TESTER pourquoi c'est pas simplement FavoritesFiltersVO.API_TYPE_ID ?????
-            .filter_by_text_eq(field_names<FavoritesFiltersVO>().page_id, this.dashboard_page.id.toString())
+            .filter_by_text_eq(field_names<FavoritesFiltersVO>().page_id, this.get_dashboard_page.id.toString())
             .filter_by_text_eq(field_names<FavoritesFiltersVO>().owner_id, this.data_user.id.toString())
             .set_limit(this.widget_options?.max_visible_options)
             .set_sort(new SortByVO(FavoritesFiltersVO.API_TYPE_ID, field_names<FavoritesFiltersVO>().name, true))
@@ -514,7 +526,7 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
 
         this.get_Favoritesfiltersmodalcomponent.open_modal_for_update(
             {
-                dashboard_page: this.dashboard_page,
+                dashboard_page: this.get_dashboard_page,
                 page_widget: this.page_widget,
                 selectionnable_active_field_filters,
                 exportable_data,
@@ -532,11 +544,11 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
      * @return {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO }}
      */
     private async get_selectionnable_active_field_filters(): Promise<FieldFiltersVO> {
-        const dashboard_page_id = this.dashboard_page.id;
+        const dashboard_page_id = this.get_dashboard_page.id;
 
-        const field_value_filters_widgets_options = await FieldValueFilterWidgetManager.get_field_value_filters_widgets_options_metadata(dashboard_page_id, this.page_widget);
-        const month_filters_widgets_options = await MonthFilterWidgetManager.get_month_filters_widgets_options_metadata(dashboard_page_id, this.page_widget);
-        const year_filters_widgets_options = await YearFilterWidgetManager.get_year_filters_widgets_options_metadata(dashboard_page_id, this.page_widget);
+        const field_value_filters_widgets_options = await FieldValueFilterWidgetManager.get_field_value_filters_widgets_options_metadata(dashboard_page_id, this.page_widget, this.get_selected_page_page_widgets);
+        const month_filters_widgets_options = await MonthFilterWidgetManager.get_month_filters_widgets_options_metadata(dashboard_page_id, this.page_widget, this.get_selected_page_page_widgets);
+        const year_filters_widgets_options = await YearFilterWidgetManager.get_year_filters_widgets_options_metadata(dashboard_page_id, this.page_widget, this.get_selected_page_page_widgets);
 
         const widgets_options: any[] = [];
 
@@ -571,10 +583,13 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
     private async get_exportable_xlsx_params(limit_to_page: boolean = true): Promise<{ [title_name_code: string]: ExportContextQueryToXLSXParamVO }> {
 
         const exportable_xlsx_params = await TableWidgetManager.create_exportable_datatables_xlsx_params(
-            this.dashboard,
-            this.dashboard_page,
+            this.get_dashboard,
+            this.get_dashboard_page,
             this.get_active_field_filters,
-            this.all_page_widgets_by_id
+            this.all_page_widgets_by_id,
+            this.get_selected_page_page_widgets,
+            this.get_dashboard_api_type_ids,
+            this.get_dashboard_discarded_field_paths,
         );
 
         return exportable_xlsx_params;

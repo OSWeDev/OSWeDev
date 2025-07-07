@@ -26,6 +26,10 @@ import FieldValueFilterWidgetManager from './FieldValueFilterWidgetManager';
  */
 export default class FieldValueFilterEnumWidgetManager {
 
+    private static instance: FieldValueFilterEnumWidgetManager = null;
+
+    constructor() { }
+
     // istanbul ignore next: nothing to test
     public static getInstance(): FieldValueFilterEnumWidgetManager {
         if (!FieldValueFilterEnumWidgetManager.instance) {
@@ -44,12 +48,7 @@ export default class FieldValueFilterEnumWidgetManager {
     public static async check_api_type_id_access(
         api_type_id: string,
         access_type?: string,
-        options?: {
-            user_id?: number;
-        }
     ): Promise<boolean> {
-        const self = FieldValueFilterEnumWidgetManager.getInstance();
-        let has_access: boolean = false;
 
         access_type = access_type ?? ModuleDAO.DAO_ACCESS_TYPE_READ;
 
@@ -59,28 +58,9 @@ export default class FieldValueFilterEnumWidgetManager {
             api_type_id
         );
 
-        if (options?.user_id) {
-            if (!self.access_policy_by_user_id[options.user_id]) {
-                self.access_policy_by_user_id[options.user_id] = {};
-            }
-
-            // May have been loaded once
-            if (self.access_policy_by_user_id[options.user_id][access_policy_name] !== undefined) {
-                has_access = self.access_policy_by_user_id[options.user_id][access_policy_name];
-            } else {
-                has_access = await ModuleAccessPolicy.getInstance().testAccess(
-                    access_policy_name
-                );
-
-                self.access_policy_by_user_id[options.user_id][access_policy_name] = has_access;
-            }
-        } else {
-            has_access = await ModuleAccessPolicy.getInstance().testAccess(
-                access_policy_name
-            );
-        }
-
-        return has_access;
+        return await ModuleAccessPolicy.getInstance().testAccess(
+            access_policy_name
+        );
     }
 
 
@@ -143,9 +123,6 @@ export default class FieldValueFilterEnumWidgetManager {
                 const has_access = await FieldValueFilterEnumWidgetManager.check_api_type_id_access(
                     api_type_id,
                     ModuleDAO.DAO_ACCESS_TYPE_READ,
-                    {
-                        user_id: options?.user?.id
-                    }
                 );
 
                 if (!has_access) {
@@ -338,6 +315,8 @@ export default class FieldValueFilterEnumWidgetManager {
         active_field_filters: FieldFiltersVO, // Active field filters from the actual dashboard
         selected_active_filter_options: DataFilterOption[], // Selected filter active options from the actual dashboard
         enum_data_filters: DataFilterOption[], // Enum data filters from the actual dashboard
+        dashboard_api_type_ids: string[],
+        dashboard_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } },
         options?: {
             active_api_type_ids?: string[]; // Setted on user selection (select option) to specify query on specified vos api ids
             query_api_type_ids?: string[]; // Setted from widget options to have custom|default query on specified vos api ids
@@ -365,8 +344,6 @@ export default class FieldValueFilterEnumWidgetManager {
 
         const vo_field_ref = widget_options?.vo_field_ref;
 
-        const { api_type_ids, discarded_field_paths } = await DashboardBuilderBoardManager.get_api_type_ids_and_discarded_field_paths(dashboard.id);
-
         const available_api_type_ids: string[] = DashboardBuilderDataFilterManager.get_required_api_type_ids_from_widget_options(
             widget_options,
             {
@@ -393,9 +370,6 @@ export default class FieldValueFilterEnumWidgetManager {
                 const has_access = await FieldValueFilterEnumWidgetManager.check_api_type_id_access(
                     api_type_id,
                     ModuleDAO.DAO_ACCESS_TYPE_READ,
-                    {
-                        user_id: options?.user?.id
-                    }
                 );
 
                 if (!has_access) {
@@ -479,12 +453,12 @@ export default class FieldValueFilterEnumWidgetManager {
                 ];
 
                 const api_type_context_query = query(api_type_id)
-                    .using(api_type_ids)
+                    .using(dashboard_api_type_ids)
                     .add_filters(context_filters);
 
                 FieldValueFilterWidgetManager.add_discarded_field_paths(
                     api_type_context_query,
-                    discarded_field_paths
+                    dashboard_discarded_field_paths
                 );
 
                 // Avoid load from cache
@@ -554,13 +528,6 @@ export default class FieldValueFilterEnumWidgetManager {
 
         return api_type_ids;
     }
-
-    private static instance: FieldValueFilterEnumWidgetManager = null;
-
-    public access_policy_by_user_id: { [user_id: number]: { [access_policy: string]: boolean } } = {};
-
-    constructor() { }
-
 
     public load(): void {
     }

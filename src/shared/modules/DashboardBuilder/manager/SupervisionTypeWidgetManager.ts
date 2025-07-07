@@ -66,6 +66,8 @@ export default class SupervisionTypeWidgetManager {
         dashboard: DashboardVO,
         widget_options: SupervisionTypeWidgetOptionsVO,
         active_field_filters: FieldFiltersVO,
+        dashboard_api_type_ids: string[],
+        dashboard_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } },
         options?: {
             categories_by_name?: { [name: string]: SupervisedCategoryVO },
             groups?: SupervisedProbeGroupVO[],
@@ -91,7 +93,6 @@ export default class SupervisionTypeWidgetManager {
         }
 
         const registered_supervision_api_type_ids: string[] = [];
-        const { api_type_ids, discarded_field_paths } = await DashboardBuilderBoardManager.get_api_type_ids_and_discarded_field_paths(dashboard.id);
 
         for (const key in supervision_api_type_ids) {
             const api_type_id: string = supervision_api_type_ids[key];
@@ -205,9 +206,9 @@ export default class SupervisionTypeWidgetManager {
             const api_type_id: string = allowed_supervision_api_type_ids[key];
 
             let api_type_context_query = query(api_type_id)
-                .using(api_type_ids);
+                .using(dashboard_api_type_ids);
 
-            FieldValueFilterWidgetManager.add_discarded_field_paths(api_type_context_query, discarded_field_paths);
+            FieldValueFilterWidgetManager.add_discarded_field_paths(api_type_context_query, dashboard_discarded_field_paths);
 
             if (category_selections?.length > 0) {
                 api_type_context_query = api_type_context_query.filter_by_num_eq(
@@ -286,6 +287,8 @@ export default class SupervisionTypeWidgetManager {
         widget_options: SupervisionTypeWidgetOptionsVO,
         active_field_filters: FieldFiltersVO,
         active_api_type_ids: string[],
+        dashboard_api_type_ids: string[],
+        dashboard_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } },
         options: {
             active_api_type_ids: string[];
             all_states: number[];
@@ -302,7 +305,6 @@ export default class SupervisionTypeWidgetManager {
         // One query|request by api_type_id
         const pipeline_limit = options.active_api_type_ids.length;
         const promise_pipeline = new PromisePipeline(pipeline_limit, 'SupervisionTypeWidgetManager.find_count_by_api_type_id_state');
-        const { api_type_ids, discarded_field_paths } = await DashboardBuilderBoardManager.get_api_type_ids_and_discarded_field_paths(dashboard.id);
 
         const field_filters_by_api_type_id: {
             [api_type_id: string]: FieldFiltersVO
@@ -362,12 +364,12 @@ export default class SupervisionTypeWidgetManager {
                 ];
 
                 const api_type_context_query = query(sup_api_type_id)
-                    .using(api_type_ids)
+                    .using(dashboard_api_type_ids)
                     .add_filters(context_filters);
 
                 FieldValueFilterWidgetManager.add_discarded_field_paths(
                     api_type_context_query,
-                    discarded_field_paths
+                    dashboard_discarded_field_paths
                 );
 
                 await promise_pipeline.push(async () => {

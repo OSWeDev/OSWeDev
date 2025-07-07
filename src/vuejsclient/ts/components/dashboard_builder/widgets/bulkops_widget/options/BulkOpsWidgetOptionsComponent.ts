@@ -2,17 +2,17 @@ import Component from 'vue-class-component';
 import { Inject, Prop, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import ModuleTableController from '../../../../../../../shared/modules/DAO/ModuleTableController';
+import WidgetOptionsVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/WidgetOptionsVOManager';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
+import DashboardWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
 import TableColumnDescVO from '../../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
-import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import { reflect } from '../../../../../../../shared/tools/ObjectHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/DroppableVoFieldsStore';
-import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
 import BulkOpsWidgetOptions from './BulkOpsWidgetOptions';
 import './BulkOpsWidgetOptionsComponent.scss';
 
@@ -72,6 +72,14 @@ export default class BulkOpsWidgetOptionsComponent extends VueComponentBase {
         }
 
         return options;
+    }
+
+    get get_all_widgets(): DashboardWidgetVO[] {
+        return this.vuexGet<DashboardWidgetVO[]>(reflect<this>().get_all_widgets);
+    }
+
+    get get_widgets_by_id(): { [id: number]: DashboardWidgetVO } {
+        return this.vuexGet<{ [id: number]: DashboardWidgetVO }>(reflect<this>().get_widgets_by_id);
     }
 
     @Watch('page_widget', { immediate: true })
@@ -135,8 +143,8 @@ export default class BulkOpsWidgetOptionsComponent extends VueComponentBase {
         this.set_page_widget(this.page_widget);
         this.$emit('update_layout_widget', this.page_widget);
 
-        const name = VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets)[this.page_widget.widget_id].name;
-        const get_selected_fields = DashboardBuilderWidgetsController.getInstance().widgets_get_selected_fields[name];
+        const name = this.get_widgets_by_id[this.page_widget.widget_id].name;
+        const get_selected_fields = WidgetOptionsVOManager.widgets_get_selected_fields[name];
         this.set_selected_fields(get_selected_fields ? get_selected_fields(this.page_widget) : {});
     }
 }

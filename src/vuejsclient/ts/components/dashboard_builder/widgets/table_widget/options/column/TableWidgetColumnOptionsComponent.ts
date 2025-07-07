@@ -44,70 +44,70 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
     @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @Prop({ default: null })
-    private page_widget: DashboardPageWidgetVO;
+    public page_widget: DashboardPageWidgetVO;
 
     @Prop({ default: null })
-    private column: TableColumnDescVO;
+    public column: TableColumnDescVO;
 
     @Prop()
-    private get_new_column_id: () => number;
+    public get_new_column_id: () => number;
 
-    private new_column_select_type_component: string = null;
-    private new_column_select_type_var_ref: string = null;
-    private new_header_columns: string = null;
+    public new_column_select_type_component: string = null;
+    public new_column_select_type_var_ref: string = null;
+    public new_header_columns: string = null;
 
-    private column_width: number = 0;
-    private throttled_update_column_width = ThrottleHelper.declare_throttle_without_args(
+    public column_width: number = 0;
+    public throttled_update_column_width = ThrottleHelper.declare_throttle_without_args(
         'TableWidgetColumnOptionsComponent.throttled_update_column_width',
         this.update_column_width.bind(this), 800, false);
 
-    private default_sort_field: number = 0;
-    private throttled_update_default_sort_field = ThrottleHelper.declare_throttle_without_args(
+    public default_sort_field: number = 0;
+    public throttled_update_default_sort_field = ThrottleHelper.declare_throttle_without_args(
         'TableWidgetColumnOptionsComponent.throttled_update_default_sort_field',
         this.update_default_sort_field.bind(this), 800, false);
 
-    private throttled_update_colors_by_value_and_conditions = ThrottleHelper.declare_throttle_without_args(
+    public throttled_update_colors_by_value_and_conditions = ThrottleHelper.declare_throttle_without_args(
         'TableWidgetColumnOptionsComponent.throttled_update_colors_by_value_and_conditions',
         this.update_colors_by_value_and_conditions.bind(this),
         800,
         false
     );
 
-    private throttled_update_enum_colors = ThrottleHelper.declare_throttle_without_args(
+    public throttled_update_enum_colors = ThrottleHelper.declare_throttle_without_args(
         'TableWidgetColumnOptionsComponent.throttled_update_enum_colors',
         this.update_enum_colors.bind(this), 800, false);
-    private throttled_update_custom_filter = ThrottleHelper.declare_throttle_without_args(
+    public throttled_update_custom_filter = ThrottleHelper.declare_throttle_without_args(
         'TableWidgetColumnOptionsComponent.throttled_update_custom_filter',
         this.update_custom_filter.bind(this), 800, false);
 
-    private filter_by_access_options: string[] = [];
+    public filter_by_access_options: string[] = [];
 
-    private enum_options: { [value: number]: string } = {};
-    private enum_bg_colors: { [value: number]: string } = {};
-    private enum_fg_colors: { [value: number]: string } = {};
+    public enum_options: { [value: number]: string } = {};
+    public enum_bg_colors: { [value: number]: string } = {};
+    public enum_fg_colors: { [value: number]: string } = {};
 
-    private tmp_bg_color_header: string = null;
-    private tmp_font_color_header: string = null;
-    private tmp_custom_class_css: string = null;
+    public tmp_bg_color_header: string = null;
+    public tmp_font_color_header: string = null;
+    public tmp_custom_class_css: string = null;
 
-    private show_options: boolean = false;
-    private error: boolean = false;
-    private custom_filter_names: { [field_id: string]: string } = {};
+    public show_options: boolean = false;
+    public error: boolean = false;
+    public custom_filter_names: { [field_id: string]: string } = {};
 
-    private all_filter_widgets_ids: number[] = [];
+    public all_filter_widgets_ids: number[] = [];
 
-    private kanban_use_weight: boolean = false;
-    private kanban_column: boolean = false;
+    public kanban_use_weight: boolean = false;
+    public kanban_column: boolean = false;
 
-    private colors_by_value_and_conditions: Array<{ value: string, condition: string, color: { bg: string, text: string } }> = [];
-    private selectionnable_cell_color_conditions: Array<{ value: string, label: string }> = [];
+    public colors_by_value_and_conditions: Array<{ value: string, condition: string, color: { bg: string, text: string } }> = [];
+    public selectionnable_cell_color_conditions: Array<{ value: string, label: string }> = [];
 
-    private column_dynamic_page_widget_id: number = null;
-    private column_dynamic_component: string = null;
-    private column_dynamic_var: string = null;
-    private column_dynamic_page_widget: DashboardPageWidgetVO = null;
-    private tmp_column_dynamic_time_segment: DataFilterOption = null;
-    private page_widget_options: DashboardPageWidgetVO[] = [];
+    public column_dynamic_page_widget_id: number = null;
+    public column_dynamic_component: string = null;
+    public column_dynamic_var: string = null;
+    public column_dynamic_page_widget: DashboardPageWidgetVO = null;
+    public tmp_column_dynamic_time_segment: DataFilterOption = null;
+    public page_widget_options: DashboardPageWidgetVO[] = [];
 
     get column_dynamic_page_widget_is_type_string(): boolean {
         if (!this.column_dynamic_page_widget) {
@@ -477,10 +477,10 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         return res;
     }
 
-    @Watch('column.filter_by_access')
-    @Watch('column.show_if_any_filter_active')
-    @Watch('column.do_not_user_filter_active_ids')
-    private async onchange_filter_by_access() {
+    @Watch(reflect<TableWidgetColumnOptionsComponent>().column + '.filter_by_access')
+    @Watch(reflect<TableWidgetColumnOptionsComponent>().column + '.show_if_any_filter_active')
+    @Watch(reflect<TableWidgetColumnOptionsComponent>().column + '.do_not_user_filter_active_ids')
+    public async onchange_filter_by_access() {
         if (!this.object_column) {
             return;
         }
@@ -488,8 +488,8 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         this.$emit('update_column', this.object_column);
     }
 
-    @Watch('tmp_bg_color_header')
-    private async onchange_tmp_bg_color_header() {
+    @Watch(reflect<TableWidgetColumnOptionsComponent>().tmp_bg_color_header)
+    public async onchange_tmp_bg_color_header() {
         if (!this.object_column) {
             return;
         }
@@ -503,8 +503,8 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         this.$emit('update_column', this.object_column);
     }
 
-    @Watch('tmp_custom_class_css')
-    private async onchange_tmp_custom_class_css() {
+    @Watch(reflect<TableWidgetColumnOptionsComponent>().tmp_custom_class_css)
+    public async onchange_tmp_custom_class_css() {
         if (!this.object_column) {
             return;
         }
@@ -518,8 +518,8 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         this.$emit('update_column', this.object_column);
     }
 
-    @Watch('tmp_font_color_header')
-    private async onchange_tmp_font_color_header() {
+    @Watch(reflect<TableWidgetColumnOptionsComponent>().tmp_font_color_header)
+    public async onchange_tmp_font_color_header() {
         if (!this.object_column) {
             return;
         }
@@ -534,8 +534,8 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
     }
 
 
-    @Watch('new_column_select_type_component')
-    private async onchange_new_column_select_type_component() {
+    @Watch(reflect<TableWidgetColumnOptionsComponent>().new_column_select_type_component)
+    public async onchange_new_column_select_type_component() {
         if (!this.new_column_select_type_component) {
             return;
         }
@@ -567,8 +567,8 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         this.$emit('add_column', new_column);
     }
 
-    @Watch('new_column_select_type_var_ref')
-    private async onchange_new_column_select_type_var_ref() {
+    @Watch(reflect<TableWidgetColumnOptionsComponent>().new_column_select_type_var_ref)
+    public async onchange_new_column_select_type_var_ref() {
         if (!this.new_column_select_type_var_ref) {
             return;
         }
@@ -603,8 +603,8 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
 
     }
 
-    @Watch('column', { immediate: true })
-    private async onchange_column() {
+    @Watch(reflect<TableWidgetColumnOptionsComponent>().column, { immediate: true })
+    public async onchange_column() {
         this.column_width = this.object_column ? this.object_column.column_width : 0;
         this.default_sort_field = this.object_column ? this.object_column.default_sort_field : null;
 
@@ -682,23 +682,23 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         }
     }
 
-    @Watch('column_width', { immediate: true })
-    private onchange_column_width() {
+    @Watch(reflect<TableWidgetColumnOptionsComponent>().column_width, { immediate: true })
+    public onchange_column_width() {
         this.throttled_update_column_width();
     }
 
-    @Watch('default_sort_field', { immediate: true })
-    private onchange_default_sort_field() {
+    @Watch(reflect<TableWidgetColumnOptionsComponent>().default_sort_field, { immediate: true })
+    public onchange_default_sort_field() {
         this.throttled_update_default_sort_field();
     }
 
-    @Watch('colors_by_value_and_conditions', { deep: true })
-    private onchange_colors_by_value_and_conditions() {
+    @Watch(reflect<TableWidgetColumnOptionsComponent>().colors_by_value_and_conditions, { deep: true })
+    public onchange_colors_by_value_and_conditions() {
         this.throttled_update_colors_by_value_and_conditions();
     }
 
-    @Watch('column_dynamic_page_widget')
-    private async onchange_column_dynamic_page_widget() {
+    @Watch(reflect<TableWidgetColumnOptionsComponent>().column_dynamic_page_widget)
+    public async onchange_column_dynamic_page_widget() {
         if (!this.object_column) {
             return;
         }
@@ -712,8 +712,8 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         this.$emit('update_column', this.object_column);
     }
 
-    @Watch('column_dynamic_component')
-    private async onchange_column_dynamic_component() {
+    @Watch(reflect<TableWidgetColumnOptionsComponent>().column_dynamic_component)
+    public async onchange_column_dynamic_component() {
         if (!this.object_column) {
             return;
         }
@@ -727,8 +727,8 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         this.$emit('update_column', this.object_column);
     }
 
-    @Watch('column_dynamic_var')
-    private async onchange_column_dynamic_var() {
+    @Watch(reflect<TableWidgetColumnOptionsComponent>().column_dynamic_var)
+    public async onchange_column_dynamic_var() {
         if (!this.object_column) {
             return;
         }
@@ -742,8 +742,8 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         this.$emit('update_column', this.object_column);
     }
 
-    @Watch('tmp_column_dynamic_time_segment')
-    private async onchange_tmp_column_dynamic_time_segment() {
+    @Watch(reflect<TableWidgetColumnOptionsComponent>().tmp_column_dynamic_time_segment)
+    public async onchange_tmp_column_dynamic_time_segment() {
         if (!this.object_column) {
             return;
         }
@@ -769,13 +769,13 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         return this.vuexAct(reflect<this>().set_custom_filters, custom_filters);
     }
 
-    private async switch_kanban_use_weight() {
+    public async switch_kanban_use_weight() {
         this.kanban_use_weight = !this.kanban_use_weight;
         this.column.kanban_use_weight = this.kanban_use_weight;
         this.$emit('update_column', this.column);
     }
 
-    private async switch_kanban_column() {
+    public async switch_kanban_column() {
         if (!this.kanban_column) {
             // On doit vérifier et retirer le param des autres colonnes si une autre était déjà active
             for (const i in this.widget_options.columns) {
@@ -792,7 +792,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         this.$emit('update_column', this.column);
     }
 
-    private show_if_any_filter_active_label(page_widget_id: number): string {
+    public show_if_any_filter_active_label(page_widget_id: number): string {
         const page_widget = this.page_widget_by_id[page_widget_id];
         if (!page_widget) {
             return "[" + page_widget_id + "] " + "???";
@@ -804,7 +804,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         return "[" + page_widget.id + "] " + options.vo_field_ref.api_type_id + " > " + options.vo_field_ref.field_id;
     }
 
-    private hide_if_any_filter_active_label(page_widget_id: number): string {
+    public hide_if_any_filter_active_label(page_widget_id: number): string {
         const page_widget = this.page_widget_by_id[page_widget_id];
         if (!page_widget) {
             return "[" + page_widget_id + "] " + "???";
@@ -816,7 +816,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         return "[" + page_widget.id + "] " + options.vo_field_ref.api_type_id + " > " + options.vo_field_ref.field_id;
     }
 
-    private do_not_user_filter_active_ids_label(page_widget_id: number): string {
+    public do_not_user_filter_active_ids_label(page_widget_id: number): string {
         const page_widget = this.page_widget_by_id[page_widget_id];
         if (!page_widget) {
             return "[" + page_widget_id + "] " + "???";
@@ -828,7 +828,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         return "[" + page_widget.id + "] " + options.vo_field_ref.api_type_id + " > " + options.vo_field_ref.field_id;
     }
 
-    private async update_additional_options(additional_options: string) {
+    public async update_additional_options(additional_options: string) {
         if (!this.column) {
             return;
         }
@@ -837,7 +837,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         this.$emit('update_column', this.column);
     }
 
-    private async update_filter_type(filter_type: string) {
+    public async update_filter_type(filter_type: string) {
         if (!this.column) {
             return;
         }
@@ -846,7 +846,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         this.$emit('update_column', this.column);
     }
 
-    private async change_custom_filter(field_id: string, custom_filter: string) {
+    public async change_custom_filter(field_id: string, custom_filter: string) {
         if (!this.object_column) {
             return;
         }
@@ -855,7 +855,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         await this.throttled_update_custom_filter();
     }
 
-    private async update_custom_filter() {
+    public async update_custom_filter() {
         if (!this.object_column) {
             return;
         }
@@ -868,15 +868,15 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         this.$emit('update_column', this.object_column);
     }
 
-    private unhide_options() {
+    public unhide_options() {
         this.show_options = true;
     }
 
-    private hide_options() {
+    public hide_options() {
         this.show_options = false;
     }
 
-    private async mounted() {
+    public async mounted() {
         const promises = [];
         const self = this;
 
@@ -897,11 +897,11 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         await all_promises(promises);
     }
 
-    private filter_by_access_label(translatable_name: string): string {
+    public filter_by_access_label(translatable_name: string): string {
         return this.label(translatable_name);
     }
 
-    private async update_column_width() {
+    public async update_column_width() {
 
         if (this.object_column && (this.column_width != this.object_column.column_width)) {
             this.object_column.column_width = this.column_width;
@@ -909,7 +909,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         }
     }
 
-    private async update_default_sort_field() {
+    public async update_default_sort_field() {
 
         if (this.object_column && (this.default_sort_field != this.object_column.default_sort_field)) {
             this.object_column.default_sort_field = this.default_sort_field;
@@ -917,7 +917,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         }
     }
 
-    private async update_enum_colors() {
+    public async update_enum_colors() {
         if ((!this.object_column) || (!this.object_column.is_enum)) {
             return;
         }
@@ -957,7 +957,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
      *
      * @returns {void}
      */
-    private update_colors_by_value_and_conditions(): void {
+    public update_colors_by_value_and_conditions(): void {
         if (
             !this.object_column ||
             (
@@ -983,7 +983,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
      *
      * @returns {void}
      */
-    private handle_add_conditional_cell_color(): void {
+    public handle_add_conditional_cell_color(): void {
         this.colors_by_value_and_conditions.push({ value: null, condition: null, color: { bg: null, text: null } });
     }
 
@@ -994,7 +994,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
      * @param {number} index
      * @returns {void}
      */
-    private handle_remove_conditional_cell_color(index: number): void {
+    public handle_remove_conditional_cell_color(index: number): void {
         this.colors_by_value_and_conditions.splice(index, 1);
 
         this.throttled_update_colors_by_value_and_conditions();
@@ -1006,7 +1006,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
      * @param {number} index
      * @param {string} color
      */
-    private handle_conditional_cell_colors_bg_change(index: number, color: string) {
+    public handle_conditional_cell_colors_bg_change(index: number, color: string) {
         if (!this.colors_by_value_and_conditions[index].color) {
             this.colors_by_value_and_conditions[index].color = { bg: null, text: null };
         }
@@ -1022,7 +1022,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
      * @param {number} index
      * @param {string} color
      */
-    private handle_conditional_cell_colors_text_change(index: number, color: string) {
+    public handle_conditional_cell_colors_text_change(index: number, color: string) {
         if (!this.colors_by_value_and_conditions[index].color) {
             this.colors_by_value_and_conditions[index].color = { bg: null, text: null };
         }
@@ -1032,23 +1032,23 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         this.throttled_update_colors_by_value_and_conditions();
     }
 
-    private clear_tmp_bg_color_header() {
+    public clear_tmp_bg_color_header() {
         this.tmp_bg_color_header = null;
     }
 
-    private clear_tmp_font_color_header() {
+    public clear_tmp_font_color_header() {
         this.tmp_font_color_header = null;
     }
 
-    private var_label(var_name: string): string {
+    public var_label(var_name: string): string {
         return VarsController.var_conf_by_name[var_name].id + ' | ' + this.t(VarsController.get_translatable_name_code(var_name));
     }
 
-    private component_label(translatable_title: string): string {
+    public component_label(translatable_title: string): string {
         return this.t(translatable_title);
     }
 
-    private allowDrop(event) {
+    public allowDrop(event) {
         event.preventDefault();
 
         if ((!event) || (!event.dataTransfer)) {
@@ -1064,7 +1064,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         return true;
     }
 
-    private drop(event) {
+    public drop(event) {
         event.preventDefault();
 
         const api_type_id: string = event.dataTransfer.getData("api_type_id");
@@ -1098,7 +1098,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         this.$emit('add_column', new_column);
     }
     // creation de la column
-    private add_header(event) {
+    public add_header(event) {
         this.error = false;
         this.new_header_columns = event.target.previousElementSibling._value;
 
@@ -1145,7 +1145,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
     }
 
     // creation de la column dynamic
-    private add_dynamic_column(event) {
+    public add_dynamic_column(event) {
 
         let new_column = new TableColumnDescVO();
         new_column.type = TableColumnDescVO.TYPE_dynamic;
@@ -1169,7 +1169,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         this.$emit('add_column', new_column);
     }
 
-    private async switch_readonly() {
+    public async switch_readonly() {
         if (!this.column) {
             return;
         }
@@ -1178,7 +1178,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         this.$emit('update_column', this.column);
     }
 
-    private async switch_exportable() {
+    public async switch_exportable() {
         if (!this.column) {
             return;
         }
@@ -1187,7 +1187,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         this.$emit('update_column', this.column);
     }
 
-    private async switch_can_filter_by() {
+    public async switch_can_filter_by() {
         if (!this.column) {
             return;
         }
@@ -1196,7 +1196,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         this.$emit('update_column', this.column);
     }
 
-    private async switch_is_sticky() {
+    public async switch_is_sticky() {
         if (!this.column) {
             return;
         }
@@ -1205,7 +1205,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         this.$emit('update_column', this.column);
     }
 
-    private async switch_many_to_many_aggregate() {
+    public async switch_many_to_many_aggregate() {
         if (!this.column) {
             return;
         }
@@ -1214,7 +1214,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         this.$emit('update_column', this.column);
     }
 
-    private async switch_disabled_many_to_one_link() {
+    public async switch_disabled_many_to_one_link() {
         if (!this.column) {
             return;
         }
@@ -1223,7 +1223,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         this.$emit('update_column', this.column);
     }
 
-    private async switch_is_nullable() {
+    public async switch_is_nullable() {
         if (!this.column) {
             return;
         }
@@ -1232,7 +1232,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         this.$emit('update_column', this.column);
     }
 
-    private async switch_show_tooltip() {
+    public async switch_show_tooltip() {
         if (!this.column) {
             return;
         }
@@ -1241,7 +1241,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         this.$emit('update_column', this.column);
     }
 
-    private async switch_align_content_right() {
+    public async switch_align_content_right() {
         if (!this.column) {
             return;
         }
@@ -1250,7 +1250,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         this.$emit('update_column', this.column);
     }
 
-    private async switch_sum_numeral_datas() {
+    public async switch_sum_numeral_datas() {
         if (!this.column) {
             return;
         }
@@ -1259,7 +1259,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         this.$emit('update_column', this.column);
     }
 
-    private async switch_explicit_html() {
+    public async switch_explicit_html() {
         if (!this.column) {
             return;
         }
@@ -1268,7 +1268,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         this.$emit('update_column', this.column);
     }
 
-    private async switch_hide_from_table() {
+    public async switch_hide_from_table() {
         if (!this.column) {
             return;
         }
@@ -1277,7 +1277,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         this.$emit('update_column', this.column);
     }
 
-    private async switch_sortable() {
+    public async switch_sortable() {
         if (!this.column) {
             return;
         }
@@ -1286,7 +1286,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         this.$emit('update_column', this.column);
     }
 
-    private async is_sticky_table() {
+    public async is_sticky_table() {
         if (!this.column) {
             return;
         }
@@ -1295,15 +1295,15 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         this.$emit('update_column', this.column);
     }
 
-    private page_widget_label(p_widget: DashboardPageWidgetVO): string {
+    public page_widget_label(p_widget: DashboardPageWidgetVO): string {
         return "Widget ID: " + p_widget.id.toString();
     }
 
-    private remove_column() {
+    public remove_column() {
         this.$emit('remove_column', this.object_column);
     }
 
-    private change_default_sort_field() {
+    public change_default_sort_field() {
         if (this.default_sort_field == null) {
             this.default_sort_field = this.sort_asc;
         } else if (this.default_sort_field == this.sort_asc) {
@@ -1313,7 +1313,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         }
     }
 
-    private is_simple_number(field_type: string): boolean {
+    public is_simple_number(field_type: string): boolean {
         if (field_type == ModuleTableFieldVO.FIELD_TYPE_int
             || field_type == ModuleTableFieldVO.FIELD_TYPE_enum
             || field_type == ModuleTableFieldVO.FIELD_TYPE_amount

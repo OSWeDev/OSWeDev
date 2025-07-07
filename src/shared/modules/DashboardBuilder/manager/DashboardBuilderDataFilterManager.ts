@@ -5,6 +5,7 @@ import FieldValueFilterWidgetOptionsVO from "../vos/FieldValueFilterWidgetOption
  */
 export default class DashboardBuilderDataFilterManager {
 
+    constructor() { }
 
     public static async load_data_filtersfrom_widget_options() {
 
@@ -28,31 +29,28 @@ export default class DashboardBuilderDataFilterManager {
     ): string[] {
         const vo_field_ref = widget_options?.vo_field_ref;
 
-        let api_type_ids: string[] = [];
-
-        // TODO: Load available api type ids from the dashboard
-        if (widget_options.has_other_ref_api_type_id && widget_options.other_ref_api_type_id) {
-            api_type_ids = [widget_options.other_ref_api_type_id];
-        } else {
-            // Default api_type_id whould be the vo_field_ref.api_type_id
-            api_type_ids = [vo_field_ref?.api_type_id];
-        }
 
         // Active api_type_ids (that have actually been selected by the user)
         // Should always be prioritized over query_api_type_ids
         if (options?.active_api_type_ids?.length > 0) {
             // Get selected api type ids (e.g. from supervision widget options)
-            api_type_ids = options?.active_api_type_ids;
+            return options?.active_api_type_ids;
 
         } else if (options?.query_api_type_ids?.length > 0 && widget_options.force_filter_by_all_api_type_ids) {
             // Get default api type ids (e.g. from supervision widget_options)
-            api_type_ids = options?.query_api_type_ids;
-        }
+            return options?.query_api_type_ids;
+        } else {
+            // TODO: Load available api type ids from the dashboard
+            if (widget_options.has_other_ref_api_type_id && widget_options.other_ref_api_type_id) {
+                return [widget_options.other_ref_api_type_id];
+            } else {
+                // Default api_type_id whould be the vo_field_ref.api_type_id
+                return [vo_field_ref?.api_type_id];
+            }
 
-        return api_type_ids;
+        }
     }
 
-    constructor() { }
 
     public load(): void {
     }

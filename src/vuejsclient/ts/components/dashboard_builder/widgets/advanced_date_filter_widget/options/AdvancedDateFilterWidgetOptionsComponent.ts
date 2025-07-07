@@ -4,17 +4,17 @@ import { Inject, Prop, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import ModuleTableController from '../../../../../../../shared/modules/DAO/ModuleTableController';
 import ModuleTableFieldVO from '../../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
+import WidgetOptionsVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/WidgetOptionsVOManager';
 import AdvancedDateFilterOptDescVO from '../../../../../../../shared/modules/DashboardBuilder/vos/AdvancedDateFilterOptDescVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
+import DashboardWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
-import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import { reflect } from '../../../../../../../shared/tools/ObjectHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/DroppableVoFieldsStore';
 import SingleVoFieldRefHolderComponent from '../../../options_tools/single_vo_field_ref_holder/SingleVoFieldRefHolderComponent';
-import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
 import AdvancedDateFilterWidgetOptions from './AdvancedDateFilterWidgetOptions';
 import './AdvancedDateFilterWidgetOptionsComponent.scss';
 import AdvancedDateFilterWidgetOptionsOptComponent from './opt/AdvancedDateFilterWidgetOptionsOptComponent';
@@ -60,12 +60,183 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
     private custom_filter_name: string = null;
     private is_vo_field_ref: boolean = true;
 
+
+
+    get has_existing_other_custom_filters(): boolean {
+        if (!this.other_custom_filters) {
+            return false;
+        }
+
+        return this.other_custom_filters.length > 0;
+    }
+
+    get other_custom_filters(): string[] {
+        if (!this.get_custom_filters) {
+            return null;
+        }
+
+        const res: string[] = [];
+
+        for (const i in this.get_custom_filters) {
+            const get_custom_filter = this.get_custom_filters[i];
+
+            if (get_custom_filter == this.custom_filter_name) {
+                continue;
+            }
+
+            res.push(get_custom_filter);
+        }
+
+        return this.get_custom_filters;
+    }
+
+    get widget_options(): AdvancedDateFilterWidgetOptions {
+        if (!this.page_widget) {
+            return null;
+        }
+
+        let options: AdvancedDateFilterWidgetOptions = null;
+        try {
+            if (this.page_widget.json_options) {
+                options = JSON.parse(this.page_widget.json_options) as AdvancedDateFilterWidgetOptions;
+                options = options ? new AdvancedDateFilterWidgetOptions(
+                    options.is_vo_field_ref == null ? true : options.is_vo_field_ref,
+                    options.vo_field_ref,
+                    options.custom_filter_name,
+                    options.opts,
+                    options.is_checkbox,
+                    options.default_value,
+                    options.hide_opts,
+                    options.refuse_left_open,
+                    options.refuse_right_open,
+                    options.is_relative_to_other_filter,
+                    options.relative_to_other_filter_id,
+                    options.hide_filter,
+                    options.is_relative_to_today,
+                    options.auto_select_relative_date_min,
+                    options.auto_select_relative_date_max,
+                ) : null;
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+
+        return options;
+    }
+
+    get vo_field_ref(): VOFieldRefVO {
+        const options: AdvancedDateFilterWidgetOptions = this.widget_options;
+
+        if ((!options) || (!options.vo_field_ref)) {
+            return null;
+        }
+
+        return Object.assign(new VOFieldRefVO(), options.vo_field_ref);
+    }
+
+    get opts(): AdvancedDateFilterOptDescVO[] {
+        const options: AdvancedDateFilterWidgetOptions = this.widget_options;
+
+        if ((!options) || (!options.opts) || (!options.opts.length)) {
+            return null;
+        }
+
+        const res: AdvancedDateFilterOptDescVO[] = [];
+
+        for (const i in options.opts) {
+            res.push(Object.assign(new AdvancedDateFilterOptDescVO(), options.opts[i]));
+        }
+
+        res.sort((a: AdvancedDateFilterOptDescVO, b: AdvancedDateFilterOptDescVO) => {
+            if (a.weight < b.weight) {
+                return -1;
+            }
+            if (a.weight > b.weight) {
+                return 1;
+            }
+            return 0;
+        });
+
+        return res;
+    }
+
+    get other_filters_by_name(): { [filter_name: string]: DashboardPageWidgetVO } {
+        if (!this.get_page_widgets) {
+            return null;
+        }
+
+        let res: { [filter_name: string]: DashboardPageWidgetVO } = {};
+
+        for (let i in this.get_page_widgets) {
+            let get_page_widget = this.get_page_widgets[i];
+
+            if (get_page_widget.id == this.page_widget.id) {
+                continue;
+            }
+
+            if (get_page_widget.widget_id !== this.page_widget.widget_id) {
+                continue;
+            }
+
+            if (!get_page_widget.json_options) {
+                continue;
+            }
+
+            let other_filter_options = JSON.parse(get_page_widget.json_options) as AdvancedDateFilterWidgetOptions;
+            if (!other_filter_options) {
+                continue;
+            }
+
+            if (!!other_filter_options.is_vo_field_ref) {
+                if ((!other_filter_options.vo_field_ref) || (!other_filter_options.vo_field_ref.api_type_id) || (!other_filter_options.vo_field_ref.field_id)) {
+                    continue;
+                }
+
+                let name = 'Widget ID:' + get_page_widget.id + ' : ' + other_filter_options.vo_field_ref.api_type_id + '.' + other_filter_options.vo_field_ref.field_id;
+                if (!!res[name]) {
+                    continue;
+                }
+                res[name] = get_page_widget;
+            } else {
+                if (!other_filter_options.custom_filter_name) {
+                    continue;
+                }
+
+                let name = 'Widget ID:' + get_page_widget.id + ' : ' + other_filter_options.custom_filter_name;
+                if (!!res[name]) {
+                    continue;
+                }
+                res[name] = get_page_widget;
+            }
+        }
+
+        return res;
+    }
+
     get get_custom_filters(): string[] {
         return this.vuexGet<string[]>(reflect<this>().get_custom_filters);
     }
+
     get get_page_widgets(): DashboardPageWidgetVO[] {
         return this.vuexGet<DashboardPageWidgetVO[]>(reflect<this>().get_page_widgets);
     }
+
+    get get_selected_page_page_widgets(): DashboardPageWidgetVO[] {
+        return this.vuexGet<DashboardPageWidgetVO[]>(reflect<this>().get_selected_page_page_widgets);
+    }
+
+    get get_selected_page_page_widgets_by_id(): { [id: number]: DashboardPageWidgetVO } {
+        return this.vuexGet<{ [id: number]: DashboardPageWidgetVO }>(reflect<this>().get_selected_page_page_widgets_by_id);
+    }
+
+    get get_all_widgets(): DashboardWidgetVO[] {
+        return this.vuexGet<DashboardWidgetVO[]>(reflect<this>().get_all_widgets);
+    }
+
+    get get_widgets_by_id(): { [id: number]: DashboardWidgetVO } {
+        return this.vuexGet<{ [id: number]: DashboardWidgetVO }>(reflect<this>().get_widgets_by_id);
+    }
+
 
     @Watch('widget_options', { immediate: true })
     private onchange_widget_options() {
@@ -242,8 +413,8 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
         this.set_page_widget(this.page_widget);
         this.$emit('update_layout_widget', this.page_widget);
 
-        const name = VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets)[this.page_widget.widget_id].name;
-        const get_selected_fields = DashboardBuilderWidgetsController.getInstance().widgets_get_selected_fields[name];
+        const name = this.get_widgets_by_id[this.page_widget.widget_id].name;
+        const get_selected_fields = WidgetOptionsVOManager.widgets_get_selected_fields[name];
         this.set_selected_fields(get_selected_fields ? get_selected_fields(this.page_widget) : {});
     }
 
@@ -554,34 +725,6 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
         }
     }
 
-    get has_existing_other_custom_filters(): boolean {
-        if (!this.other_custom_filters) {
-            return false;
-        }
-
-        return this.other_custom_filters.length > 0;
-    }
-
-    get other_custom_filters(): string[] {
-        if (!this.get_custom_filters) {
-            return null;
-        }
-
-        const res: string[] = [];
-
-        for (const i in this.get_custom_filters) {
-            const get_custom_filter = this.get_custom_filters[i];
-
-            if (get_custom_filter == this.custom_filter_name) {
-                continue;
-            }
-
-            res.push(get_custom_filter);
-        }
-
-        return this.get_custom_filters;
-    }
-
     private change_custom_filter(custom_filter: string) {
         this.custom_filter_name = custom_filter;
         if (this.get_custom_filters && (this.get_custom_filters.indexOf(custom_filter) < 0)) {
@@ -589,128 +732,5 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
             custom_filters.push(custom_filter);
             this.set_custom_filters(custom_filters);
         }
-    }
-
-    get widget_options(): AdvancedDateFilterWidgetOptions {
-        if (!this.page_widget) {
-            return null;
-        }
-
-        let options: AdvancedDateFilterWidgetOptions = null;
-        try {
-            if (this.page_widget.json_options) {
-                options = JSON.parse(this.page_widget.json_options) as AdvancedDateFilterWidgetOptions;
-                options = options ? new AdvancedDateFilterWidgetOptions(
-                    options.is_vo_field_ref == null ? true : options.is_vo_field_ref,
-                    options.vo_field_ref,
-                    options.custom_filter_name,
-                    options.opts,
-                    options.is_checkbox,
-                    options.default_value,
-                    options.hide_opts,
-                    options.refuse_left_open,
-                    options.refuse_right_open,
-                    options.is_relative_to_other_filter,
-                    options.relative_to_other_filter_id,
-                    options.hide_filter,
-                    options.is_relative_to_today,
-                    options.auto_select_relative_date_min,
-                    options.auto_select_relative_date_max,
-                ) : null;
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-
-        return options;
-    }
-
-    get vo_field_ref(): VOFieldRefVO {
-        const options: AdvancedDateFilterWidgetOptions = this.widget_options;
-
-        if ((!options) || (!options.vo_field_ref)) {
-            return null;
-        }
-
-        return Object.assign(new VOFieldRefVO(), options.vo_field_ref);
-    }
-
-    get opts(): AdvancedDateFilterOptDescVO[] {
-        const options: AdvancedDateFilterWidgetOptions = this.widget_options;
-
-        if ((!options) || (!options.opts) || (!options.opts.length)) {
-            return null;
-        }
-
-        const res: AdvancedDateFilterOptDescVO[] = [];
-
-        for (const i in options.opts) {
-            res.push(Object.assign(new AdvancedDateFilterOptDescVO(), options.opts[i]));
-        }
-
-        res.sort((a: AdvancedDateFilterOptDescVO, b: AdvancedDateFilterOptDescVO) => {
-            if (a.weight < b.weight) {
-                return -1;
-            }
-            if (a.weight > b.weight) {
-                return 1;
-            }
-            return 0;
-        });
-
-        return res;
-    }
-
-    get other_filters_by_name(): { [filter_name: string]: DashboardPageWidgetVO } {
-        if (!this.get_page_widgets) {
-            return null;
-        }
-
-        let res: { [filter_name: string]: DashboardPageWidgetVO } = {};
-
-        for (let i in this.get_page_widgets) {
-            let get_page_widget = this.get_page_widgets[i];
-
-            if (get_page_widget.id == this.page_widget.id) {
-                continue;
-            }
-
-            if (get_page_widget.widget_id !== this.page_widget.widget_id) {
-                continue;
-            }
-
-            if (!get_page_widget.json_options) {
-                continue;
-            }
-
-            let other_filter_options = JSON.parse(get_page_widget.json_options) as AdvancedDateFilterWidgetOptions;
-            if (!other_filter_options) {
-                continue;
-            }
-
-            if (!!other_filter_options.is_vo_field_ref) {
-                if ((!other_filter_options.vo_field_ref) || (!other_filter_options.vo_field_ref.api_type_id) || (!other_filter_options.vo_field_ref.field_id)) {
-                    continue;
-                }
-
-                let name = 'Widget ID:' + get_page_widget.id + ' : ' + other_filter_options.vo_field_ref.api_type_id + '.' + other_filter_options.vo_field_ref.field_id;
-                if (!!res[name]) {
-                    continue;
-                }
-                res[name] = get_page_widget;
-            } else {
-                if (!other_filter_options.custom_filter_name) {
-                    continue;
-                }
-
-                let name = 'Widget ID:' + get_page_widget.id + ' : ' + other_filter_options.custom_filter_name;
-                if (!!res[name]) {
-                    continue;
-                }
-                res[name] = get_page_widget;
-            }
-        }
-
-        return res;
     }
 }

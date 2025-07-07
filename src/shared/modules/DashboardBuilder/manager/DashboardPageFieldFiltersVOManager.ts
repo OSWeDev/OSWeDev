@@ -1,15 +1,16 @@
 import ObjectHandler from "../../../tools/ObjectHandler";
+import { query } from "../../ContextFilter/vos/ContextQueryVO";
 import IReadableFieldFilters from "../interfaces/IReadableFieldFilters";
 import DashboardPageFieldFiltersVO from "../vos/DashboardPageFieldFiltersVO";
+import DashboardPageVO from "../vos/DashboardPageVO";
+import DashboardVO from "../vos/DashboardVO";
 import FieldFiltersVO from "../vos/FieldFiltersVO";
-import DashboardPageVOManager from "./DashboardPageVOManager";
 import FieldFiltersVOManager from "./FieldFiltersVOManager";
 
 /**
  * DashboardPageFieldFiltersVOManager
  */
 export default class DashboardPageFieldFiltersVOManager {
-
     /**
      * find_dashboard_pages_field_filters_by_dashboard_ids
      *
@@ -51,9 +52,9 @@ export default class DashboardPageFieldFiltersVOManager {
         code_lang: string,
     ): Promise<DashboardPageFieldFiltersVO[]> {
 
-        const dashboard_pages = await DashboardPageVOManager.find_dashboard_pages_by_dashboard_id(
-            dashboard_id,
-        );
+        const dashboard_pages = await query(DashboardPageVO.API_TYPE_ID)
+            .filter_by_id(dashboard_id, DashboardVO.API_TYPE_ID)
+            .select_vos<DashboardPageVO>();
 
         const dashboard_pages_field_filters_map: DashboardPageFieldFiltersVO[] = [];
 

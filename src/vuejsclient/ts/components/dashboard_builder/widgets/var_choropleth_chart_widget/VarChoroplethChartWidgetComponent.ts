@@ -27,7 +27,7 @@ import { all_promises } from '../../../../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../../../../shared/tools/RangeHandler';
 import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../../VueComponentBase';
-import DashboardBuilderWidgetsController from '../DashboardBuilderWidgetsController';
+import WidgetOptionsVOManager from '../WidgetOptionsVOManager';
 import ValidationFiltersWidgetController from '../validation_filters_widget/ValidationFiltersWidgetController';
 import VarWidgetComponent from '../var_widget/VarWidgetComponent';
 import './VarChoroplethChartWidgetComponent.scss';
@@ -412,8 +412,12 @@ export default class VarChoroplethChartWidgetComponent extends VueComponentBase 
         return ObjectHandler.hasAtLeastOneAttribute(this.widget_options.filter_custom_field_filters_1) ? this.widget_options.filter_custom_field_filters_1 : null;
     }
 
-    get widgets_by_id(): { [id: number]: DashboardWidgetVO } {
-        return VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets);
+    get get_all_widgets(): DashboardWidgetVO[] {
+        return this.vuexGet<DashboardWidgetVO[]>(reflect<this>().get_all_widgets);
+    }
+
+    get get_widgets_by_id(): { [id: number]: DashboardWidgetVO } {
+        return this.vuexGet<{ [id: number]: DashboardWidgetVO }>(reflect<this>().get_widgets_by_id);
     }
 
     @Watch('widget_options', { immediate: true })
@@ -466,7 +470,7 @@ export default class VarChoroplethChartWidgetComponent extends VueComponentBase 
         }
 
         for (const i in this.all_page_widget) {
-            const widget: DashboardWidgetVO = this.widgets_by_id[this.all_page_widget[i].widget_id];
+            const widget: DashboardWidgetVO = this.get_widgets_by_id[this.all_page_widget[i].widget_id];
 
             if (!widget) {
                 continue;

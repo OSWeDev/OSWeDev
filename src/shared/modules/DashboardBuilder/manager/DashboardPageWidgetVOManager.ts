@@ -1,18 +1,20 @@
 import VOFieldRefVO from '../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
-import WidgetOptionsMetadataVO from '../vos/WidgetOptionsMetadataVO';
-import DashboardPageWidgetVO from "../vos/DashboardPageWidgetVO";
-import { query } from "../../ContextFilter/vos/ContextQueryVO";
-import DashboardWidgetVO from "../vos/DashboardWidgetVO";
-import ModuleAccessPolicy from '../../AccessPolicy/ModuleAccessPolicy';
-import ModuleDAO from '../../DAO/ModuleDAO';
-import WidgetOptionsVOManager from "./WidgetOptionsVOManager";
-import VOFieldRefVOManager from './VOFieldRefVOManager';
 import { field_names } from '../../../tools/ObjectHandler';
+import ModuleAccessPolicy from '../../AccessPolicy/ModuleAccessPolicy';
+import { query } from "../../ContextFilter/vos/ContextQueryVO";
+import ModuleDAO from '../../DAO/ModuleDAO';
+import VOsTypesManager from '../../VO/manager/VOsTypesManager';
+import DashboardPageWidgetVO from "../vos/DashboardPageWidgetVO";
+import DashboardWidgetVO from "../vos/DashboardWidgetVO";
+import WidgetOptionsMetadataVO from '../vos/WidgetOptionsMetadataVO';
+import VOFieldRefVOManager from './VOFieldRefVOManager';
+import WidgetOptionsVOManager from "./WidgetOptionsVOManager";
 
 /**
  * DashboardPageWidgetVOManager
  */
 export default class DashboardPageWidgetVOManager {
+
 
     /**
      * check_page_widget_vo_access
@@ -51,7 +53,8 @@ export default class DashboardPageWidgetVOManager {
      * @returns {{ [page_widget_id: number]: WidgetOptionsMetadataVO }}
      */
     public static async filter_all_page_widgets_options_by_widget_name(
-        dashboard_page_ids: number[],
+        dashboard_page_id: number,
+        dashboard_page_widgets: DashboardPageWidgetVO[],
         widget_name: string,
         options?: {
             all_page_widgets?: DashboardPageWidgetVO[],
@@ -60,18 +63,14 @@ export default class DashboardPageWidgetVOManager {
     ): Promise<{ [page_widget_id: number]: WidgetOptionsMetadataVO }> {
 
         // Get sorted_widgets from dashboard (or sorted_widgets_types)
-        const { sorted_widgets } = WidgetOptionsVOManager.getInstance();
-        // Get page_widgets (or all_page_widgets from dashboard)
-        const page_widgets = await DashboardPageWidgetVOManager.find_page_widgets_by_page_ids(
-            dashboard_page_ids
-        );
+        const sorted_widgets = await WidgetOptionsVOManager.get_all_sorted_widgets_types();
 
         const res: {
             [page_widget_id: number]: WidgetOptionsMetadataVO
         } = {};
 
         const sorted_widgets_types: DashboardWidgetVO[] = options?.sorted_widgets_types ?? sorted_widgets;
-        const all_page_widgets: DashboardPageWidgetVO[] = options?.all_page_widgets ?? page_widgets;
+        const all_page_widgets: DashboardPageWidgetVO[] = options?.all_page_widgets ?? dashboard_page_widgets;
 
         if (
             !(sorted_widgets_types?.length > 0) ||
@@ -121,24 +120,23 @@ export default class DashboardPageWidgetVOManager {
      * @param options
      * @returns {{ [page_widget_id: number]: WidgetOptionsMetadataVO }}
      */
-    public static find_all_widgets_options_metadata(
+    public static async find_all_widgets_options_metadata(
+        current_page_page_widgets: DashboardPageWidgetVO[],
         options?: {
             all_page_widgets?: DashboardPageWidgetVO[],
             sorted_widgets_types?: DashboardWidgetVO[],
         }
-    ): { [page_widget_id: number]: WidgetOptionsMetadataVO } {
+    ): Promise<{ [page_widget_id: number]: WidgetOptionsMetadataVO }> {
 
         // Get sorted_widgets from dashboard (or sorted_widgets_types)
-        const { sorted_widgets } = WidgetOptionsVOManager.getInstance();
-        // Get page_widgets (or all_page_widgets from dashboard)
-        const { page_widgets } = DashboardPageWidgetVOManager.getInstance();
+        const sorted_widgets = await WidgetOptionsVOManager.get_all_sorted_widgets_types();
 
         const res: {
             [page_widget_id: number]: WidgetOptionsMetadataVO
         } = {};
 
         const sorted_widgets_types: DashboardWidgetVO[] = options?.sorted_widgets_types ?? sorted_widgets;
-        const all_page_widgets: DashboardPageWidgetVO[] = options?.all_page_widgets ?? page_widgets;
+        const all_page_widgets: DashboardPageWidgetVO[] = options?.all_page_widgets ?? current_page_page_widgets;
 
         if (
             !(sorted_widgets_types?.length > 0) ||
@@ -147,27 +145,20 @@ export default class DashboardPageWidgetVOManager {
             return;
         }
 
-        for (const key_i in sorted_widgets_types) {
-            const widget_type = sorted_widgets_types[key_i];
+        const sorted_widgets_types_by_id: { [widget_id: number]: DashboardWidgetVO } = VOsTypesManager.vosArray_to_vosByIds(sorted_widgets_types);
 
-            // Find all yearfilter widgets of actual page
-            const filtered_page_widgets = Object.values(all_page_widgets)?.filter(
-                (pw: DashboardPageWidgetVO) => pw.widget_id == widget_type.id
-            );
+        for (const key in all_page_widgets) {
+            const page_widget = all_page_widgets[key];
 
-            for (const key in filtered_page_widgets) {
-                const page_widget = filtered_page_widgets[key];
+            const page_widget_options = JSON.parse(page_widget?.json_options ?? '{}');
+            const page_widget_id = page_widget.id;
 
-                const page_widget_options = JSON.parse(page_widget?.json_options ?? '{}');
-                const page_widget_id = page_widget.id;
-
-                res[page_widget_id] = new WidgetOptionsMetadataVO().from({
-                    widget_options: page_widget_options,
-                    dashboard_page_id: page_widget.page_id,
-                    page_widget_id: page_widget.id,
-                    widget_name: widget_type?.name,
-                });
-            }
+            res[page_widget_id] = new WidgetOptionsMetadataVO().from({
+                widget_options: page_widget_options,
+                dashboard_page_id: page_widget.page_id,
+                page_widget_id: page_widget.id,
+                widget_name: sorted_widgets_types_by_id[page_widget.widget_id].name,
+            });
         }
 
         return res;
@@ -185,7 +176,7 @@ export default class DashboardPageWidgetVOManager {
     ): Promise<{ [page_widget_id: number]: WidgetOptionsMetadataVO }> {
 
         // All sorted_widgets_types (Should get all possible widgets_types)
-        const sorted_widgets_types = await WidgetOptionsVOManager.find_all_sorted_widgets_types();
+        const sorted_widgets_types = await WidgetOptionsVOManager.get_all_sorted_widgets_types();
         // Get page_widgets of actual page
         const page_widgets = await DashboardPageWidgetVOManager.find_page_widgets_by_page_id(
             dashboard_page_id
@@ -237,7 +228,7 @@ export default class DashboardPageWidgetVOManager {
     ): Promise<WidgetOptionsMetadataVO> {
 
         // All sorted_widgets_types (Should get all possible widgets_types)
-        const sorted_widgets_types = await WidgetOptionsVOManager.find_all_sorted_widgets_types();
+        const sorted_widgets_types = await WidgetOptionsVOManager.get_all_sorted_widgets_types();
 
         // Get page_widget
         const page_widget = await DashboardPageWidgetVOManager.find_page_widget(
@@ -310,6 +301,7 @@ export default class DashboardPageWidgetVOManager {
      * @returns {WidgetOptionsMetadataVO[]}
      */
     public static async find_all_widgets_options_metadata_by_vo_field_ref(
+        current_page_page_widgets: DashboardPageWidgetVO[],
         vo_field_ref: VOFieldRefVO,
         options?: {
             all_page_widgets?: DashboardPageWidgetVO[],
@@ -318,10 +310,12 @@ export default class DashboardPageWidgetVOManager {
     ): Promise<WidgetOptionsMetadataVO[]> {
 
         // Get widgets_options_metadata from dashboard
-        const widgets_options_metadata = DashboardPageWidgetVOManager.find_all_widgets_options_metadata({
-            sorted_widgets_types: options?.sorted_widgets_types,
-            all_page_widgets: options?.all_page_widgets,
-        });
+        const widgets_options_metadata = DashboardPageWidgetVOManager.find_all_widgets_options_metadata(
+            current_page_page_widgets,
+            {
+                sorted_widgets_types: options?.sorted_widgets_types,
+                all_page_widgets: options?.all_page_widgets,
+            });
 
         let res: WidgetOptionsMetadataVO[] = [];
 
@@ -352,18 +346,14 @@ export default class DashboardPageWidgetVOManager {
     public static async find_page_widgets_by_widget_name(
         page_id: number,
         widget_name: string, // - widget_name (ex: yearfilter, fieldvaluefilter, monthfilter, ...)
-        options?: {
-            refresh?: boolean
-        }
     ): Promise<DashboardPageWidgetVO[]> {
         // All page_widgets of the given page_id
         const page_widgets: DashboardPageWidgetVO[] = await DashboardPageWidgetVOManager.find_page_widgets_by_page_id(
             page_id,
-            options
         );
 
         // All sorted_widgets_types (Should get all possible widgets_types)
-        const sorted_widgets_types = await WidgetOptionsVOManager.find_all_sorted_widgets_types();
+        const sorted_widgets_types = await WidgetOptionsVOManager.get_all_sorted_widgets_types();
 
         if (
             !(sorted_widgets_types?.length > 0) ||
@@ -399,32 +389,13 @@ export default class DashboardPageWidgetVOManager {
      */
     public static async find_page_widgets_by_page_id(
         page_id: number,
-        options?: {
-            refresh?: boolean
-        }
     ): Promise<DashboardPageWidgetVO[]> {
-        const self = DashboardPageWidgetVOManager.getInstance();
-
-        // Return page_widgets if already loaded
-        if (!options?.refresh && self.page_widgets_by_page_id[page_id]) {
-            return self.page_widgets_by_page_id[page_id];
-        }
-
-        // If already loaded, there is no need to check access
-        const has_access = await DashboardPageWidgetVOManager.check_page_widget_vo_access();
-
-        if (!has_access) {
-            return;
-        }
 
         // Initialize page_widgets (all_page_widget in dashboard) of DashboardPageWidgetVOManager instance
         // its should be initialized each time the dashboard page is loaded
         const page_widgets = await query(DashboardPageWidgetVO.API_TYPE_ID)
             .filter_by_num_eq(field_names<DashboardPageWidgetVO>().page_id, page_id)
             .select_vos<DashboardPageWidgetVO>();
-
-        self.page_widgets_by_page_id[page_id] = page_widgets;
-        self.page_widgets = page_widgets;
 
         return page_widgets;
     }
@@ -438,52 +409,13 @@ export default class DashboardPageWidgetVOManager {
      */
     public static async find_page_widgets_by_page_ids(
         page_ids: number[],
-        options?: {
-            refresh?: boolean
-        }
     ): Promise<DashboardPageWidgetVO[]> {
-        const self = DashboardPageWidgetVOManager.getInstance();
-
-        // Check has all page_wigets already loaded
-        const has_all_page_widgets_loaded = page_ids.every((page_id) => {
-            return self.page_widgets_by_page_id[page_id];
-        });
-
-        // Return page_widgets if already loaded
-        if (!options?.refresh && has_all_page_widgets_loaded) {
-            const _pages_widgets: DashboardPageWidgetVO[] = [];
-
-            page_ids.map((page_id) => {
-                const pwidgets = self.page_widgets_by_page_id[page_id];
-
-                _pages_widgets.push(...pwidgets);
-            });
-
-            return _pages_widgets;
-        }
-
-        // If already loaded, there is no need to check access
-        const has_access = await DashboardPageWidgetVOManager.check_page_widget_vo_access();
-
-        if (!has_access) {
-            return;
-        }
 
         // Initialize pages_widgets (all_page_widget in dashboard) of DashboardPageWidgetVOManager instance
         // its should be initialized each time the dashboard page is loaded
         const pages_widgets = await query(DashboardPageWidgetVO.API_TYPE_ID)
             .filter_by_num_has(field_names<DashboardPageWidgetVO>().page_id, page_ids)
             .select_vos<DashboardPageWidgetVO>();
-
-        page_ids.map((page_id) => {
-            const pwidgets = pages_widgets.filter((pwidget) =>
-                pwidget.page_id == page_id
-            );
-
-            self.page_widgets_by_page_id[page_id] = pwidgets;
-        });
-
-        self.page_widgets = pages_widgets;
 
         return pages_widgets;
     }
@@ -499,60 +431,10 @@ export default class DashboardPageWidgetVOManager {
      */
     public static async find_page_widget(
         page_widget_id: number,
-        options?: {
-            refresh?: boolean
-        }
     ): Promise<DashboardPageWidgetVO> {
-        const self = DashboardPageWidgetVOManager.getInstance();
 
-        let page_widget: DashboardPageWidgetVO = null;
-
-        // Check has at least one page_wigets already loaded
-        const has_some_page_widgets_loaded = Object.values(self.page_widgets_by_page_id)?.length > 0;
-
-        // Return page_widget if already loaded
-        if (!options?.refresh && has_some_page_widgets_loaded) {
-
-            Object.values(self.page_widgets_by_page_id)?.map((page_widgets) => {
-                const _page_widget = page_widgets.find((pw) => pw.id == page_widget_id);
-
-                if (_page_widget) {
-                    page_widget = _page_widget;
-                }
-            });
-
-            if (page_widget) {
-                return page_widget;
-            }
-        }
-
-        // If already loaded, there is no need to check access
-        const has_access = await DashboardPageWidgetVOManager.check_page_widget_vo_access();
-
-        if (!has_access) {
-            return;
-        }
-
-        page_widget = await query(DashboardPageWidgetVO.API_TYPE_ID)
+        return await query(DashboardPageWidgetVO.API_TYPE_ID)
             .filter_by_num_eq(field_names<DashboardPageWidgetVO>().id, page_widget_id)
             .select_vo<DashboardPageWidgetVO>();
-
-        return page_widget;
     }
-
-    // istanbul ignore next: nothing to test
-    public static getInstance(): DashboardPageWidgetVOManager {
-        if (!DashboardPageWidgetVOManager.instance) {
-            DashboardPageWidgetVOManager.instance = new DashboardPageWidgetVOManager();
-        }
-
-        return DashboardPageWidgetVOManager.instance;
-    }
-
-    private static instance: DashboardPageWidgetVOManager = null;
-
-    public page_widgets_by_page_id: { [page_id: number]: DashboardPageWidgetVO[] } = {};
-    public page_widgets: DashboardPageWidgetVO[] = null; // The last loaded page_widgets
-
-    protected constructor() { }
 }

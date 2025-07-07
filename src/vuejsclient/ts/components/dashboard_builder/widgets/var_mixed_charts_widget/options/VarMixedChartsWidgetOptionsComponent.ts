@@ -44,13 +44,13 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
     // --------------------------------------------------------------------------
 
     @Prop({ default: null })
-    private page_widget: DashboardPageWidgetVO;
+    public page_widget: DashboardPageWidgetVO;
 
 
     // --------------------------------------------------------------------------
     // Sections repliables pour l'UX (accordions)
     // --------------------------------------------------------------------------
-    private sectionsOpen = {
+    public sectionsOpen = {
         widgetTitle: false,
         chartBasic: false,
         chartTitle: false,
@@ -67,75 +67,75 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
     /**
      * Copie de l'objet d'options à mettre à jour (optimisation pour la throttle)
      */
-    private next_update_options: VarMixedChartWidgetOptionsVO = null;
+    public next_update_options: VarMixedChartWidgetOptionsVO = null;
 
     /**
      * Mécanismes pour limiter la fréquence de reload/update
      */
-    private throttled_reload_options = ThrottleHelper.declare_throttle_without_args(
+    public throttled_reload_options = ThrottleHelper.declare_throttle_without_args(
         'VarMixedChartsWidgetOptionsComponent.throttled_reload_options',
         this.reload_options.bind(this), 50, false
     );
 
-    private throttled_update_options = ThrottleHelper.declare_throttle_without_args(
+    public throttled_update_options = ThrottleHelper.declare_throttle_without_args(
         'VarMixedChartsWidgetOptionsComponent.throttled_update_options',
         this.update_options.bind(this), 50, false
     );
 
-    private throttled_update_colors = ThrottleHelper.declare_throttle_without_args(
+    public throttled_update_colors = ThrottleHelper.declare_throttle_without_args(
         'VarMixedChartsWidgetOptionsComponent.throttled_update_colors',
         this.update_colors.bind(this), 800, false
     );
 
     // --- Champs partagés / toggles / inputs
-    private dimension_custom_filter_name: string = null;
-    private bg_color: string = null;
-    private legend_font_color: string = null;
-    private title_font_color: string = null;
+    public dimension_custom_filter_name: string = null;
+    public bg_color: string = null;
+    public legend_font_color: string = null;
+    public title_font_color: string = null;
 
-    private legend_display: boolean = false;
-    private legend_use_point_style: boolean = false;
-    private title_display: boolean = false;
-    private has_dimension: boolean = true;
-    private detailed: boolean = true;
-    private tooltip_by_index: boolean = false;
-    private sort_dimension_by_asc: boolean = false;
-    private hide_filter: boolean = false;
-    private dimension_is_vo_field_ref: boolean = false;
+    public legend_display: boolean = false;
+    public legend_use_point_style: boolean = false;
+    public title_display: boolean = false;
+    public has_dimension: boolean = true;
+    public detailed: boolean = true;
+    public tooltip_by_index: boolean = false;
+    public sort_dimension_by_asc: boolean = false;
+    public hide_filter: boolean = false;
+    public dimension_is_vo_field_ref: boolean = false;
 
     // --- Tailles / paddings (string pour la saisie, parseInt derrière)
-    private legend_font_size: string = null;
-    private legend_box_width: string = null;
-    private legend_padding: string = null;
-    private title_font_size: string = null;
-    private title_padding: string = null;
-    private max_dimension_values: string = null;
-    private max_dataset_values: string = null;
+    public legend_font_size: string = null;
+    public legend_box_width: string = null;
+    public legend_padding: string = null;
+    public title_font_size: string = null;
+    public title_padding: string = null;
+    public max_dimension_values: string = null;
+    public max_dataset_values: string = null;
 
     // --- Options complexes
-    private var_charts_options?: VarChartOptionsVO[] = [];
-    private var_chart_scales_options?: VarChartScalesOptionsVO[] = [];
+    public var_charts_options?: VarChartOptionsVO[] = [];
+    public var_chart_scales_options?: VarChartScalesOptionsVO[] = [];
 
     // --- Échelles (chart.js) => X & Y
-    private scale_y_title: string = null;
-    private scale_x_title: string = null;
-    private show_scale_x: boolean = false;
-    private show_scale_y: boolean = false;
-    private scale_options_x?: Partial<Scale> = null;
-    private scale_options_y?: Partial<Scale> = null;
+    public scale_y_title: string = null;
+    public scale_x_title: string = null;
+    public show_scale_x: boolean = false;
+    public show_scale_y: boolean = false;
+    public scale_options_x?: Partial<Scale> = null;
+    public scale_options_y?: Partial<Scale> = null;
 
     // --- Sélections temporaires (multiselect)
-    private tmp_selected_legend_position: string = null;
-    private tmp_selected_custom_filter: string = null;
-    private tmp_selected_dimension_custom_filter_segment_type: string = null;
+    public tmp_selected_legend_position: string = null;
+    public tmp_selected_custom_filter: string = null;
+    public tmp_selected_dimension_custom_filter_segment_type: string = null;
 
     /**
      * Objet principal d'options du widget
      */
-    private widget_options: VarMixedChartWidgetOptionsVO = null;
+    public widget_options: VarMixedChartWidgetOptionsVO = null;
 
     // --- Types de segment pour la dimension (TimeSegment)
-    private dimension_custom_filter_segment_types: { [index: number]: string } = {
+    public dimension_custom_filter_segment_types: { [index: number]: string } = {
         [TimeSegment.TYPE_YEAR]: this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_YEAR),
         [TimeSegment.TYPE_MONTH]: this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_MONTH),
         [TimeSegment.TYPE_DAY]: this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_DAY),
@@ -144,10 +144,10 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
         [TimeSegment.TYPE_SECOND]: this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_SECOND)
     };
 
-    private dimension_custom_filter_segment_types_values: string[] = Object.values(this.dimension_custom_filter_segment_types);
+    public dimension_custom_filter_segment_types_values: string[] = Object.values(this.dimension_custom_filter_segment_types);
 
     // --- Positions possibles de la légende
-    private legend_positions: string[] = [
+    public legend_positions: string[] = [
         'top',
         'left',
         'bottom',
@@ -210,24 +210,24 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
     // Watchers (pour recharger quand la prop page_widget change, etc.)
     // --------------------------------------------------------------------------
 
-    @Watch('page_widget', { immediate: true, deep: true })
-    private async onchange_page_widget() {
+    @Watch(reflect<VarMixedChartsWidgetOptionsComponent>().page_widget, { immediate: true, deep: true })
+    public async onchange_page_widget() {
         await this.throttled_reload_options();
     }
 
     /**
      * Si le widget_options change depuis l'extérieur, on reload.
      */
-    @Watch('widget_options', { deep: true })
-    private async onchange_widget_options() {
+    @Watch(reflect<VarMixedChartsWidgetOptionsComponent>().widget_options, { deep: true })
+    public async onchange_widget_options() {
         await this.throttled_reload_options();
     }
 
     /**
      * Watch sur scale_x_code_text : on met à jour widget_options.scale_x_title
      */
-    @Watch('scale_x_code_text')
-    private async onchange_scale_x_code_text() {
+    @Watch(reflect<VarMixedChartsWidgetOptionsComponent>().scale_x_code_text)
+    public async onchange_scale_x_code_text() {
         if (!this.widget_options) {
             return;
         }
@@ -254,8 +254,8 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
     /**
      * Sélecteur de type segment => on met à jour TimeSegment.TYPE_*
      */
-    @Watch('tmp_selected_dimension_custom_filter_segment_type')
-    private async onchange_tmp_selected_dimension_custom_filter_segment_type() {
+    @Watch(reflect<VarMixedChartsWidgetOptionsComponent>().tmp_selected_dimension_custom_filter_segment_type)
+    public async onchange_tmp_selected_dimension_custom_filter_segment_type() {
         if (!this.widget_options) {
             return;
         }
@@ -285,8 +285,8 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
     /**
      * Sélecteur position de légende
      */
-    @Watch('tmp_selected_legend_position')
-    private async onchange_tmp_selected_legend_position() {
+    @Watch(reflect<VarMixedChartsWidgetOptionsComponent>().tmp_selected_legend_position)
+    public async onchange_tmp_selected_legend_position() {
         if (!this.widget_options) {
             return;
         }
@@ -314,33 +314,33 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
     // Watchers simplifiés pour les propriétés numériques
     // --------------------------------------------------------------------------
 
-    @Watch('legend_font_size')
-    private watch_legend_font_size() {
+    @Watch(reflect<VarMixedChartsWidgetOptionsComponent>().legend_font_size)
+    public watch_legend_font_size() {
         this.watchNumericProperty('legend_font_size', 'legend_font_size', 12, 100);
     }
 
-    @Watch('legend_box_width')
-    private watch_legend_box_width() {
+    @Watch(reflect<VarMixedChartsWidgetOptionsComponent>().legend_box_width)
+    public watch_legend_box_width() {
         this.watchNumericProperty('legend_box_width', 'legend_box_width', 40, 400);
     }
 
-    @Watch('legend_padding')
-    private watch_legend_padding() {
+    @Watch(reflect<VarMixedChartsWidgetOptionsComponent>().legend_padding)
+    public watch_legend_padding() {
         this.watchNumericProperty('legend_padding', 'legend_padding', 10);
     }
 
-    @Watch('title_font_size')
-    private watch_title_font_size() {
+    @Watch(reflect<VarMixedChartsWidgetOptionsComponent>().title_font_size)
+    public watch_title_font_size() {
         this.watchNumericProperty('title_font_size', 'title_font_size', 16, 100);
     }
 
-    @Watch('title_padding')
-    private watch_title_padding() {
+    @Watch(reflect<VarMixedChartsWidgetOptionsComponent>().title_padding)
+    public watch_title_padding() {
         this.watchNumericProperty('title_padding', 'title_padding', 10);
     }
 
-    @Watch('max_dimension_values')
-    private async watch_max_dimension_values() {
+    @Watch(reflect<VarMixedChartsWidgetOptionsComponent>().max_dimension_values)
+    public async watch_max_dimension_values() {
         // Logique un peu différente (valeur > 0 si !dimension_is_vo_field_ref)
         if (!this.widget_options) {
             return;
@@ -380,8 +380,8 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
         }
     }
 
-    @Watch('max_dataset_values')
-    private async watch_max_dataset_values() {
+    @Watch(reflect<VarMixedChartsWidgetOptionsComponent>().max_dataset_values)
+    public async watch_max_dataset_values() {
         // Logique similaire à max_dimension_values
         if (!this.widget_options) {
             return;
@@ -422,8 +422,8 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
     /**
      * Sélection d'un custom_filter dimension
      */
-    @Watch('tmp_selected_custom_filter')
-    private async watch_tmp_custom_filter_dimension(): Promise<void> {
+    @Watch(reflect<VarMixedChartsWidgetOptionsComponent>().tmp_selected_custom_filter)
+    public async watch_tmp_custom_filter_dimension(): Promise<void> {
         if (!this.widget_options) {
             return;
         }
@@ -451,14 +451,14 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
      * Permet de replier/déplier une section
      * @param section Nom de la section dans sectionsOpen
      */
-    private toggleSection(section: keyof typeof this.sectionsOpen) {
+    public toggleSection(section: keyof typeof this.sectionsOpen) {
         this.sectionsOpen[section] = !this.sectionsOpen[section];
     }
 
     /**
      * watchNumericProperty : factorise la logique d'un parseInt sur un champ local => widget_options
      */
-    private async watchNumericProperty(localPropName: string, widgetOptionName: string, defaultValue: number, maxValue?: number) {
+    public async watchNumericProperty(localPropName: string, widgetOptionName: string, defaultValue: number, maxValue?: number) {
         if (!this.widget_options) {
             return;
         }
@@ -495,63 +495,63 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
     // Méthodes "switch" (toggles) pour mettre à jour le widget_options
     // --------------------------------------------------------------------------
 
-    private async switch_show_scale_x() {
+    public async switch_show_scale_x() {
         this.prepareNextOptions();
         this.next_update_options.show_scale_x = !this.next_update_options.show_scale_x;
         await this.throttled_update_options();
     }
 
-    private async switch_show_scale_y() {
+    public async switch_show_scale_y() {
         this.prepareNextOptions();
         this.next_update_options.show_scale_y = !this.next_update_options.show_scale_y;
         await this.throttled_update_options();
     }
 
-    private async switch_legend_display() {
+    public async switch_legend_display() {
         this.prepareNextOptions();
         this.next_update_options.legend_display = !this.next_update_options.legend_display;
         await this.throttled_update_options();
     }
 
-    private async switch_dimension_is_vo_field_ref() {
+    public async switch_dimension_is_vo_field_ref() {
         this.prepareNextOptions();
         this.next_update_options.dimension_is_vo_field_ref = !this.next_update_options.dimension_is_vo_field_ref;
         await this.throttled_update_options();
     }
 
-    private async switch_sort_dimension_by_asc() {
+    public async switch_sort_dimension_by_asc() {
         this.prepareNextOptions();
         this.next_update_options.sort_dimension_by_asc = !this.next_update_options.sort_dimension_by_asc;
         await this.throttled_update_options();
     }
 
-    private async switch_hide_filter() {
+    public async switch_hide_filter() {
         this.prepareNextOptions();
         this.next_update_options.hide_filter = !this.next_update_options.hide_filter;
         await this.throttled_update_options();
     }
 
-    private async switch_tooltip_by_index() {
+    public async switch_tooltip_by_index() {
         this.prepareNextOptions();
         this.tooltip_by_index = !this.tooltip_by_index;
         this.next_update_options.tooltip_by_index = this.tooltip_by_index;
         await this.throttled_update_options();
     }
 
-    private async switch_detailed() {
+    public async switch_detailed() {
         this.prepareNextOptions();
         this.detailed = !this.detailed;
         this.next_update_options.detailed = this.detailed;
         await this.throttled_update_options();
     }
 
-    private async switch_title_display() {
+    public async switch_title_display() {
         this.prepareNextOptions();
         this.next_update_options.title_display = !this.next_update_options.title_display;
         await this.throttled_update_options();
     }
 
-    private async switch_legend_use_point_style() {
+    public async switch_legend_use_point_style() {
         this.prepareNextOptions();
         this.next_update_options.legend_use_point_style = !this.next_update_options.legend_use_point_style;
         await this.throttled_update_options();
@@ -561,7 +561,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
     // Méthodes pour manipuler les VOFieldRef (dimension, tri, dataset, etc.)
     // --------------------------------------------------------------------------
 
-    private async remove_dimension_vo_field_ref() {
+    public async remove_dimension_vo_field_ref() {
         this.prepareNextOptions();
         if (!this.next_update_options.dimension_vo_field_ref) {
             return;
@@ -570,7 +570,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
         await this.throttled_update_options();
     }
 
-    private async add_dimension_vo_field_ref(api_type_id: string, field_id: string) {
+    public async add_dimension_vo_field_ref(api_type_id: string, field_id: string) {
         this.prepareNextOptions();
         const vof = new VOFieldRefVO();
         vof.api_type_id = api_type_id;
@@ -581,7 +581,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
         await this.throttled_update_options();
     }
 
-    private async remove_sort_dimension_by_vo_field_ref() {
+    public async remove_sort_dimension_by_vo_field_ref() {
         this.prepareNextOptions();
         if (!this.next_update_options.sort_dimension_by_vo_field_ref) {
             return;
@@ -590,7 +590,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
         await this.throttled_update_options();
     }
 
-    private async add_sort_dimension_by_vo_field_ref(api_type_id: string, field_id: string) {
+    public async add_sort_dimension_by_vo_field_ref(api_type_id: string, field_id: string) {
         this.prepareNextOptions();
         const vof = new VOFieldRefVO();
         vof.api_type_id = api_type_id;
@@ -601,7 +601,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
         await this.throttled_update_options();
     }
 
-    private async remove_multiple_dataset_vo_field_ref() {
+    public async remove_multiple_dataset_vo_field_ref() {
         this.prepareNextOptions();
         if (!this.next_update_options.multiple_dataset_vo_field_ref) {
             return;
@@ -610,7 +610,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
         await await this.throttled_update_options();
     }
 
-    private async add_multiple_dataset_vo_field_ref(api_type_id: string, field_id: string) {
+    public async add_multiple_dataset_vo_field_ref(api_type_id: string, field_id: string) {
         this.prepareNextOptions();
         const vof = new VOFieldRefVO();
         vof.api_type_id = api_type_id;
@@ -628,7 +628,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
     /**
      * Initialise next_update_options avec widget_options si besoin
      */
-    private prepareNextOptions() {
+    public prepareNextOptions() {
         if (!this.widget_options) {
             this.widget_options = this.get_default_options();
         }
@@ -642,21 +642,21 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
      * @param position
      * @returns
      */
-    private get_legend_position_label(position: string) {
+    public get_legend_position_label(position: string) {
         return this.label(`var_mixed_charts_widget_options_component.legend_position.${position}`);
     }
 
     /**
      * Renvoie un VarMixedChartWidgetOptionsVO par défaut
      */
-    private get_default_options(): VarMixedChartWidgetOptionsVO {
+    public get_default_options(): VarMixedChartWidgetOptionsVO {
         return VarMixedChartWidgetOptionsVO.createDefault();
     }
 
     /**
      * Callback quand on modifie l'axe X (ChartJsScaleOptions)
      */
-    private async handle_scale_options_x_change(options: Partial<Scale>) {
+    public async handle_scale_options_x_change(options: Partial<Scale>) {
         this.scale_options_x = options;
         this.prepareNextOptions();
 
@@ -669,7 +669,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
     /**
      * Callback quand on modifie l'axe Y
      */
-    private async handle_scale_options_y_change(options: Partial<Scale>) {
+    public async handle_scale_options_y_change(options: Partial<Scale>) {
         this.scale_options_y = options;
         this.prepareNextOptions();
 
@@ -682,7 +682,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
     /**
      * Quand on modifie la liste des var_charts_options (ex: ajout/suppression de variables à afficher)
      */
-    private async handle_var_charts_options_change(var_charts_options: VarChartOptionsVO[]) {
+    public async handle_var_charts_options_change(var_charts_options: VarChartOptionsVO[]) {
         if (!this.widget_options) {
             return;
         }
@@ -696,7 +696,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
     /**
      * Quand on modifie la liste des échelles
      */
-    private async handle_var_chart_scales_options_change(var_chart_scales_options: VarChartScalesOptionsVO[]) {
+    public async handle_var_chart_scales_options_change(var_chart_scales_options: VarChartScalesOptionsVO[]) {
         if (!this.widget_options) {
             return;
         }
@@ -710,7 +710,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
     /**
      * ex: update_filter_type si on veut modifier un type de filtre global
      */
-    private async update_filter_type(filter_type: string): Promise<void> {
+    public async update_filter_type(filter_type: string): Promise<void> {
         if (!this.widget_options) {
             return;
         }
@@ -722,7 +722,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
     /**
      * update_colors, throttle 800ms
      */
-    private async update_colors() {
+    public async update_colors() {
         if (!this.widget_options) {
             return;
         }
@@ -739,7 +739,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
     /**
      * Convertit la valeur sélectionnée (string) en TimeSegment.TYPE_*
      */
-    private get_dimension_custom_filter_segment_type_from_selected_option(selected_option: string): number {
+    public get_dimension_custom_filter_segment_type_from_selected_option(selected_option: string): number {
         if (this.dimension_custom_filter_segment_types) {
             for (const key of Object.keys(this.dimension_custom_filter_segment_types)) {
                 if (this.dimension_custom_filter_segment_types[+key] === selected_option) {
@@ -754,7 +754,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
     /**
      * reload_options : charge la config JSON du widget (page_widget.json_options)
      */
-    private reload_options(): void {
+    public reload_options(): void {
         if (!this.page_widget) {
             this.widget_options = null;
         } else {
@@ -964,7 +964,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
     /**
      * Sauvegarde des options en BDD (via ModuleDAO)
      */
-    private async update_options() {
+    public async update_options() {
         try {
             this.page_widget.json_options = JSON.stringify(this.next_update_options);
         } catch (error) {

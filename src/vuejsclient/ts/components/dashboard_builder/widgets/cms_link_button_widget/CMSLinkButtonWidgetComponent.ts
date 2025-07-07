@@ -1,45 +1,42 @@
 import Component from 'vue-class-component';
-import { Prop, Watch } from 'vue-property-decorator';
+import { Inject, Prop, Watch } from 'vue-property-decorator';
+import RoleVO from '../../../../../../shared/modules/AccessPolicy/vos/RoleVO';
+import UserRoleVO from '../../../../../../shared/modules/AccessPolicy/vos/UserRoleVO';
+import UserVO from '../../../../../../shared/modules/AccessPolicy/vos/UserVO';
+import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import CMSLinkButtonWidgetOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/CMSLinkButtonWidgetOptionsVO';
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
+import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
+import { field_names, reflect } from '../../../../../../shared/tools/ObjectHandler';
+import VueAppController from '../../../../../VueAppController';
 import VueComponentBase from '../../../VueComponentBase';
 import './CMSLinkButtonWidgetComponent.scss';
-import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
-import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
-import UserVO from '../../../../../../shared/modules/AccessPolicy/vos/UserVO';
-import VueAppController from '../../../../../VueAppController';
-import UserRoleVO from '../../../../../../shared/modules/AccessPolicy/vos/UserRoleVO';
-import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import { field_names } from '../../../../../../shared/tools/ObjectHandler';
-import RoleVO from '../../../../../../shared/modules/AccessPolicy/vos/RoleVO';
 
 @Component({
     template: require('./CMSLinkButtonWidgetComponent.pug'),
     components: {}
 })
 export default class CMSLinkButtonWidgetComponent extends VueComponentBase {
+    @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @Prop({ default: null })
-    private page_widget: DashboardPageWidgetVO;
+    public page_widget: DashboardPageWidgetVO;
 
-    @ModuleDashboardPageGetter
-    private get_cms_vo: IDistantVOBase;
+    public url: string = null;
+    public is_url_field: boolean = false;
+    public title: string = null;
+    public icone: string = null;
+    public button_class: string = null;
+    public color: string = null;
+    public text_color: string = null;
+    public about_blank: boolean = null;
+    public mode_bandeau: boolean = null;
+    public radius: number = null;
+    public start_update: boolean = false;
 
-    private url: string = null;
-    private is_url_field: boolean = false;
-    private title: string = null;
-    private icone: string = null;
-    private button_class: string = null;
-    private color: string = null;
-    private text_color: string = null;
-    private about_blank: boolean = null;
-    private mode_bandeau: boolean = null;
-    private radius: number = null;
-    private start_update: boolean = false;
-
-    private show_link_button: boolean = false;
-    private user: UserVO = null;
+    public show_link_button: boolean = false;
+    public user: UserVO = null;
 
     get widget_options(): CMSLinkButtonWidgetOptionsVO {
         if (!this.page_widget) {
@@ -59,6 +56,11 @@ export default class CMSLinkButtonWidgetComponent extends VueComponentBase {
         return options;
     }
 
+    get get_crud_vo(): IDistantVOBase {
+        return this.vuexGet<IDistantVOBase>(reflect<this>().get_crud_vo);
+    }
+
+
     get style(): string {
         return 'background-color: ' + this.color + '; color: ' + this.text_color + ';' + (this.radius ? 'border-radius: ' + this.radius + 'px;' : '');
     }
@@ -72,7 +74,7 @@ export default class CMSLinkButtonWidgetComponent extends VueComponentBase {
     }
 
     @Watch('widget_options', { immediate: true, deep: true })
-    private async onchange_widget_options() {
+    public async onchange_widget_options() {
         if (!this.widget_options) {
             this.url = null;
             this.is_url_field = false;
@@ -89,7 +91,7 @@ export default class CMSLinkButtonWidgetComponent extends VueComponentBase {
         }
         this.is_url_field = this.widget_options.is_url_field;
         this.url = this.is_url_field
-            ? ((this.get_cms_vo && this.widget_options?.url_field_ref) ? this.get_cms_vo[this.widget_options.url_field_ref.field_id] : null)
+            ? ((this.get_crud_vo && this.widget_options?.url_field_ref) ? this.get_crud_vo[this.widget_options.url_field_ref.field_id] : null)
             : this.widget_options.url;
         this.title = this.widget_options.title;
         this.icone = this.widget_options.icone;
@@ -121,11 +123,19 @@ export default class CMSLinkButtonWidgetComponent extends VueComponentBase {
         }
     }
 
-    private async mounted() {
+    public async mounted() {
         this.onchange_widget_options();
     }
 
-    private go_to_link() {
+    // Accès dynamiques Vuex
+    public vuexGet<T>(getter: string): T {
+        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    }
+    public vuexAct<A>(action: string, payload?: A) {
+        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    }
+
+    public go_to_link() {
         if (this.start_update) {
             return;
         }

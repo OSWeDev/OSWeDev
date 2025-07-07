@@ -21,6 +21,7 @@ export default class VOFieldRefVOManager {
      * @return {Promise<string>}
      */
     public static async create_readable_vo_field_ref_label(
+        current_page_page_widgets: DashboardPageWidgetVO[],
         vo_field_ref: { api_type_id: string, field_id: string },
         page_id?: number
     ): Promise<string> {
@@ -31,7 +32,8 @@ export default class VOFieldRefVOManager {
             widgets_options_metadata = await DashboardPageWidgetVOManager.find_all_widgets_options_metadata_by_page_id(page_id);
         } else {
             // TODO: To be removed
-            widgets_options_metadata = DashboardPageWidgetVOManager.find_all_widgets_options_metadata();
+            // TODO FIXME à faire différemment on doit avoir current_page_page_widgets
+            widgets_options_metadata = DashboardPageWidgetVOManager.find_all_widgets_options_metadata(current_page_page_widgets);
         }
 
         let page_widget_options = null;

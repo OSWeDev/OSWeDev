@@ -2,14 +2,13 @@ import 'quill/dist/quill.bubble.css'; // Compliqué à lazy load
 import 'quill/dist/quill.core.css'; // Compliqué à lazy load
 import 'quill/dist/quill.snow.css'; // Compliqué à lazy load
 import Component from 'vue-class-component';
-import { Prop, Watch } from 'vue-property-decorator';
+import { Inject, Prop, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import CMSLinkButtonWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/CMSLinkButtonWidgetOptionsVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../../VueComponentBase';
-import { ModuleDashboardPageAction } from '../../../page/DashboardPageStore';
 import './CMSLinkButtonWidgetOptionsComponent.scss';
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import { isEqual } from 'lodash';
@@ -17,6 +16,7 @@ import SingleVoFieldRefHolderComponent from '../../../options_tools/single_vo_fi
 import RoleVO from '../../../../../../../shared/modules/AccessPolicy/vos/RoleVO';
 import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleTableController from '../../../../../../../shared/modules/DAO/ModuleTableController';
+import { reflect } from '../../../../../../../shared/tools/ObjectHandler';
 
 @Component({
     template: require('./CMSLinkButtonWidgetOptionsComponent.pug'),
@@ -25,31 +25,29 @@ import ModuleTableController from '../../../../../../../shared/modules/DAO/Modul
     }
 })
 export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBase {
+    @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @Prop({ default: null })
-    private page_widget: DashboardPageWidgetVO;
+    public page_widget: DashboardPageWidgetVO;
 
-    @ModuleDashboardPageAction
-    private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
+    public url: string = null;
+    public url_field_ref: VOFieldRefVO = null;
+    public is_url_field: boolean = false;
+    public mode_bandeau: boolean = false;
 
-    private url: string = null;
-    private url_field_ref: VOFieldRefVO = null;
-    private is_url_field: boolean = false;
-    private mode_bandeau: boolean = false;
+    public title: string = null;
+    public color: string = null;
+    public text_color: string = null;
+    public about_blank: boolean = false;
+    public is_text_color_white: boolean = true;
+    public radius: number = null;
+    public icone: string = null;
+    public button_class: string = null;
+    public selected_roles: RoleVO[] = [];
+    public list_roles: RoleVO[] = [];
 
-    private title: string = null;
-    private color: string = null;
-    private text_color: string = null;
-    private about_blank: boolean = false;
-    private is_text_color_white: boolean = true;
-    private radius: number = null;
-    private icone: string = null;
-    private button_class: string = null;
-    private selected_roles: RoleVO[] = [];
-    private list_roles: RoleVO[] = [];
-
-    private next_update_options: CMSLinkButtonWidgetOptionsVO = null;
-    private throttled_update_options = ThrottleHelper.declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
+    public next_update_options: CMSLinkButtonWidgetOptionsVO = null;
+    public throttled_update_options = ThrottleHelper.declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
 
     get widget_options(): CMSLinkButtonWidgetOptionsVO {
         if (!this.page_widget) {
@@ -70,7 +68,7 @@ export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBas
     }
 
     @Watch('widget_options', { immediate: true, deep: true })
-    private async onchange_widget_options() {
+    public async onchange_widget_options() {
         if (!this.widget_options) {
             this.url = null;
             this.url_field_ref = null;
@@ -116,7 +114,7 @@ export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBas
     @Watch('button_class')
     @Watch('selected_roles')
     @Watch('mode_bandeau')
-    private async onchange_bloc_text() {
+    public async onchange_bloc_text() {
         if (!this.widget_options) {
             return;
         }
@@ -155,7 +153,7 @@ export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBas
         }
     }
 
-    private async mounted() {
+    public async mounted() {
 
         if (!this.widget_options) {
 
@@ -170,7 +168,7 @@ export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBas
         await this.throttled_update_options();
     }
 
-    private get_default_options(): CMSLinkButtonWidgetOptionsVO {
+    public get_default_options(): CMSLinkButtonWidgetOptionsVO {
         this.is_text_color_white = true;
 
         return CMSLinkButtonWidgetOptionsVO.createNew(
@@ -189,7 +187,7 @@ export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBas
         );
     }
 
-    private async update_options() {
+    public async update_options() {
         try {
             this.page_widget.json_options = JSON.stringify(this.next_update_options);
         } catch (error) {
@@ -206,15 +204,15 @@ export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBas
         this.$emit('update_layout_widget', this.page_widget);
     }
 
-    private crud_api_type_id_select_label(api_type_id: string): string {
+    public crud_api_type_id_select_label(api_type_id: string): string {
         return this.t(ModuleTableController.module_tables_by_vo_type[api_type_id].label.code_text);
     }
 
-    private multiselectRoleOptionLabel(filter_item: RoleVO): string {
+    public multiselectRoleOptionLabel(filter_item: RoleVO): string {
         return this.label(filter_item.translatable_name);
     }
 
-    private async switch_about_blank() {
+    public async switch_about_blank() {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
@@ -226,7 +224,7 @@ export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBas
         this.throttled_update_options();
     }
 
-    private async switch_mode_bandeau() {
+    public async switch_mode_bandeau() {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
@@ -238,7 +236,7 @@ export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBas
         this.throttled_update_options();
     }
 
-    private async switch_is_url_field() {
+    public async switch_is_url_field() {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
@@ -250,7 +248,20 @@ export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBas
         this.throttled_update_options();
     }
 
-    private async switch_text_color() {
+    // Accès dynamiques Vuex
+    public vuexGet<T>(getter: string): T {
+        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    }
+    public vuexAct<A>(action: string, payload?: A) {
+        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    }
+
+    public set_page_widget(page_widget: DashboardPageWidgetVO): void {
+        this.vuexAct<DashboardPageWidgetVO>(reflect<this>().set_page_widget, page_widget);
+    }
+
+
+    public async switch_text_color() {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
@@ -268,11 +279,11 @@ export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBas
         this.throttled_update_options();
     }
 
-    private async add_url_field_ref(api_type_id: string, field_id: string) {
+    public async add_url_field_ref(api_type_id: string, field_id: string) {
         await this.add_vo_field_ref(api_type_id, field_id, 'url_field_ref');
     }
 
-    private async add_vo_field_ref(api_type_id: string, field_id: string, field_name: string) {
+    public async add_vo_field_ref(api_type_id: string, field_id: string, field_name: string) {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
@@ -289,11 +300,11 @@ export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBas
         await this.throttled_update_options();
     }
 
-    private async remove_url_field_ref() {
+    public async remove_url_field_ref() {
         await this.remove_vo_field_ref('url_field_ref');
     }
 
-    private async remove_vo_field_ref(field_name: string) {
+    public async remove_vo_field_ref(field_name: string) {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {

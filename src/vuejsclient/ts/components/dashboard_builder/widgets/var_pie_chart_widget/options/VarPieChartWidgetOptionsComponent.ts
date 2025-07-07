@@ -32,25 +32,25 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
     @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @Prop({ default: null })
-    private page_widget: DashboardPageWidgetVO;
+    public page_widget: DashboardPageWidgetVO;
 
     /**
      * Copie des options (qui sera mise à jour via throttling)
      */
-    private next_update_options: VarPieChartWidgetOptionsVO = null;
+    public next_update_options: VarPieChartWidgetOptionsVO = null;
 
     /**
      * Mécanismes de throttle pour recharger / mettre à jour les options
      */
-    private throttled_reload_options = ThrottleHelper.declare_throttle_without_args(
+    public throttled_reload_options = ThrottleHelper.declare_throttle_without_args(
         'VarPieChartWidgetOptionsComponent.throttled_reload_options',
         this.reload_options.bind(this), 50, false);
 
-    private throttled_update_options = ThrottleHelper.declare_throttle_without_args(
+    public throttled_update_options = ThrottleHelper.declare_throttle_without_args(
         'VarPieChartWidgetOptionsComponent.throttled_update_options',
         this.update_options.bind(this), 50, false);
 
-    private throttled_update_colors = ThrottleHelper.declare_throttle_without_args(
+    public throttled_update_colors = ThrottleHelper.declare_throttle_without_args(
         'VarPieChartWidgetOptionsComponent.throttled_update_colors',
         this.update_colors.bind(this), 800, false);
 
@@ -58,7 +58,7 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
     // --------------------------------------------------------------------------
     // Sections repliables : on stocke un objet pour savoir ce qui est ouvert ou fermé
     // --------------------------------------------------------------------------
-    private sectionsOpen = {
+    public sectionsOpen = {
         widgetOptions: false,
         chartTitle: false,
         chartLabel: false,
@@ -72,64 +72,64 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
     // --------------------------------------------------------------------------
 
     // Sélections temporaires pour var_id etc.
-    private tmp_selected_var_name_1: string = null;
-    private tmp_selected_var_name_2: string = null;
-    private tmp_selected_color_palette: string = null;
+    public tmp_selected_var_name_1: string = null;
+    public tmp_selected_var_name_2: string = null;
+    public tmp_selected_color_palette: string = null;
 
-    private tmp_selected_custom_filter: string = null;
+    public tmp_selected_custom_filter: string = null;
 
     // Custom filter names par var
-    private custom_filter_names_1: { [field_id: string]: string } = {};
-    private custom_filter_names_2: { [field_id: string]: string } = {};
+    public custom_filter_names_1: { [field_id: string]: string } = {};
+    public custom_filter_names_2: { [field_id: string]: string } = {};
 
-    private dimension_custom_filter_name: string = null;
+    public dimension_custom_filter_name: string = null;
 
-    private color_palettes_labels: string[] = [];
-    private color_palettes: DashboardGraphColorPaletteVO[] = [];
+    public color_palettes_labels: string[] = [];
+    public color_palettes: DashboardGraphColorPaletteVO[] = [];
 
     // Couleurs
-    private bg_color_1: string = null;
-    private bg_color_2: string = null;
-    private border_color_1: string = null;
-    private border_color_2: string = null;
-    private bg_color: string = null;
-    private bg_colors: string[] = null;
-    private bg_gradient: boolean = false;
-    private legend_font_color: string = null;
-    private title_font_color: string = null;
+    public bg_color_1: string = null;
+    public bg_color_2: string = null;
+    public border_color_1: string = null;
+    public border_color_2: string = null;
+    public bg_color: string = null;
+    public bg_colors: string[] = null;
+    public bg_gradient: boolean = false;
+    public legend_font_color: string = null;
+    public title_font_color: string = null;
 
     // Toggles divers
-    private legend_display: boolean = false;
-    private label_display: boolean = false;
-    private max_is_sum_of_var_1_and_2: boolean = false;
-    private legend_use_point_style: boolean = false;
-    private title_display: boolean = false;
-    private has_dimension: boolean = true;
-    private sort_dimension_by_asc: boolean = false;
-    private hide_filter: boolean = false;
-    private dimension_is_vo_field_ref: boolean = false;
+    public legend_display: boolean = false;
+    public label_display: boolean = false;
+    public max_is_sum_of_var_1_and_2: boolean = false;
+    public legend_use_point_style: boolean = false;
+    public title_display: boolean = false;
+    public has_dimension: boolean = true;
+    public sort_dimension_by_asc: boolean = false;
+    public hide_filter: boolean = false;
+    public dimension_is_vo_field_ref: boolean = false;
 
     // Champs numériques (saisis sous forme string parfois)
-    private legend_font_size: string = null;
-    private legend_box_width: string = null;
-    private legend_padding: string = null;
-    private title_font_size: string = null;
-    private title_padding: string = null;
-    private cutout_percentage: string = null;
-    private rotation: string = null;
-    private circumference: string = null;
-    private max_dimension_values: string = null;
-    private border_width_1: number = 0;
-    private border_width_2: number = 0;
+    public legend_font_size: string = null;
+    public legend_box_width: string = null;
+    public legend_padding: string = null;
+    public title_font_size: string = null;
+    public title_padding: string = null;
+    public cutout_percentage: string = null;
+    public rotation: string = null;
+    public circumference: string = null;
+    public max_dimension_values: string = null;
+    public border_width_1: number = 0;
+    public border_width_2: number = 0;
 
-    private tmp_selected_legend_position: string = null;
-    private tmp_selected_dimension_custom_filter_segment_type: string = null;
+    public tmp_selected_legend_position: string = null;
+    public tmp_selected_dimension_custom_filter_segment_type: string = null;
 
     // Les options du widget
-    private widget_options: VarPieChartWidgetOptionsVO = null;
+    public widget_options: VarPieChartWidgetOptionsVO = null;
 
     // Types de segments de date (TimeSegment)
-    private dimension_custom_filter_segment_types: { [index: number]: string } = {
+    public dimension_custom_filter_segment_types: { [index: number]: string } = {
         [TimeSegment.TYPE_YEAR]: this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_YEAR),
         [TimeSegment.TYPE_MONTH]: this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_MONTH),
         [TimeSegment.TYPE_DAY]: this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_DAY),
@@ -139,8 +139,8 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         [TimeSegment.TYPE_QUARTER]: this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_QUARTER),
     };
 
-    private dimension_custom_filter_segment_types_values: string[] = Object.values(this.dimension_custom_filter_segment_types);
-    private legend_positions: string[] = ['top', 'left', 'bottom', 'right'];
+    public dimension_custom_filter_segment_types_values: string[] = Object.values(this.dimension_custom_filter_segment_types);
+    public legend_positions: string[] = ['top', 'left', 'bottom', 'right'];
 
 
     // --------------------------------------------------------------------------
@@ -242,8 +242,8 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
     /**
      * Sélection d'un custom_filter dimension
      */
-    @Watch('tmp_selected_custom_filter')
-    private async watch_tmp_custom_filter_dimension(): Promise<void> {
+    @Watch(reflect<VarPieChartWidgetOptionsComponent>().tmp_selected_custom_filter)
+    public async watch_tmp_custom_filter_dimension(): Promise<void> {
         if (!this.widget_options) return;
         if (!this.next_update_options) {
             this.next_update_options = this.get_default_options();
@@ -253,20 +253,20 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         await this.throttled_update_options();
     }
 
-    @Watch('page_widget', { immediate: true, deep: true })
-    private async onchange_page_widget() {
+    @Watch(reflect<VarPieChartWidgetOptionsComponent>().page_widget, { immediate: true, deep: true })
+    public async onchange_page_widget() {
         await this.set_palette_options();
         await this.throttled_reload_options();
     }
 
-    @Watch('widget_options')
-    private async onchange_widget_options() {
+    @Watch(reflect<VarPieChartWidgetOptionsComponent>().widget_options)
+    public async onchange_widget_options() {
         await this.set_palette_options();
         await this.throttled_reload_options();
     }
 
-    @Watch('tmp_selected_var_name_2')
-    private async onchange_tmp_selected_var_name_2() {
+    @Watch(reflect<VarPieChartWidgetOptionsComponent>().tmp_selected_var_name_2)
+    public async onchange_tmp_selected_var_name_2() {
         if (!this.widget_options) return;
         if (!this.tmp_selected_var_name_2) {
             if (this.widget_options.var_id_2) {
@@ -289,8 +289,8 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         }
     }
 
-    @Watch('tmp_selected_color_palette')
-    private async onchange_tmp_selected_color_palette() {
+    @Watch(reflect<VarPieChartWidgetOptionsComponent>().tmp_selected_color_palette)
+    public async onchange_tmp_selected_color_palette() {
         if (!this.widget_options) return;
         if (!this.tmp_selected_color_palette) {
             if (this.widget_options.color_palette) {
@@ -312,8 +312,8 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         }
     }
 
-    @Watch('tmp_selected_var_name_1')
-    private async onchange_tmp_selected_var_name_1() {
+    @Watch(reflect<VarPieChartWidgetOptionsComponent>().tmp_selected_var_name_1)
+    public async onchange_tmp_selected_var_name_1() {
         if (!this.widget_options) return;
         if (!this.tmp_selected_var_name_1) {
             if (this.widget_options.var_id_1) {
@@ -336,8 +336,8 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         }
     }
 
-    @Watch('tmp_selected_dimension_custom_filter_segment_type')
-    private async onchange_tmp_selected_dimension_custom_filter_segment_type() {
+    @Watch(reflect<VarPieChartWidgetOptionsComponent>().tmp_selected_dimension_custom_filter_segment_type)
+    public async onchange_tmp_selected_dimension_custom_filter_segment_type() {
         if (!this.widget_options) return;
         if (!this.tmp_selected_dimension_custom_filter_segment_type) {
             if (this.widget_options.dimension_custom_filter_segment_type) {
@@ -360,8 +360,8 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         }
     }
 
-    @Watch('tmp_selected_legend_position')
-    private async onchange_tmp_selected_legend_position() {
+    @Watch(reflect<VarPieChartWidgetOptionsComponent>().tmp_selected_legend_position)
+    public async onchange_tmp_selected_legend_position() {
         if (!this.widget_options) return;
         if (!this.tmp_selected_legend_position) {
             if (this.widget_options.legend_position) {
@@ -381,8 +381,8 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         }
     }
 
-    @Watch('legend_font_size')
-    private async onchange_legend_font_size() {
+    @Watch(reflect<VarPieChartWidgetOptionsComponent>().legend_font_size)
+    public async onchange_legend_font_size() {
         if (!this.widget_options) return;
         if (!this.legend_font_size) {
             if (this.widget_options.legend_font_size) {
@@ -404,8 +404,8 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         }
     }
 
-    @Watch('legend_box_width')
-    private async onchange_legend_box_width() {
+    @Watch(reflect<VarPieChartWidgetOptionsComponent>().legend_box_width)
+    public async onchange_legend_box_width() {
         if (!this.widget_options) return;
         if (!this.legend_box_width) {
             if (this.widget_options.legend_box_width) {
@@ -428,8 +428,8 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         }
     }
 
-    @Watch('legend_padding')
-    private async onchange_legend_padding() {
+    @Watch(reflect<VarPieChartWidgetOptionsComponent>().legend_padding)
+    public async onchange_legend_padding() {
         if (!this.widget_options) return;
         if (!this.legend_padding) {
             if (this.widget_options.legend_padding) {
@@ -452,8 +452,8 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         }
     }
 
-    @Watch('title_font_size')
-    private async onchange_title_font_size() {
+    @Watch(reflect<VarPieChartWidgetOptionsComponent>().title_font_size)
+    public async onchange_title_font_size() {
         if (!this.widget_options) return;
         if (!this.title_font_size) {
             if (this.widget_options.title_font_size) {
@@ -476,8 +476,8 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         }
     }
 
-    @Watch('title_padding')
-    private async onchange_title_padding() {
+    @Watch(reflect<VarPieChartWidgetOptionsComponent>().title_padding)
+    public async onchange_title_padding() {
         if (!this.widget_options) return;
         if (!this.title_padding) {
             if (this.widget_options.title_padding) {
@@ -500,8 +500,8 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         }
     }
 
-    @Watch('cutout_percentage')
-    private async onchange_cutout_percentage() {
+    @Watch(reflect<VarPieChartWidgetOptionsComponent>().cutout_percentage)
+    public async onchange_cutout_percentage() {
         if (!this.widget_options) return;
         if (!this.cutout_percentage) {
             if (this.widget_options.cutout_percentage) {
@@ -524,8 +524,8 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         }
     }
 
-    @Watch('rotation')
-    private async onchange_rotation() {
+    @Watch(reflect<VarPieChartWidgetOptionsComponent>().rotation)
+    public async onchange_rotation() {
         if (!this.widget_options) return;
         if (!this.rotation) {
             if (this.widget_options.rotation) {
@@ -548,8 +548,8 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         }
     }
 
-    @Watch('circumference')
-    private async onchange_circumference() {
+    @Watch(reflect<VarPieChartWidgetOptionsComponent>().circumference)
+    public async onchange_circumference() {
         if (!this.widget_options) return;
         if (!this.circumference) {
             if (this.widget_options.circumference) {
@@ -572,8 +572,8 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         }
     }
 
-    @Watch('border_width_1')
-    private async onchange_border_width_1() {
+    @Watch(reflect<VarPieChartWidgetOptionsComponent>().border_width_1)
+    public async onchange_border_width_1() {
         if (!this.widget_options) return;
         if (!this.border_width_1) {
             if (this.widget_options.border_width_1) {
@@ -595,8 +595,8 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         }
     }
 
-    @Watch('border_width_2')
-    private async onchange_border_width_2() {
+    @Watch(reflect<VarPieChartWidgetOptionsComponent>().border_width_2)
+    public async onchange_border_width_2() {
         if (!this.widget_options) return;
         if (!this.border_width_2) {
             if (this.widget_options.border_width_2) {
@@ -618,8 +618,8 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         }
     }
 
-    @Watch('max_dimension_values')
-    private async onchange_max_dimension_values() {
+    @Watch(reflect<VarPieChartWidgetOptionsComponent>().max_dimension_values)
+    public async onchange_max_dimension_values() {
         if (!this.widget_options) return;
         if (!this.max_dimension_values) {
             if (this.widget_options.max_dimension_values) {
@@ -673,12 +673,12 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
     /**
      * Toggle l'ouverture d'une section => on inverse la valeur dans sectionsOpen
      */
-    private toggleSection(sectionName: keyof typeof this.sectionsOpen) {
+    public toggleSection(sectionName: keyof typeof this.sectionsOpen) {
         this.sectionsOpen[sectionName] = !this.sectionsOpen[sectionName];
     }
 
 
-    private async set_palette_options() {
+    public async set_palette_options() {
         if (!this.widget_options) {
             return;
         }
@@ -690,7 +690,7 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
                 : null;
     }
 
-    private async remove_dimension_vo_field_ref() {
+    public async remove_dimension_vo_field_ref() {
         this.next_update_options = this.widget_options;
         if (!this.next_update_options || !this.next_update_options.dimension_vo_field_ref) {
             return null;
@@ -699,7 +699,7 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         await this.throttled_update_options();
     }
 
-    private async add_dimension_vo_field_ref(api_type_id: string, field_id: string) {
+    public async add_dimension_vo_field_ref(api_type_id: string, field_id: string) {
         this.next_update_options = this.widget_options;
         if (!this.next_update_options) {
             this.next_update_options = this.get_default_options();
@@ -712,7 +712,7 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         await this.throttled_update_options();
     }
 
-    private async remove_sort_dimension_by_vo_field_ref() {
+    public async remove_sort_dimension_by_vo_field_ref() {
         this.next_update_options = this.widget_options;
         if (!this.next_update_options || !this.next_update_options.sort_dimension_by_vo_field_ref) {
             return null;
@@ -721,7 +721,7 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         await this.throttled_update_options();
     }
 
-    private async add_sort_dimension_by_vo_field_ref(api_type_id: string, field_id: string) {
+    public async add_sort_dimension_by_vo_field_ref(api_type_id: string, field_id: string) {
         this.next_update_options = this.widget_options;
         if (!this.next_update_options) {
             this.next_update_options = this.get_default_options();
@@ -734,13 +734,13 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         await this.throttled_update_options();
     }
 
-    private get_default_options(): VarPieChartWidgetOptionsVO {
+    public get_default_options(): VarPieChartWidgetOptionsVO {
         return VarPieChartWidgetOptionsVO.createDefault();
     }
 
     // Toggles divers
 
-    private async switch_bg_gradient() {
+    public async switch_bg_gradient() {
         this.next_update_options = this.widget_options;
         if (!this.next_update_options) {
             this.next_update_options = this.get_default_options();
@@ -749,7 +749,7 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         await this.throttled_update_options();
     }
 
-    private async switch_legend_display() {
+    public async switch_legend_display() {
         this.next_update_options = this.widget_options;
         if (!this.next_update_options) {
             this.next_update_options = this.get_default_options();
@@ -758,7 +758,7 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         await this.throttled_update_options();
     }
 
-    private async switch_label_display() {
+    public async switch_label_display() {
         this.next_update_options = this.widget_options;
         if (!this.next_update_options) {
             this.next_update_options = this.get_default_options();
@@ -767,7 +767,7 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         await this.throttled_update_options();
     }
 
-    private async switch_dimension_is_vo_field_ref() {
+    public async switch_dimension_is_vo_field_ref() {
         this.next_update_options = this.widget_options;
         if (!this.next_update_options) {
             this.next_update_options = this.get_default_options();
@@ -776,7 +776,7 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         await this.throttled_update_options();
     }
 
-    private async switch_sort_dimension_by_asc() {
+    public async switch_sort_dimension_by_asc() {
         this.next_update_options = this.widget_options;
         if (!this.next_update_options) {
             this.next_update_options = this.get_default_options();
@@ -785,7 +785,7 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         await this.throttled_update_options();
     }
 
-    private async switch_hide_filter() {
+    public async switch_hide_filter() {
         this.next_update_options = this.widget_options;
         if (!this.next_update_options) {
             this.next_update_options = this.get_default_options();
@@ -794,13 +794,13 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         await this.throttled_update_options();
     }
 
-    private async switch_has_dimension() {
+    public async switch_has_dimension() {
         if (!this.has_dimension) {
             this.snotify.error('Not implemented yet');
         }
     }
 
-    private async switch_title_display() {
+    public async switch_title_display() {
         this.next_update_options = this.widget_options;
         if (!this.next_update_options) {
             this.next_update_options = this.get_default_options();
@@ -809,7 +809,7 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         await this.throttled_update_options();
     }
 
-    private async switch_legend_use_point_style() {
+    public async switch_legend_use_point_style() {
         this.next_update_options = this.widget_options;
         if (!this.next_update_options) {
             this.next_update_options = this.get_default_options();
@@ -818,7 +818,7 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         await this.throttled_update_options();
     }
 
-    private async switch_max_is_sum_of_var_1_and_2() {
+    public async switch_max_is_sum_of_var_1_and_2() {
         this.next_update_options = this.widget_options;
         if (!this.next_update_options) {
             this.next_update_options = this.get_default_options();
@@ -831,7 +831,7 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
     /**
      * Met à jour les couleurs => exécute un throttle de 800ms
      */
-    private async update_colors() {
+    public async update_colors() {
         if (!this.widget_options) {
             return;
         }
@@ -849,7 +849,7 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         await this.throttled_update_options();
     }
 
-    private async change_custom_filter_1(field_id: string, custom_filter: string) {
+    public async change_custom_filter_1(field_id: string, custom_filter: string) {
         if (!this.widget_options) return;
         if (!this.next_update_options) {
             this.next_update_options = this.get_default_options();
@@ -859,7 +859,7 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         await this.throttled_update_options();
     }
 
-    private async change_custom_filter_2(field_id: string, custom_filter: string) {
+    public async change_custom_filter_2(field_id: string, custom_filter: string) {
         if (!this.widget_options) return;
         if (!this.next_update_options) {
             this.next_update_options = this.get_default_options();
@@ -869,7 +869,7 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         await this.throttled_update_options();
     }
 
-    private async get_color_palettes_labels(): Promise<string[]> {
+    public async get_color_palettes_labels(): Promise<string[]> {
         const res: string[] = [];
         const query_res: DashboardGraphColorPaletteVO[] = await query(DashboardGraphColorPaletteVO.API_TYPE_ID).select_vos();
         for (const palette of query_res) {
@@ -882,7 +882,7 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
     /**
      * reload_options : recharge depuis page_widget.json_options
      */
-    private reload_options() {
+    public reload_options() {
         if (!this.page_widget) {
             this.widget_options = null;
         } else {
@@ -1170,7 +1170,7 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         }
     }
 
-    private get_dimension_custom_filter_segment_type_from_selected_option(selected_option: string): number {
+    public get_dimension_custom_filter_segment_type_from_selected_option(selected_option: string): number {
         if (this.dimension_custom_filter_segment_types) {
             for (const key in Object.keys(this.dimension_custom_filter_segment_types)) {
                 const dictKey = Object.keys(this.dimension_custom_filter_segment_types)[key];
@@ -1183,7 +1183,7 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         }
     }
 
-    private searchIndexOfArray(target: any, source: any): number {
+    public searchIndexOfArray(target: any, source: any): number {
         for (let i = 0; i <= source.length; i++) {
             if (JSON.stringify(target) === JSON.stringify(source[i])) {
                 return i;
@@ -1192,7 +1192,7 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         return -1;
     }
 
-    private async update_options() {
+    public async update_options() {
         try {
             this.page_widget.json_options = JSON.stringify(this.next_update_options);
         } catch (error) {
@@ -1203,14 +1203,14 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         this.$emit('update_layout_widget', this.page_widget);
     }
 
-    private async update_title_name_code_text() {
+    public async update_title_name_code_text() {
         if (!this.widget_options) {
             return;
         }
         await this.throttled_update_options();
     }
 
-    private async update_additional_options(additional_options: string) {
+    public async update_additional_options(additional_options: string) {
         if (!this.widget_options) return;
         if (!this.next_update_options) {
             this.next_update_options = this.get_default_options();
@@ -1219,7 +1219,7 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         await this.throttled_update_options();
     }
 
-    private async update_filter_type(filter_type: string) {
+    public async update_filter_type(filter_type: string) {
         if (!this.widget_options) return;
         if (!this.next_update_options) {
             this.next_update_options = this.get_default_options();

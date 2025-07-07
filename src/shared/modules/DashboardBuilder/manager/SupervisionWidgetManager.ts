@@ -63,6 +63,8 @@ export default class SupervisionWidgetManager {
         active_api_type_ids: string[],
         groups: SupervisedProbeGroupVO[],
         probes_by_ids: { [id: number]: SupervisedProbeVO },
+        dashboard_api_type_ids: string[],
+        dashboard_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } },
         pagination?: { offset: number, limit?: number, sorts?: SortByVO[] },
     ): Promise<{ items: ISupervisedItem[], total_count: number }> {
         const self = SupervisionWidgetManager.getInstance();
@@ -180,6 +182,8 @@ export default class SupervisionWidgetManager {
             dashboard,
             widget_options,
             context_filters_by_api_type_id,
+            dashboard_api_type_ids,
+            dashboard_discarded_field_paths,
             pagination,
         );
     }
@@ -297,7 +301,9 @@ export default class SupervisionWidgetManager {
         dashboard: DashboardVO,
         widget_options: SupervisionWidgetOptionsVO,
         context_filters_by_api_type_id: { [api_type_id: string]: ContextFilterVO[] },
-        pagination?: { offset: number, limit?: number, sorts?: SortByVO[] }
+        dashboard_api_type_ids: string[],
+        dashboard_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } },
+        pagination?: { offset: number, limit?: number, sorts?: SortByVO[] },
     ): Promise<{
         items: ISupervisedItem[],
         total_count: number,
@@ -314,8 +320,6 @@ export default class SupervisionWidgetManager {
         let items: ISupervisedItem[] = [];
         let total_count: number = 0;
 
-        const { api_type_ids, discarded_field_paths } = await DashboardBuilderBoardManager.get_api_type_ids_and_discarded_field_paths(dashboard.id);
-
         for (const api_type_id in context_filters_by_api_type_id) {
 
             // We must have a single tree of context_filters using AND operator
@@ -330,14 +334,14 @@ export default class SupervisionWidgetManager {
             }) ?? [];
 
             const api_type_context_query = query(api_type_id)
-                .using(api_type_ids)
+                .using(dashboard_api_type_ids)
                 .add_filters(context_filters)
                 .set_query_distinct()
                 .set_sorts(sorts);
 
             FieldValueFilterWidgetManager.add_discarded_field_paths(
                 api_type_context_query,
-                discarded_field_paths);
+                dashboard_discarded_field_paths);
 
             if (!context_query) {
                 // Main first query

@@ -328,23 +328,17 @@ export default class DashboardSharedFiltersComponent extends VueComponentBase {
      * - Reload all shared_filters
      * - This method is called after each shared_filters save, delete and page load
      */
-    private async load_all_shared_filters(props: any[]) {
-        const options: { refresh?: boolean } = props?.shift();
-
+    private async load_all_shared_filters() {
         this.is_shared_filters_loading = true;
 
         // Load shared_filters_from_dashboard
         const shared_filters_from_dashboard = await SharedFiltersVOManager.find_shared_filters_from_dashboard_ids(
             [this.dashboard.id],
-            null,
-            options
         );
 
         // Load shared_filters_with_dashboard
         const shared_filters_with_dashboard = await SharedFiltersVOManager.find_shared_filters_with_dashboard_ids(
             [this.dashboard.id],
-            null,
-            options
         );
 
         this.shared_filters_from_dashboard = shared_filters_from_dashboard;

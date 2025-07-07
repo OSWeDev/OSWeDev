@@ -39,7 +39,7 @@ import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/Tr
 import { IChartOptions } from '../../../Var/components/mixed-chart/VarMixedChartComponent';
 import VueComponentBase from '../../../VueComponentBase';
 
-import DashboardBuilderWidgetsController from '../DashboardBuilderWidgetsController';
+import WidgetOptionsVOManager from '../WidgetOptionsVOManager';
 import ValidationFiltersWidgetController from '../validation_filters_widget/ValidationFiltersWidgetController';
 import VarWidgetComponent from '../var_widget/VarWidgetComponent';
 
@@ -502,11 +502,12 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
         return ObjectHandler.hasAtLeastOneAttribute(custom_filters) ? custom_filters : null;
     }
 
-    /**
-     * widgets_by_id : map (widget_id => widget)
-     */
-    get widgets_by_id(): { [id: number]: DashboardWidgetVO } {
-        return VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets);
+    get get_all_widgets(): DashboardWidgetVO[] {
+        return this.vuexGet<DashboardWidgetVO[]>(reflect<this>().get_all_widgets);
+    }
+
+    get get_widgets_by_id(): { [id: number]: DashboardWidgetVO } {
+        return this.vuexGet<{ [id: number]: DashboardWidgetVO }>(reflect<this>().get_widgets_by_id);
     }
 
     /**
@@ -891,7 +892,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
         }
         for (const i in this.all_page_widget) {
             const page_w = this.all_page_widget[i];
-            const widget: DashboardWidgetVO = this.widgets_by_id[page_w.widget_id];
+            const widget: DashboardWidgetVO = this.get_widgets_by_id[page_w.widget_id];
             if (!widget) {
                 continue;
             }

@@ -20,7 +20,6 @@ import ThrottleHelper from '../../../../../shared/tools/ThrottleHelper';
 import InlineTranslatableText from '../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../VueComponentBase';
 import DashboardCopyWidgetComponent from '../copy_widget/DashboardCopyWidgetComponent';
-import DashboardBuilderWidgetsController from '../widgets/DashboardBuilderWidgetsController';
 import ChecklistItemModalComponent from '../widgets/checklist_widget/checklist_item_modal/ChecklistItemModalComponent';
 import FavoritesFiltersModalComponent from '../widgets/favorites_filters_widget/modal/FavoritesFiltersModalComponent';
 import SupervisionItemModalComponent from '../widgets/supervision_widget/supervision_item_modal/SupervisionItemModalComponent';
@@ -183,6 +182,10 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
         'DashboardBuilderBoardComponent.throttled_rebuild_page_layout',
         this.rebuild_page_layout.bind(this), 200);
 
+
+    get get_selected_page_page_widgets(): DashboardPageWidgetVO[] {
+        return this.vuexGet<DashboardPageWidgetVO[]>(reflect<this>().get_selected_page_page_widgets);
+    }
 
     get get_dashboard_current_viewport(): DashboardViewportVO {
         return this.vuexGet<DashboardViewportVO>(reflect<this>().get_dashboard_current_viewport);
@@ -413,7 +416,6 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
     }
 
     public mounted() {
-        DashboardBuilderWidgetsController.getInstance().add_widget_to_page_handler = this.add_widget_to_page.bind(this);
         this.set_Dashboardcopywidgetcomponent(this.$refs['Dashboardcopywidgetcomponent'] as DashboardCopyWidgetComponent);
     }
 
@@ -443,9 +445,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
     }
 
     public async load_widgets() {
-        let widgets = await DashboardPageWidgetVOManager.find_page_widgets_by_page_id(
-            this.get_dashboard_page.id
-        );
+        let widgets = this.get_selected_page_page_widgets;
 
         widgets = widgets ? widgets.filter((w) =>
             !this.get_widgets_invisibility[w.id]

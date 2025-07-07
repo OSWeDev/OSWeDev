@@ -1,7 +1,10 @@
 import Component from 'vue-class-component';
-import { Prop, Watch } from 'vue-property-decorator';
+import { Inject, Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import RoleVO from '../../../../../../shared/modules/AccessPolicy/vos/RoleVO';
+import UserRoleVO from '../../../../../../shared/modules/AccessPolicy/vos/UserRoleVO';
 import UserVO from '../../../../../../shared/modules/AccessPolicy/vos/UserVO';
+import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import DAOController from '../../../../../../shared/modules/DAO/DAOController';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import CMSCrudButtonsWidgetOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/CMSCrudButtonsWidgetOptionsVO';
@@ -10,66 +13,64 @@ import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBui
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
-import CRUDHandler from '../../../../../../shared/tools/CRUDHandler';
+import { field_names, reflect } from '../../../../../../shared/tools/ObjectHandler';
 import VueAppController from '../../../../../VueAppController';
+import { ModuleDAOAction } from '../../../dao/store/DaoStore';
+import { ModuleModalsAndBasicPageComponentsHolderGetter } from '../../../modals_and_basic_page_components_holder/ModalsAndBasicPageComponentsHolderStore';
 import VueComponentBase from '../../../VueComponentBase';
-import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import CRUDCreateModalComponent from '../table_widget/crud_modals/create/CRUDCreateModalComponent';
 import CRUDUpdateModalComponent from '../table_widget/crud_modals/update/CRUDUpdateModalComponent';
 import './CMSCrudButtonsWidgetComponent.scss';
-import { ModuleDAOAction } from '../../../dao/store/DaoStore';
-import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import { field_names } from '../../../../../../shared/tools/ObjectHandler';
-import UserRoleVO from '../../../../../../shared/modules/AccessPolicy/vos/UserRoleVO';
-import RoleVO from '../../../../../../shared/modules/AccessPolicy/vos/RoleVO';
 
 @Component({
     template: require('./CMSCrudButtonsWidgetComponent.pug'),
     components: {}
 })
 export default class CMSCrudButtonsWidgetComponent extends VueComponentBase {
+    @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @Prop({ default: null })
-    private page_widget: DashboardPageWidgetVO;
+    public page_widget: DashboardPageWidgetVO;
 
     @Prop({ default: null })
-    private all_page_widget: DashboardPageWidgetVO[];
+    public all_page_widget: DashboardPageWidgetVO[];
 
     @Prop({ default: null })
-    private dashboard: DashboardVO;
+    public dashboard: DashboardVO;
 
     @Prop({ default: null })
-    private dashboard_page: DashboardPageVO;
+    public dashboard_page: DashboardPageVO;
 
-    @ModuleDashboardPageGetter
-    private get_cms_vo: IDistantVOBase;
+    @ModuleModalsAndBasicPageComponentsHolderGetter
+    public get_Crudcreatemodalcomponent: CRUDCreateModalComponent;
 
-    @ModuleDashboardPageGetter
-    private get_Crudcreatemodalcomponent: CRUDCreateModalComponent;
-
-    @ModuleDashboardPageGetter
-    private get_Crudupdatemodalcomponent: CRUDUpdateModalComponent;
+    @ModuleModalsAndBasicPageComponentsHolderGetter
+    public get_Crudupdatemodalcomponent: CRUDUpdateModalComponent;
 
     @ModuleDAOAction
-    private storeDatas: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void;
+    public storeDatas: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void;
 
-    private show_add: boolean = false;
-    private show_update: boolean = false;
-    private show_delete: boolean = false;
-    private show_manual_vo_type: boolean = false;
-    private show_add_edit_fk: boolean = true;
-    private manual_vo_type: string;
+    public show_add: boolean = false;
+    public show_update: boolean = false;
+    public show_delete: boolean = false;
+    public show_manual_vo_type: boolean = false;
+    public show_add_edit_fk: boolean = true;
+    public manual_vo_type: string;
 
-    private show_crud_buttons: boolean = false;
+    public show_crud_buttons: boolean = false;
 
-    private vo_type: string = null;
+    public vo_type: string = null;
 
-    private has_access_to_add: boolean = false;
-    private has_access_to_update: boolean = false;
-    private has_access_to_delete: boolean = false;
+    public has_access_to_add: boolean = false;
+    public has_access_to_update: boolean = false;
+    public has_access_to_delete: boolean = false;
 
-    private user: UserVO = null;
-    private base_url: string = null;
+    public user: UserVO = null;
+    public base_url: string = null;
+
+    get get_crud_vo(): IDistantVOBase {
+        return this.vuexGet<IDistantVOBase>(reflect<this>().get_crud_vo);
+    }
 
     get widget_options(): CMSCrudButtonsWidgetOptionsVO {
         if (!this.page_widget) {
@@ -89,8 +90,8 @@ export default class CMSCrudButtonsWidgetComponent extends VueComponentBase {
         return options;
     }
 
-    @Watch('get_cms_vo')
-    private onchange_get_cms_vo() {
+    @Watch('get_crud_vo')
+    public onchange_get_crud_vo() {
         this.show_add = this.widget_options.show_add;
         this.show_update = this.widget_options.show_update;
         this.show_delete = this.widget_options.show_delete;
@@ -100,7 +101,7 @@ export default class CMSCrudButtonsWidgetComponent extends VueComponentBase {
     }
 
     @Watch('widget_options', { immediate: true, deep: true })
-    private async onchange_widget_options() {
+    public async onchange_widget_options() {
         if (!this.widget_options) {
             this.show_add = false;
             this.show_update = false;
@@ -140,13 +141,13 @@ export default class CMSCrudButtonsWidgetComponent extends VueComponentBase {
         }
     }
 
-    private async mounted() {
+    public async mounted() {
         this.user = VueAppController.getInstance().data_user;
 
         if (this.show_manual_vo_type == true) {
             this.vo_type = this.manual_vo_type;
         } else {
-            this.vo_type = this.get_cms_vo?._type;
+            this.vo_type = this.get_crud_vo?._type;
         }
 
         if (this.vo_type) {
@@ -176,11 +177,11 @@ export default class CMSCrudButtonsWidgetComponent extends VueComponentBase {
         this.onchange_widget_options();
     }
 
-    private update_visible_options() {
+    public update_visible_options() {
         this.$emit('refresh');
     }
 
-    private open_add_modal() {
+    public open_add_modal() {
         if (this.vo_type) {
             this.get_Crudcreatemodalcomponent.open_modal(this.vo_type,
                 this.storeDatas,
@@ -191,20 +192,28 @@ export default class CMSCrudButtonsWidgetComponent extends VueComponentBase {
         }
     }
     // Update et delete uniquement en non manuel
-    private open_update_modal() {
+    public open_update_modal() {
         this.get_Crudupdatemodalcomponent.open_modal(
-            this.get_cms_vo,
+            this.get_crud_vo,
             this.storeDatas,
             this.update_visible_options.bind(this),
             this.show_add_edit_fk
         );
     }
-    private async open_delete_modal() {
-        if (this.vo_type && this.get_cms_vo.id) {
-            const vo = await query(this.vo_type).filter_by_id(this.get_cms_vo.id).select_vo();
+    public async open_delete_modal() {
+        if (this.vo_type && this.get_crud_vo.id) {
+            const vo = await query(this.vo_type).filter_by_id(this.get_crud_vo.id).select_vo();
             await ModuleDAO.getInstance().deleteVOs([vo]);
 
             this.$router.push({ name: 'Home' });
         }
+    }
+
+    // Accès dynamiques Vuex
+    public vuexGet<T>(getter: string): T {
+        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    }
+    public vuexAct<A>(action: string, payload?: A) {
+        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
     }
 }

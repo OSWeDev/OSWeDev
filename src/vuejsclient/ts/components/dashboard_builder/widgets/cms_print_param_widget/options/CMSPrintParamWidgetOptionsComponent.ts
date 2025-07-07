@@ -1,21 +1,19 @@
-import { isEqual } from 'lodash';
 import 'quill/dist/quill.bubble.css'; // Compliqué à lazy load
 import 'quill/dist/quill.core.css'; // Compliqué à lazy load
 import 'quill/dist/quill.snow.css'; // Compliqué à lazy load
 import Component from 'vue-class-component';
-import { Prop, Watch } from 'vue-property-decorator';
+import { Inject, Prop, Watch } from 'vue-property-decorator';
+import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import CMSPrintParamWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/CMSPrintParamWidgetOptionsVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
+import DataFilterOption from '../../../../../../../shared/modules/DataRender/vos/DataFilterOption';
+import ParamVO from '../../../../../../../shared/modules/Params/vos/ParamVO';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../../VueComponentBase';
 import SingleVoFieldRefHolderComponent from '../../../options_tools/single_vo_field_ref_holder/SingleVoFieldRefHolderComponent';
-import { ModuleDashboardPageAction } from '../../../page/DashboardPageStore';
 import './CMSPrintParamWidgetOptionsComponent.scss';
-import ParamVO from '../../../../../../../shared/modules/Params/vos/ParamVO';
-import DataFilterOption from '../../../../../../../shared/modules/DataRender/vos/DataFilterOption';
-import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 
 @Component({
     template: require('./CMSPrintParamWidgetOptionsComponent.pug'),
@@ -24,21 +22,19 @@ import { query } from '../../../../../../../shared/modules/ContextFilter/vos/Con
     }
 })
 export default class CMSPrintParamWidgetOptionsComponent extends VueComponentBase {
+    @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @Prop({ default: null })
-    private page_widget: DashboardPageWidgetVO;
+    public page_widget: DashboardPageWidgetVO;
 
-    @ModuleDashboardPageAction
-    private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
+    public type_param: number = null;
+    public param_name: string = null;
+    public titre: string = null;
 
-    private type_param: number = null;
-    private param_name: string = null;
-    private titre: string = null;
-
-    private param_name_selected: string = null;
-    private param_name_options: string[] = [];
-    private type_param_selected: DataFilterOption = null;
-    private type_param_options: DataFilterOption[] = [
+    public param_name_selected: string = null;
+    public param_name_options: string[] = [];
+    public type_param_selected: DataFilterOption = null;
+    public type_param_options: DataFilterOption[] = [
         new DataFilterOption(DataFilterOption.STATE_SELECTABLE, this.label(CMSPrintParamWidgetOptionsVO.TYPE_STRING_LABEL), CMSPrintParamWidgetOptionsVO.TYPE_STRING),
         new DataFilterOption(DataFilterOption.STATE_SELECTABLE, this.label(CMSPrintParamWidgetOptionsVO.TYPE_BOOLEAN_LABEL), CMSPrintParamWidgetOptionsVO.TYPE_BOOLEAN),
         new DataFilterOption(DataFilterOption.STATE_SELECTABLE, this.label(CMSPrintParamWidgetOptionsVO.TYPE_INT_LABEL), CMSPrintParamWidgetOptionsVO.TYPE_INT),
@@ -46,7 +42,7 @@ export default class CMSPrintParamWidgetOptionsComponent extends VueComponentBas
         new DataFilterOption(DataFilterOption.STATE_SELECTABLE, this.label(CMSPrintParamWidgetOptionsVO.TYPE_DATE_LABEL), CMSPrintParamWidgetOptionsVO.TYPE_DATE)
     ];
 
-    private optionsEditeur = {
+    public optionsEditeur = {
         modules: {
             toolbar: [
                 ['bold', 'italic', 'underline', 'strike'],      // Boutons pour le gras, italique, souligné, barré
@@ -62,8 +58,8 @@ export default class CMSPrintParamWidgetOptionsComponent extends VueComponentBas
         }
     };
 
-    private next_update_options: CMSPrintParamWidgetOptionsVO = null;
-    private throttled_update_options = ThrottleHelper.declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
+    public next_update_options: CMSPrintParamWidgetOptionsVO = null;
+    public throttled_update_options = ThrottleHelper.declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
 
     get widget_options(): CMSPrintParamWidgetOptionsVO {
         if (!this.page_widget) {
@@ -84,7 +80,7 @@ export default class CMSPrintParamWidgetOptionsComponent extends VueComponentBas
     }
 
     @Watch('widget_options', { immediate: true, deep: true })
-    private async onchange_widget_options() {
+    public async onchange_widget_options() {
         if (!this.widget_options) {
             this.type_param = CMSPrintParamWidgetOptionsVO.TYPE_STRING;
             this.param_name = "";
@@ -98,19 +94,19 @@ export default class CMSPrintParamWidgetOptionsComponent extends VueComponentBas
     }
 
     @Watch('type_param_selected')
-    private async onchange_type_param_selected() {
+    public async onchange_type_param_selected() {
         this.type_param = this.type_param_selected?.id;
     }
 
     @Watch('param_name_selected')
-    private async onchange_param_name_selected() {
+    public async onchange_param_name_selected() {
         this.param_name = this.param_name_selected;
     }
 
     @Watch('type_param')
     @Watch('param_name')
     @Watch('titre')
-    private async onchange_bloc_text() {
+    public async onchange_bloc_text() {
         if (!this.widget_options) {
             return;
         }
@@ -127,7 +123,19 @@ export default class CMSPrintParamWidgetOptionsComponent extends VueComponentBas
         }
     }
 
-    private async mounted() {
+    // Accès dynamiques Vuex
+    public vuexGet<T>(getter: string): T {
+        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    }
+    public vuexAct<A>(action: string, payload?: A) {
+        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    }
+
+    public set_page_widget(page_widget: DashboardPageWidgetVO): void {
+        this.vuexAct<DashboardPageWidgetVO>(reflect<this>().set_page_widget, page_widget);
+    }
+
+    public async mounted() {
 
         if (!this.widget_options) {
 
@@ -152,7 +160,7 @@ export default class CMSPrintParamWidgetOptionsComponent extends VueComponentBas
         await this.throttled_update_options();
     }
 
-    private get_default_options(): CMSPrintParamWidgetOptionsVO {
+    public get_default_options(): CMSPrintParamWidgetOptionsVO {
         return CMSPrintParamWidgetOptionsVO.createNew(
             CMSPrintParamWidgetOptionsVO.TYPE_STRING,
             "",
@@ -160,7 +168,7 @@ export default class CMSPrintParamWidgetOptionsComponent extends VueComponentBas
         );
     }
 
-    private async update_options() {
+    public async update_options() {
         try {
             this.page_widget.json_options = JSON.stringify(this.next_update_options);
         } catch (error) {
@@ -177,7 +185,7 @@ export default class CMSPrintParamWidgetOptionsComponent extends VueComponentBas
         this.$emit('update_layout_widget', this.page_widget);
     }
 
-    private multiselectOptionLabel(filter_item: string): string {
+    public multiselectOptionLabel(filter_item: string): string {
         if ((filter_item == null) || (typeof filter_item == 'undefined')) {
             return '';
         }
