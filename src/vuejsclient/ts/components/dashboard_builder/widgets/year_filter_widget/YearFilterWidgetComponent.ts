@@ -19,6 +19,7 @@ import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/Tr
 import VueComponentBase from '../../../VueComponentBase';
 import YearFilterInputComponent from '../../../year_filter_input/YearFilterInputComponent';
 import './YearFilterWidgetComponent.scss';
+import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../page/DashboardPageStore';
 
 @Component({
     template: require('./YearFilterWidgetComponent.pug'),
@@ -26,7 +27,7 @@ import './YearFilterWidgetComponent.scss';
         Yearfilterinputcomponent: YearFilterInputComponent,
     }
 })
-export default class YearFilterWidgetComponent extends VueComponentBase {
+export default class YearFilterWidgetComponent extends VueComponentBase implements IDashboardPageConsumer {
     @Inject('storeNamespace') readonly storeNamespace!: string;
 
 
@@ -58,20 +59,23 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
     private widget_options: YearFilterWidgetOptionsVO = null;
 
     get get_active_field_filters(): FieldFiltersVO {
-        return this.vuexGet<FieldFiltersVO>(reflect<this>().get_active_field_filters);
+        return this.vuexGet(reflect<this>().get_active_field_filters);
     }
 
     get get_page_widgets_components_by_pwid(): { [pwid: number]: VueComponentBase } {
-        return this.vuexGet<{ [pwid: number]: VueComponentBase }>(reflect<this>().get_page_widgets_components_by_pwid);
+        return this.vuexGet(reflect<this>().get_page_widgets_components_by_pwid);
     }
 
 
     // Accès dynamiques Vuex
-    public vuexGet<T>(getter: string): T {
-        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    public vuexGet<K extends keyof IDashboardGetters>(getter: K): IDashboardGetters[K] {
+        return this.$store.getters[`${this.storeNamespace}/${String(getter)}`];
     }
-    public vuexAct<A>(action: string, payload?: A) {
-        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    public vuexAct<K extends keyof IDashboardPageActionsMethods>(
+        action: K,
+        ...args: Parameters<IDashboardPageActionsMethods[K]>
+    ) {
+        this.$store.dispatch(`${this.storeNamespace}/${String(action)}`, ...args);
     }
 
     public set_page_widget_component_by_pwid(param: { pwid: number, page_widget_component: VueComponentBase }) {

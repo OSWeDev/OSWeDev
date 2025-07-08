@@ -17,13 +17,14 @@ import VueComponentBase from '../../../../VueComponentBase';
 import ResetFiltersWidgetController from '../../reset_filters_widget/ResetFiltersWidgetController';
 import BooleanFilter from './BooleanFilter';
 import './FieldValueFilterBooleanWidgetComponent.scss';
+import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../../page/DashboardPageStore';
 
 @Component({
     template: require('./FieldValueFilterBooleanWidgetComponent.pug'),
     components: {
     }
 })
-export default class FieldValueFilterBooleanWidgetComponent extends VueComponentBase {
+export default class FieldValueFilterBooleanWidgetComponent extends VueComponentBase implements IDashboardPageConsumer {
     @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @ModuleTranslatableTextGetter
@@ -55,7 +56,7 @@ export default class FieldValueFilterBooleanWidgetComponent extends VueComponent
     ];
 
     get get_active_field_filters(): FieldFiltersVO {
-        return this.vuexGet<FieldFiltersVO>(reflect<this>().get_active_field_filters);
+        return this.vuexGet(reflect<this>().get_active_field_filters);
     }
 
     get placeholder(): string {
@@ -67,11 +68,14 @@ export default class FieldValueFilterBooleanWidgetComponent extends VueComponent
     }
 
     // Accès dynamiques Vuex
-    public vuexGet<T>(getter: string): T {
-        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    public vuexGet<K extends keyof IDashboardGetters>(getter: K): IDashboardGetters[K] {
+        return this.$store.getters[`${this.storeNamespace}/${String(getter)}`];
     }
-    public vuexAct<A>(action: string, payload?: A) {
-        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    public vuexAct<K extends keyof IDashboardPageActionsMethods>(
+        action: K,
+        ...args: Parameters<IDashboardPageActionsMethods[K]>
+    ) {
+        this.$store.dispatch(`${this.storeNamespace}/${String(action)}`, ...args);
     }
 
     public set_active_field_filter(param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) {

@@ -21,6 +21,7 @@ import DiagramDataService from './DiagramDataService/DiagramDataService';
 import DiagramLayout, { BlockPosition, LinkDrawInfo } from './DiagramLayout/DiagramLayout';
 import DiagramLink from './DiagramLink/DiagramLink';
 import { ModuleModalsAndBasicPageComponentsHolderGetter } from '../../../../modals_and_basic_page_components_holder/ModalsAndBasicPageComponentsHolderStore';
+import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../../page/DashboardPageStore';
 
 /**
  * Structure pour le menu "+"
@@ -57,7 +58,7 @@ export interface StateIconInfo {
         AddMenu,
     }
 })
-export default class CanvasDiagram extends VueComponentBase {
+export default class CanvasDiagram extends VueComponentBase implements IDashboardPageConsumer {
     @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @ModuleModalsAndBasicPageComponentsHolderGetter
@@ -309,11 +310,14 @@ export default class CanvasDiagram extends VueComponentBase {
     }
 
     // Accès dynamiques Vuex
-    public vuexGet<T>(getter: string): T {
-        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    public vuexGet<K extends keyof IDashboardGetters>(getter: K): IDashboardGetters[K] {
+        return this.$store.getters[`${this.storeNamespace}/${String(getter)}`];
     }
-    public vuexAct<A>(action: string, payload?: A) {
-        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    public vuexAct<K extends keyof IDashboardPageActionsMethods>(
+        action: K,
+        ...args: Parameters<IDashboardPageActionsMethods[K]>
+    ) {
+        this.$store.dispatch(`${this.storeNamespace}/${String(action)}`, ...args);
     }
 
     // --------------------------------------------------------------------------

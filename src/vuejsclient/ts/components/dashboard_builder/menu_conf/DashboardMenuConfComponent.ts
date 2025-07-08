@@ -16,6 +16,7 @@ import MenuController from '../../menu/MenuController';
 import MenuOrganizerComponent from '../../menu/organizer/MenuOrganizerComponent';
 import VueComponentBase from '../../VueComponentBase';
 import './DashboardMenuConfComponent.scss';
+import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../page/DashboardPageStore';
 
 @Component({
     template: require('./DashboardMenuConfComponent.pug'),
@@ -23,7 +24,7 @@ import './DashboardMenuConfComponent.scss';
         Menuorganizercomponent: MenuOrganizerComponent
     }
 })
-export default class DashboardMenuConfComponent extends VueComponentBase {
+export default class DashboardMenuConfComponent extends VueComponentBase implements IDashboardPageConsumer {
 
     @Inject('storeNamespace') readonly storeNamespace!: string;
 
@@ -33,7 +34,7 @@ export default class DashboardMenuConfComponent extends VueComponentBase {
     private is_loading: boolean = true;
 
     get get_dashboard(): DashboardVO {
-        return this.vuexGet<DashboardVO>(reflect<this>().get_dashboard);
+        return this.vuexGet(reflect<this>().get_dashboard);
     }
 
     @Watch(reflect<DashboardMenuConfComponent>().get_dashboard, { immediate: true })
@@ -68,11 +69,14 @@ export default class DashboardMenuConfComponent extends VueComponentBase {
     }
 
     // Accès dynamiques Vuex
-    public vuexGet<T>(getter: string): T {
-        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    public vuexGet<K extends keyof IDashboardGetters>(getter: K): IDashboardGetters[K] {
+        return this.$store.getters[`${this.storeNamespace}/${String(getter)}`];
     }
-    public vuexAct<A>(action: string, payload?: A) {
-        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    public vuexAct<K extends keyof IDashboardPageActionsMethods>(
+        action: K,
+        ...args: Parameters<IDashboardPageActionsMethods[K]>
+    ) {
+        this.$store.dispatch(`${this.storeNamespace}/${String(action)}`, ...args);
     }
 
     private get_menu(app_name: string): MenuElementVO {

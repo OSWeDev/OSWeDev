@@ -32,6 +32,7 @@ import RangeHandler from '../../../../../../../shared/tools/RangeHandler';
 import VarDataRefComponent from '../../../../Var/components/dataref/VarDataRefComponent';
 import VueComponentBase from '../../../../VueComponentBase';
 import CRUDCreateModalComponent from '../../table_widget/crud_modals/create/CRUDCreateModalComponent';
+import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../../page/DashboardPageStore';
 
 @Component({
     template: require('./SuiviCompetencesWidgetContainerComponent.pug'),
@@ -39,7 +40,7 @@ import CRUDCreateModalComponent from '../../table_widget/crud_modals/create/CRUD
         Crudcreatemodalcomponent: CRUDCreateModalComponent,
     }
 })
-export default class SuiviCompetencesWidgetContainerComponent extends VueComponentBase {
+export default class SuiviCompetencesWidgetContainerComponent extends VueComponentBase implements IDashboardPageConsumer {
     @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @Prop({ default: null })
@@ -78,7 +79,7 @@ export default class SuiviCompetencesWidgetContainerComponent extends VueCompone
     }
 
     get get_active_field_filters(): FieldFiltersVO {
-        return this.vuexGet<FieldFiltersVO>(reflect<this>().get_active_field_filters);
+        return this.vuexGet(reflect<this>().get_active_field_filters);
     }
 
     get plan_action_editable_field() {
@@ -224,11 +225,14 @@ export default class SuiviCompetencesWidgetContainerComponent extends VueCompone
     }
 
     // Accès dynamiques Vuex
-    public vuexGet<T>(getter: string): T {
-        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    public vuexGet<K extends keyof IDashboardGetters>(getter: K): IDashboardGetters[K] {
+        return this.$store.getters[`${this.storeNamespace}/${String(getter)}`];
     }
-    public vuexAct<A>(action: string, payload?: A) {
-        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    public vuexAct<K extends keyof IDashboardPageActionsMethods>(
+        action: K,
+        ...args: Parameters<IDashboardPageActionsMethods[K]>
+    ) {
+        this.$store.dispatch(`${this.storeNamespace}/${String(action)}`, ...args);
     }
 
     private async onchange_indicateur(item: SuiviCompetencesItemVO) {

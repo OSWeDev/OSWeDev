@@ -23,6 +23,13 @@ import DashboardCopyWidgetComponent from "../copy_widget/DashboardCopyWidgetComp
 
 export type DashboardPageContext = ActionContext<IDashboardPageState, any>;
 
+type ActionsAsMethods<T> = {
+    [K in keyof T]: T[K] extends (ctx: any, ...args: infer P) => infer R ? (...args: P) => R : never;
+};
+type ExtractGetters<T> = {
+    [K in keyof T]: T[K] extends (state: any) => infer R ? R : never;
+};
+
 export interface IDashboardPageState {
     /**
      * Tous les page_widgets du Dashboard (toutes pages confondues)
@@ -86,6 +93,295 @@ export interface IDashboardPageState {
 
     crud_vo: IDistantVOBase; // VO used for CRUD operations (read, create, update) in the dashboard / used by template widgets
 }
+
+const getters = {
+
+    get_crud_vo(state: IDashboardPageState): IDistantVOBase {
+        return state.crud_vo;
+    },
+
+    get_dbb_confs(state: IDashboardPageState): DBBConfVO[] {
+        return state.dbb_confs;
+    },
+
+    get_current_dbb_conf(state: IDashboardPageState): DBBConfVO {
+        return state.current_dbb_conf;
+    },
+
+    get_user_valid_dbb_confs(state: IDashboardPageState): DBBConfVO[] {
+        const res: DBBConfVO[] = [];
+
+        if (!state.dbb_confs || state.dbb_confs.length <= 0) {
+            return res;
+        }
+
+        if (!VueAppController.getInstance().data_user_roles || VueAppController.getInstance().data_user_roles.length <= 0) {
+            // No user roles, no valid DBB confs
+            return res;
+        }
+
+        const user_role_id_ranges = RangeHandler.get_ids_ranges_from_vos(VueAppController.getInstance().data_user_roles);
+
+        // Si le user a le rôle admin : on pousse toutes les confs
+        if (VueAppController.getInstance().data_user_roles.some((role) => role.translatable_name == ModuleAccessPolicy.ROLE_ADMIN)) {
+            return state.dbb_confs;
+        }
+
+        for (const i in state.dbb_confs) {
+            const dbb_conf = state.dbb_confs[i];
+
+            if (dbb_conf.role_id_ranges && RangeHandler.any_range_intersects_any_range(user_role_id_ranges, dbb_conf.role_id_ranges)) {
+                // If the user has at least one role that intersects with the DBB conf role_id_ranges
+                res.push(dbb_conf);
+            }
+        }
+
+        return res;
+    },
+
+    get_shared_filters_map(state: IDashboardPageState): SharedFiltersVO[] {
+        return state.shared_filters_map;
+    },
+    get_dashboard_page(state: IDashboardPageState): DashboardPageVO {
+        return state.dashboard_page;
+    },
+
+    get_dashboard_id(state: IDashboardPageState): number {
+        return state.dashboard_id;
+    },
+
+    get_viewports(state: IDashboardPageState): DashboardViewportVO[] {
+        return state.viewports;
+    },
+
+    get_dashboard_current_viewport(state: IDashboardPageState): DashboardViewportVO {
+        return state.dashboard_current_viewport;
+    },
+
+    get_dashboard_valid_viewports(state: IDashboardPageState): DashboardViewportVO[] {
+        return state.dashboard_valid_viewports;
+    },
+    get_dashboard_viewport_page_widgets(state: IDashboardPageState): DashboardViewportPageWidgetVO[] {
+        return state.dashboard_viewport_page_widgets;
+    },
+
+    get_all_widgets(state: IDashboardPageState): DashboardWidgetVO[] {
+        return state.all_widgets;
+    },
+
+    get_widgets_by_id(state: IDashboardPageState): { [id: number]: DashboardWidgetVO } {
+        const widgets_by_id: { [id: number]: DashboardWidgetVO } = {};
+
+        for (const i in state.all_widgets) {
+            const widget = state.all_widgets[i];
+            widgets_by_id[widget.id] = widget;
+        }
+
+        return widgets_by_id;
+    },
+
+    get_dashboard_pages(state: IDashboardPageState): DashboardPageVO[] {
+        return state.dashboard_pages;
+    },
+
+    get_selected_page_page_widgets(state: IDashboardPageState): DashboardPageWidgetVO[] {
+        return state.selected_page_page_widgets;
+    },
+
+    get_selected_page_page_widgets_by_id(state: IDashboardPageState): { [id: number]: DashboardPageWidgetVO } {
+        const selected_page_page_widgets_by_id: { [id: number]: DashboardPageWidgetVO } = {};
+
+        for (const i in state.selected_page_page_widgets) {
+            const page_widget = state.selected_page_page_widgets[i];
+            selected_page_page_widgets_by_id[page_widget.id] = page_widget;
+        }
+
+        return selected_page_page_widgets_by_id;
+    },
+
+    get_db_graph_vo_refs(state: IDashboardPageState): DashboardGraphVORefVO[] {
+        return state.db_graph_vo_refs;
+    },
+
+    get_dashboard(state: IDashboardPageState): DashboardVO {
+        return state.dashboard;
+    },
+
+    get_callback_for_set_selected_widget(state: IDashboardPageState): (page_widget: DashboardPageWidgetVO) => void {
+        return state.callback_for_set_selected_widget;
+    },
+
+    get_selected_widget(state: IDashboardPageState): DashboardPageWidgetVO {
+        return state.selected_widget;
+    },
+
+    get_selected_viewport(state: IDashboardPageState): DashboardViewportVO {
+        return state.selected_viewport;
+    },
+
+    get_page_widgets_components_by_pwid(state: IDashboardPageState): { [pwid: number]: VueComponentBase } {
+        return state.page_widgets_components_by_pwid;
+    },
+
+    get_custom_filters(state: IDashboardPageState): string[] {
+        return state.custom_filters;
+    },
+
+    get_active_api_type_ids(state: IDashboardPageState): string[] {
+        return state.active_api_type_ids;
+    },
+
+    get_dashboard_navigation_history(state: IDashboardPageState): { current_dashboard_id: number, previous_dashboard_id: number } {
+        return state.dashboard_navigation_history;
+    },
+
+    get_query_api_type_ids(state: IDashboardPageState): string[] {
+        return state.query_api_type_ids;
+    },
+
+    get_page_history(state: IDashboardPageState): DashboardPageVO[] {
+        return state.page_history;
+    },
+
+    get_widgets_invisibility(state: IDashboardPageState): { [w_id: number]: boolean } {
+        return state.widgets_invisibility;
+    },
+
+    get_Dashboardcopywidgetcomponent(state: IDashboardPageState): DashboardCopyWidgetComponent {
+        return state.Dashboardcopywidgetcomponent;
+    },
+
+
+    get_page_widgets(state: IDashboardPageState): DashboardPageWidgetVO[] {
+        return state.page_widgets;
+    },
+
+    get_active_field_filters(state: IDashboardPageState): FieldFiltersVO {
+        return state.active_field_filters;
+    },
+
+    get_dashboard_api_type_ids(state: IDashboardPageState): string[] {
+        const api_type_ids: string[] = [];
+
+        if (!state.db_graph_vo_refs || state.db_graph_vo_refs.length <= 0) {
+            return api_type_ids;
+        }
+
+        for (const i in state.db_graph_vo_refs) {
+            api_type_ids.push(state.db_graph_vo_refs[i].vo_type);
+        }
+
+        return api_type_ids;
+    },
+
+    get_page_widgets_by_page_id(state: IDashboardPageState): { [page_id: number]: DashboardPageWidgetVO[] } {
+        const page_widgets_by_page_id: { [page_id: number]: DashboardPageWidgetVO[] } = {};
+
+        if (!state.page_widgets || state.page_widgets.length <= 0) {
+            return page_widgets_by_page_id;
+        }
+
+        for (const i in state.page_widgets) {
+            const page_widget = state.page_widgets[i];
+
+            if (!page_widgets_by_page_id[page_widget.page_id]) {
+                page_widgets_by_page_id[page_widget.page_id] = [];
+            }
+
+            page_widgets_by_page_id[page_widget.page_id].push(page_widget);
+        }
+
+        return page_widgets_by_page_id;
+    },
+
+    get_dashboard_discarded_field_paths(state: IDashboardPageState): { [vo_type: string]: { [field_id: string]: boolean } } {
+
+        const discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } } = {};
+
+        for (const i in state.db_graph_vo_refs) {
+            const db_graph_vo_ref = state.db_graph_vo_refs[i];
+
+            if (!db_graph_vo_ref.values_to_exclude) {
+                continue;
+            }
+
+            for (const key in db_graph_vo_ref.values_to_exclude) {
+                const field_id: string = db_graph_vo_ref.values_to_exclude[key];
+
+                if (!discarded_field_paths[db_graph_vo_ref.vo_type]) {
+                    discarded_field_paths[db_graph_vo_ref.vo_type] = {};
+                }
+
+                discarded_field_paths[db_graph_vo_ref.vo_type][field_id] = true;
+            }
+        }
+
+        return discarded_field_paths;
+    }
+
+} satisfies GetterTree<IDashboardPageState, DashboardPageContext>;
+
+
+const actions = {
+    set_crud_vo: (context: DashboardPageContext, crud_vo: IDistantVOBase) => context.commit(store_mutations_names(storeInstance).set_crud_vo, crud_vo),
+    set_dbb_confs: (context: DashboardPageContext, dbb_confs: DBBConfVO[]) => context.commit(store_mutations_names(storeInstance).set_dbb_confs, dbb_confs),
+    set_current_dbb_conf: (context: DashboardPageContext, current_dbb_conf: DBBConfVO) => context.commit(store_mutations_names(storeInstance).set_current_dbb_conf, current_dbb_conf),
+    set_page_widgets: (context: DashboardPageContext, page_widgets: DashboardPageWidgetVO[]) => context.commit(store_mutations_names(storeInstance).set_page_widgets, page_widgets),
+    set_page_widget_component_by_pwid: (context: DashboardPageContext, param: { pwid: number, page_widget_component: VueComponentBase }) => context.commit(store_mutations_names(storeInstance).set_page_widget_component_by_pwid, param),
+    set_dashboard_page: (context: DashboardPageContext, dashboard_page: DashboardPageVO) => context.commit(store_mutations_names(storeInstance).set_dashboard_page, dashboard_page),
+    set_dashboard_id: (context: DashboardPageContext, dashboard_id: number) => context.commit(store_mutations_names(storeInstance).set_dashboard_id, dashboard_id),
+    set_viewports: (context: DashboardPageContext, viewports: DashboardViewportVO[]) => context.commit(store_mutations_names(storeInstance).set_viewports, viewports),
+    set_dashboard_current_viewport: (context: DashboardPageContext, dashboard_current_viewport: DashboardViewportVO) => context.commit(store_mutations_names(storeInstance).set_dashboard_current_viewport, dashboard_current_viewport),
+    set_dashboard_valid_viewports: (context: DashboardPageContext, dashboard_valid_viewports: DashboardViewportVO[]) => context.commit(store_mutations_names(storeInstance).set_dashboard_valid_viewports, dashboard_valid_viewports),
+    set_dashboard_viewport_page_widgets: (context: DashboardPageContext, dashboard_viewport_page_widgets: DashboardViewportPageWidgetVO[]) => context.commit(store_mutations_names(storeInstance).set_dashboard_viewport_page_widgets, dashboard_viewport_page_widgets),
+    set_all_widgets: (context: DashboardPageContext, all_widgets: DashboardWidgetVO[]) => context.commit(store_mutations_names(storeInstance).set_all_widgets, all_widgets),
+    set_dashboard_pages: (context: DashboardPageContext, dashboard_pages: DashboardPageVO[]) => context.commit(store_mutations_names(storeInstance).set_dashboard_pages, dashboard_pages),
+    set_selected_page_page_widgets: (context: DashboardPageContext, selected_page_page_widgets: DashboardPageWidgetVO[]) => context.commit(store_mutations_names(storeInstance).set_selected_page_page_widgets, selected_page_page_widgets),
+    set_db_graph_vo_refs: (context: DashboardPageContext, db_graph_vo_refs: DashboardGraphVORefVO[]) => context.commit(store_mutations_names(storeInstance).set_db_graph_vo_refs, db_graph_vo_refs),
+    set_dashboard: (context: DashboardPageContext, dashboard: DashboardVO) => context.commit(store_mutations_names(storeInstance).set_dashboard, dashboard),
+    set_callback_for_set_selected_widget: (context: DashboardPageContext, callback_for_set_selected_widget: (page_widget: DashboardPageWidgetVO) => void) => context.commit(store_mutations_names(storeInstance).set_callback_for_set_selected_widget, callback_for_set_selected_widget),
+    set_selected_widget: (context: DashboardPageContext, selected_widget: DashboardPageWidgetVO) => context.commit(store_mutations_names(storeInstance).set_selected_widget, selected_widget),
+    set_selected_viewport: (context: DashboardPageContext, selected_viewport: DashboardViewportVO) => context.commit(store_mutations_names(storeInstance).set_selected_viewport, selected_viewport),
+    set_page_widgets_components_by_pwid: (context: DashboardPageContext, page_widgets_components_by_pwid: { [pwid: number]: VueComponentBase }) => context.commit(store_mutations_names(storeInstance).set_page_widgets_components_by_pwid, page_widgets_components_by_pwid),
+    set_widget_invisibility: (context: DashboardPageContext, w_id: number) => context.commit(store_mutations_names(storeInstance).set_widget_invisibility, w_id),
+    set_widget_visibility: (context: DashboardPageContext, w_id: number) => context.commit(store_mutations_names(storeInstance).set_widget_visibility, w_id),
+    set_widgets_invisibility: (context: DashboardPageContext, widgets_invisibility: { [w_id: number]: boolean }) => context.commit(store_mutations_names(storeInstance).set_widgets_invisibility, widgets_invisibility),
+    set_custom_filters: (context: DashboardPageContext, custom_filters: string[]) => context.commit(store_mutations_names(storeInstance).set_custom_filters, custom_filters),
+    set_active_api_type_ids: (context: DashboardPageContext, active_api_type_ids: string[]) => context.commit(store_mutations_names(storeInstance).set_active_api_type_ids, active_api_type_ids),
+    set_query_api_type_ids: (context: DashboardPageContext, query_api_type_ids: string[]) => context.commit(store_mutations_names(storeInstance).set_query_api_type_ids, query_api_type_ids),
+    set_page_history: (context: DashboardPageContext, page_history: DashboardPageVO[]) => context.commit(store_mutations_names(storeInstance).set_page_history, page_history),
+    add_page_history: (context: DashboardPageContext, page_history: DashboardPageVO) => context.commit(store_mutations_names(storeInstance).add_page_history, page_history),
+    pop_page_history: (context: DashboardPageContext, fk) => context.commit(store_mutations_names(storeInstance).pop_page_history, null),
+    set_Dashboardcopywidgetcomponent: (context: DashboardPageContext, Dashboardcopywidgetcomponent: DashboardCopyWidgetComponent) => context.commit(store_mutations_names(storeInstance).set_Dashboardcopywidgetcomponent, Dashboardcopywidgetcomponent),
+    set_dashboard_navigation_history: (context: DashboardPageContext, dashboard_navigation_history: { current_dashboard_id: number, previous_dashboard_id: number }) => context.commit(store_mutations_names(storeInstance).set_dashboard_navigation_history, dashboard_navigation_history),
+    add_shared_filters_to_map: (context: DashboardPageContext, shared_filters_map: SharedFiltersVO[]) => context.commit(store_mutations_names(storeInstance).add_shared_filters_to_map, shared_filters_map),
+    set_shared_filters_map: (context: DashboardPageContext, shared_filters_map: SharedFiltersVO[]) => context.commit(store_mutations_names(storeInstance).set_shared_filters_map, shared_filters_map),
+    set_active_field_filters: (context: DashboardPageContext, active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }) => context.commit(store_mutations_names(storeInstance).set_active_field_filters, active_field_filters),
+    set_active_field_filter: (context: DashboardPageContext, param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => context.commit(store_mutations_names(storeInstance).set_active_field_filter, param),
+    remove_active_field_filter: (context: DashboardPageContext, params: { vo_type: string, field_id: string }) => context.commit(store_mutations_names(storeInstance).remove_active_field_filter, params),
+    clear_active_field_filters: (context: DashboardPageContext, empty) => context.commit(store_mutations_names(storeInstance).clear_active_field_filters, empty),
+    remove_page_widgets_components_by_pwid: (context: DashboardPageContext, pwid: number) => context.commit(store_mutations_names(storeInstance).remove_page_widgets_components_by_pwid, pwid),
+} satisfies ActionTree<IDashboardPageState, DashboardPageContext>;
+
+type ExtractActions<T> = {
+    [K in keyof T]: T[K] extends (ctx: any, ...args: infer P) => infer R
+    ? (context: DashboardPageContext, ...args: P) => R
+    : never;
+};
+
+export type IDashboardPageStoreActions = ExtractActions<typeof actions>;
+
+export type IDashboardPageActionsMethods = ActionsAsMethods<IDashboardPageStoreActions>;
+
+export type IDashboardGetters = ExtractGetters<typeof getters>;
+
+export type IDashboardPageConsumer = {
+    vuexGet<K extends keyof IDashboardGetters>(getter: K): IDashboardGetters[K];
+    vuexAct<K extends keyof IDashboardPageActionsMethods>(
+        action: K,
+        ...args: Parameters<IDashboardPageActionsMethods[K]>
+    );
+} & Partial<IDashboardPageActionsMethods & IDashboardGetters>;
 
 export default class DashboardPageStore implements IStoreModule<IDashboardPageState, DashboardPageContext> {
 
@@ -332,54 +628,6 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
             state.page_widgets = page_widgets;
         },
 
-        set_page_widget(state: IDashboardPageState, page_widget: DashboardPageWidgetVO) {
-            let store_i = null;
-
-            if (!page_widget) {
-                return;
-            }
-
-            for (const i in state.page_widgets) {
-                const pw = state.page_widgets[i];
-
-                if (pw.id == page_widget.id) {
-                    store_i = i;
-                    break;
-                }
-            }
-
-            if (store_i === null) {
-                if (!state.page_widgets) {
-                    Vue.set(state, 'page_widgets', [page_widget]);
-                    return;
-                }
-
-                state.page_widgets.push(page_widget);
-                return;
-            }
-
-            Vue.set(state.page_widgets, store_i, page_widget);
-        },
-
-        delete_page_widget(state: IDashboardPageState, page_widget: DashboardPageWidgetVO) {
-            let store_i = null;
-
-            for (const i in state.page_widgets) {
-                const pw = state.page_widgets[i];
-
-                if (pw.id == page_widget.id) {
-                    store_i = i;
-                    break;
-                }
-            }
-
-            if (store_i === null) {
-                return;
-            }
-
-            state.page_widgets.splice(store_i, 1);
-        },
-
         set_dashboard_navigation_history(
             state: IDashboardPageState,
             dashboard_navigation_history: { current_dashboard_id: number, previous_dashboard_id: number }
@@ -460,274 +708,9 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
         };
 
 
-        this.getters = {
+        this.getters = getters;
 
-            get_crud_vo(state: IDashboardPageState): IDistantVOBase {
-                return state.crud_vo;
-            },
-
-            get_dbb_confs(state: IDashboardPageState): DBBConfVO[] {
-                return state.dbb_confs;
-            },
-
-            get_current_dbb_conf(state: IDashboardPageState): DBBConfVO {
-                return state.current_dbb_conf;
-            },
-
-            get_user_valid_dbb_confs(state: IDashboardPageState): DBBConfVO[] {
-                const res: DBBConfVO[] = [];
-
-                if (!state.dbb_confs || state.dbb_confs.length <= 0) {
-                    return res;
-                }
-
-                if (!VueAppController.getInstance().data_user_roles || VueAppController.getInstance().data_user_roles.length <= 0) {
-                    // No user roles, no valid DBB confs
-                    return res;
-                }
-
-                const user_role_id_ranges = RangeHandler.get_ids_ranges_from_vos(VueAppController.getInstance().data_user_roles);
-
-                // Si le user a le rôle admin : on pousse toutes les confs
-                if (VueAppController.getInstance().data_user_roles.some((role) => role.translatable_name == ModuleAccessPolicy.ROLE_ADMIN)) {
-                    return state.dbb_confs;
-                }
-
-                for (const i in state.dbb_confs) {
-                    const dbb_conf = state.dbb_confs[i];
-
-                    if (dbb_conf.role_id_ranges && RangeHandler.any_range_intersects_any_range(user_role_id_ranges, dbb_conf.role_id_ranges)) {
-                        // If the user has at least one role that intersects with the DBB conf role_id_ranges
-                        res.push(dbb_conf);
-                    }
-                }
-
-                return res;
-            },
-
-            get_shared_filters_map(state: IDashboardPageState): SharedFiltersVO[] {
-                return state.shared_filters_map;
-            },
-            get_dashboard_page(state: IDashboardPageState): DashboardPageVO {
-                return state.dashboard_page;
-            },
-
-            get_dashboard_id(state: IDashboardPageState): number {
-                return state.dashboard_id;
-            },
-
-            get_viewports(state: IDashboardPageState): DashboardViewportVO[] {
-                return state.viewports;
-            },
-
-            get_dashboard_current_viewport(state: IDashboardPageState): DashboardViewportVO {
-                return state.dashboard_current_viewport;
-            },
-
-            get_dashboard_valid_viewports(state: IDashboardPageState): DashboardViewportVO[] {
-                return state.dashboard_valid_viewports;
-            },
-            get_dashboard_viewport_page_widgets(state: IDashboardPageState): DashboardViewportPageWidgetVO[] {
-                return state.dashboard_viewport_page_widgets;
-            },
-
-            get_all_widgets(state: IDashboardPageState): DashboardWidgetVO[] {
-                return state.all_widgets;
-            },
-
-            get_widgets_by_id(state: IDashboardPageState): { [id: number]: DashboardWidgetVO } {
-                const widgets_by_id: { [id: number]: DashboardWidgetVO } = {};
-
-                for (const i in state.all_widgets) {
-                    const widget = state.all_widgets[i];
-                    widgets_by_id[widget.id] = widget;
-                }
-
-                return widgets_by_id;
-            },
-
-            get_dashboard_pages(state: IDashboardPageState): DashboardPageVO[] {
-                return state.dashboard_pages;
-            },
-
-            get_selected_page_page_widgets(state: IDashboardPageState): DashboardPageWidgetVO[] {
-                return state.selected_page_page_widgets;
-            },
-
-            get_selected_page_page_widgets_by_id(state: IDashboardPageState): { [id: number]: DashboardPageWidgetVO } {
-                const selected_page_page_widgets_by_id: { [id: number]: DashboardPageWidgetVO } = {};
-
-                for (const i in state.selected_page_page_widgets) {
-                    const page_widget = state.selected_page_page_widgets[i];
-                    selected_page_page_widgets_by_id[page_widget.id] = page_widget;
-                }
-
-                return selected_page_page_widgets_by_id;
-            },
-
-            get_db_graph_vo_refs(state: IDashboardPageState): DashboardGraphVORefVO[] {
-                return state.db_graph_vo_refs;
-            },
-
-            get_dashboard(state: IDashboardPageState): DashboardVO {
-                return state.dashboard;
-            },
-
-            get_callback_for_set_selected_widget(state: IDashboardPageState): (page_widget: DashboardPageWidgetVO) => void {
-                return state.callback_for_set_selected_widget;
-            },
-
-            get_selected_widget(state: IDashboardPageState): DashboardPageWidgetVO {
-                return state.selected_widget;
-            },
-
-            get_selected_viewport(state: IDashboardPageState): DashboardViewportVO {
-                return state.selected_viewport;
-            },
-
-            get_page_widgets_components_by_pwid(state: IDashboardPageState): { [pwid: number]: VueComponentBase } {
-                return state.page_widgets_components_by_pwid;
-            },
-
-            get_custom_filters(state: IDashboardPageState): string[] {
-                return state.custom_filters;
-            },
-
-            get_active_api_type_ids(state: IDashboardPageState): string[] {
-                return state.active_api_type_ids;
-            },
-
-            get_dashboard_navigation_history(state: IDashboardPageState): { current_dashboard_id: number, previous_dashboard_id: number } {
-                return state.dashboard_navigation_history;
-            },
-
-            get_query_api_type_ids(state: IDashboardPageState): string[] {
-                return state.query_api_type_ids;
-            },
-
-            get_page_history(state: IDashboardPageState): DashboardPageVO[] {
-                return state.page_history;
-            },
-
-            get_widgets_invisibility(state: IDashboardPageState): { [w_id: number]: boolean } {
-                return state.widgets_invisibility;
-            },
-
-            get_Dashboardcopywidgetcomponent(state: IDashboardPageState): DashboardCopyWidgetComponent {
-                return state.Dashboardcopywidgetcomponent;
-            },
-
-
-            get_page_widgets(state: IDashboardPageState): DashboardPageWidgetVO[] {
-                return state.page_widgets;
-            },
-
-            get_active_field_filters(state: IDashboardPageState): FieldFiltersVO {
-                return state.active_field_filters;
-            },
-
-            get_dashboard_api_type_ids(state: IDashboardPageState): string[] {
-                const api_type_ids: string[] = [];
-
-                if (!state.db_graph_vo_refs || state.db_graph_vo_refs.length <= 0) {
-                    return api_type_ids;
-                }
-
-                for (const i in state.db_graph_vo_refs) {
-                    api_type_ids.push(state.db_graph_vo_refs[i].vo_type);
-                }
-
-                return api_type_ids;
-            },
-
-            get_page_widgets_by_page_id(state: IDashboardPageState): { [page_id: number]: DashboardPageWidgetVO[] } {
-                const page_widgets_by_page_id: { [page_id: number]: DashboardPageWidgetVO[] } = {};
-
-                if (!state.page_widgets || state.page_widgets.length <= 0) {
-                    return page_widgets_by_page_id;
-                }
-
-                for (const i in state.page_widgets) {
-                    const page_widget = state.page_widgets[i];
-
-                    if (!page_widgets_by_page_id[page_widget.page_id]) {
-                        page_widgets_by_page_id[page_widget.page_id] = [];
-                    }
-
-                    page_widgets_by_page_id[page_widget.page_id].push(page_widget);
-                }
-
-                return page_widgets_by_page_id;
-            },
-
-            get_dashboard_discarded_field_paths(state: IDashboardPageState): { [vo_type: string]: { [field_id: string]: boolean } } {
-
-                const discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } } = {};
-
-                for (const i in state.db_graph_vo_refs) {
-                    const db_graph_vo_ref = state.db_graph_vo_refs[i];
-
-                    if (!db_graph_vo_ref.values_to_exclude) {
-                        continue;
-                    }
-
-                    for (const key in db_graph_vo_ref.values_to_exclude) {
-                        const field_id: string = db_graph_vo_ref.values_to_exclude[key];
-
-                        if (!discarded_field_paths[db_graph_vo_ref.vo_type]) {
-                            discarded_field_paths[db_graph_vo_ref.vo_type] = {};
-                        }
-
-                        discarded_field_paths[db_graph_vo_ref.vo_type][field_id] = true;
-                    }
-                }
-
-                return discarded_field_paths;
-            }
-
-        };
-
-        this.actions = {
-            set_crud_vo: (context: DashboardPageContext, crud_vo: IDistantVOBase) => context.commit(store_mutations_names(this).set_crud_vo, crud_vo),
-            set_dbb_confs: (context: DashboardPageContext, dbb_confs: DBBConfVO[]) => context.commit(store_mutations_names(this).set_dbb_confs, dbb_confs),
-            set_current_dbb_conf: (context: DashboardPageContext, current_dbb_conf: DBBConfVO) => context.commit(store_mutations_names(this).set_current_dbb_conf, current_dbb_conf),
-            set_page_widgets: (context: DashboardPageContext, page_widgets: DashboardPageWidgetVO[]) => context.commit(store_mutations_names(this).set_page_widgets, page_widgets),
-            set_page_widget: (context: DashboardPageContext, page_widget: DashboardPageWidgetVO) => context.commit(store_mutations_names(this).set_page_widget, page_widget),
-            delete_page_widget: (context: DashboardPageContext, page_widget: DashboardPageWidgetVO) => context.commit(store_mutations_names(this).delete_page_widget, page_widget),
-            set_page_widget_component_by_pwid: (context: DashboardPageContext, param: { pwid: number, page_widget_component: VueComponentBase }) => context.commit(store_mutations_names(this).set_page_widget_component_by_pwid, param),
-            set_dashboard_page: (context: DashboardPageContext, dashboard_page: DashboardPageVO) => context.commit(store_mutations_names(this).set_dashboard_page, dashboard_page),
-            set_dashboard_id: (context: DashboardPageContext, dashboard_id: number) => context.commit(store_mutations_names(this).set_dashboard_id, dashboard_id),
-            set_viewports: (context: DashboardPageContext, viewports: DashboardViewportVO[]) => context.commit(store_mutations_names(this).set_viewports, viewports),
-            set_dashboard_current_viewport: (context: DashboardPageContext, dashboard_current_viewport: DashboardViewportVO) => context.commit(store_mutations_names(this).set_dashboard_current_viewport, dashboard_current_viewport),
-            set_dashboard_valid_viewports: (context: DashboardPageContext, dashboard_valid_viewports: DashboardViewportVO[]) => context.commit(store_mutations_names(this).set_dashboard_valid_viewports, dashboard_valid_viewports),
-            set_dashboard_viewport_page_widgets: (context: DashboardPageContext, dashboard_viewport_page_widgets: DashboardViewportPageWidgetVO[]) => context.commit(store_mutations_names(this).set_dashboard_viewport_page_widgets, dashboard_viewport_page_widgets),
-            set_all_widgets: (context: DashboardPageContext, all_widgets: DashboardWidgetVO[]) => context.commit(store_mutations_names(this).set_all_widgets, all_widgets),
-            set_dashboard_pages: (context: DashboardPageContext, dashboard_pages: DashboardPageVO[]) => context.commit(store_mutations_names(this).set_dashboard_pages, dashboard_pages),
-            set_selected_page_page_widgets: (context: DashboardPageContext, selected_page_page_widgets: DashboardPageWidgetVO[]) => context.commit(store_mutations_names(this).set_selected_page_page_widgets, selected_page_page_widgets),
-            set_db_graph_vo_refs: (context: DashboardPageContext, db_graph_vo_refs: DashboardGraphVORefVO[]) => context.commit(store_mutations_names(this).set_db_graph_vo_refs, db_graph_vo_refs),
-            set_dashboard: (context: DashboardPageContext, dashboard: DashboardVO) => context.commit(store_mutations_names(this).set_dashboard, dashboard),
-            set_callback_for_set_selected_widget: (context: DashboardPageContext, callback_for_set_selected_widget: (page_widget: DashboardPageWidgetVO) => void) => context.commit(store_mutations_names(this).set_callback_for_set_selected_widget, callback_for_set_selected_widget),
-            set_selected_widget: (context: DashboardPageContext, selected_widget: DashboardPageWidgetVO) => context.commit(store_mutations_names(this).set_selected_widget, selected_widget),
-            set_selected_viewport: (context: DashboardPageContext, selected_viewport: DashboardViewportVO) => context.commit(store_mutations_names(this).set_selected_viewport, selected_viewport),
-            set_page_widgets_components_by_pwid: (context: DashboardPageContext, page_widgets_components_by_pwid: { [pwid: number]: VueComponentBase }) => context.commit(store_mutations_names(this).set_page_widgets_components_by_pwid, page_widgets_components_by_pwid),
-            set_widget_invisibility: (context: DashboardPageContext, w_id: number) => context.commit(store_mutations_names(this).set_widget_invisibility, w_id),
-            set_widget_visibility: (context: DashboardPageContext, w_id: number) => context.commit(store_mutations_names(this).set_widget_visibility, w_id),
-            set_widgets_invisibility: (context: DashboardPageContext, widgets_invisibility: { [w_id: number]: boolean }) => context.commit(store_mutations_names(this).set_widgets_invisibility, widgets_invisibility),
-            set_custom_filters: (context: DashboardPageContext, custom_filters: string[]) => context.commit(store_mutations_names(this).set_custom_filters, custom_filters),
-            set_active_api_type_ids: (context: DashboardPageContext, active_api_type_ids: string[]) => context.commit(store_mutations_names(this).set_active_api_type_ids, active_api_type_ids),
-            set_query_api_type_ids: (context: DashboardPageContext, query_api_type_ids: string[]) => context.commit(store_mutations_names(this).set_query_api_type_ids, query_api_type_ids),
-            set_page_history: (context: DashboardPageContext, page_history: DashboardPageVO[]) => context.commit(store_mutations_names(this).set_page_history, page_history),
-            add_page_history: (context: DashboardPageContext, page_history: DashboardPageVO) => context.commit(store_mutations_names(this).add_page_history, page_history),
-            pop_page_history: (context: DashboardPageContext, fk) => context.commit(store_mutations_names(this).pop_page_history, null),
-            set_Dashboardcopywidgetcomponent: (context: DashboardPageContext, Dashboardcopywidgetcomponent: DashboardCopyWidgetComponent) => context.commit(store_mutations_names(this).set_Dashboardcopywidgetcomponent, Dashboardcopywidgetcomponent),
-            set_dashboard_navigation_history: (context: DashboardPageContext, dashboard_navigation_history: { current_dashboard_id: number, previous_dashboard_id: number }) => context.commit(store_mutations_names(this).set_dashboard_navigation_history, dashboard_navigation_history),
-            add_shared_filters_to_map: (context: DashboardPageContext, shared_filters_map: SharedFiltersVO[]) => context.commit(store_mutations_names(this).add_shared_filters_to_map, shared_filters_map),
-            set_shared_filters_map: (context: DashboardPageContext, shared_filters_map: SharedFiltersVO[]) => context.commit(store_mutations_names(this).set_shared_filters_map, shared_filters_map),
-            set_active_field_filters: (context: DashboardPageContext, active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }) => context.commit(store_mutations_names(this).set_active_field_filters, active_field_filters),
-            set_active_field_filter: (context: DashboardPageContext, param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => context.commit(store_mutations_names(this).set_active_field_filter, param),
-            remove_active_field_filter: (context: DashboardPageContext, params: { vo_type: string, field_id: string }) => context.commit(store_mutations_names(this).remove_active_field_filter, params),
-            clear_active_field_filters: (context: DashboardPageContext, empty) => context.commit(store_mutations_names(this).clear_active_field_filters, empty),
-            remove_page_widgets_components_by_pwid: (context: DashboardPageContext, pwid: number) => context.commit(store_mutations_names(this).remove_page_widgets_components_by_pwid, pwid),
-        };
+        this.actions = actions;
     }
 }
+const storeInstance = new DashboardPageStore();

@@ -9,6 +9,7 @@ import DashboardViewerComponent from '../viewer/DashboardViewerComponent';
 import DashboardAllViewportsConfComponent from './all_viewports_conf/DashboardAllViewportsConfComponent';
 import './DashboardViewportConfComponent.scss';
 import DashboardSelectedViewportConfComponent from './selected_viewport_conf/DashboardSelectedViewportConfComponent';
+import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../page/DashboardPageStore';
 
 @Component({
     template: require('./DashboardViewportConfComponent.pug'),
@@ -19,23 +20,26 @@ import DashboardSelectedViewportConfComponent from './selected_viewport_conf/Das
         DashboardViewerComponent: DashboardViewerComponent,
     }
 })
-export default class DashboardViewportConfComponent extends VueComponentBase {
+export default class DashboardViewportConfComponent extends VueComponentBase implements IDashboardPageConsumer {
 
     @Inject('storeNamespace') readonly storeNamespace!: string;
 
     get get_selected_viewport(): DashboardViewportVO {
-        return this.vuexGet<DashboardViewportVO>(reflect<this>().get_selected_viewport);
+        return this.vuexGet(reflect<this>().get_selected_viewport);
     }
 
     get get_dashboard(): DashboardVO {
-        return this.vuexGet<DashboardVO>(reflect<this>().get_dashboard);
+        return this.vuexGet(reflect<this>().get_dashboard);
     }
 
     // Accès dynamiques Vuex
-    public vuexGet<T>(getter: string): T {
-        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    public vuexGet<K extends keyof IDashboardGetters>(getter: K): IDashboardGetters[K] {
+        return this.$store.getters[`${this.storeNamespace}/${String(getter)}`];
     }
-    public vuexAct<A>(action: string, payload?: A) {
-        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    public vuexAct<K extends keyof IDashboardPageActionsMethods>(
+        action: K,
+        ...args: Parameters<IDashboardPageActionsMethods[K]>
+    ) {
+        this.$store.dispatch(`${this.storeNamespace}/${String(action)}`, ...args);
     }
 }

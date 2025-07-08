@@ -14,12 +14,13 @@ import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import { reflect } from '../../../../../../shared/tools/ObjectHandler';
 import VueComponentBase from '../../../VueComponentBase';
 import './CMSVisionneusePdfWidgetComponent.scss';
+import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../page/DashboardPageStore';
 
 @Component({
     template: require('./CMSVisionneusePdfWidgetComponent.pug'),
     components: {}
 })
-export default class CMSVisionneusePdfWidgetComponent extends VueComponentBase {
+export default class CMSVisionneusePdfWidgetComponent extends VueComponentBase implements IDashboardPageConsumer {
     @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @Prop({ default: null })
@@ -60,7 +61,7 @@ export default class CMSVisionneusePdfWidgetComponent extends VueComponentBase {
     }
 
     get get_crud_vo(): IDistantVOBase {
-        return this.vuexGet<IDistantVOBase>(reflect<this>().get_crud_vo);
+        return this.vuexGet(reflect<this>().get_crud_vo);
     }
 
     @Watch('get_crud_vo')
@@ -89,11 +90,14 @@ export default class CMSVisionneusePdfWidgetComponent extends VueComponentBase {
     }
 
     // Accès dynamiques Vuex
-    public vuexGet<T>(getter: string): T {
-        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    public vuexGet<K extends keyof IDashboardGetters>(getter: K): IDashboardGetters[K] {
+        return this.$store.getters[`${this.storeNamespace}/${String(getter)}`];
     }
-    public vuexAct<A>(action: string, payload?: A) {
-        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    public vuexAct<K extends keyof IDashboardPageActionsMethods>(
+        action: K,
+        ...args: Parameters<IDashboardPageActionsMethods[K]>
+    ) {
+        this.$store.dispatch(`${this.storeNamespace}/${String(action)}`, ...args);
     }
 
     public async get_value(data: any, field_ref: VOFieldRefVO): Promise<string> {

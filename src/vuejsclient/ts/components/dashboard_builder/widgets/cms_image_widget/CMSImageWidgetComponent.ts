@@ -15,12 +15,13 @@ import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import VueComponentBase from '../../../VueComponentBase';
 import './CMSImageWidgetComponent.scss';
 import { reflect } from '../../../../../../shared/tools/ObjectHandler';
+import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../page/DashboardPageStore';
 
 @Component({
     template: require('./CMSImageWidgetComponent.pug'),
     components: {}
 })
-export default class CMSImageWidgetComponent extends VueComponentBase {
+export default class CMSImageWidgetComponent extends VueComponentBase implements IDashboardPageConsumer {
     @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @Prop({ default: null })
@@ -44,7 +45,7 @@ export default class CMSImageWidgetComponent extends VueComponentBase {
     public position: number = null;
 
     get get_crud_vo(): IDistantVOBase {
-        return this.vuexGet<IDistantVOBase>(reflect<this>().get_crud_vo);
+        return this.vuexGet(reflect<this>().get_crud_vo);
     }
 
     get widget_options(): CMSImageWidgetOptionsVO {
@@ -156,11 +157,14 @@ export default class CMSImageWidgetComponent extends VueComponentBase {
     }
 
     // Accès dynamiques Vuex
-    public vuexGet<T>(getter: string): T {
-        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    public vuexGet<K extends keyof IDashboardGetters>(getter: K): IDashboardGetters[K] {
+        return this.$store.getters[`${this.storeNamespace}/${String(getter)}`];
     }
-    public vuexAct<A>(action: string, payload?: A) {
-        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    public vuexAct<K extends keyof IDashboardPageActionsMethods>(
+        action: K,
+        ...args: Parameters<IDashboardPageActionsMethods[K]>
+    ) {
+        this.$store.dispatch(`${this.storeNamespace}/${String(action)}`, ...args);
     }
 
     public async get_value(data: any, field_ref: VOFieldRefVO): Promise<string> {

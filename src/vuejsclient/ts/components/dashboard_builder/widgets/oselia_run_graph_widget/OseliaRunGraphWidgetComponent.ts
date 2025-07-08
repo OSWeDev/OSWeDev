@@ -33,6 +33,7 @@ import SortByVO from '../../../../../../shared/modules/ContextFilter/vos/SortByV
 import EventifyEventListenerConfVO from '../../../../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO';
 import OseliaRunFunctionCallVO from '../../../../../../shared/modules/Oselia/vos/OseliaRunFunctionCallVO';
 import { ModuleModalsAndBasicPageComponentsHolderGetter } from '../../../modals_and_basic_page_components_holder/ModalsAndBasicPageComponentsHolderStore';
+import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../page/DashboardPageStore';
 
 @Component({
     components: {
@@ -42,7 +43,7 @@ import { ModuleModalsAndBasicPageComponentsHolderGetter } from '../../../modals_
     },
     template: require('./OseliaRunGraphWidgetComponent.pug')
 })
-export default class OseliaRunGraphWidgetComponent extends VueComponentBase {
+export default class OseliaRunGraphWidgetComponent extends VueComponentBase implements IDashboardPageConsumer {
     @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @ModuleModalsAndBasicPageComponentsHolderGetter
@@ -132,15 +133,15 @@ export default class OseliaRunGraphWidgetComponent extends VueComponentBase {
 
 
     get get_active_field_filters(): FieldFiltersVO {
-        return this.vuexGet<FieldFiltersVO>(reflect<this>().get_active_field_filters);
+        return this.vuexGet(reflect<this>().get_active_field_filters);
     }
 
     get get_discarded_field_paths(): { [vo_type: string]: { [field_id: string]: boolean } } {
-        return this.vuexGet<{ [vo_type: string]: { [field_id: string]: boolean } }>(reflect<this>().get_discarded_field_paths);
+        return this.vuexGet(reflect<this>().get_discarded_field_paths);
     }
 
     get get_dashboard_api_type_ids(): string[] {
-        return this.vuexGet<string[]>(reflect<this>().get_dashboard_api_type_ids);
+        return this.vuexGet(reflect<this>().get_dashboard_api_type_ids);
     }
 
 
@@ -281,11 +282,14 @@ export default class OseliaRunGraphWidgetComponent extends VueComponentBase {
     }
 
     // Accès dynamiques Vuex
-    public vuexGet<T>(getter: string): T {
-        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    public vuexGet<K extends keyof IDashboardGetters>(getter: K): IDashboardGetters[K] {
+        return this.$store.getters[`${this.storeNamespace}/${String(getter)}`];
     }
-    public vuexAct<A>(action: string, payload?: A) {
-        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    public vuexAct<K extends keyof IDashboardPageActionsMethods>(
+        action: K,
+        ...args: Parameters<IDashboardPageActionsMethods[K]>
+    ) {
+        this.$store.dispatch(`${this.storeNamespace}/${String(action)}`, ...args);
     }
 
     public set_active_field_filter(param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) {

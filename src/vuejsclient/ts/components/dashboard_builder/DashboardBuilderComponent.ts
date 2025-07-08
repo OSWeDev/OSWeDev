@@ -31,12 +31,13 @@ import InlineTranslatableText from '../InlineTranslatableText/InlineTranslatable
 import VueComponentBase from '../VueComponentBase';
 import ModuleTablesComponent from '../module_tables/ModuleTablesComponent';
 import './DashboardBuilderComponent.scss';
+import DashboardHistoryController from './DashboardHistoryController';
 import DashboardBuilderBoardComponent from './board/DashboardBuilderBoardComponent';
 import CrudDBLinkComponent from './crud_db_link/CrudDBLinkComponent';
 import DroppableVoFieldsComponent from './droppable_vo_fields/DroppableVoFieldsComponent';
 import { ModuleDroppableVoFieldsAction } from './droppable_vo_fields/DroppableVoFieldsStore';
 import DashboardMenuConfComponent from './menu_conf/DashboardMenuConfComponent';
-import DashboardPageStore from './page/DashboardPageStore';
+import DashboardPageStore, { IDashboardGetters, IDashboardPageActionsMethods } from './page/DashboardPageStore';
 import DashboardSharedFiltersComponent from './shared_filters/DashboardSharedFiltersComponent';
 import DashboardViewportConfComponent from './viewport_conf/DashboardViewportConfComponent';
 import DashboardBuilderWidgetsComponent from './widgets/DashboardBuilderWidgetsComponent';
@@ -55,7 +56,7 @@ import DashboardBuilderWidgetsComponent from './widgets/DashboardBuilderWidgetsC
         DashboardViewportConfComponent: DashboardViewportConfComponent,
     },
 })
-export default class DashboardBuilderComponent extends VueComponentBase {
+export default class DashboardBuilderComponent extends VueComponentBase implements Partial<IDashboardPageActionsMethods> {
 
     public static DBB_ONGLET_TABLE: string = 'onglet_table';
     public static DBB_ONGLET_VIEWPORT: string = 'onglet_viewport';
@@ -147,15 +148,15 @@ export default class DashboardBuilderComponent extends VueComponentBase {
     public all_tables_by_table_name: { [table_name: string]: ModuleTableVO } = {};
 
     get get_dashboard_current_viewport(): DashboardViewportVO {
-        return this.vuexGet<DashboardViewportVO>(reflect<this>().get_dashboard_current_viewport);
+        return this.vuexGet(reflect<this>().get_dashboard_current_viewport);
     }
 
     get get_current_dbb_conf(): DBBConfVO {
-        return this.vuexGet<DBBConfVO>(reflect<this>().get_current_dbb_conf);
+        return this.vuexGet(reflect<this>().get_current_dbb_conf);
     }
 
     get get_page_history(): DashboardPageVO[] {
-        return this.vuexGet<DashboardPageVO[]>(reflect<this>().get_page_history);
+        return this.vuexGet(reflect<this>().get_page_history);
     }
 
     get validite_onglets(): { [onglet: string]: boolean } {
@@ -225,43 +226,43 @@ export default class DashboardBuilderComponent extends VueComponentBase {
     }
 
     get get_selected_widget(): DashboardPageWidgetVO {
-        return this.vuexGet<DashboardPageWidgetVO>(reflect<this>().get_selected_widget);
+        return this.vuexGet(reflect<this>().get_selected_widget);
     }
 
-    get get_discarded_field_paths(): { [vo_type: string]: { [field_id: string]: boolean } } {
-        return this.vuexGet<{ [vo_type: string]: { [field_id: string]: boolean } }>(reflect<this>().get_discarded_field_paths);
+    get get_dashboard_discarded_field_paths(): { [vo_type: string]: { [field_id: string]: boolean } } {
+        return this.vuexGet(reflect<this>().get_dashboard_discarded_field_paths);
     }
 
     get get_dashboard_api_type_ids(): string[] {
-        return this.vuexGet<string[]>(reflect<this>().get_dashboard_api_type_ids);
+        return this.vuexGet(reflect<this>().get_dashboard_api_type_ids);
     }
 
     get get_dashboard_navigation_history(): { current_dashboard_id: number, previous_dashboard_id: number } {
-        return this.vuexGet<{ current_dashboard_id: number, previous_dashboard_id: number }>(reflect<this>().get_dashboard_navigation_history);
+        return this.vuexGet(reflect<this>().get_dashboard_navigation_history);
     }
 
     get get_dashboard_page(): DashboardPageVO {
-        return this.vuexGet<DashboardPageVO>(reflect<this>().get_dashboard_page);
+        return this.vuexGet(reflect<this>().get_dashboard_page);
     }
 
     get get_dashboard_pages(): DashboardPageVO[] {
-        return this.vuexGet<DashboardPageVO[]>(reflect<this>().get_dashboard_pages);
+        return this.vuexGet(reflect<this>().get_dashboard_pages);
     }
 
     get get_page_widgets(): DashboardPageWidgetVO[] {
-        return this.vuexGet<DashboardPageWidgetVO[]>(reflect<this>().get_page_widgets);
+        return this.vuexGet(reflect<this>().get_page_widgets);
     }
 
     get get_selected_page_page_widgets(): DashboardPageWidgetVO[] {
-        return this.vuexGet<DashboardPageWidgetVO[]>(reflect<this>().get_selected_page_page_widgets);
+        return this.vuexGet(reflect<this>().get_selected_page_page_widgets);
     }
 
     get get_dashboard_viewport_page_widgets(): DashboardViewportPageWidgetVO[] {
-        return this.vuexGet<DashboardViewportPageWidgetVO[]>(reflect<this>().get_dashboard_viewport_page_widgets);
+        return this.vuexGet(reflect<this>().get_dashboard_viewport_page_widgets);
     }
 
     get get_widgets_by_id(): { [widget_id: number]: DashboardWidgetVO } {
-        return this.vuexGet<{ [widget_id: number]: DashboardWidgetVO }>(reflect<this>().get_widgets_by_id);
+        return this.vuexGet(reflect<this>().get_widgets_by_id);
     }
 
     @Watch(reflect<DashboardBuilderComponent>().get_dashboard_page)
@@ -321,19 +322,9 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         this.vuexAct(reflect<this>().set_selected_page_page_widgets, page_widgets);
     }
 
-    public set_page_widget(page_widget: DashboardPageWidgetVO): void {
-        this.vuexAct(reflect<this>().set_page_widget, page_widget);
-    }
-
     public set_dashboard_current_viewport(dashboard_current_viewport: DashboardViewportVO): void {
         this.vuexAct(reflect<this>().set_dashboard_current_viewport, dashboard_current_viewport);
     }
-
-
-    public delete_page_widget(page_widget: DashboardPageWidgetVO): void {
-        this.vuexAct(reflect<this>().delete_page_widget, page_widget);
-    }
-
 
     public add_page_history(page_history: DashboardPageVO): void {
         this.vuexAct(reflect<this>().add_page_history, page_history);
@@ -435,11 +426,14 @@ export default class DashboardBuilderComponent extends VueComponentBase {
     }
 
     // Accès dynamiques Vuex
-    public vuexGet<T>(getter: string): T {
-        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    public vuexGet<K extends keyof IDashboardGetters>(getter: K): IDashboardGetters[K] {
+        return this.$store.getters[`${this.storeNamespace}/${String(getter)}`];
     }
-    public vuexAct<A>(action: string, payload?: A) {
-        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    public vuexAct<K extends keyof IDashboardPageActionsMethods>(
+        action: K,
+        ...args: Parameters<IDashboardPageActionsMethods[K]>
+    ) {
+        this.$store.dispatch(`${this.storeNamespace}/${String(action)}`, ...args);
     }
 
     public dashboard_label(dashboard: DashboardVO): string {
@@ -680,13 +674,13 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         await ModuleDAO.instance.insertOrUpdateVO(page);
     }
 
-    public removed_widget_from_page(page_widget: DashboardPageWidgetVO) {
-        this.delete_page_widget(page_widget);
-    }
-
     public select_page(page: DashboardPageVO) {
-        this.add_page_history(this.get_dashboard_page);
-        this.set_dashboard_page(page);
+        DashboardHistoryController.select_page(
+            this.get_dashboard_page,
+            page,
+            this.add_page_history,
+            this.set_dashboard_page,
+        );
     }
 
     public set_dashboard_page(page: DashboardPageVO) {
@@ -694,14 +688,17 @@ export default class DashboardBuilderComponent extends VueComponentBase {
     }
 
     public select_previous_page() {
-        this.set_dashboard_page(this.get_page_history[this.get_page_history.length - 1]);
-        this.pop_page_history(null);
+        DashboardHistoryController.select_previous_page(
+            this.get_page_history,
+            this.set_dashboard_page,
+            this.pop_page_history,
+        );
     }
 
-    public select_page_clear_navigation(page: DashboardPageVO) {
-        this.set_page_history([]);
-        this.set_dashboard_page(page);
-    }
+    // public select_page_clear_navigation(page: DashboardPageVO) {
+    //     this.set_page_history([]);
+    //     this.set_dashboard_page(page);
+    // }
 
 
     /**

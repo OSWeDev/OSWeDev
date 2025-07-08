@@ -8,6 +8,7 @@ import './DroppableVoFieldsComponent.scss';
 import DroppableVoFieldsController from './DroppableVoFieldsController';
 import { ModuleDroppableVoFieldsAction, ModuleDroppableVoFieldsGetter } from './DroppableVoFieldsStore';
 import DroppableVoFieldComponent from './field/DroppableVoFieldComponent';
+import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../page/DashboardPageStore';
 
 @Component({
     template: require('./DroppableVoFieldsComponent.pug'),
@@ -15,7 +16,7 @@ import DroppableVoFieldComponent from './field/DroppableVoFieldComponent';
         Droppablevofieldcomponent: DroppableVoFieldComponent
     }
 })
-export default class DroppableVoFieldsComponent extends VueComponentBase {
+export default class DroppableVoFieldsComponent extends VueComponentBase implements IDashboardPageConsumer {
 
     @Inject('storeNamespace') readonly storeNamespace!: string;
 
@@ -36,7 +37,7 @@ export default class DroppableVoFieldsComponent extends VueComponentBase {
     private closed_api_type_id: { [api_type_id: string]: boolean } = {};
 
     get get_dashboard_api_type_ids(): string[] {
-        return this.vuexGet<string[]>(reflect<this>().get_dashboard_api_type_ids);
+        return this.vuexGet(reflect<this>().get_dashboard_api_type_ids);
     }
 
     get api_type_ids(): string[] {
@@ -152,11 +153,14 @@ export default class DroppableVoFieldsComponent extends VueComponentBase {
     }
 
     // Accès dynamiques Vuex
-    public vuexGet<T>(getter: string): T {
-        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    public vuexGet<K extends keyof IDashboardGetters>(getter: K): IDashboardGetters[K] {
+        return this.$store.getters[`${this.storeNamespace}/${String(getter)}`];
     }
-    public vuexAct<A>(action: string, payload?: A) {
-        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    public vuexAct<K extends keyof IDashboardPageActionsMethods>(
+        action: K,
+        ...args: Parameters<IDashboardPageActionsMethods[K]>
+    ) {
+        this.$store.dispatch(`${this.storeNamespace}/${String(action)}`, ...args);
     }
 
     private filter_by_field_id_or_api_type_id(event) {

@@ -24,6 +24,7 @@ import VueComponentBase from '../../../VueComponentBase';
 import ResetFiltersWidgetController from '../reset_filters_widget/ResetFiltersWidgetController';
 import './AdvancedDateFilterWidgetComponent.scss';
 import AdvancedDateFilterWidgetOptions from './options/AdvancedDateFilterWidgetOptions';
+import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../page/DashboardPageStore';
 
 @Component({
     template: require('./AdvancedDateFilterWidgetComponent.pug'),
@@ -32,7 +33,7 @@ import AdvancedDateFilterWidgetOptions from './options/AdvancedDateFilterWidgetO
         Tsrangesinputcomponent: TSRangesInputComponent,
     }
 })
-export default class AdvancedDateFilterWidgetComponent extends VueComponentBase {
+export default class AdvancedDateFilterWidgetComponent extends VueComponentBase implements IDashboardPageConsumer {
 
     @Inject('storeNamespace') readonly storeNamespace!: string;
 
@@ -54,10 +55,10 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
     private old_widget_options: AdvancedDateFilterWidgetOptions = null;
 
     get get_active_field_filters(): FieldFiltersVO {
-        return this.vuexGet<FieldFiltersVO>(reflect<this>().get_active_field_filters);
+        return this.vuexGet(reflect<this>().get_active_field_filters);
     }
     get get_page_widgets_components_by_pwid(): { [pwid: number]: VueComponentBase } {
-        return this.vuexGet<{ [pwid: number]: VueComponentBase }>(reflect<this>().get_page_widgets_components_by_pwid);
+        return this.vuexGet(reflect<this>().get_page_widgets_components_by_pwid);
     }
 
     get is_auto_selectable_choice() {
@@ -459,11 +460,14 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
     }
 
     // Accès dynamiques Vuex
-    public vuexGet<T>(getter: string): T {
-        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    public vuexGet<K extends keyof IDashboardGetters>(getter: K): IDashboardGetters[K] {
+        return this.$store.getters[`${this.storeNamespace}/${String(getter)}`];
     }
-    public vuexAct<A>(action: string, payload?: A) {
-        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    public vuexAct<K extends keyof IDashboardPageActionsMethods>(
+        action: K,
+        ...args: Parameters<IDashboardPageActionsMethods[K]>
+    ) {
+        this.$store.dispatch(`${this.storeNamespace}/${String(action)}`, ...args);
     }
 
     public set_active_field_filter(param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) {

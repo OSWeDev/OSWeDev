@@ -14,7 +14,7 @@
             i.fa-solid.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
         template(v-else)
             Gridlayout(
-                :layout.sync="editable_dashboard_page.layout"
+                :layout="dashboard_viewport_page_widgets"
                 :row-height="elt_height"
                 :auto-size="true"
                 :is-draggable="draggable"
@@ -26,6 +26,7 @@
                 :margin="[10, 10]"
                 :key="'Gridlayout__' + get_dashboard_page.id"
             )
+  
                 template(v-if="get_dashboard_page.group_filters")
                     .filters-bloc.mt-3
                         .header-filters-bloc.clickable(@click="change_is_filtres_deplie")

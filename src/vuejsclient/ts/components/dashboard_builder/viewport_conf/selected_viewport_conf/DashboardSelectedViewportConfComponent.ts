@@ -13,13 +13,14 @@ import { SyncVOs } from '../../../../tools/annotations/SyncVOs';
 import { TestAccess } from '../../../../tools/annotations/TestAccess';
 import VueComponentBase from '../../../VueComponentBase';
 import './DashboardSelectedViewportConfComponent.scss';
+import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../page/DashboardPageStore';
 
 @Component({
     template: require('./DashboardSelectedViewportConfComponent.pug'),
     components: {
     }
 })
-export default class DashboardSelectedViewportConfComponent extends VueComponentBase {
+export default class DashboardSelectedViewportConfComponent extends VueComponentBase implements IDashboardPageConsumer {
 
     @Inject('storeNamespace') readonly storeNamespace!: string;
 
@@ -76,11 +77,11 @@ export default class DashboardSelectedViewportConfComponent extends VueComponent
     }
 
     get get_selected_viewport(): DashboardViewportVO {
-        return this.vuexGet<DashboardViewportVO>(reflect<this>().get_selected_viewport);
+        return this.vuexGet(reflect<this>().get_selected_viewport);
     }
 
     get get_selected_widget(): DashboardViewportPageWidgetVO {
-        return this.vuexGet<DashboardViewportPageWidgetVO>(reflect<this>().get_selected_widget);
+        return this.vuexGet(reflect<this>().get_selected_widget);
     }
 
     get dashboard_page() {
@@ -97,11 +98,14 @@ export default class DashboardSelectedViewportConfComponent extends VueComponent
     }
 
     // Accès dynamiques Vuex
-    public vuexGet<T>(getter: string): T {
-        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    public vuexGet<K extends keyof IDashboardGetters>(getter: K): IDashboardGetters[K] {
+        return this.$store.getters[`${this.storeNamespace}/${String(getter)}`];
     }
-    public vuexAct<A>(action: string, payload?: A) {
-        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    public vuexAct<K extends keyof IDashboardPageActionsMethods>(
+        action: K,
+        ...args: Parameters<IDashboardPageActionsMethods[K]>
+    ) {
+        this.$store.dispatch(`${this.storeNamespace}/${String(action)}`, ...args);
     }
 
     public set_selected_widget(page_widget: DashboardViewportPageWidgetVO) {

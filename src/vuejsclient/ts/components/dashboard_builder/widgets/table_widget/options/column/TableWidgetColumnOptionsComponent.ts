@@ -31,6 +31,7 @@ import FieldValueFilterWidgetOptions from '../../../field_value_filter_widget/op
 import WidgetFilterOptionsComponent from '../../../var_widget/options/filters/WidgetFilterOptionsComponent';
 import TableWidgetController from '../../TableWidgetController';
 import './TableWidgetColumnOptionsComponent.scss';
+import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../../../page/DashboardPageStore';
 
 @Component({
     template: require('./TableWidgetColumnOptionsComponent.pug'),
@@ -40,7 +41,7 @@ import './TableWidgetColumnOptionsComponent.scss';
         Widgetfilteroptionscomponent: WidgetFilterOptionsComponent
     }
 })
-export default class TableWidgetColumnOptionsComponent extends VueComponentBase {
+export default class TableWidgetColumnOptionsComponent extends VueComponentBase implements IDashboardPageConsumer {
     @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @Prop({ default: null })
@@ -125,15 +126,15 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
     }
 
     get get_custom_filters(): string[] {
-        return this.vuexGet<string[]>(reflect<this>().get_custom_filters);
+        return this.vuexGet(reflect<this>().get_custom_filters);
     }
 
     get get_page_widgets_components_by_pwid(): { [pwid: number]: VueComponentBase } {
-        return this.vuexGet<{ [pwid: number]: VueComponentBase }>(reflect<this>().get_page_widgets_components_by_pwid);
+        return this.vuexGet(reflect<this>().get_page_widgets_components_by_pwid);
     }
 
     get get_page_widgets(): DashboardPageWidgetVO[] {
-        return this.vuexGet<DashboardPageWidgetVO[]>(reflect<this>().get_page_widgets);
+        return this.vuexGet(reflect<this>().get_page_widgets);
     }
 
     get column_type_has_weight(): boolean {
@@ -758,11 +759,14 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
     }
 
     // Accès dynamiques Vuex
-    public vuexGet<T>(getter: string): T {
-        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    public vuexGet<K extends keyof IDashboardGetters>(getter: K): IDashboardGetters[K] {
+        return this.$store.getters[`${this.storeNamespace}/${String(getter)}`];
     }
-    public vuexAct<A>(action: string, payload?: A) {
-        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    public vuexAct<K extends keyof IDashboardPageActionsMethods>(
+        action: K,
+        ...args: Parameters<IDashboardPageActionsMethods[K]>
+    ) {
+        this.$store.dispatch(`${this.storeNamespace}/${String(action)}`, ...args);
     }
 
     public set_custom_filters(custom_filters: string[]) {

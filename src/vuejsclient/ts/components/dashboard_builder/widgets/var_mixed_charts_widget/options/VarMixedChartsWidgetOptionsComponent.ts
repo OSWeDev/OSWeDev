@@ -20,6 +20,7 @@ import VarChartsOptionsComponent from '../../var_chart_options/VarChartsOptionsC
 import VarChartScalesOptionsComponent from '../../var_chart_scales_options/VarChartScalesOptionsComponent';
 import WidgetFilterOptionsComponent from '../../var_widget/options/filters/WidgetFilterOptionsComponent';
 import './VarMixedChartsWidgetOptionsComponent.scss';
+import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../../page/DashboardPageStore';
 
 /**
  * Composant lié au template VarMixedChartsWidgetOptionsComponent.pug
@@ -36,7 +37,7 @@ import './VarMixedChartsWidgetOptionsComponent.scss';
         Varchartscalesoptionscomponent: VarChartScalesOptionsComponent
     }
 })
-export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBase {
+export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBase implements IDashboardPageConsumer {
     @Inject('storeNamespace') readonly storeNamespace!: string;
 
     // --------------------------------------------------------------------------
@@ -160,7 +161,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
     // --------------------------------------------------------------------------
 
     get get_custom_filters() {
-        return this.vuexGet<string[]>(reflect<this>().get_custom_filters);
+        return this.vuexGet(reflect<this>().get_custom_filters);
     }
 
     /**
@@ -436,11 +437,14 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
     }
 
     // Accès dynamiques Vuex
-    public vuexGet<T>(getter: string): T {
-        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    public vuexGet<K extends keyof IDashboardGetters>(getter: K): IDashboardGetters[K] {
+        return this.$store.getters[`${this.storeNamespace}/${String(getter)}`];
     }
-    public vuexAct<A>(action: string, payload?: A) {
-        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    public vuexAct<K extends keyof IDashboardPageActionsMethods>(
+        action: K,
+        ...args: Parameters<IDashboardPageActionsMethods[K]>
+    ) {
+        this.$store.dispatch(`${this.storeNamespace}/${String(action)}`, ...args);
     }
 
     public set_page_widget(page_widget: DashboardPageWidgetVO) {

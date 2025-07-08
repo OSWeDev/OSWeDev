@@ -30,12 +30,13 @@ import ReloadFiltersWidgetController from '../../reload_filters_widget/RealoadFi
 import ResetFiltersWidgetController from '../../reset_filters_widget/ResetFiltersWidgetController';
 import FavoritesFiltersModalComponent from '../modal/FavoritesFiltersModalComponent';
 import './ShowFavoritesFiltersWidgetComponent.scss';
+import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../../page/DashboardPageStore';
 
 @Component({
     template: require('./ShowFavoritesFiltersWidgetComponent.pug'),
     components: {}
 })
-export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBase {
+export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBase implements IDashboardPageConsumer {
 
     private static TESTUID = 0;
     @Inject('storeNamespace') readonly storeNamespace!: string;
@@ -84,31 +85,31 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
     );
 
     get get_page_widgets(): DashboardPageWidgetVO[] {
-        return this.vuexGet<DashboardPageWidgetVO[]>(reflect<this>().get_page_widgets);
+        return this.vuexGet(reflect<this>().get_page_widgets);
     }
 
     get get_selected_page_page_widgets(): DashboardPageWidgetVO[] {
-        return this.vuexGet<DashboardPageWidgetVO[]>(reflect<this>().get_selected_page_page_widgets);
+        return this.vuexGet(reflect<this>().get_selected_page_page_widgets);
     }
 
     get get_active_field_filters(): FieldFiltersVO {
-        return this.vuexGet<FieldFiltersVO>(reflect<this>().get_active_field_filters);
+        return this.vuexGet(reflect<this>().get_active_field_filters);
     }
 
     get get_dashboard_api_type_ids(): string[] {
-        return this.vuexGet<string[]>(reflect<this>().get_dashboard_api_type_ids);
+        return this.vuexGet(reflect<this>().get_dashboard_api_type_ids);
     }
 
     get get_dashboard_discarded_field_paths(): { [vo_type: string]: { [field_id: string]: boolean } } {
-        return this.vuexGet<{ [vo_type: string]: { [field_id: string]: boolean } }>(reflect<this>().get_dashboard_discarded_field_paths);
+        return this.vuexGet(reflect<this>().get_dashboard_discarded_field_paths);
     }
 
     get get_dashboard(): DashboardVO {
-        return this.vuexGet<DashboardVO>(reflect<this>().get_dashboard);
+        return this.vuexGet(reflect<this>().get_dashboard);
     }
 
     get get_dashboard_page(): DashboardPageVO {
-        return this.vuexGet<DashboardPageVO>(reflect<this>().get_dashboard_page);
+        return this.vuexGet(reflect<this>().get_dashboard_page);
     }
 
     /**
@@ -233,11 +234,14 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
 
 
     // Accès dynamiques Vuex
-    public vuexGet<T>(getter: string): T {
-        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    public vuexGet<K extends keyof IDashboardGetters>(getter: K): IDashboardGetters[K] {
+        return this.$store.getters[`${this.storeNamespace}/${String(getter)}`];
     }
-    public vuexAct<A>(action: string, payload?: A) {
-        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    public vuexAct<K extends keyof IDashboardPageActionsMethods>(
+        action: K,
+        ...args: Parameters<IDashboardPageActionsMethods[K]>
+    ) {
+        this.$store.dispatch(`${this.storeNamespace}/${String(action)}`, ...args);
     }
 
     public set_active_field_filter(param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) {

@@ -14,6 +14,7 @@ import ObjectHandler, { field_names, reflect } from '../../../../../shared/tools
 import { all_promises } from '../../../../../shared/tools/PromiseTools';
 import ModuleTablesClientController from '../../module_tables/ModuleTablesClientController';
 import VueComponentBase from '../../VueComponentBase';
+import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../page/DashboardPageStore';
 import './CrudDBLinkComponent.scss';
 
 @Component({
@@ -21,7 +22,7 @@ import './CrudDBLinkComponent.scss';
     components: {
     }
 })
-export default class CrudDBLinkComponent extends VueComponentBase {
+export default class CrudDBLinkComponent extends VueComponentBase implements IDashboardPageConsumer {
     @Inject('storeNamespace') readonly storeNamespace!: string;
 
     public selected_vo_type: string = null;
@@ -40,11 +41,11 @@ export default class CrudDBLinkComponent extends VueComponentBase {
     private POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_UPDATE: boolean = false;
 
     get get_dashboard(): DashboardVO {
-        return this.vuexGet<DashboardVO>(reflect<CrudDBLinkComponent>().get_dashboard);
+        return this.vuexGet(reflect<CrudDBLinkComponent>().get_dashboard);
     }
 
     get get_active_api_type_ids(): string[] {
-        return this.vuexGet<string[]>(reflect<this>().get_active_api_type_ids);
+        return this.vuexGet(reflect<this>().get_active_api_type_ids);
     }
 
     @Watch(reflect<CrudDBLinkComponent>().get_dashboard, { immediate: true })
@@ -171,11 +172,14 @@ export default class CrudDBLinkComponent extends VueComponentBase {
     }
 
     // Accès dynamiques Vuex
-    public vuexGet<T>(getter: string): T {
-        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    public vuexGet<K extends keyof IDashboardGetters>(getter: K): IDashboardGetters[K] {
+        return this.$store.getters[`${this.storeNamespace}/${String(getter)}`];
     }
-    public vuexAct<A>(action: string, payload?: A) {
-        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    public vuexAct<K extends keyof IDashboardPageActionsMethods>(
+        action: K,
+        ...args: Parameters<IDashboardPageActionsMethods[K]>
+    ) {
+        this.$store.dispatch(`${this.storeNamespace}/${String(action)}`, ...args);
     }
 
     private vo_type_label(vo_type: string): string {

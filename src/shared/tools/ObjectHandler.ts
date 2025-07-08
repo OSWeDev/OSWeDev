@@ -306,15 +306,6 @@ export default class ObjectHandler {
 
     }
 
-    /* istanbul ignore next: nothing to test here */
-    public static getInstance(): ObjectHandler {
-        if (!ObjectHandler.instance) {
-            ObjectHandler.instance = new ObjectHandler();
-        }
-
-        return ObjectHandler.instance;
-    }
-
     public static are_equal(a: any, b: any, ignore_fields: string[] = null): boolean {
         if (ignore_fields && ignore_fields.length) {
             const fields_filter = {};
@@ -536,7 +527,57 @@ export default class ObjectHandler {
         return res;
     }
 
-    private static instance: ObjectHandler = null;
+    /**
+     * Est-ce qu'on retrouve un VO dans une liste : par ref || par id
+     * @param list
+     * @param elt
+     */
+    public static contains_vo<T extends IDistantVOBase>(list: T[], elt: T): boolean {
+        if (!elt || !list || !list.length) {
+            return false;
+        }
 
-    private constructor() { }
+        for (const i in list) {
+            const e = list[i];
+
+            // Par ref
+            if (e === elt) {
+                return true;
+            }
+
+            // Par id
+            if (e.id === elt.id) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * A quel index on retrouve un VO dans une liste : par ref || par id
+     * @param list
+     * @param elt
+     */
+    public static index_of_vo<T extends IDistantVOBase>(list: T[], elt: T): number {
+        if (!elt || !list || !list.length) {
+            return -1;
+        }
+
+        for (let i = 0; i < list.length; i++) {
+            const e = list[i];
+
+            // Par ref
+            if (e === elt) {
+                return i;
+            }
+
+            // Par id
+            if (e.id === elt.id) {
+                return i;
+            }
+        }
+
+        return -1;
+    }
 }

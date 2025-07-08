@@ -13,6 +13,7 @@ import { ModuleTranslatableTextGetter } from '../../../../InlineTranslatableText
 import VueComponentBase from '../../../../VueComponentBase';
 import YearFilterInputComponent from '../../../../year_filter_input/YearFilterInputComponent';
 import './YearFilterWidgetOptionsButtonSetterComponent.scss';
+import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../../page/DashboardPageStore';
 
 @Component({
     template: require('./YearFilterWidgetOptionsButtonSetterComponent.pug'),
@@ -20,7 +21,7 @@ import './YearFilterWidgetOptionsButtonSetterComponent.scss';
         Yearfilterinputcomponent: YearFilterInputComponent,
     }
 })
-export default class YearFilterWidgetOptionsButtonSetterComponent extends VueComponentBase {
+export default class YearFilterWidgetOptionsButtonSetterComponent extends VueComponentBase implements IDashboardPageConsumer {
     @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @Prop({ default: null })
@@ -151,7 +152,7 @@ export default class YearFilterWidgetOptionsButtonSetterComponent extends VueCom
     // }
 
     get get_page_widgets_components_by_pwid(): { [pwid: number]: VueComponentBase } {
-        return this.vuexGet<{ [pwid: number]: VueComponentBase }>(reflect<this>().get_page_widgets_components_by_pwid);
+        return this.vuexGet(reflect<this>().get_page_widgets_components_by_pwid);
     }
 
     get default_placeholder_translation(): string {
@@ -388,11 +389,14 @@ export default class YearFilterWidgetOptionsButtonSetterComponent extends VueCom
     }
 
     // Accès dynamiques Vuex
-    public vuexGet<T>(getter: string): T {
-        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    public vuexGet<K extends keyof IDashboardGetters>(getter: K): IDashboardGetters[K] {
+        return this.$store.getters[`${this.storeNamespace}/${String(getter)}`];
     }
-    public vuexAct<A>(action: string, payload?: A) {
-        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    public vuexAct<K extends keyof IDashboardPageActionsMethods>(
+        action: K,
+        ...args: Parameters<IDashboardPageActionsMethods[K]>
+    ) {
+        this.$store.dispatch(`${this.storeNamespace}/${String(action)}`, ...args);
     }
 
     private update_page_widget() {

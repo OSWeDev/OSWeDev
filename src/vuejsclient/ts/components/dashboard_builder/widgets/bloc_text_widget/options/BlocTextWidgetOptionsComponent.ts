@@ -14,11 +14,12 @@ import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/DroppableVoFieldsStore';
 import './BlocTextWidgetOptionsComponent.scss';
+import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../../page/DashboardPageStore';
 
 @Component({
     template: require('./BlocTextWidgetOptionsComponent.pug')
 })
-export default class BlocTextWidgetOptionsComponent extends VueComponentBase {
+export default class BlocTextWidgetOptionsComponent extends VueComponentBase implements IDashboardPageConsumer {
     @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @Prop({ default: null })
@@ -38,23 +39,41 @@ export default class BlocTextWidgetOptionsComponent extends VueComponentBase {
         this.update_options.bind(this), 50, false);
 
     get get_discarded_field_paths(): { [vo_type: string]: { [field_id: string]: boolean } } {
-        return this.vuexGet<{ [vo_type: string]: { [field_id: string]: boolean } }>(reflect<this>().get_discarded_field_paths);
+        return this.vuexGet(reflect<this>().get_discarded_field_paths);
     }
 
     get get_dashboard_api_type_ids(): string[] {
-        return this.vuexGet<string[]>(reflect<this>().get_dashboard_api_type_ids);
+        return this.vuexGet(reflect<this>().get_dashboard_api_type_ids);
     }
 
     get get_active_field_filters(): FieldFiltersVO {
-        return this.vuexGet<FieldFiltersVO>(reflect<this>().get_active_field_filters);
+        return this.vuexGet(reflect<this>().get_active_field_filters);
     }
 
     get get_active_api_type_ids(): string[] {
-        return this.vuexGet<string[]>(reflect<this>().get_active_api_type_ids);
+        return this.vuexGet(reflect<this>().get_active_api_type_ids);
     }
 
     get get_query_api_type_ids(): string[] {
-        return this.vuexGet<string[]>(reflect<this>().get_query_api_type_ids);
+        return this.vuexGet(reflect<this>().get_query_api_type_ids);
+    }
+
+    get widget_options(): BlocTextWidgetOptionsVO {
+        if (!this.page_widget) {
+            return null;
+        }
+
+        let options: BlocTextWidgetOptionsVO = null;
+        try {
+            if (this.page_widget.json_options) {
+                options = JSON.parse(this.page_widget.json_options) as BlocTextWidgetOptionsVO;
+                options = options ? new BlocTextWidgetOptionsVO().from(options) : null;
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+
+        return options;
     }
 
 
@@ -83,11 +102,14 @@ export default class BlocTextWidgetOptionsComponent extends VueComponentBase {
     }
 
     // Accès dynamiques Vuex
-    public vuexGet<T>(getter: string): T {
-        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    public vuexGet<K extends keyof IDashboardGetters>(getter: K): IDashboardGetters[K] {
+        return this.$store.getters[`${this.storeNamespace}/${String(getter)}`];
     }
-    public vuexAct<A>(action: string, payload?: A) {
-        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    public vuexAct<K extends keyof IDashboardPageActionsMethods>(
+        action: K,
+        ...args: Parameters<IDashboardPageActionsMethods[K]>
+    ) {
+        this.$store.dispatch(`${this.storeNamespace}/${String(action)}`, ...args);
     }
 
     public set_page_widget(page_widget: DashboardPageWidgetVO) {
@@ -129,24 +151,6 @@ export default class BlocTextWidgetOptionsComponent extends VueComponentBase {
 
         this.set_page_widget(this.page_widget);
         this.$emit('update_layout_widget', this.page_widget);
-    }
-
-    get widget_options(): BlocTextWidgetOptionsVO {
-        if (!this.page_widget) {
-            return null;
-        }
-
-        let options: BlocTextWidgetOptionsVO = null;
-        try {
-            if (this.page_widget.json_options) {
-                options = JSON.parse(this.page_widget.json_options) as BlocTextWidgetOptionsVO;
-                options = options ? new BlocTextWidgetOptionsVO().from(options) : null;
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-
-        return options;
     }
 
 }

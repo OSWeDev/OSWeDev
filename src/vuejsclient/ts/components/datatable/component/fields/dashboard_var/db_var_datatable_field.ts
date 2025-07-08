@@ -27,12 +27,13 @@ import WidgetOptionsVOManager from '../../../../dashboard_builder/widgets/Widget
 import ValidationFiltersWidgetController from '../../../../dashboard_builder/widgets/validation_filters_widget/ValidationFiltersWidgetController';
 import VarWidgetComponent from '../../../../dashboard_builder/widgets/var_widget/VarWidgetComponent';
 import './db_var_datatable_field.scss';
+import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../../../dashboard_builder/page/DashboardPageStore';
 
 @Component({
     template: require('./db_var_datatable_field.pug'),
     components: {}
 })
-export default class DBVarDatatableFieldComponent extends VueComponentBase {
+export default class DBVarDatatableFieldComponent extends VueComponentBase implements IDashboardPageConsumer {
     @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @Prop()
@@ -85,11 +86,11 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
     private limit_nb_ts_ranges_on_param_by_context_filter: number = 100;
 
     get get_discarded_field_paths(): { [vo_type: string]: { [field_id: string]: boolean } } {
-        return this.vuexGet<{ [vo_type: string]: { [field_id: string]: boolean } }>(reflect<this>().get_discarded_field_paths);
+        return this.vuexGet(reflect<this>().get_discarded_field_paths);
     }
 
     get get_active_field_filters(): FieldFiltersVO {
-        return this.vuexGet<FieldFiltersVO>(reflect<this>().get_active_field_filters);
+        return this.vuexGet(reflect<this>().get_active_field_filters);
     }
 
     get var_custom_filters(): { [var_param_field_name: string]: string } {
@@ -98,11 +99,11 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
     }
 
     get get_page_widgets(): DashboardPageWidgetVO[] {
-        return this.vuexGet<DashboardPageWidgetVO[]>(reflect<this>().get_page_widgets);
+        return this.vuexGet(reflect<this>().get_page_widgets);
     }
 
     get get_selected_page_page_widgets_by_id(): { [id: number]: DashboardWidgetVO } {
-        return this.vuexGet<{ [id: number]: DashboardWidgetVO }>(reflect<this>().get_selected_page_page_widgets_by_id);
+        return this.vuexGet(reflect<this>().get_selected_page_page_widgets_by_id);
     }
 
     get var_filter(): string {
@@ -129,11 +130,14 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
     }
 
     // Accès dynamiques Vuex
-    public vuexGet<T>(getter: string): T {
-        return (this.$store.getters as any)[`${this.storeNamespace}/${getter}`];
+    public vuexGet<K extends keyof IDashboardGetters>(getter: K): IDashboardGetters[K] {
+        return this.$store.getters[`${this.storeNamespace}/${String(getter)}`];
     }
-    public vuexAct<A>(action: string, payload?: A) {
-        return this.$store.dispatch(`${this.storeNamespace}/${action}`, payload);
+    public vuexAct<K extends keyof IDashboardPageActionsMethods>(
+        action: K,
+        ...args: Parameters<IDashboardPageActionsMethods[K]>
+    ) {
+        this.$store.dispatch(`${this.storeNamespace}/${String(action)}`, ...args);
     }
 
 
