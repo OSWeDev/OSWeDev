@@ -3,18 +3,19 @@ import 'quill/dist/quill.core.css'; // Compliqué à lazy load
 import 'quill/dist/quill.snow.css'; // Compliqué à lazy load
 import Component from 'vue-class-component';
 import { Inject, Prop, Watch } from 'vue-property-decorator';
+import Throttle from '../../../../../../../shared/annotations/Throttle';
 import RoleVO from '../../../../../../../shared/modules/AccessPolicy/vos/RoleVO';
 import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import ModuleTableController from '../../../../../../../shared/modules/DAO/ModuleTableController';
 import CMSCrudButtonsWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/CMSCrudButtonsWidgetOptionsVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
+import EventifyEventListenerConfVO from '../../../../../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import { reflect } from '../../../../../../../shared/tools/ObjectHandler';
-import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../../VueComponentBase';
-import './CMSCrudButtonsWidgetOptionsComponent.scss';
 import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../../page/DashboardPageStore';
+import './CMSCrudButtonsWidgetOptionsComponent.scss';
 
 @Component({
     template: require('./CMSCrudButtonsWidgetOptionsComponent.pug')
@@ -36,8 +37,6 @@ export default class CMSCrudButtonsWidgetOptionsComponent extends VueComponentBa
     public list_roles: RoleVO[] = [];
 
     public next_update_options: CMSCrudButtonsWidgetOptionsVO = null;
-    public throttled_update_options = ThrottleHelper.declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
-
 
     get widget_options(): CMSCrudButtonsWidgetOptionsVO {
         if (!this.page_widget) {
@@ -115,7 +114,26 @@ export default class CMSCrudButtonsWidgetOptionsComponent extends VueComponentBa
             this.next_update_options.show_add_edit_fk = this.show_add_edit_fk;
             this.next_update_options.role_access = this.selected_roles;
 
-            await this.throttled_update_options();
+            await this.update_options();
+        }
+    }
+
+    @Throttle({
+        param_type: EventifyEventListenerConfVO.PARAM_TYPE_NONE,
+        throttle_ms: 50,
+        leading: false,
+    })
+    public async update_options() {
+        try {
+            this.page_widget.json_options = JSON.stringify(this.next_update_options);
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+
+        await ModuleDAO.getInstance().insertOrUpdateVO(this.page_widget);
+
+        if (!this.widget_options) {
+            return;
         }
     }
 
@@ -130,11 +148,6 @@ export default class CMSCrudButtonsWidgetOptionsComponent extends VueComponentBa
         this.$store.dispatch(`${this.storeNamespace}/${String(action)}`, ...args);
     }
 
-    public set_page_widget(page_widget: DashboardPageWidgetVO): void {
-        this.vuexAct<DashboardPageWidgetVO>(reflect<this>().set_page_widget, page_widget);
-    }
-
-
     public async mounted() {
 
         if (!this.widget_options) {
@@ -147,7 +160,7 @@ export default class CMSCrudButtonsWidgetOptionsComponent extends VueComponentBa
 
         this.list_roles = await query(RoleVO.API_TYPE_ID).select_vos();
 
-        await this.throttled_update_options();
+        await this.update_options();
     }
 
     public get_default_options(): CMSCrudButtonsWidgetOptionsVO {
@@ -160,23 +173,6 @@ export default class CMSCrudButtonsWidgetOptionsComponent extends VueComponentBa
             true,
             [],
         );
-    }
-
-    public async update_options() {
-        try {
-            this.page_widget.json_options = JSON.stringify(this.next_update_options);
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-
-        await ModuleDAO.getInstance().insertOrUpdateVO(this.page_widget);
-
-        if (!this.widget_options) {
-            return;
-        }
-
-        this.set_page_widget(this.page_widget);
-        this.$emit('update_layout_widget', this.page_widget);
     }
 
     public crud_api_type_id_select_label(api_type_id: string): string {
@@ -192,7 +188,7 @@ export default class CMSCrudButtonsWidgetOptionsComponent extends VueComponentBa
 
         this.next_update_options.show_add_edit_fk = !this.next_update_options.show_add_edit_fk;
 
-        await this.throttled_update_options();
+        await this.update_options();
     }
 
     public async switch_show_add() {
@@ -204,7 +200,7 @@ export default class CMSCrudButtonsWidgetOptionsComponent extends VueComponentBa
 
         this.next_update_options.show_add = !this.next_update_options.show_add;
 
-        await this.throttled_update_options();
+        await this.update_options();
     }
 
     public async switch_show_update() {
@@ -216,7 +212,7 @@ export default class CMSCrudButtonsWidgetOptionsComponent extends VueComponentBa
 
         this.next_update_options.show_update = !this.next_update_options.show_update;
 
-        await this.throttled_update_options();
+        await this.update_options();
     }
 
     public async switch_show_delete() {
@@ -228,7 +224,7 @@ export default class CMSCrudButtonsWidgetOptionsComponent extends VueComponentBa
 
         this.next_update_options.show_delete = !this.next_update_options.show_delete;
 
-        await this.throttled_update_options();
+        await this.update_options();
     }
 
     public async switch_show_manual_vo_type() {
@@ -240,7 +236,7 @@ export default class CMSCrudButtonsWidgetOptionsComponent extends VueComponentBa
 
         this.next_update_options.show_manual_vo_type = !this.next_update_options.show_manual_vo_type;
 
-        await this.throttled_update_options();
+        await this.update_options();
     }
 
     public multiselectRoleOptionLabel(filter_item: RoleVO): string {

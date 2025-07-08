@@ -262,10 +262,6 @@ export default class CMSImageWidgetOptionsComponent extends VueComponentBase imp
         this.$store.dispatch(`${this.storeNamespace}/${String(action)}`, ...args);
     }
 
-    public set_page_widget(page_widget: DashboardPageWidgetVO): void {
-        this.vuexAct<DashboardPageWidgetVO>(reflect<this>().set_page_widget, page_widget);
-    }
-
     public async update_options() {
         try {
             this.page_widget.json_options = JSON.stringify(this.next_update_options);
@@ -278,9 +274,6 @@ export default class CMSImageWidgetOptionsComponent extends VueComponentBase imp
         if (!this.widget_options) {
             return;
         }
-
-        this.set_page_widget(this.page_widget);
-        this.$emit('update_layout_widget', this.page_widget);
     }
 
     public async switch_use_for_template() {

@@ -1,23 +1,24 @@
+import { isEqual } from 'lodash';
 import 'quill/dist/quill.bubble.css'; // Compliqué à lazy load
 import 'quill/dist/quill.core.css'; // Compliqué à lazy load
 import 'quill/dist/quill.snow.css'; // Compliqué à lazy load
 import Component from 'vue-class-component';
 import { Inject, Prop, Watch } from 'vue-property-decorator';
+import RoleVO from '../../../../../../../shared/modules/AccessPolicy/vos/RoleVO';
+import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
+import ModuleTableController from '../../../../../../../shared/modules/DAO/ModuleTableController';
 import CMSLinkButtonWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/CMSLinkButtonWidgetOptionsVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
+import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../../VueComponentBase';
-import './CMSLinkButtonWidgetOptionsComponent.scss';
-import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
-import { isEqual } from 'lodash';
 import SingleVoFieldRefHolderComponent from '../../../options_tools/single_vo_field_ref_holder/SingleVoFieldRefHolderComponent';
-import RoleVO from '../../../../../../../shared/modules/AccessPolicy/vos/RoleVO';
-import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ModuleTableController from '../../../../../../../shared/modules/DAO/ModuleTableController';
-import { reflect } from '../../../../../../../shared/tools/ObjectHandler';
 import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../../page/DashboardPageStore';
+import './CMSLinkButtonWidgetOptionsComponent.scss';
+import Throttle from '../../../../../../../shared/annotations/Throttle';
+import EventifyEventListenerConfVO from '../../../../../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO';
 
 @Component({
     template: require('./CMSLinkButtonWidgetOptionsComponent.pug'),
@@ -188,6 +189,11 @@ export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBas
         );
     }
 
+    @Throttle({
+        param_type: EventifyEventListenerConfVO.PARAM_TYPE_NONE,
+        throttle_ms: 50,
+        leading: false,
+    })
     public async update_options() {
         try {
             this.page_widget.json_options = JSON.stringify(this.next_update_options);
@@ -196,13 +202,6 @@ export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBas
         }
 
         await ModuleDAO.getInstance().insertOrUpdateVO(this.page_widget);
-
-        if (!this.widget_options) {
-            return;
-        }
-
-        this.set_page_widget(this.page_widget);
-        this.$emit('update_layout_widget', this.page_widget);
     }
 
     public crud_api_type_id_select_label(api_type_id: string): string {
@@ -259,11 +258,6 @@ export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBas
     ) {
         this.$store.dispatch(`${this.storeNamespace}/${String(action)}`, ...args);
     }
-
-    public set_page_widget(page_widget: DashboardPageWidgetVO): void {
-        this.vuexAct<DashboardPageWidgetVO>(reflect<this>().set_page_widget, page_widget);
-    }
-
 
     public async switch_text_color() {
         this.next_update_options = this.widget_options;

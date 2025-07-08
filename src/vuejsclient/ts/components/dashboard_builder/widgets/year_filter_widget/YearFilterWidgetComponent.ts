@@ -18,8 +18,8 @@ import RangeHandler from '../../../../../../shared/tools/RangeHandler';
 import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../../VueComponentBase';
 import YearFilterInputComponent from '../../../year_filter_input/YearFilterInputComponent';
-import './YearFilterWidgetComponent.scss';
 import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../page/DashboardPageStore';
+import './YearFilterWidgetComponent.scss';
 
 @Component({
     template: require('./YearFilterWidgetComponent.pug'),
@@ -32,31 +32,31 @@ export default class YearFilterWidgetComponent extends VueComponentBase implemen
 
 
     @Prop({ default: null })
-    private page_widget: DashboardPageWidgetVO;
+    public page_widget: DashboardPageWidgetVO;
 
     @ModuleTranslatableTextGetter
-    private get_flat_locale_translations: { [code_text: string]: string };
+    public get_flat_locale_translations: { [code_text: string]: string };
 
     public selected_years: { [year: number]: boolean } = {};
     // Is All Years Selected Toggle Button
     // - Shall be highlight or true when selected_years empty
     // - Shall be false when selected_years has at least one selected
-    private is_all_years_selected: boolean = false;
-    private force_selected_years_reset: boolean = false;
+    public is_all_years_selected: boolean = false;
+    public force_selected_years_reset: boolean = false;
 
-    private auto_select_year: boolean = null;
-    private auto_select_year_relative_mode: boolean = null;
-    private auto_select_year_min: number = null;
-    private auto_select_year_max: number = null;
+    public auto_select_year: boolean = null;
+    public auto_select_year_relative_mode: boolean = null;
+    public auto_select_year_min: number = null;
+    public auto_select_year_max: number = null;
 
-    private old_widget_options: YearFilterWidgetOptionsVO = null;
-    private is_relative_to_other_filter: boolean = false;
-    private relative_to_other_filter_id: number = null;
+    public old_widget_options: YearFilterWidgetOptionsVO = null;
+    public is_relative_to_other_filter: boolean = false;
+    public relative_to_other_filter_id: number = null;
 
     // Relative page widget (if relative_to_other_filter_id is set)
-    private relative_page_widget: DashboardPageWidgetVO = null;
+    public relative_page_widget: DashboardPageWidgetVO = null;
 
-    private widget_options: YearFilterWidgetOptionsVO = null;
+    public widget_options: YearFilterWidgetOptionsVO = null;
 
     get get_active_field_filters(): FieldFiltersVO {
         return this.vuexGet(reflect<this>().get_active_field_filters);
@@ -66,36 +66,80 @@ export default class YearFilterWidgetComponent extends VueComponentBase implemen
         return this.vuexGet(reflect<this>().get_page_widgets_components_by_pwid);
     }
 
+    get is_vo_field_ref(): boolean {
+        if (!this.widget_options) {
+            return true;
+        }
 
-    // Accès dynamiques Vuex
-    public vuexGet<K extends keyof IDashboardGetters>(getter: K): IDashboardGetters[K] {
-        return this.$store.getters[`${this.storeNamespace}/${String(getter)}`];
-    }
-    public vuexAct<K extends keyof IDashboardPageActionsMethods>(
-        action: K,
-        ...args: Parameters<IDashboardPageActionsMethods[K]>
-    ) {
-        this.$store.dispatch(`${this.storeNamespace}/${String(action)}`, ...args);
+        return this.widget_options.is_vo_field_ref;
     }
 
-    public set_page_widget_component_by_pwid(param: { pwid: number, page_widget_component: VueComponentBase }) {
-        return this.vuexAct(reflect<this>().set_page_widget_component_by_pwid, param);
+    get custom_filter_name(): string {
+        if (!this.widget_options) {
+            return null;
+        }
+
+        return this.widget_options.custom_filter_name;
     }
 
-    public set_active_field_filter(param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) {
-        return this.vuexAct(reflect<this>().set_active_field_filter, param);
+    get vo_field_ref(): VOFieldRefVO {
+        const options: YearFilterWidgetOptionsVO = this.widget_options;
+
+        if ((!options) || (!options.vo_field_ref)) {
+            return null;
+        }
+
+        return Object.assign(new VOFieldRefVO(), options.vo_field_ref);
     }
 
-    public remove_active_field_filter(params: { vo_type: string, field_id: string }) {
-        return this.vuexAct(reflect<this>().remove_active_field_filter, params);
+    /**
+     * Can Select All
+     *  - Can select all clickable button
+     */
+    get can_select_all(): boolean {
+
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return !!this.widget_options.can_select_all;
     }
 
+    get relative_to_this_filter(): YearFilterWidgetComponent {
+        if (!this.widget_options.auto_select_year_relative_mode) {
+            return null;
+        }
 
-    protected async mounted() {
-        this.set_page_widget_component_by_pwid({
-            pwid: this.page_widget.id,
-            page_widget_component: this
-        });
+        if (!this.widget_options.is_relative_to_other_filter) {
+            return null;
+        }
+
+        if (!this.widget_options.relative_to_other_filter_id) {
+            return null;
+        }
+
+        return this.get_page_widgets_components_by_pwid[this.widget_options.relative_to_other_filter_id] as YearFilterWidgetComponent;
+    }
+
+    get other_filter_selected_years(): { [year: string]: boolean } {
+        if (!this.relative_to_this_filter) {
+            return null;
+        }
+
+        const other_filter_selected_years = this.relative_to_this_filter.selected_years;
+        if (!other_filter_selected_years) {
+            return null;
+        }
+
+        return other_filter_selected_years;
+    }
+
+    get years(): string[] {
+        const res: string[] = YearFilterWidgetManager.get_available_years_from_widget_options(
+            this.widget_options,
+        );
+
+        return res;
     }
 
     /**
@@ -105,7 +149,7 @@ export default class YearFilterWidgetComponent extends VueComponentBase implemen
      * @returns {void}
      */
     @Watch('page_widget', { immediate: true, deep: true })
-    private onchange_page_widget(): void {
+    public onchange_page_widget(): void {
         if (!this.page_widget) {
             return;
         }
@@ -120,7 +164,7 @@ export default class YearFilterWidgetComponent extends VueComponentBase implemen
      * @returns void
      */
     @Watch('widget_options', { immediate: true, deep: true })
-    private onchange_widget_options(): void {
+    public onchange_widget_options(): void {
         if (this.old_widget_options) {
             if (isEqual(this.widget_options, this.old_widget_options)) {
                 return;
@@ -159,7 +203,7 @@ export default class YearFilterWidgetComponent extends VueComponentBase implemen
     }
 
     @Watch('other_filter_selected_years', { immediate: true, deep: true })
-    private onchange_other_filter_selected_years() {
+    public onchange_other_filter_selected_years() {
         if (!this.relative_to_this_filter) {
             return;
         }
@@ -179,7 +223,7 @@ export default class YearFilterWidgetComponent extends VueComponentBase implemen
      * @returns void
      */
     @Watch('selected_years', { immediate: true, deep: true })
-    private onchange_selected_years(): void {
+    public onchange_selected_years(): void {
         // 1 on cherche le contextfilter correspondant à ce type de filtre
         const root_context_filter: ContextFilterVO = FieldFiltersVOManager.get_context_filter_by_widget_options_from_field_filters(
             this.widget_options,
@@ -300,7 +344,7 @@ export default class YearFilterWidgetComponent extends VueComponentBase implemen
      * @returns void
      */
     @Watch("get_active_field_filters", { immediate: true, deep: true })
-    private try_preload_selected_years(): void {
+    public try_preload_selected_years(): void {
 
         // 1 on cherche le contextfilter correspondant à ce type de filtre
         const root_context_filter: ContextFilterVO = FieldFiltersVOManager.get_context_filter_by_widget_options_from_field_filters(
@@ -344,7 +388,7 @@ export default class YearFilterWidgetComponent extends VueComponentBase implemen
      * computed widget_options
      *  - Called on component|widget creation
      */
-    private get_widget_options(): YearFilterWidgetOptionsVO {
+    public get_widget_options(): YearFilterWidgetOptionsVO {
         if (!this.page_widget) {
             return null;
         }
@@ -365,90 +409,46 @@ export default class YearFilterWidgetComponent extends VueComponentBase implemen
     /**
      * Handle Select All Change
      */
-    private handle_all_years_selected_change(is_all_years_selected: boolean): void {
+    public handle_all_years_selected_change(is_all_years_selected: boolean): void {
         this.is_all_years_selected = is_all_years_selected;
     }
 
     /**
      * Handle Selected Month Change
      */
-    private handle_selected_year_change(selected_years: { [year: number]: boolean }): void {
+    public handle_selected_year_change(selected_years: { [year: number]: boolean }): void {
         this.selected_years = selected_years;
     }
 
-    get is_vo_field_ref(): boolean {
-        if (!this.widget_options) {
-            return true;
-        }
 
-        return this.widget_options.is_vo_field_ref;
+    // Accès dynamiques Vuex
+    public vuexGet<K extends keyof IDashboardGetters>(getter: K): IDashboardGetters[K] {
+        return this.$store.getters[`${this.storeNamespace}/${String(getter)}`];
+    }
+    public vuexAct<K extends keyof IDashboardPageActionsMethods>(
+        action: K,
+        ...args: Parameters<IDashboardPageActionsMethods[K]>
+    ) {
+        this.$store.dispatch(`${this.storeNamespace}/${String(action)}`, ...args);
     }
 
-    get custom_filter_name(): string {
-        if (!this.widget_options) {
-            return null;
-        }
-
-        return this.widget_options.custom_filter_name;
+    public set_page_widget_component_by_pwid(param: { pwid: number, page_widget_component: VueComponentBase }) {
+        return this.vuexAct(reflect<this>().set_page_widget_component_by_pwid, param);
     }
 
-    get vo_field_ref(): VOFieldRefVO {
-        const options: YearFilterWidgetOptionsVO = this.widget_options;
-
-        if ((!options) || (!options.vo_field_ref)) {
-            return null;
-        }
-
-        return Object.assign(new VOFieldRefVO(), options.vo_field_ref);
+    public set_active_field_filter(param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) {
+        return this.vuexAct(reflect<this>().set_active_field_filter, param);
     }
 
-    /**
-     * Can Select All
-     *  - Can select all clickable button
-     */
-    get can_select_all(): boolean {
-
-        if (!this.widget_options) {
-            return false;
-        }
-
-        return !!this.widget_options.can_select_all;
+    public remove_active_field_filter(params: { vo_type: string, field_id: string }) {
+        return this.vuexAct(reflect<this>().remove_active_field_filter, params);
     }
 
-    get relative_to_this_filter(): YearFilterWidgetComponent {
-        if (!this.widget_options.auto_select_year_relative_mode) {
-            return null;
-        }
 
-        if (!this.widget_options.is_relative_to_other_filter) {
-            return null;
-        }
-
-        if (!this.widget_options.relative_to_other_filter_id) {
-            return null;
-        }
-
-        return this.get_page_widgets_components_by_pwid[this.widget_options.relative_to_other_filter_id] as YearFilterWidgetComponent;
-    }
-
-    get other_filter_selected_years(): { [year: string]: boolean } {
-        if (!this.relative_to_this_filter) {
-            return null;
-        }
-
-        const other_filter_selected_years = this.relative_to_this_filter.selected_years;
-        if (!other_filter_selected_years) {
-            return null;
-        }
-
-        return other_filter_selected_years;
-    }
-
-    get years(): string[] {
-        const res: string[] = YearFilterWidgetManager.get_available_years_from_widget_options(
-            this.widget_options,
-        );
-
-        return res;
+    public async mounted() {
+        this.set_page_widget_component_by_pwid({
+            pwid: this.page_widget.id,
+            page_widget_component: this
+        });
     }
 }

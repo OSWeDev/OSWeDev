@@ -6,13 +6,12 @@ import { Inject, Prop, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import CMSLikeButtonWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/CMSLikeButtonWidgetOptionsVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
+import NumRange from '../../../../../../../shared/modules/DataRender/vos/NumRange';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../../VueComponentBase';
-import './CMSLikeButtonWidgetOptionsComponent.scss';
-import NumRange from '../../../../../../../shared/modules/DataRender/vos/NumRange';
-import { reflect } from '../../../../../../../shared/tools/ObjectHandler';
 import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../../page/DashboardPageStore';
+import './CMSLikeButtonWidgetOptionsComponent.scss';
 
 @Component({
     template: require('./CMSLikeButtonWidgetOptionsComponent.pug')
@@ -116,10 +115,6 @@ export default class CMSLikeButtonWidgetOptionsComponent extends VueComponentBas
         this.$store.dispatch(`${this.storeNamespace}/${String(action)}`, ...args);
     }
 
-    public set_page_widget(page_widget: DashboardPageWidgetVO): void {
-        this.vuexAct<DashboardPageWidgetVO>(reflect<this>().set_page_widget, page_widget);
-    }
-
     public async update_options() {
         try {
             this.page_widget.json_options = JSON.stringify(this.next_update_options);
@@ -128,13 +123,6 @@ export default class CMSLikeButtonWidgetOptionsComponent extends VueComponentBas
         }
 
         await ModuleDAO.getInstance().insertOrUpdateVO(this.page_widget);
-
-        if (!this.widget_options) {
-            return;
-        }
-
-        this.set_page_widget(this.page_widget);
-        this.$emit('update_layout_widget', this.page_widget);
     }
 
 }

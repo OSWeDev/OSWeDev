@@ -2,6 +2,7 @@ import Component from 'vue-class-component';
 import { Inject, Prop, Watch } from 'vue-property-decorator';
 import Throttle from '../../../../../../shared/annotations/Throttle';
 import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
@@ -12,6 +13,7 @@ import VueComponentBase from '../../../VueComponentBase';
 import DashboardCopyWidgetComponent from '../../copy_widget/DashboardCopyWidgetComponent';
 import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../page/DashboardPageStore';
 import './DashboardBuilderBoardItemComponent.scss';
+import DashboardPageWidgetController from '../../DashboardPageWidgetController';
 
 @Component({
     template: require('./DashboardBuilderBoardItemComponent.pug'),
@@ -23,27 +25,27 @@ export default class DashboardBuilderBoardItemComponent extends VueComponentBase
     @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @Prop({ default: null })
-    private all_page_widget: DashboardPageWidgetVO[];
+    public all_page_widget: DashboardPageWidgetVO[];
 
     @Prop()
-    private dashboard_page: DashboardPageVO;
+    public dashboard_page: DashboardPageVO;
 
     @Prop()
-    private dashboard_pages: DashboardPageVO[];
+    public dashboard_pages: DashboardPageVO[];
 
     @Prop()
-    private dashboard: DashboardVO;
+    public dashboard: DashboardVO;
 
     @Prop()
-    private page_widget: DashboardPageWidgetVO;
+    public page_widget: DashboardPageWidgetVO;
 
     @Prop({ default: true })
-    private is_edit_mode: boolean;
+    public is_edit_mode: boolean;
 
     @Prop({ default: false })
-    private is_selected: boolean;
+    public is_selected: boolean;
 
-    private widget: DashboardWidgetVO = null;
+    public widget: DashboardWidgetVO = null;
 
     get get_Dashboardcopywidgetcomponent(): DashboardCopyWidgetComponent {
         return this.vuexGet(reflect<this>().get_Dashboardcopywidgetcomponent);
@@ -52,7 +54,7 @@ export default class DashboardBuilderBoardItemComponent extends VueComponentBase
 
     @Watch('page_widget', { immediate: true })
     @Watch('dashboard_page')
-    private async on_prop_updates() {
+    public async on_prop_updates() {
         this.onchange_widget();
     }
 
@@ -60,7 +62,7 @@ export default class DashboardBuilderBoardItemComponent extends VueComponentBase
         param_type: EventifyEventListenerConfVO.PARAM_TYPE_NONE,
         throttle_ms: 100,
     })
-    private async onchange_widget() {
+    public async onchange_widget() {
         if ((!this.page_widget) || (this.page_widget.page_id != this.dashboard_page?.id)) {
             return;
         }
@@ -102,7 +104,7 @@ export default class DashboardBuilderBoardItemComponent extends VueComponentBase
     }
 
 
-    private mounted() {
+    public mounted() {
         if ((!this.page_widget?.id) || (this.page_widget.page_id != this.dashboard_page?.id)) {
             return;
         }
@@ -116,15 +118,15 @@ export default class DashboardBuilderBoardItemComponent extends VueComponentBase
         }
     }
 
-    private delete_widget() {
-        this.$emit('delete_widget', this.page_widget);
+    public delete_widget() {
+        DashboardPageWidgetController.delete_widget(
+            this.page_widget,
+            this.set_selected_widget.bind(this),
+            this.snotify,
+        );
     }
 
-    private select_page(page) {
-        this.$emit('select_page', page);
-    }
-
-    private async copy_widget() {
+    public async copy_widget() {
         await this.get_Dashboardcopywidgetcomponent.open_copy_modal(
             this.page_widget,
             this.dashboard_pages,

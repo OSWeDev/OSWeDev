@@ -26,7 +26,7 @@
                 .input_wrapper
                     color-picker(
                         v-model="bg_color"
-                        @change='throttled_update_colors'
+                        @change='update_colors'
                         class="bg_color_picker"
                     )
 
@@ -62,7 +62,7 @@
                         .title_font_color
                             .input_label {{ label("var_pie_chart_widget_options_component.title_font_color") }}
                             .input_wrapper 
-                                color-picker(v-model="title_font_color" @change='throttled_update_colors' class="bg_color_picker")
+                                color-picker(v-model="title_font_color" @change='update_colors' class="bg_color_picker")
 
                         .title_font_size
                             .input_label {{ label('var_pie_chart_widget_options_component.title_font_size') }}
@@ -125,7 +125,7 @@
                         .legend_font_color
                             .input_label {{ label("var_pie_chart_widget_options_component.legend_font_color") }}
                             .input_wrapper 
-                                color-picker(v-model="legend_font_color" @change='throttled_update_colors' class="bg_color_picker")
+                                color-picker(v-model="legend_font_color" @change='update_colors' class="bg_color_picker")
 
                         .legend_font_size
                             .input_label {{ label('var_pie_chart_widget_options_component.legend_font_size') }}
@@ -235,7 +235,7 @@
                 .bg_color_1
                     .input_label {{ label("var_pie_chart_widget_options_component.bg_color_1") }}
                     .input_wrapper
-                        color-picker(v-model="bg_color_1" @change='throttled_update_colors' class="bg_color_picker")
+                        color-picker(v-model="bg_color_1" @change='update_colors' class="bg_color_picker")
 
             template(v-else)
                 .input_wrapper
@@ -262,7 +262,7 @@
             .border_color_1
                 .input_label {{ label("var_pie_chart_widget_options_component.border_color_1") }}
                 .input_wrapper 
-                    color-picker(v-model="border_color_1" @change='throttled_update_colors' class="bg_color_picker")
+                    color-picker(v-model="border_color_1" @change='update_colors' class="bg_color_picker")
 
             .border_width_1
                 .input_label {{ label('var_pie_chart_widget_options_component.border_width_1') }}

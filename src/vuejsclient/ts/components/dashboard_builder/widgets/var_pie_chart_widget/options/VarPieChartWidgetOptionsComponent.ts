@@ -1,6 +1,7 @@
 import { cloneDeep } from 'lodash';
 import Component from 'vue-class-component';
 import { Inject, Prop, Watch } from 'vue-property-decorator';
+import Throttle from '../../../../../../../shared/annotations/Throttle';
 import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import ModuleTableController from '../../../../../../../shared/modules/DAO/ModuleTableController';
@@ -10,16 +11,16 @@ import DashboardPageWidgetVO from '../../../../../../../shared/modules/Dashboard
 import VarPieChartWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VarPieChartWidgetOptionsVO';
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import TimeSegment from '../../../../../../../shared/modules/DataRender/vos/TimeSegment';
+import EventifyEventListenerConfVO from '../../../../../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO';
 import VarsController from '../../../../../../../shared/modules/Var/VarsController';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import ObjectHandler, { reflect } from '../../../../../../../shared/tools/ObjectHandler';
-import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../../../VueComponentBase';
 import SingleVoFieldRefHolderComponent from '../../../options_tools/single_vo_field_ref_holder/SingleVoFieldRefHolderComponent';
+import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../../page/DashboardPageStore';
 import WidgetFilterOptionsComponent from '../../var_widget/options/filters/WidgetFilterOptionsComponent';
 import './VarPieChartWidgetOptionsComponent.scss';
-import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../../page/DashboardPageStore';
 
 @Component({
     template: require('./VarPieChartWidgetOptionsComponent.pug'),
@@ -39,22 +40,6 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
      * Copie des options (qui sera mise à jour via throttling)
      */
     public next_update_options: VarPieChartWidgetOptionsVO = null;
-
-    /**
-     * Mécanismes de throttle pour recharger / mettre à jour les options
-     */
-    public throttled_reload_options = ThrottleHelper.declare_throttle_without_args(
-        'VarPieChartWidgetOptionsComponent.throttled_reload_options',
-        this.reload_options.bind(this), 50, false);
-
-    public throttled_update_options = ThrottleHelper.declare_throttle_without_args(
-        'VarPieChartWidgetOptionsComponent.throttled_update_options',
-        this.update_options.bind(this), 50, false);
-
-    public throttled_update_colors = ThrottleHelper.declare_throttle_without_args(
-        'VarPieChartWidgetOptionsComponent.throttled_update_colors',
-        this.update_colors.bind(this), 800, false);
-
 
     // --------------------------------------------------------------------------
     // Sections repliables : on stocke un objet pour savoir ce qui est ouvert ou fermé
@@ -251,641 +236,29 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         }
         this.dimension_custom_filter_name = this.tmp_selected_custom_filter;
         this.next_update_options.dimension_custom_filter_name = this.tmp_selected_custom_filter;
-        await this.throttled_update_options();
+        await this.update_options();
     }
 
     @Watch(reflect<VarPieChartWidgetOptionsComponent>().page_widget, { immediate: true, deep: true })
     public async onchange_page_widget() {
         await this.set_palette_options();
-        await this.throttled_reload_options();
+        await this.reload_options();
     }
 
     @Watch(reflect<VarPieChartWidgetOptionsComponent>().widget_options)
     public async onchange_widget_options() {
         await this.set_palette_options();
-        await this.throttled_reload_options();
-    }
-
-    @Watch(reflect<VarPieChartWidgetOptionsComponent>().tmp_selected_var_name_2)
-    public async onchange_tmp_selected_var_name_2() {
-        if (!this.widget_options) return;
-        if (!this.tmp_selected_var_name_2) {
-            if (this.widget_options.var_id_2) {
-                this.widget_options.var_id_2 = null;
-                this.custom_filter_names_2 = {};
-                this.widget_options.filter_custom_field_filters_2 = {};
-                await this.throttled_update_options();
-            }
-            return;
-        }
-        try {
-            const selected_var_id_2: number = parseInt(this.tmp_selected_var_name_2.split(' | ')[0]);
-            if (this.widget_options.var_id_2 != selected_var_id_2) {
-                this.next_update_options = this.widget_options;
-                this.next_update_options.var_id_2 = selected_var_id_2;
-                await this.throttled_update_options();
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-    }
-
-    @Watch(reflect<VarPieChartWidgetOptionsComponent>().tmp_selected_color_palette)
-    public async onchange_tmp_selected_color_palette() {
-        if (!this.widget_options) return;
-        if (!this.tmp_selected_color_palette) {
-            if (this.widget_options.color_palette) {
-                this.widget_options.color_palette = null;
-                await this.throttled_update_options();
-            }
-            return;
-        }
-        try {
-            const selected_palette_index = this.color_palettes_labels.indexOf(this.tmp_selected_color_palette);
-            const new_palette = this.color_palettes[selected_palette_index];
-            if (this.widget_options.color_palette != new_palette) {
-                this.next_update_options = this.widget_options;
-                this.next_update_options.color_palette = new_palette;
-                await this.throttled_update_options();
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-    }
-
-    @Watch(reflect<VarPieChartWidgetOptionsComponent>().tmp_selected_var_name_1)
-    public async onchange_tmp_selected_var_name_1() {
-        if (!this.widget_options) return;
-        if (!this.tmp_selected_var_name_1) {
-            if (this.widget_options.var_id_1) {
-                this.widget_options.var_id_1 = null;
-                this.custom_filter_names_1 = {};
-                this.widget_options.filter_custom_field_filters_1 = {};
-                await this.throttled_update_options();
-            }
-            return;
-        }
-        try {
-            const selected_var_id_1: number = parseInt(this.tmp_selected_var_name_1.split(' | ')[0]);
-            if (this.widget_options.var_id_1 != selected_var_id_1) {
-                this.next_update_options = this.widget_options;
-                this.next_update_options.var_id_1 = selected_var_id_1;
-                await this.throttled_update_options();
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-    }
-
-    @Watch(reflect<VarPieChartWidgetOptionsComponent>().tmp_selected_dimension_custom_filter_segment_type)
-    public async onchange_tmp_selected_dimension_custom_filter_segment_type() {
-        if (!this.widget_options) return;
-        if (!this.tmp_selected_dimension_custom_filter_segment_type) {
-            if (this.widget_options.dimension_custom_filter_segment_type) {
-                this.widget_options.dimension_custom_filter_segment_type = null;
-                await this.throttled_update_options();
-            }
-            return;
-        }
-        try {
-            const newType = this.get_dimension_custom_filter_segment_type_from_selected_option(
-                this.tmp_selected_dimension_custom_filter_segment_type
-            );
-            if (this.widget_options.dimension_custom_filter_segment_type != newType) {
-                this.next_update_options = this.widget_options;
-                this.next_update_options.dimension_custom_filter_segment_type = newType;
-                await this.throttled_update_options();
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-    }
-
-    @Watch(reflect<VarPieChartWidgetOptionsComponent>().tmp_selected_legend_position)
-    public async onchange_tmp_selected_legend_position() {
-        if (!this.widget_options) return;
-        if (!this.tmp_selected_legend_position) {
-            if (this.widget_options.legend_position) {
-                this.widget_options.legend_position = null;
-                await this.throttled_update_options();
-            }
-            return;
-        }
-        try {
-            if (this.widget_options.legend_position != this.tmp_selected_legend_position) {
-                this.next_update_options = this.widget_options;
-                this.next_update_options.legend_position = this.tmp_selected_legend_position;
-                await this.throttled_update_options();
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-    }
-
-    @Watch(reflect<VarPieChartWidgetOptionsComponent>().legend_font_size)
-    public async onchange_legend_font_size() {
-        if (!this.widget_options) return;
-        if (!this.legend_font_size) {
-            if (this.widget_options.legend_font_size) {
-                this.widget_options.legend_font_size = 12;
-                await this.throttled_update_options();
-            }
-            return;
-        }
-        try {
-            if (this.widget_options.legend_font_size != parseInt(this.legend_font_size)) {
-                if (parseInt(this.legend_font_size) <= 100 && parseInt(this.legend_font_size) >= 0) {
-                    this.next_update_options = this.widget_options;
-                    this.next_update_options.legend_font_size = parseInt(this.legend_font_size);
-                }
-                await this.throttled_update_options();
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-    }
-
-    @Watch(reflect<VarPieChartWidgetOptionsComponent>().legend_box_width)
-    public async onchange_legend_box_width() {
-        if (!this.widget_options) return;
-        if (!this.legend_box_width) {
-            if (this.widget_options.legend_box_width) {
-                this.widget_options.legend_box_width = 40;
-                await this.throttled_update_options();
-            }
-            return;
-        }
-        try {
-            if (this.widget_options.legend_box_width != parseInt(this.legend_box_width)) {
-                const val = parseInt(this.legend_box_width);
-                if (val <= 400 && val >= 0) {
-                    this.next_update_options = this.widget_options;
-                    this.next_update_options.legend_box_width = val;
-                }
-                await this.throttled_update_options();
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-    }
-
-    @Watch(reflect<VarPieChartWidgetOptionsComponent>().legend_padding)
-    public async onchange_legend_padding() {
-        if (!this.widget_options) return;
-        if (!this.legend_padding) {
-            if (this.widget_options.legend_padding) {
-                this.widget_options.legend_padding = 10;
-                await this.throttled_update_options();
-            }
-            return;
-        }
-        try {
-            if (this.widget_options.legend_padding != parseInt(this.legend_padding)) {
-                const val = parseInt(this.legend_padding);
-                if (val <= 100 && val >= 0) {
-                    this.next_update_options = this.widget_options;
-                    this.next_update_options.legend_padding = val;
-                }
-                await this.throttled_update_options();
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-    }
-
-    @Watch(reflect<VarPieChartWidgetOptionsComponent>().title_font_size)
-    public async onchange_title_font_size() {
-        if (!this.widget_options) return;
-        if (!this.title_font_size) {
-            if (this.widget_options.title_font_size) {
-                this.widget_options.title_font_size = 16;
-                await this.throttled_update_options();
-            }
-            return;
-        }
-        try {
-            const val = parseInt(this.title_font_size);
-            if (this.widget_options.title_font_size != val) {
-                if (val <= 100 && val >= 0) {
-                    this.next_update_options = this.widget_options;
-                    this.next_update_options.title_font_size = val;
-                }
-                await this.throttled_update_options();
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-    }
-
-    @Watch(reflect<VarPieChartWidgetOptionsComponent>().title_padding)
-    public async onchange_title_padding() {
-        if (!this.widget_options) return;
-        if (!this.title_padding) {
-            if (this.widget_options.title_padding) {
-                this.widget_options.title_padding = 10;
-                await this.throttled_update_options();
-            }
-            return;
-        }
-        try {
-            const val = parseInt(this.title_padding);
-            if (this.widget_options.title_padding != val) {
-                if (val <= 100 && val >= 0) {
-                    this.next_update_options = this.widget_options;
-                    this.next_update_options.title_padding = val;
-                }
-                await this.throttled_update_options();
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-    }
-
-    @Watch(reflect<VarPieChartWidgetOptionsComponent>().cutout_percentage)
-    public async onchange_cutout_percentage() {
-        if (!this.widget_options) return;
-        if (!this.cutout_percentage) {
-            if (this.widget_options.cutout_percentage) {
-                this.widget_options.cutout_percentage = 50;
-                await this.throttled_update_options();
-            }
-            return;
-        }
-        try {
-            const val = parseInt(this.cutout_percentage);
-            if (this.widget_options.cutout_percentage != val) {
-                if (val <= 95 && val >= 0) {
-                    this.next_update_options = this.widget_options;
-                    this.next_update_options.cutout_percentage = val;
-                }
-                await this.throttled_update_options();
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-    }
-
-    @Watch(reflect<VarPieChartWidgetOptionsComponent>().rotation)
-    public async onchange_rotation() {
-        if (!this.widget_options) return;
-        if (!this.rotation) {
-            if (this.widget_options.rotation) {
-                this.widget_options.rotation = 270;
-                await this.throttled_update_options();
-            }
-            return;
-        }
-        try {
-            const val = parseInt(this.rotation);
-            if (this.widget_options.rotation != val) {
-                if (val <= 360 && val >= 0) {
-                    this.next_update_options = this.widget_options;
-                    this.next_update_options.rotation = val;
-                }
-                await this.throttled_update_options();
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-    }
-
-    @Watch(reflect<VarPieChartWidgetOptionsComponent>().circumference)
-    public async onchange_circumference() {
-        if (!this.widget_options) return;
-        if (!this.circumference) {
-            if (this.widget_options.circumference) {
-                this.widget_options.circumference = 180;
-                await this.throttled_update_options();
-            }
-            return;
-        }
-        try {
-            const val = parseInt(this.circumference);
-            if (this.widget_options.circumference != val) {
-                if (val <= 360 && val >= 0) {
-                    this.next_update_options = this.widget_options;
-                    this.next_update_options.circumference = val;
-                }
-                await this.throttled_update_options();
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-    }
-
-    @Watch(reflect<VarPieChartWidgetOptionsComponent>().border_width_1)
-    public async onchange_border_width_1() {
-        if (!this.widget_options) return;
-        if (!this.border_width_1) {
-            if (this.widget_options.border_width_1) {
-                this.widget_options.border_width_1 = null;
-                await this.throttled_update_options();
-            }
-            return;
-        }
-        try {
-            if (this.widget_options.border_width_1 != this.border_width_1) {
-                if (this.border_width_1 <= 10 && this.border_width_1 >= 0) {
-                    this.next_update_options = this.widget_options;
-                    this.next_update_options.border_width_1 = this.border_width_1;
-                }
-                await this.throttled_update_options();
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-    }
-
-    @Watch(reflect<VarPieChartWidgetOptionsComponent>().border_width_2)
-    public async onchange_border_width_2() {
-        if (!this.widget_options) return;
-        if (!this.border_width_2) {
-            if (this.widget_options.border_width_2) {
-                this.widget_options.border_width_2 = null;
-                await this.throttled_update_options();
-            }
-            return;
-        }
-        try {
-            if (this.widget_options.border_width_2 != this.border_width_2) {
-                if (this.border_width_2 <= 10 && this.border_width_2 >= 0) {
-                    this.next_update_options = this.widget_options;
-                    this.next_update_options.border_width_2 = this.border_width_2;
-                }
-                await this.throttled_update_options();
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-    }
-
-    @Watch(reflect<VarPieChartWidgetOptionsComponent>().max_dimension_values)
-    public async onchange_max_dimension_values() {
-        if (!this.widget_options) return;
-        if (!this.max_dimension_values) {
-            if (this.widget_options.max_dimension_values) {
-                this.widget_options.max_dimension_values = 10;
-                await this.throttled_update_options();
-            }
-            return;
-        }
-        try {
-            const val = parseInt(this.max_dimension_values);
-            if (this.widget_options.max_dimension_values != val) {
-                if (this.widget_options.dimension_is_vo_field_ref) {
-                    if (val >= 0) {
-                        this.next_update_options = this.widget_options;
-                        this.next_update_options.max_dimension_values = val;
-                    }
-                    await this.throttled_update_options();
-                } else {
-                    if (val > 0) {
-                        this.next_update_options = this.widget_options;
-                        this.next_update_options.max_dimension_values = val;
-                    } else {
-                        this.snotify.error('Un custom filter doit avoir un maximum de valeurs à afficher supérieur à 0');
-                        this.next_update_options = this.widget_options;
-                        this.next_update_options.max_dimension_values = 10;
-                    }
-                    await this.throttled_update_options();
-                }
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-    }
-
-    // Accès dynamiques Vuex
-    public vuexGet<K extends keyof IDashboardGetters>(getter: K): IDashboardGetters[K] {
-        return this.$store.getters[`${this.storeNamespace}/${String(getter)}`];
-    }
-    public vuexAct<K extends keyof IDashboardPageActionsMethods>(
-        action: K,
-        ...args: Parameters<IDashboardPageActionsMethods[K]>
-    ) {
-        this.$store.dispatch(`${this.storeNamespace}/${String(action)}`, ...args);
-    }
-
-    public set_page_widget(page_widget: DashboardPageWidgetVO) {
-        return this.vuexAct(reflect<this>().set_page_widget, page_widget);
-    }
-
-    // --------------------------------------------------------------------------
-    // Méthodes "utils"
-    // --------------------------------------------------------------------------
-
-    /**
-     * Toggle l'ouverture d'une section => on inverse la valeur dans sectionsOpen
-     */
-    public toggleSection(sectionName: keyof typeof this.sectionsOpen) {
-        this.sectionsOpen[sectionName] = !this.sectionsOpen[sectionName];
-    }
-
-
-    public async set_palette_options() {
-        if (!this.widget_options) {
-            return;
-        }
-        this.color_palettes_labels = await this.get_color_palettes_labels();
-        this.bg_gradient = this.widget_options.color_palette ? false : true;
-        this.tmp_selected_color_palette =
-            !this.bg_gradient
-                ? this.color_palettes_labels[this.searchIndexOfArray(this.widget_options.color_palette, this.color_palettes)]
-                : null;
-    }
-
-    public async remove_dimension_vo_field_ref() {
-        this.next_update_options = this.widget_options;
-        if (!this.next_update_options || !this.next_update_options.dimension_vo_field_ref) {
-            return null;
-        }
-        this.next_update_options.dimension_vo_field_ref = null;
-        await this.throttled_update_options();
-    }
-
-    public async add_dimension_vo_field_ref(api_type_id: string, field_id: string) {
-        this.next_update_options = this.widget_options;
-        if (!this.next_update_options) {
-            this.next_update_options = this.get_default_options();
-        }
-        const dimension_vo_field_ref = new VOFieldRefVO();
-        dimension_vo_field_ref.api_type_id = api_type_id;
-        dimension_vo_field_ref.field_id = field_id;
-        dimension_vo_field_ref.weight = 0;
-        this.next_update_options.dimension_vo_field_ref = dimension_vo_field_ref;
-        await this.throttled_update_options();
-    }
-
-    public async remove_sort_dimension_by_vo_field_ref() {
-        this.next_update_options = this.widget_options;
-        if (!this.next_update_options || !this.next_update_options.sort_dimension_by_vo_field_ref) {
-            return null;
-        }
-        this.next_update_options.sort_dimension_by_vo_field_ref = null;
-        await this.throttled_update_options();
-    }
-
-    public async add_sort_dimension_by_vo_field_ref(api_type_id: string, field_id: string) {
-        this.next_update_options = this.widget_options;
-        if (!this.next_update_options) {
-            this.next_update_options = this.get_default_options();
-        }
-        const sort_dimension_by_vo_field_ref = new VOFieldRefVO();
-        sort_dimension_by_vo_field_ref.api_type_id = api_type_id;
-        sort_dimension_by_vo_field_ref.field_id = field_id;
-        sort_dimension_by_vo_field_ref.weight = 0;
-        this.next_update_options.sort_dimension_by_vo_field_ref = sort_dimension_by_vo_field_ref;
-        await this.throttled_update_options();
-    }
-
-    public get_default_options(): VarPieChartWidgetOptionsVO {
-        return VarPieChartWidgetOptionsVO.createDefault();
-    }
-
-    // Toggles divers
-
-    public async switch_bg_gradient() {
-        this.next_update_options = this.widget_options;
-        if (!this.next_update_options) {
-            this.next_update_options = this.get_default_options();
-        }
-        this.next_update_options.bg_gradient = !this.next_update_options.bg_gradient;
-        await this.throttled_update_options();
-    }
-
-    public async switch_legend_display() {
-        this.next_update_options = this.widget_options;
-        if (!this.next_update_options) {
-            this.next_update_options = this.get_default_options();
-        }
-        this.next_update_options.legend_display = !this.next_update_options.legend_display;
-        await this.throttled_update_options();
-    }
-
-    public async switch_label_display() {
-        this.next_update_options = this.widget_options;
-        if (!this.next_update_options) {
-            this.next_update_options = this.get_default_options();
-        }
-        this.next_update_options.label_display = !this.next_update_options.label_display;
-        await this.throttled_update_options();
-    }
-
-    public async switch_dimension_is_vo_field_ref() {
-        this.next_update_options = this.widget_options;
-        if (!this.next_update_options) {
-            this.next_update_options = this.get_default_options();
-        }
-        this.next_update_options.dimension_is_vo_field_ref = !this.next_update_options.dimension_is_vo_field_ref;
-        await this.throttled_update_options();
-    }
-
-    public async switch_sort_dimension_by_asc() {
-        this.next_update_options = this.widget_options;
-        if (!this.next_update_options) {
-            this.next_update_options = this.get_default_options();
-        }
-        this.next_update_options.sort_dimension_by_asc = !this.next_update_options.sort_dimension_by_asc;
-        await this.throttled_update_options();
-    }
-
-    public async switch_hide_filter() {
-        this.next_update_options = this.widget_options;
-        if (!this.next_update_options) {
-            this.next_update_options = this.get_default_options();
-        }
-        this.next_update_options.hide_filter = !this.next_update_options.hide_filter;
-        await this.throttled_update_options();
-    }
-
-    public async switch_has_dimension() {
-        if (!this.has_dimension) {
-            this.snotify.error('Not implemented yet');
-        }
-    }
-
-    public async switch_title_display() {
-        this.next_update_options = this.widget_options;
-        if (!this.next_update_options) {
-            this.next_update_options = this.get_default_options();
-        }
-        this.next_update_options.title_display = !this.next_update_options.title_display;
-        await this.throttled_update_options();
-    }
-
-    public async switch_legend_use_point_style() {
-        this.next_update_options = this.widget_options;
-        if (!this.next_update_options) {
-            this.next_update_options = this.get_default_options();
-        }
-        this.next_update_options.legend_use_point_style = !this.next_update_options.legend_use_point_style;
-        await this.throttled_update_options();
-    }
-
-    public async switch_max_is_sum_of_var_1_and_2() {
-        this.next_update_options = this.widget_options;
-        if (!this.next_update_options) {
-            this.next_update_options = this.get_default_options();
-        }
-        this.next_update_options.max_is_sum_of_var_1_and_2 = !this.next_update_options.max_is_sum_of_var_1_and_2;
-        await this.throttled_update_options();
-    }
-
-
-    /**
-     * Met à jour les couleurs => exécute un throttle de 800ms
-     */
-    public async update_colors() {
-        if (!this.widget_options) {
-            return;
-        }
-        if (!this.next_update_options) {
-            this.next_update_options = this.get_default_options();
-        }
-        this.next_update_options.bg_color_1 = this.bg_color_1;
-        this.next_update_options.bg_color_2 = this.bg_color_2;
-        this.next_update_options.border_color_1 = this.border_color_1;
-        this.next_update_options.border_color_2 = this.border_color_2;
-        this.next_update_options.bg_color = this.bg_color;
-        this.next_update_options.legend_font_color = this.legend_font_color;
-        this.next_update_options.title_font_color = this.title_font_color;
-
-        await this.throttled_update_options();
-    }
-
-    public async change_custom_filter_1(field_id: string, custom_filter: string) {
-        if (!this.widget_options) return;
-        if (!this.next_update_options) {
-            this.next_update_options = this.get_default_options();
-        }
-        this.custom_filter_names_1[field_id] = custom_filter;
-        this.next_update_options.filter_custom_field_filters_1 = this.custom_filter_names_1;
-        await this.throttled_update_options();
-    }
-
-    public async change_custom_filter_2(field_id: string, custom_filter: string) {
-        if (!this.widget_options) return;
-        if (!this.next_update_options) {
-            this.next_update_options = this.get_default_options();
-        }
-        this.custom_filter_names_2[field_id] = custom_filter;
-        this.next_update_options.filter_custom_field_filters_2 = this.custom_filter_names_2;
-        await this.throttled_update_options();
-    }
-
-    public async get_color_palettes_labels(): Promise<string[]> {
-        const res: string[] = [];
-        const query_res: DashboardGraphColorPaletteVO[] = await query(DashboardGraphColorPaletteVO.API_TYPE_ID).select_vos();
-        for (const palette of query_res) {
-            res.push(palette.name);
-            this.color_palettes.push(palette);
-        }
-        return res;
+        await this.reload_options();
     }
 
     /**
      * reload_options : recharge depuis page_widget.json_options
      */
+    @Throttle({
+        param_type: EventifyEventListenerConfVO.PARAM_TYPE_NONE,
+        throttle_ms: 50,
+        leading: false,
+    })
     public reload_options() {
         if (!this.page_widget) {
             this.widget_options = null;
@@ -1174,6 +547,639 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         }
     }
 
+    /**
+     * Met à jour les couleurs => exécute un throttle de 800ms
+     */
+    @Throttle({
+        param_type: EventifyEventListenerConfVO.PARAM_TYPE_NONE,
+        throttle_ms: 800,
+        leading: false,
+    })
+    public async update_colors() {
+        if (!this.widget_options) {
+            return;
+        }
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+        this.next_update_options.bg_color_1 = this.bg_color_1;
+        this.next_update_options.bg_color_2 = this.bg_color_2;
+        this.next_update_options.border_color_1 = this.border_color_1;
+        this.next_update_options.border_color_2 = this.border_color_2;
+        this.next_update_options.bg_color = this.bg_color;
+        this.next_update_options.legend_font_color = this.legend_font_color;
+        this.next_update_options.title_font_color = this.title_font_color;
+
+        await this.update_options();
+    }
+
+    @Watch(reflect<VarPieChartWidgetOptionsComponent>().tmp_selected_var_name_2)
+    public async onchange_tmp_selected_var_name_2() {
+        if (!this.widget_options) return;
+        if (!this.tmp_selected_var_name_2) {
+            if (this.widget_options.var_id_2) {
+                this.widget_options.var_id_2 = null;
+                this.custom_filter_names_2 = {};
+                this.widget_options.filter_custom_field_filters_2 = {};
+                await this.update_options();
+            }
+            return;
+        }
+        try {
+            const selected_var_id_2: number = parseInt(this.tmp_selected_var_name_2.split(' | ')[0]);
+            if (this.widget_options.var_id_2 != selected_var_id_2) {
+                this.next_update_options = this.widget_options;
+                this.next_update_options.var_id_2 = selected_var_id_2;
+                await this.update_options();
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+    }
+
+    @Watch(reflect<VarPieChartWidgetOptionsComponent>().tmp_selected_color_palette)
+    public async onchange_tmp_selected_color_palette() {
+        if (!this.widget_options) return;
+        if (!this.tmp_selected_color_palette) {
+            if (this.widget_options.color_palette) {
+                this.widget_options.color_palette = null;
+                await this.update_options();
+            }
+            return;
+        }
+        try {
+            const selected_palette_index = this.color_palettes_labels.indexOf(this.tmp_selected_color_palette);
+            const new_palette = this.color_palettes[selected_palette_index];
+            if (this.widget_options.color_palette != new_palette) {
+                this.next_update_options = this.widget_options;
+                this.next_update_options.color_palette = new_palette;
+                await this.update_options();
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+    }
+
+    @Watch(reflect<VarPieChartWidgetOptionsComponent>().tmp_selected_var_name_1)
+    public async onchange_tmp_selected_var_name_1() {
+        if (!this.widget_options) return;
+        if (!this.tmp_selected_var_name_1) {
+            if (this.widget_options.var_id_1) {
+                this.widget_options.var_id_1 = null;
+                this.custom_filter_names_1 = {};
+                this.widget_options.filter_custom_field_filters_1 = {};
+                await this.update_options();
+            }
+            return;
+        }
+        try {
+            const selected_var_id_1: number = parseInt(this.tmp_selected_var_name_1.split(' | ')[0]);
+            if (this.widget_options.var_id_1 != selected_var_id_1) {
+                this.next_update_options = this.widget_options;
+                this.next_update_options.var_id_1 = selected_var_id_1;
+                await this.update_options();
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+    }
+
+    @Watch(reflect<VarPieChartWidgetOptionsComponent>().tmp_selected_dimension_custom_filter_segment_type)
+    public async onchange_tmp_selected_dimension_custom_filter_segment_type() {
+        if (!this.widget_options) return;
+        if (!this.tmp_selected_dimension_custom_filter_segment_type) {
+            if (this.widget_options.dimension_custom_filter_segment_type) {
+                this.widget_options.dimension_custom_filter_segment_type = null;
+                await this.update_options();
+            }
+            return;
+        }
+        try {
+            const newType = this.get_dimension_custom_filter_segment_type_from_selected_option(
+                this.tmp_selected_dimension_custom_filter_segment_type
+            );
+            if (this.widget_options.dimension_custom_filter_segment_type != newType) {
+                this.next_update_options = this.widget_options;
+                this.next_update_options.dimension_custom_filter_segment_type = newType;
+                await this.update_options();
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+    }
+
+    @Watch(reflect<VarPieChartWidgetOptionsComponent>().tmp_selected_legend_position)
+    public async onchange_tmp_selected_legend_position() {
+        if (!this.widget_options) return;
+        if (!this.tmp_selected_legend_position) {
+            if (this.widget_options.legend_position) {
+                this.widget_options.legend_position = null;
+                await this.update_options();
+            }
+            return;
+        }
+        try {
+            if (this.widget_options.legend_position != this.tmp_selected_legend_position) {
+                this.next_update_options = this.widget_options;
+                this.next_update_options.legend_position = this.tmp_selected_legend_position;
+                await this.update_options();
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+    }
+
+    @Watch(reflect<VarPieChartWidgetOptionsComponent>().legend_font_size)
+    public async onchange_legend_font_size() {
+        if (!this.widget_options) return;
+        if (!this.legend_font_size) {
+            if (this.widget_options.legend_font_size) {
+                this.widget_options.legend_font_size = 12;
+                await this.update_options();
+            }
+            return;
+        }
+        try {
+            if (this.widget_options.legend_font_size != parseInt(this.legend_font_size)) {
+                if (parseInt(this.legend_font_size) <= 100 && parseInt(this.legend_font_size) >= 0) {
+                    this.next_update_options = this.widget_options;
+                    this.next_update_options.legend_font_size = parseInt(this.legend_font_size);
+                }
+                await this.update_options();
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+    }
+
+    @Watch(reflect<VarPieChartWidgetOptionsComponent>().legend_box_width)
+    public async onchange_legend_box_width() {
+        if (!this.widget_options) return;
+        if (!this.legend_box_width) {
+            if (this.widget_options.legend_box_width) {
+                this.widget_options.legend_box_width = 40;
+                await this.update_options();
+            }
+            return;
+        }
+        try {
+            if (this.widget_options.legend_box_width != parseInt(this.legend_box_width)) {
+                const val = parseInt(this.legend_box_width);
+                if (val <= 400 && val >= 0) {
+                    this.next_update_options = this.widget_options;
+                    this.next_update_options.legend_box_width = val;
+                }
+                await this.update_options();
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+    }
+
+    @Watch(reflect<VarPieChartWidgetOptionsComponent>().legend_padding)
+    public async onchange_legend_padding() {
+        if (!this.widget_options) return;
+        if (!this.legend_padding) {
+            if (this.widget_options.legend_padding) {
+                this.widget_options.legend_padding = 10;
+                await this.update_options();
+            }
+            return;
+        }
+        try {
+            if (this.widget_options.legend_padding != parseInt(this.legend_padding)) {
+                const val = parseInt(this.legend_padding);
+                if (val <= 100 && val >= 0) {
+                    this.next_update_options = this.widget_options;
+                    this.next_update_options.legend_padding = val;
+                }
+                await this.update_options();
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+    }
+
+    @Watch(reflect<VarPieChartWidgetOptionsComponent>().title_font_size)
+    public async onchange_title_font_size() {
+        if (!this.widget_options) return;
+        if (!this.title_font_size) {
+            if (this.widget_options.title_font_size) {
+                this.widget_options.title_font_size = 16;
+                await this.update_options();
+            }
+            return;
+        }
+        try {
+            const val = parseInt(this.title_font_size);
+            if (this.widget_options.title_font_size != val) {
+                if (val <= 100 && val >= 0) {
+                    this.next_update_options = this.widget_options;
+                    this.next_update_options.title_font_size = val;
+                }
+                await this.update_options();
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+    }
+
+    @Watch(reflect<VarPieChartWidgetOptionsComponent>().title_padding)
+    public async onchange_title_padding() {
+        if (!this.widget_options) return;
+        if (!this.title_padding) {
+            if (this.widget_options.title_padding) {
+                this.widget_options.title_padding = 10;
+                await this.update_options();
+            }
+            return;
+        }
+        try {
+            const val = parseInt(this.title_padding);
+            if (this.widget_options.title_padding != val) {
+                if (val <= 100 && val >= 0) {
+                    this.next_update_options = this.widget_options;
+                    this.next_update_options.title_padding = val;
+                }
+                await this.update_options();
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+    }
+
+    @Watch(reflect<VarPieChartWidgetOptionsComponent>().cutout_percentage)
+    public async onchange_cutout_percentage() {
+        if (!this.widget_options) return;
+        if (!this.cutout_percentage) {
+            if (this.widget_options.cutout_percentage) {
+                this.widget_options.cutout_percentage = 50;
+                await this.update_options();
+            }
+            return;
+        }
+        try {
+            const val = parseInt(this.cutout_percentage);
+            if (this.widget_options.cutout_percentage != val) {
+                if (val <= 95 && val >= 0) {
+                    this.next_update_options = this.widget_options;
+                    this.next_update_options.cutout_percentage = val;
+                }
+                await this.update_options();
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+    }
+
+    @Watch(reflect<VarPieChartWidgetOptionsComponent>().rotation)
+    public async onchange_rotation() {
+        if (!this.widget_options) return;
+        if (!this.rotation) {
+            if (this.widget_options.rotation) {
+                this.widget_options.rotation = 270;
+                await this.update_options();
+            }
+            return;
+        }
+        try {
+            const val = parseInt(this.rotation);
+            if (this.widget_options.rotation != val) {
+                if (val <= 360 && val >= 0) {
+                    this.next_update_options = this.widget_options;
+                    this.next_update_options.rotation = val;
+                }
+                await this.update_options();
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+    }
+
+    @Throttle({
+        param_type: EventifyEventListenerConfVO.PARAM_TYPE_NONE,
+        throttle_ms: 50,
+        leading: false,
+    })
+    public async update_options() {
+        try {
+            this.page_widget.json_options = JSON.stringify(this.next_update_options);
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+        await ModuleDAO.instance.insertOrUpdateVO(this.page_widget);
+    }
+
+    @Watch(reflect<VarPieChartWidgetOptionsComponent>().circumference)
+    public async onchange_circumference() {
+        if (!this.widget_options) return;
+        if (!this.circumference) {
+            if (this.widget_options.circumference) {
+                this.widget_options.circumference = 180;
+                await this.update_options();
+            }
+            return;
+        }
+        try {
+            const val = parseInt(this.circumference);
+            if (this.widget_options.circumference != val) {
+                if (val <= 360 && val >= 0) {
+                    this.next_update_options = this.widget_options;
+                    this.next_update_options.circumference = val;
+                }
+                await this.update_options();
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+    }
+
+    @Watch(reflect<VarPieChartWidgetOptionsComponent>().border_width_1)
+    public async onchange_border_width_1() {
+        if (!this.widget_options) return;
+        if (!this.border_width_1) {
+            if (this.widget_options.border_width_1) {
+                this.widget_options.border_width_1 = null;
+                await this.update_options();
+            }
+            return;
+        }
+        try {
+            if (this.widget_options.border_width_1 != this.border_width_1) {
+                if (this.border_width_1 <= 10 && this.border_width_1 >= 0) {
+                    this.next_update_options = this.widget_options;
+                    this.next_update_options.border_width_1 = this.border_width_1;
+                }
+                await this.update_options();
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+    }
+
+    @Watch(reflect<VarPieChartWidgetOptionsComponent>().border_width_2)
+    public async onchange_border_width_2() {
+        if (!this.widget_options) return;
+        if (!this.border_width_2) {
+            if (this.widget_options.border_width_2) {
+                this.widget_options.border_width_2 = null;
+                await this.update_options();
+            }
+            return;
+        }
+        try {
+            if (this.widget_options.border_width_2 != this.border_width_2) {
+                if (this.border_width_2 <= 10 && this.border_width_2 >= 0) {
+                    this.next_update_options = this.widget_options;
+                    this.next_update_options.border_width_2 = this.border_width_2;
+                }
+                await this.update_options();
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+    }
+
+    @Watch(reflect<VarPieChartWidgetOptionsComponent>().max_dimension_values)
+    public async onchange_max_dimension_values() {
+        if (!this.widget_options) return;
+        if (!this.max_dimension_values) {
+            if (this.widget_options.max_dimension_values) {
+                this.widget_options.max_dimension_values = 10;
+                await this.update_options();
+            }
+            return;
+        }
+        try {
+            const val = parseInt(this.max_dimension_values);
+            if (this.widget_options.max_dimension_values != val) {
+                if (this.widget_options.dimension_is_vo_field_ref) {
+                    if (val >= 0) {
+                        this.next_update_options = this.widget_options;
+                        this.next_update_options.max_dimension_values = val;
+                    }
+                    await this.update_options();
+                } else {
+                    if (val > 0) {
+                        this.next_update_options = this.widget_options;
+                        this.next_update_options.max_dimension_values = val;
+                    } else {
+                        this.snotify.error('Un custom filter doit avoir un maximum de valeurs à afficher supérieur à 0');
+                        this.next_update_options = this.widget_options;
+                        this.next_update_options.max_dimension_values = 10;
+                    }
+                    await this.update_options();
+                }
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+    }
+
+    // Accès dynamiques Vuex
+    public vuexGet<K extends keyof IDashboardGetters>(getter: K): IDashboardGetters[K] {
+        return this.$store.getters[`${this.storeNamespace}/${String(getter)}`];
+    }
+    public vuexAct<K extends keyof IDashboardPageActionsMethods>(
+        action: K,
+        ...args: Parameters<IDashboardPageActionsMethods[K]>
+    ) {
+        this.$store.dispatch(`${this.storeNamespace}/${String(action)}`, ...args);
+    }
+
+    // --------------------------------------------------------------------------
+    // Méthodes "utils"
+    // --------------------------------------------------------------------------
+
+    /**
+     * Toggle l'ouverture d'une section => on inverse la valeur dans sectionsOpen
+     */
+    public toggleSection(sectionName: keyof typeof this.sectionsOpen) {
+        this.sectionsOpen[sectionName] = !this.sectionsOpen[sectionName];
+    }
+
+
+    public async set_palette_options() {
+        if (!this.widget_options) {
+            return;
+        }
+        this.color_palettes_labels = await this.get_color_palettes_labels();
+        this.bg_gradient = this.widget_options.color_palette ? false : true;
+        this.tmp_selected_color_palette =
+            !this.bg_gradient
+                ? this.color_palettes_labels[this.searchIndexOfArray(this.widget_options.color_palette, this.color_palettes)]
+                : null;
+    }
+
+    public async remove_dimension_vo_field_ref() {
+        this.next_update_options = this.widget_options;
+        if (!this.next_update_options || !this.next_update_options.dimension_vo_field_ref) {
+            return null;
+        }
+        this.next_update_options.dimension_vo_field_ref = null;
+        await this.update_options();
+    }
+
+    public async add_dimension_vo_field_ref(api_type_id: string, field_id: string) {
+        this.next_update_options = this.widget_options;
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+        const dimension_vo_field_ref = new VOFieldRefVO();
+        dimension_vo_field_ref.api_type_id = api_type_id;
+        dimension_vo_field_ref.field_id = field_id;
+        dimension_vo_field_ref.weight = 0;
+        this.next_update_options.dimension_vo_field_ref = dimension_vo_field_ref;
+        await this.update_options();
+    }
+
+    public async remove_sort_dimension_by_vo_field_ref() {
+        this.next_update_options = this.widget_options;
+        if (!this.next_update_options || !this.next_update_options.sort_dimension_by_vo_field_ref) {
+            return null;
+        }
+        this.next_update_options.sort_dimension_by_vo_field_ref = null;
+        await this.update_options();
+    }
+
+    public async add_sort_dimension_by_vo_field_ref(api_type_id: string, field_id: string) {
+        this.next_update_options = this.widget_options;
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+        const sort_dimension_by_vo_field_ref = new VOFieldRefVO();
+        sort_dimension_by_vo_field_ref.api_type_id = api_type_id;
+        sort_dimension_by_vo_field_ref.field_id = field_id;
+        sort_dimension_by_vo_field_ref.weight = 0;
+        this.next_update_options.sort_dimension_by_vo_field_ref = sort_dimension_by_vo_field_ref;
+        await this.update_options();
+    }
+
+    public get_default_options(): VarPieChartWidgetOptionsVO {
+        return VarPieChartWidgetOptionsVO.createDefault();
+    }
+
+    // Toggles divers
+
+    public async switch_bg_gradient() {
+        this.next_update_options = this.widget_options;
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+        this.next_update_options.bg_gradient = !this.next_update_options.bg_gradient;
+        await this.update_options();
+    }
+
+    public async switch_legend_display() {
+        this.next_update_options = this.widget_options;
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+        this.next_update_options.legend_display = !this.next_update_options.legend_display;
+        await this.update_options();
+    }
+
+    public async switch_label_display() {
+        this.next_update_options = this.widget_options;
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+        this.next_update_options.label_display = !this.next_update_options.label_display;
+        await this.update_options();
+    }
+
+    public async switch_dimension_is_vo_field_ref() {
+        this.next_update_options = this.widget_options;
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+        this.next_update_options.dimension_is_vo_field_ref = !this.next_update_options.dimension_is_vo_field_ref;
+        await this.update_options();
+    }
+
+    public async switch_sort_dimension_by_asc() {
+        this.next_update_options = this.widget_options;
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+        this.next_update_options.sort_dimension_by_asc = !this.next_update_options.sort_dimension_by_asc;
+        await this.update_options();
+    }
+
+    public async switch_hide_filter() {
+        this.next_update_options = this.widget_options;
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+        this.next_update_options.hide_filter = !this.next_update_options.hide_filter;
+        await this.update_options();
+    }
+
+    public async switch_has_dimension() {
+        if (!this.has_dimension) {
+            this.snotify.error('Not implemented yet');
+        }
+    }
+
+    public async switch_title_display() {
+        this.next_update_options = this.widget_options;
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+        this.next_update_options.title_display = !this.next_update_options.title_display;
+        await this.update_options();
+    }
+
+    public async switch_legend_use_point_style() {
+        this.next_update_options = this.widget_options;
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+        this.next_update_options.legend_use_point_style = !this.next_update_options.legend_use_point_style;
+        await this.update_options();
+    }
+
+    public async switch_max_is_sum_of_var_1_and_2() {
+        this.next_update_options = this.widget_options;
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+        this.next_update_options.max_is_sum_of_var_1_and_2 = !this.next_update_options.max_is_sum_of_var_1_and_2;
+        await this.update_options();
+    }
+
+
+
+    public async change_custom_filter_1(field_id: string, custom_filter: string) {
+        if (!this.widget_options) return;
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+        this.custom_filter_names_1[field_id] = custom_filter;
+        this.next_update_options.filter_custom_field_filters_1 = this.custom_filter_names_1;
+        await this.update_options();
+    }
+
+    public async change_custom_filter_2(field_id: string, custom_filter: string) {
+        if (!this.widget_options) return;
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+        this.custom_filter_names_2[field_id] = custom_filter;
+        this.next_update_options.filter_custom_field_filters_2 = this.custom_filter_names_2;
+        await this.update_options();
+    }
+
+    public async get_color_palettes_labels(): Promise<string[]> {
+        const res: string[] = [];
+        const query_res: DashboardGraphColorPaletteVO[] = await query(DashboardGraphColorPaletteVO.API_TYPE_ID).select_vos();
+        for (const palette of query_res) {
+            res.push(palette.name);
+            this.color_palettes.push(palette);
+        }
+        return res;
+    }
+
     public get_dimension_custom_filter_segment_type_from_selected_option(selected_option: string): number {
         if (this.dimension_custom_filter_segment_types) {
             for (const key in Object.keys(this.dimension_custom_filter_segment_types)) {
@@ -1196,22 +1202,11 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         return -1;
     }
 
-    public async update_options() {
-        try {
-            this.page_widget.json_options = JSON.stringify(this.next_update_options);
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-        await ModuleDAO.instance.insertOrUpdateVO(this.page_widget);
-        this.set_page_widget(this.page_widget);
-        this.$emit('update_layout_widget', this.page_widget);
-    }
-
     public async update_title_name_code_text() {
         if (!this.widget_options) {
             return;
         }
-        await this.throttled_update_options();
+        await this.update_options();
     }
 
     public async update_additional_options(additional_options: string) {
@@ -1220,7 +1215,7 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
             this.next_update_options = this.get_default_options();
         }
         this.next_update_options.filter_additional_params = additional_options;
-        await this.throttled_update_options();
+        await this.update_options();
     }
 
     public async update_filter_type(filter_type: string) {
@@ -1229,6 +1224,6 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
             this.next_update_options = this.get_default_options();
         }
         this.next_update_options.filter_type = filter_type;
-        await this.throttled_update_options();
+        await this.update_options();
     }
 }

@@ -60,7 +60,7 @@
                             .input_wrapper
                                 color-picker(
                                     v-model="title_font_color" 
-                                    @change='throttled_update_colors'
+                                    @change='update_colors'
                                     class="bg_color_picker"
                                 )
                         .title_font_size
@@ -85,7 +85,7 @@
                     .input_wrapper
                         color-picker(
                             v-model="bg_color" 
-                            @change='throttled_update_colors'
+                            @change='update_colors'
                             class="bg_color_picker"
                         )
                     .input_label {{ label("var_mixed_charts_widget_options_component.bg_color") }}
@@ -165,7 +165,7 @@
                     .input_wrapper    
                         color-picker(
                             v-model="legend_font_color" 
-                            @change='throttled_update_colors'
+                            @change='update_colors'
                             class="bg_color_picker"
                         )
                 .legend_font_size

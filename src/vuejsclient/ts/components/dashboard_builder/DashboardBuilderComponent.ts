@@ -37,7 +37,7 @@ import CrudDBLinkComponent from './crud_db_link/CrudDBLinkComponent';
 import DroppableVoFieldsComponent from './droppable_vo_fields/DroppableVoFieldsComponent';
 import { ModuleDroppableVoFieldsAction } from './droppable_vo_fields/DroppableVoFieldsStore';
 import DashboardMenuConfComponent from './menu_conf/DashboardMenuConfComponent';
-import DashboardPageStore, { IDashboardGetters, IDashboardPageActionsMethods } from './page/DashboardPageStore';
+import DashboardPageStore, { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from './page/DashboardPageStore';
 import DashboardSharedFiltersComponent from './shared_filters/DashboardSharedFiltersComponent';
 import DashboardViewportConfComponent from './viewport_conf/DashboardViewportConfComponent';
 import DashboardBuilderWidgetsComponent from './widgets/DashboardBuilderWidgetsComponent';
@@ -56,7 +56,7 @@ import DashboardBuilderWidgetsComponent from './widgets/DashboardBuilderWidgetsC
         DashboardViewportConfComponent: DashboardViewportConfComponent,
     },
 })
-export default class DashboardBuilderComponent extends VueComponentBase implements Partial<IDashboardPageActionsMethods> {
+export default class DashboardBuilderComponent extends VueComponentBase implements IDashboardPageConsumer {
 
     public static DBB_ONGLET_TABLE: string = 'onglet_table';
     public static DBB_ONGLET_VIEWPORT: string = 'onglet_viewport';
@@ -443,14 +443,6 @@ export default class DashboardBuilderComponent extends VueComponentBase implemen
 
         return dashboard.id + ' | ' + this.t(dashboard.title);
     }
-
-    // public async update_layout_widget(widget: DashboardPageWidgetVO) {
-    //     if ((!this.$refs) || (!this.$refs['Dashboardbuilderboardcomponent'])) {
-    //         return;
-    //     }
-
-    //     await ((this.$refs['Dashboardbuilderboardcomponent']) as DashboardBuilderBoardComponent).update_layout_widget(widget);
-    // }
 
     public async paste_dashboard(import_on_vo: DashboardVO = null) {
 

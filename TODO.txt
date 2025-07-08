@@ -1,5 +1,16 @@
 TODO
 
+    @Prop({ default: null })
+    public dashboard: DashboardVO;
+
+
+DashboardBuilderBoardComponent
+    public select_page(page) {
+        this.$emit('select_page', page);
+    }
+
+
+
 
 register_vo_cud_throttled => on peut probablement pas throttle des méthodes qui sont annotés sans pbs....
 intégrer une option     @ExecAsServer dans @runsonbgthread ou runsonmainthread

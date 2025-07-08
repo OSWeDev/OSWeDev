@@ -4,17 +4,17 @@ import 'quill/dist/quill.core.css'; // Compliqué à lazy load
 import 'quill/dist/quill.snow.css'; // Compliqué à lazy load
 import Component from 'vue-class-component';
 import { Inject, Prop, Watch } from 'vue-property-decorator';
+import Throttle from '../../../../../../../shared/annotations/Throttle';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import CMSBooleanButtonWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/CMSBooleanButtonWidgetOptionsVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
+import EventifyEventListenerConfVO from '../../../../../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
-import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../../VueComponentBase';
 import SingleVoFieldRefHolderComponent from '../../../options_tools/single_vo_field_ref_holder/SingleVoFieldRefHolderComponent';
-import './CMSBooleanButtonWidgetOptionsComponent.scss';
-import { reflect } from '../../../../../../../shared/tools/ObjectHandler';
 import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../../page/DashboardPageStore';
+import './CMSBooleanButtonWidgetOptionsComponent.scss';
 
 @Component({
     template: require('./CMSBooleanButtonWidgetOptionsComponent.pug'),
@@ -39,7 +39,6 @@ export default class CMSBooleanButtonWidgetOptionsComponent extends VueComponent
     public icone_nok: string = null;
 
     public next_update_options: CMSBooleanButtonWidgetOptionsVO = null;
-    public throttled_update_options = ThrottleHelper.declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
 
     get widget_options(): CMSBooleanButtonWidgetOptionsVO {
         if (!this.page_widget) {
@@ -85,6 +84,25 @@ export default class CMSBooleanButtonWidgetOptionsComponent extends VueComponent
         this.user_field_ref = this.widget_options.user_field_ref;
     }
 
+    @Throttle({
+        param_type: EventifyEventListenerConfVO.PARAM_TYPE_NONE,
+        throttle_ms: 50,
+        leading: false,
+    })
+    public async update_options() {
+        try {
+            this.page_widget.json_options = JSON.stringify(this.next_update_options);
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+
+        await ModuleDAO.getInstance().insertOrUpdateVO(this.page_widget);
+
+        if (!this.widget_options) {
+            return;
+        }
+    }
+
     @Watch('title_ok')
     @Watch('title_nok')
     @Watch('color')
@@ -119,7 +137,7 @@ export default class CMSBooleanButtonWidgetOptionsComponent extends VueComponent
             this.next_update_options.icone_nok = this.icone_nok;
             this.next_update_options.user_field_ref = this.user_field_ref;
 
-            await this.throttled_update_options();
+            await this.update_options();
         }
     }
 
@@ -133,7 +151,7 @@ export default class CMSBooleanButtonWidgetOptionsComponent extends VueComponent
             this.next_update_options = this.widget_options;
         }
 
-        await this.throttled_update_options();
+        await this.update_options();
     }
 
     public get_default_options(): CMSBooleanButtonWidgetOptionsVO {
@@ -149,23 +167,6 @@ export default class CMSBooleanButtonWidgetOptionsComponent extends VueComponent
             0,
             null,
         );
-    }
-
-    public async update_options() {
-        try {
-            this.page_widget.json_options = JSON.stringify(this.next_update_options);
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-
-        await ModuleDAO.getInstance().insertOrUpdateVO(this.page_widget);
-
-        if (!this.widget_options) {
-            return;
-        }
-
-        this.set_page_widget(this.page_widget);
-        this.$emit('update_layout_widget', this.page_widget);
     }
 
     public async add_vo_field_ref(api_type_id: string, field_id: string) {
@@ -189,7 +190,7 @@ export default class CMSBooleanButtonWidgetOptionsComponent extends VueComponent
 
         this.next_update_options[field_name] = vo_field_ref;
 
-        await this.throttled_update_options();
+        await this.update_options();
     }
 
     public async remove_vo_field_ref() {
@@ -210,11 +211,6 @@ export default class CMSBooleanButtonWidgetOptionsComponent extends VueComponent
         this.$store.dispatch(`${this.storeNamespace}/${String(action)}`, ...args);
     }
 
-    public set_page_widget(page_widget: DashboardPageWidgetVO): void {
-        this.vuexAct<DashboardPageWidgetVO>(reflect<this>().set_page_widget, page_widget);
-    }
-
-
     public async remove_field_ref(field_name: string) {
         this.next_update_options = this.widget_options;
 
@@ -228,6 +224,6 @@ export default class CMSBooleanButtonWidgetOptionsComponent extends VueComponent
 
         this.next_update_options[field_name] = null;
 
-        await this.throttled_update_options();
+        await this.update_options();
     }
 }

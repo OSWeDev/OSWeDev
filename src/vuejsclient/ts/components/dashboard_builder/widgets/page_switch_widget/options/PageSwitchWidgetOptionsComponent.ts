@@ -1,17 +1,17 @@
 import Component from 'vue-class-component';
 import { Inject, Prop, Watch } from 'vue-property-decorator';
+import Throttle from '../../../../../../../shared/annotations/Throttle';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import DashboardPageVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
+import EventifyEventListenerConfVO from '../../../../../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
-import { reflect } from '../../../../../../../shared/tools/ObjectHandler';
-import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../../../VueComponentBase';
 import SingleVoFieldRefHolderComponent from '../../../options_tools/single_vo_field_ref_holder/SingleVoFieldRefHolderComponent';
+import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../../page/DashboardPageStore';
 import PageSwitchWidgetOptions from './PageSwitchWidgetOptions';
 import './PageSwitchWidgetOptionsComponent.scss';
-import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../../page/DashboardPageStore';
 
 @Component({
     template: require('./PageSwitchWidgetOptionsComponent.pug'),
@@ -33,9 +33,6 @@ export default class PageSwitchWidgetOptionsComponent extends VueComponentBase i
     private dashboard_page: DashboardPageVO;
 
     private next_update_options: PageSwitchWidgetOptions = null;
-    private throttled_update_options = ThrottleHelper.declare_throttle_without_args(
-        'PageSwitchWidgetOptionsComponent.throttled_update_options',
-        this.update_options.bind(this), 50, false);
 
     private tmp_selected_page_name: string = null;
 
@@ -101,6 +98,20 @@ export default class PageSwitchWidgetOptionsComponent extends VueComponentBase i
         this.tmp_selected_page_name = page.id + ' | ' + this.t(page.titre_page);
     }
 
+    @Throttle({
+        param_type: EventifyEventListenerConfVO.PARAM_TYPE_NONE,
+        throttle_ms: 50,
+        leading: false,
+    })
+    private async update_options() {
+        try {
+            this.page_widget.json_options = JSON.stringify(this.next_update_options);
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+        await ModuleDAO.instance.insertOrUpdateVO(this.page_widget);
+    }
+
     @Watch('tmp_selected_page_name')
     private async onchange_tmp_selected_page_name() {
         if (!this.widget_options) {
@@ -111,7 +122,7 @@ export default class PageSwitchWidgetOptionsComponent extends VueComponentBase i
 
             if (this.widget_options.page_id) {
                 this.widget_options.page_id = null;
-                await this.throttled_update_options();
+                await this.update_options();
             }
             return;
         }
@@ -124,7 +135,7 @@ export default class PageSwitchWidgetOptionsComponent extends VueComponentBase i
                 this.next_update_options = this.widget_options;
                 this.next_update_options.page_id = selected_page_id;
 
-                await this.throttled_update_options();
+                await this.update_options();
             }
         } catch (error) {
             ConsoleHandler.error(error);
@@ -140,22 +151,5 @@ export default class PageSwitchWidgetOptionsComponent extends VueComponentBase i
         ...args: Parameters<IDashboardPageActionsMethods[K]>
     ) {
         this.$store.dispatch(`${this.storeNamespace}/${String(action)}`, ...args);
-    }
-
-    public set_page_widget(page_widget: DashboardPageWidgetVO) {
-        return this.vuexAct(reflect<this>().set_page_widget, page_widget);
-    }
-
-
-    private async update_options() {
-        try {
-            this.page_widget.json_options = JSON.stringify(this.next_update_options);
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-        await ModuleDAO.instance.insertOrUpdateVO(this.page_widget);
-
-        this.set_page_widget(this.page_widget);
-        this.$emit('update_layout_widget', this.page_widget);
     }
 }

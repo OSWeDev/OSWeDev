@@ -18,7 +18,7 @@ import InlineTranslatableText from '../../InlineTranslatableText/InlineTranslata
 import VueComponentBase from '../../VueComponentBase';
 import DashboardBuilderBoardComponent from '../board/DashboardBuilderBoardComponent';
 import DashboardHistoryController from '../DashboardHistoryController';
-import DashboardPageStore from '../page/DashboardPageStore';
+import DashboardPageStore, { IDashboardGetters, IDashboardPageActionsMethods } from '../page/DashboardPageStore';
 import './DashboardViewerComponent.scss';
 
 @Component({
@@ -197,7 +197,7 @@ export default class DashboardViewerComponent extends VueComponentBase {
     }
 
     public clear_active_field_filters() {
-        return this.vuexAct(reflect<this>().clear_active_field_filters);
+        return this.vuexAct(reflect<this>().clear_active_field_filters, null);
     }
 
     public set_active_field_filters(param: FieldFiltersVO) {
@@ -213,7 +213,7 @@ export default class DashboardViewerComponent extends VueComponentBase {
     }
 
     public set_dashboard_page(page: DashboardPageVO) {
-        this.vuexAct<DashboardPageVO>(reflect<this>().set_dashboard_page, page);
+        this.vuexAct(reflect<this>().set_dashboard_page, page);
     }
 
     public select_page(page: DashboardPageVO) {

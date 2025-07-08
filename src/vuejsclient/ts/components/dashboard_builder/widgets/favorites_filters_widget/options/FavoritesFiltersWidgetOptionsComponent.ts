@@ -1,5 +1,6 @@
 import Component from 'vue-class-component';
 import { Inject, Prop, Watch } from 'vue-property-decorator';
+import Throttle from '../../../../../../../shared/annotations/Throttle';
 import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../../../../../shared/modules/ContextFilter/vos/SortByVO';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
@@ -11,15 +12,15 @@ import FavoritesFiltersVO from '../../../../../../../shared/modules/DashboardBui
 import FavoritesFiltersWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersWidgetOptionsVO';
 import FieldFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
+import EventifyEventListenerConfVO from '../../../../../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import { reflect } from '../../../../../../../shared/tools/ObjectHandler';
-import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/DroppableVoFieldsStore';
 import SingleVoFieldRefHolderComponent from '../../../options_tools/single_vo_field_ref_holder/SingleVoFieldRefHolderComponent';
-import './FavoritesFiltersWidgetOptionsComponent.scss';
 import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../../page/DashboardPageStore';
+import './FavoritesFiltersWidgetOptionsComponent.scss';
 
 @Component({
     template: require('./FavoritesFiltersWidgetOptionsComponent.pug'),
@@ -57,14 +58,6 @@ export default class FavoritesFiltersWidgetOptionsComponent extends VueComponent
 
     // Allow to the user to send an email with the export
     private send_email_with_export_notification: boolean = false;
-
-    // Perform the action of update options
-    private throttled_update_options = ThrottleHelper.declare_throttle_without_args(
-        'FavoritesFiltersWidgetOptionsComponent.throttled_update_options',
-        this.update_options.bind(this), 50, false);
-    private throttled_update_visible_options = ThrottleHelper.declare_throttle_without_args(
-        'FavoritesFiltersWidgetOptionsComponent.throttled_update_visible_options',
-        this.update_visible_options.bind(this), 300, false);
 
     private last_launch_cpt: number = 0;
 
@@ -121,98 +114,15 @@ export default class FavoritesFiltersWidgetOptionsComponent extends VueComponent
     }
 
     /**
-     * Watch on max_visible_options
-     *  - Shall happen each time max_visible_options changes
-     *
-     * @returns {Promise<void>}
-     */
-    @Watch('max_visible_options')
-    private async onchange_max_visible_options(): Promise<void> {
-        if (!this.widget_options) {
-            return;
-        }
-
-        if (this.widget_options.max_visible_options != this.max_visible_options) {
-            this.next_update_options = this.widget_options;
-            this.next_update_options.max_visible_options = this.max_visible_options;
-
-            this.throttled_update_options();
-        }
-    }
-
-    // Accès dynamiques Vuex
-    public vuexGet<K extends keyof IDashboardGetters>(getter: K): IDashboardGetters[K] {
-        return this.$store.getters[`${this.storeNamespace}/${String(getter)}`];
-    }
-    public vuexAct<K extends keyof IDashboardPageActionsMethods>(
-        action: K,
-        ...args: Parameters<IDashboardPageActionsMethods[K]>
-    ) {
-        this.$store.dispatch(`${this.storeNamespace}/${String(action)}`, ...args);
-    }
-
-    public set_page_widget(page_widget: DashboardPageWidgetVO) {
-        return this.vuexAct(reflect<this>().set_page_widget, page_widget);
-    }
-
-    /**
-     * toggle_can_configure_export
-     *  - Allow to the user to show select_all of the active filter options
-     */
-    private async toggle_can_configure_export() {
-        this.next_update_options = this.widget_options;
-
-        if (!this.next_update_options) {
-            this.next_update_options = this.create_widget_options().from(
-                { can_configure_export: this.can_configure_export }
-            );
-        }
-
-        this.next_update_options.can_configure_export = !this.next_update_options.can_configure_export;
-
-        this.throttled_update_options();
-    }
-
-    /**
-     * toggle_can_configure_date_filters
-     *  - Allow to the user to show select_all of the active filter options
-     */
-    private async toggle_can_configure_date_filters() {
-        this.next_update_options = this.widget_options;
-
-        if (!this.next_update_options) {
-            this.next_update_options = this.create_widget_options().from(
-                { can_configure_date_filters: this.can_configure_date_filters }
-            );
-        }
-
-        this.next_update_options.can_configure_date_filters = !this.next_update_options.can_configure_date_filters;
-
-        this.throttled_update_options();
-    }
-
-    /**
-     * toggle_send_email_with_export_notification
-     */
-    private async toggle_send_email_with_export_notification() {
-        this.next_update_options = this.widget_options;
-
-        if (!this.next_update_options) {
-            this.next_update_options = this.create_widget_options().from(
-                { send_email_with_export_notification: this.send_email_with_export_notification }
-            );
-        }
-
-        this.next_update_options.send_email_with_export_notification = !this.next_update_options.send_email_with_export_notification;
-
-        this.throttled_update_options();
-    }
-
-    /**
      * update_visible_options
      *  - Do update visible options
      * @returns {Promise<void>}
      */
+    @Throttle({
+        param_type: EventifyEventListenerConfVO.PARAM_TYPE_NONE,
+        leading: false,
+        throttle_ms: 300,
+    })
     private async update_visible_options(): Promise<void> {
 
         // Last time this method has been launched
@@ -250,6 +160,11 @@ export default class FavoritesFiltersWidgetOptionsComponent extends VueComponent
      *
      * @returns {Promise<void>}
      */
+    @Throttle({
+        param_type: EventifyEventListenerConfVO.PARAM_TYPE_NONE,
+        leading: false,
+        throttle_ms: 50,
+    })
     private async update_options(): Promise<void> {
 
         try {
@@ -260,14 +175,95 @@ export default class FavoritesFiltersWidgetOptionsComponent extends VueComponent
 
         await ModuleDAO.instance.insertOrUpdateVO(this.page_widget);
 
-        this.set_page_widget(this.page_widget);
-        this.$emit('update_layout_widget', this.page_widget);
-
         const name = this.get_widgets_by_id[this.page_widget.widget_id].name;
         const get_selected_fields = WidgetOptionsVOManager.widgets_get_selected_fields[name];
         this.set_selected_fields(get_selected_fields ? get_selected_fields(this.page_widget) : {});
 
-        this.throttled_update_visible_options();
+        this.update_visible_options();
+    }
+
+    /**
+     * Watch on max_visible_options
+     *  - Shall happen each time max_visible_options changes
+     *
+     * @returns {Promise<void>}
+     */
+    @Watch('max_visible_options')
+    private async onchange_max_visible_options(): Promise<void> {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (this.widget_options.max_visible_options != this.max_visible_options) {
+            this.next_update_options = this.widget_options;
+            this.next_update_options.max_visible_options = this.max_visible_options;
+
+            this.update_options();
+        }
+    }
+
+    // Accès dynamiques Vuex
+    public vuexGet<K extends keyof IDashboardGetters>(getter: K): IDashboardGetters[K] {
+        return this.$store.getters[`${this.storeNamespace}/${String(getter)}`];
+    }
+    public vuexAct<K extends keyof IDashboardPageActionsMethods>(
+        action: K,
+        ...args: Parameters<IDashboardPageActionsMethods[K]>
+    ) {
+        this.$store.dispatch(`${this.storeNamespace}/${String(action)}`, ...args);
+    }
+
+    /**
+     * toggle_can_configure_export
+     *  - Allow to the user to show select_all of the active filter options
+     */
+    private async toggle_can_configure_export() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.create_widget_options().from(
+                { can_configure_export: this.can_configure_export }
+            );
+        }
+
+        this.next_update_options.can_configure_export = !this.next_update_options.can_configure_export;
+
+        this.update_options();
+    }
+
+    /**
+     * toggle_can_configure_date_filters
+     *  - Allow to the user to show select_all of the active filter options
+     */
+    private async toggle_can_configure_date_filters() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.create_widget_options().from(
+                { can_configure_date_filters: this.can_configure_date_filters }
+            );
+        }
+
+        this.next_update_options.can_configure_date_filters = !this.next_update_options.can_configure_date_filters;
+
+        this.update_options();
+    }
+
+    /**
+     * toggle_send_email_with_export_notification
+     */
+    private async toggle_send_email_with_export_notification() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.create_widget_options().from(
+                { send_email_with_export_notification: this.send_email_with_export_notification }
+            );
+        }
+
+        this.next_update_options.send_email_with_export_notification = !this.next_update_options.send_email_with_export_notification;
+
+        this.update_options();
     }
 
     /**
@@ -288,7 +284,7 @@ export default class FavoritesFiltersWidgetOptionsComponent extends VueComponent
 
         this.next_update_options.vo_field_ref = null;
 
-        this.throttled_update_options();
+        this.update_options();
     }
 
     /**
@@ -313,7 +309,7 @@ export default class FavoritesFiltersWidgetOptionsComponent extends VueComponent
 
         this.next_update_options.vo_field_ref = vo_field_ref;
 
-        this.throttled_update_options();
+        this.update_options();
     }
 
     /**

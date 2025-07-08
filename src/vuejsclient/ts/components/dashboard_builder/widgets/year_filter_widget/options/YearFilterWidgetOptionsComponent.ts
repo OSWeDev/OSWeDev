@@ -1,20 +1,21 @@
 import { cloneDeep } from 'lodash';
 import Component from 'vue-class-component';
 import { Inject, Prop, Watch } from 'vue-property-decorator';
+import Throttle from '../../../../../../../shared/annotations/Throttle';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import WidgetOptionsVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/WidgetOptionsVOManager';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import YearFilterWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/YearFilterWidgetOptionsVO';
+import EventifyEventListenerConfVO from '../../../../../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import { reflect } from '../../../../../../../shared/tools/ObjectHandler';
-import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/DroppableVoFieldsStore';
 import SingleVoFieldRefHolderComponent from '../../../options_tools/single_vo_field_ref_holder/SingleVoFieldRefHolderComponent';
-import './YearFilterWidgetOptionsComponent.scss';
 import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../../page/DashboardPageStore';
+import './YearFilterWidgetOptionsComponent.scss';
 
 @Component({
     template: require('./YearFilterWidgetOptionsComponent.pug'),
@@ -43,9 +44,6 @@ export default class YearFilterWidgetOptionsComponent extends VueComponentBase i
     public auto_select_year_min: string = null;
     public auto_select_year_max: string = null;
     public next_update_options: YearFilterWidgetOptionsVO = null;
-    public throttled_update_options = ThrottleHelper.declare_throttle_without_args(
-        'YearFilterWidgetOptionsComponent.throttled_update_options',
-        this.update_options.bind(this), 50, false);
 
     public relative_to_other_filter_id: number = null;
     public is_relative_to_other_filter: boolean = false;
@@ -112,7 +110,7 @@ export default class YearFilterWidgetOptionsComponent extends VueComponentBase i
         return this.vuexGet(reflect<this>().get_page_widgets);
     }
 
-    get get_page_widgets_components_by_pwid(): { pwid: number, page_widget_component: VueComponentBase } {
+    get get_page_widgets_components_by_pwid(): { [pwid: number]: VueComponentBase } {
         return this.vuexGet(reflect<this>().get_page_widgets_components_by_pwid);
     }
 
@@ -252,8 +250,26 @@ export default class YearFilterWidgetOptionsComponent extends VueComponentBase i
             this.next_update_options = this.widget_options;
             this.next_update_options.relative_to_other_filter_id = this.relative_to_other_filter_id;
 
-            await this.throttled_update_options();
+            await this.update_options();
         }
+    }
+
+    @Throttle({
+        param_type: EventifyEventListenerConfVO.PARAM_TYPE_NONE,
+        throttle_ms: 50,
+        leading: false,
+    })
+    public async update_options() {
+        try {
+            this.page_widget.json_options = JSON.stringify(this.next_update_options);
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+        await ModuleDAO.instance.insertOrUpdateVO(this.page_widget);
+
+        const name = this.get_widgets_by_id[this.page_widget.widget_id].name;
+        const get_selected_fields = WidgetOptionsVOManager.widgets_get_selected_fields[name];
+        this.set_selected_fields(get_selected_fields ? get_selected_fields(this.page_widget) : {});
     }
 
     @Watch(reflect<YearFilterWidgetOptionsComponent>().min_year)
@@ -267,7 +283,7 @@ export default class YearFilterWidgetOptionsComponent extends VueComponentBase i
             this.next_update_options = this.widget_options;
             this.next_update_options.min_year = year;
 
-            await this.throttled_update_options();
+            await this.update_options();
         }
     }
 
@@ -282,7 +298,7 @@ export default class YearFilterWidgetOptionsComponent extends VueComponentBase i
             this.next_update_options = this.widget_options;
             this.next_update_options.auto_select_year_min = year;
 
-            await this.throttled_update_options();
+            await this.update_options();
         }
     }
 
@@ -297,7 +313,7 @@ export default class YearFilterWidgetOptionsComponent extends VueComponentBase i
             this.next_update_options = this.widget_options;
             this.next_update_options.auto_select_year_max = year;
 
-            await this.throttled_update_options();
+            await this.update_options();
         }
     }
 
@@ -312,7 +328,7 @@ export default class YearFilterWidgetOptionsComponent extends VueComponentBase i
             this.next_update_options = this.widget_options;
             this.next_update_options.max_year = year;
 
-            await this.throttled_update_options();
+            await this.update_options();
         }
     }
 
@@ -326,7 +342,7 @@ export default class YearFilterWidgetOptionsComponent extends VueComponentBase i
             this.next_update_options = this.widget_options;
             this.next_update_options.custom_filter_name = this.custom_filter_name;
 
-            await this.throttled_update_options();
+            await this.update_options();
         }
     }
 
@@ -339,10 +355,6 @@ export default class YearFilterWidgetOptionsComponent extends VueComponentBase i
         ...args: Parameters<IDashboardPageActionsMethods[K]>
     ) {
         this.$store.dispatch(`${this.storeNamespace}/${String(action)}`, ...args);
-    }
-
-    public set_page_widget(page_widget: DashboardPageWidgetVO) {
-        return this.vuexAct(reflect<this>().set_page_widget, page_widget);
     }
 
     public set_custom_filters(custom_filters: string[]) {
@@ -367,7 +379,7 @@ export default class YearFilterWidgetOptionsComponent extends VueComponentBase i
 
         this.next_update_options.hide_filter = !this.next_update_options.hide_filter;
 
-        await this.throttled_update_options();
+        await this.update_options();
     }
 
     public async switch_is_relative_to_other_filter() {
@@ -379,7 +391,7 @@ export default class YearFilterWidgetOptionsComponent extends VueComponentBase i
 
         this.next_update_options.is_relative_to_other_filter = !this.next_update_options.is_relative_to_other_filter;
 
-        await this.throttled_update_options();
+        await this.update_options();
     }
 
     public async switch_year_relative_mode() {
@@ -391,7 +403,7 @@ export default class YearFilterWidgetOptionsComponent extends VueComponentBase i
 
         this.next_update_options.year_relative_mode = !this.next_update_options.year_relative_mode;
 
-        await this.throttled_update_options();
+        await this.update_options();
     }
 
     public async switch_auto_select_year() {
@@ -403,7 +415,7 @@ export default class YearFilterWidgetOptionsComponent extends VueComponentBase i
 
         this.next_update_options.auto_select_year = !this.next_update_options.auto_select_year;
 
-        await this.throttled_update_options();
+        await this.update_options();
     }
 
     public async switch_auto_select_year_relative_mode() {
@@ -415,7 +427,7 @@ export default class YearFilterWidgetOptionsComponent extends VueComponentBase i
 
         this.next_update_options.auto_select_year_relative_mode = !this.next_update_options.auto_select_year_relative_mode;
 
-        await this.throttled_update_options();
+        await this.update_options();
     }
 
     /**
@@ -433,7 +445,7 @@ export default class YearFilterWidgetOptionsComponent extends VueComponentBase i
             this.next_update_options = cloneDeep(this.widget_options);
         }
 
-        await this.throttled_update_options();
+        await this.update_options();
     }
 
     public async switch_is_vo_field_ref() {
@@ -445,23 +457,7 @@ export default class YearFilterWidgetOptionsComponent extends VueComponentBase i
 
         this.next_update_options.is_vo_field_ref = !this.next_update_options.is_vo_field_ref;
 
-        await this.throttled_update_options();
-    }
-
-    public async update_options() {
-        try {
-            this.page_widget.json_options = JSON.stringify(this.next_update_options);
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-        await ModuleDAO.instance.insertOrUpdateVO(this.page_widget);
-
-        this.set_page_widget(this.page_widget);
-        this.$emit('update_layout_widget', this.page_widget);
-
-        const name = this.get_widgets_by_id[this.page_widget.widget_id].name;
-        const get_selected_fields = WidgetOptionsVOManager.widgets_get_selected_fields[name];
-        this.set_selected_fields(get_selected_fields ? get_selected_fields(this.page_widget) : {});
+        await this.update_options();
     }
 
     public async remove_field_ref() {
@@ -477,7 +473,7 @@ export default class YearFilterWidgetOptionsComponent extends VueComponentBase i
 
         this.next_update_options.vo_field_ref = null;
 
-        await this.throttled_update_options();
+        await this.update_options();
     }
 
     public async add_field_ref(api_type_id: string, field_id: string) {
@@ -494,6 +490,6 @@ export default class YearFilterWidgetOptionsComponent extends VueComponentBase i
 
         this.next_update_options.vo_field_ref = vo_field_ref;
 
-        await this.throttled_update_options();
+        await this.update_options();
     }
 }

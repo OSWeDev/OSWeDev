@@ -24,7 +24,6 @@ import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer
 export default class OseliaThreadMessageFeedbackComponent extends VueComponentBase implements IDashboardPageConsumer {
     @Inject('storeNamespace') readonly storeNamespace!: string;
 
-    public current_user_feedbacks: OseliaThreadMessageFeedbackVO[] = null;
 
     @ModuleTranslatableTextGetter
     private get_flat_locale_translations: { [code_text: string]: string };
@@ -32,12 +31,14 @@ export default class OseliaThreadMessageFeedbackComponent extends VueComponentBa
     @Prop({ default: null })
     private thread_message: GPTAssistantAPIThreadMessageVO;
 
+    public current_user_feedbacks: OseliaThreadMessageFeedbackVO[] = null;
+
     private throttle_load_feedback = ThrottleHelper.declare_throttle_without_args(
         'OseliaThreadMessageFeedbackComponent.throttle_load_feedback',
         this.load_feedback, 10);
 
-    get get_discarded_field_paths(): { [vo_type: string]: { [field_id: string]: boolean } } {
-        return this.vuexGet(reflect<this>().get_discarded_field_paths);
+    get get_dashboard_discarded_field_paths(): { [vo_type: string]: { [field_id: string]: boolean } } {
+        return this.vuexGet(reflect<this>().get_dashboard_discarded_field_paths);
     }
 
     get get_dashboard_api_type_ids(): string[] {

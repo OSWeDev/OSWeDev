@@ -11,7 +11,6 @@ import FieldFiltersVO from '../../../../../../../shared/modules/DashboardBuilder
 import TableColumnDescVO from '../../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import MatroidController from '../../../../../../../shared/modules/Matroid/MatroidController';
 import ModuleParams from '../../../../../../../shared/modules/Params/ModuleParams';
-import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ModuleVar from '../../../../../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../../../../../shared/modules/Var/VarsController';
 import VarConfVO from '../../../../../../../shared/modules/Var/vos/VarConfVO';
@@ -23,11 +22,10 @@ import { all_promises } from '../../../../../../../shared/tools/PromiseTools';
 import ThreadHandler from '../../../../../../../shared/tools/ThreadHandler';
 import VarDataRefComponent from '../../../../Var/components/dataref/VarDataRefComponent';
 import VueComponentBase from '../../../../VueComponentBase';
-import WidgetOptionsVOManager from '../../../../dashboard_builder/widgets/WidgetOptionsVOManager';
+import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../../../dashboard_builder/page/DashboardPageStore';
 import ValidationFiltersWidgetController from '../../../../dashboard_builder/widgets/validation_filters_widget/ValidationFiltersWidgetController';
 import VarWidgetComponent from '../../../../dashboard_builder/widgets/var_widget/VarWidgetComponent';
 import './db_var_datatable_field.scss';
-import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../../../dashboard_builder/page/DashboardPageStore';
 
 @Component({
     template: require('./db_var_datatable_field.pug'),
@@ -85,8 +83,8 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase imple
     private var_param_no_value_or_param_is_invalid: boolean = false;
     private limit_nb_ts_ranges_on_param_by_context_filter: number = 100;
 
-    get get_discarded_field_paths(): { [vo_type: string]: { [field_id: string]: boolean } } {
-        return this.vuexGet(reflect<this>().get_discarded_field_paths);
+    get get_dashboard_discarded_field_paths(): { [vo_type: string]: { [field_id: string]: boolean } } {
+        return this.vuexGet(reflect<this>().get_dashboard_discarded_field_paths);
     }
 
     get get_active_field_filters(): FieldFiltersVO {
@@ -102,8 +100,12 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase imple
         return this.vuexGet(reflect<this>().get_page_widgets);
     }
 
-    get get_selected_page_page_widgets_by_id(): { [id: number]: DashboardWidgetVO } {
+    get get_selected_page_page_widgets_by_id(): { [id: number]: DashboardPageWidgetVO } {
         return this.vuexGet(reflect<this>().get_selected_page_page_widgets_by_id);
+    }
+
+    get get_widgets_by_id(): { [id: number]: DashboardWidgetVO } {
+        return this.vuexGet(reflect<this>().get_widgets_by_id);
     }
 
     get var_filter(): string {
@@ -186,7 +188,7 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase imple
         }
 
         for (const i in this.get_page_widgets) {
-            const widget: DashboardWidgetVO = this.get_selected_page_page_widgets_by_id[this.get_page_widgets[i].widget_id];
+            const widget: DashboardWidgetVO = this.get_widgets_by_id[this.get_page_widgets[i].widget_id];
 
             if (!widget) {
                 continue;

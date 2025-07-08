@@ -1,6 +1,7 @@
 import { cloneDeep } from 'lodash';
 import Component from 'vue-class-component';
 import { Inject, Prop, Watch } from 'vue-property-decorator';
+import Throttle from '../../../../../../../shared/annotations/Throttle';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import ModuleTableController from '../../../../../../../shared/modules/DAO/ModuleTableController';
 import ModuleTableFieldVO from '../../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
@@ -8,16 +9,16 @@ import DashboardPageWidgetVO from '../../../../../../../shared/modules/Dashboard
 import VarRadarChartWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VarRadarChartWidgetOptionsVO';
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import TimeSegment from '../../../../../../../shared/modules/DataRender/vos/TimeSegment';
+import EventifyEventListenerConfVO from '../../../../../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO';
 import VarsController from '../../../../../../../shared/modules/Var/VarsController';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import ObjectHandler, { reflect } from '../../../../../../../shared/tools/ObjectHandler';
-import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../../../VueComponentBase';
 import SingleVoFieldRefHolderComponent from '../../../options_tools/single_vo_field_ref_holder/SingleVoFieldRefHolderComponent';
+import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../../page/DashboardPageStore';
 import WidgetFilterOptionsComponent from '../../var_widget/options/filters/WidgetFilterOptionsComponent';
 import './VarRadarChartWidgetOptionsComponent.scss';
-import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../../page/DashboardPageStore';
 
 @Component({
     template: require('./VarRadarChartWidgetOptionsComponent.pug'),
@@ -34,15 +35,6 @@ export default class VarRadarChartWidgetOptionsComponent extends VueComponentBas
     public page_widget: DashboardPageWidgetVO;
 
     public next_update_options: VarRadarChartWidgetOptionsVO = null;
-    public throttled_reload_options = ThrottleHelper.declare_throttle_without_args(
-        'VarRadarChartWidgetOptionsComponent.throttled_reload_options',
-        this.reload_options.bind(this), 50, false);
-    public throttled_update_options = ThrottleHelper.declare_throttle_without_args(
-        'VarRadarChartWidgetOptionsComponent.throttled_update_options',
-        this.update_options.bind(this), 50, false);
-    public throttled_update_colors = ThrottleHelper.declare_throttle_without_args(
-        'VarRadarChartWidgetOptionsComponent.throttled_update_colors',
-        this.update_colors.bind(this), 800, false);
 
     public tmp_selected_var_name_1: string = null;
     public tmp_selected_var_name_2: string = null;
@@ -227,733 +219,11 @@ export default class VarRadarChartWidgetOptionsComponent extends VueComponentBas
         return res;
     }
 
-    @Watch(reflect<VarRadarChartWidgetOptionsComponent>().page_widget, { immediate: true, deep: true })
-    public async onchange_page_widget() {
-        await this.throttled_reload_options();
-    }
-
-    @Watch(reflect<VarRadarChartWidgetOptionsComponent>().widget_options)
-    public async onchange_widget_options() {
-        await this.throttled_reload_options();
-    }
-
-    @Watch(reflect<VarRadarChartWidgetOptionsComponent>().tmp_selected_var_name_2)
-    public async onchange_tmp_selected_var_name_2() {
-        if (!this.widget_options) {
-            return;
-        }
-
-        if (!this.tmp_selected_var_name_2) {
-
-            if (this.widget_options.var_id_2) {
-                this.widget_options.var_id_2 = null;
-                this.custom_filter_names_2 = {};
-                this.widget_options.filter_custom_field_filters_2 = {};
-                await this.throttled_update_options();
-            }
-            return;
-        }
-
-        try {
-
-            let selected_var_id_2: number = parseInt(this.tmp_selected_var_name_2.split(' | ')[0]);
-
-            if (this.widget_options.var_id_2 != selected_var_id_2) {
-                this.next_update_options = this.widget_options;
-                this.next_update_options.var_id_2 = selected_var_id_2;
-
-                await this.throttled_update_options();
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-    }
-
-
-    @Watch(reflect<VarRadarChartWidgetOptionsComponent>().tmp_selected_var_name_1)
-    public async onchange_tmp_selected_var_name_1() {
-        if (!this.widget_options) {
-            return;
-        }
-
-        if (!this.tmp_selected_var_name_1) {
-
-            if (this.widget_options.var_id_1) {
-                this.widget_options.var_id_1 = null;
-                this.custom_filter_names_1 = {};
-                this.widget_options.filter_custom_field_filters_1 = {};
-                await this.throttled_update_options();
-            }
-            return;
-        }
-
-        try {
-
-            let selected_var_id_1: number = parseInt(this.tmp_selected_var_name_1.split(' | ')[0]);
-
-            if (this.widget_options.var_id_1 != selected_var_id_1) {
-                this.next_update_options = this.widget_options;
-                this.next_update_options.var_id_1 = selected_var_id_1;
-
-                await this.throttled_update_options();
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-    }
-
-    @Watch(reflect<VarRadarChartWidgetOptionsComponent>().tmp_selected_dimension_custom_filter_segment_type)
-    public async onchange_tmp_selected_dimension_custom_filter_segment_type() {
-        if (!this.widget_options) {
-            return;
-        }
-
-        if (!this.tmp_selected_dimension_custom_filter_segment_type) {
-
-            if (this.widget_options.dimension_custom_filter_segment_type) {
-                this.widget_options.dimension_custom_filter_segment_type = null;
-                await this.throttled_update_options();
-            }
-            return;
-        }
-
-        try {
-
-            if (this.widget_options.dimension_custom_filter_segment_type != this.get_dimension_custom_filter_segment_type_from_selected_option(this.tmp_selected_dimension_custom_filter_segment_type)) {
-                this.next_update_options = this.widget_options;
-                this.next_update_options.dimension_custom_filter_segment_type = this.get_dimension_custom_filter_segment_type_from_selected_option(this.tmp_selected_dimension_custom_filter_segment_type);
-
-                await this.throttled_update_options();
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-    }
-
-    @Watch(reflect<VarRadarChartWidgetOptionsComponent>().tmp_selected_legend_position)
-    public async onchange_tmp_selected_legend_position() {
-        if (!this.widget_options) {
-            return;
-        }
-
-        if (!this.tmp_selected_legend_position) {
-
-            if (this.widget_options.legend_position) {
-                this.widget_options.legend_position = null;
-                await this.throttled_update_options();
-            }
-            return;
-        }
-
-        try {
-
-            if (this.widget_options.legend_position != this.tmp_selected_legend_position) {
-                this.next_update_options = this.widget_options;
-                this.next_update_options.legend_position = this.tmp_selected_legend_position;
-
-                await this.throttled_update_options();
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-    }
-
-    @Watch(reflect<VarRadarChartWidgetOptionsComponent>().legend_font_size)
-    public async onchange_legend_font_size() {
-        if (!this.widget_options) {
-            return;
-        }
-
-        if (!this.legend_font_size) {
-
-            if (this.widget_options.legend_font_size) {
-                this.widget_options.legend_font_size = 12;
-                await this.throttled_update_options();
-            }
-            return;
-        }
-
-        try {
-
-            if (this.widget_options.legend_font_size != parseInt(this.legend_font_size)) {
-                if (parseInt(this.legend_font_size) <= 100) {
-                    this.next_update_options = this.widget_options;
-                    this.next_update_options.legend_font_size = parseInt(this.legend_font_size);
-                }
-                await this.throttled_update_options();
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-    }
-
-    @Watch(reflect<VarRadarChartWidgetOptionsComponent>().legend_box_width)
-    public async onchange_legend_box_width() {
-        if (!this.widget_options) {
-            return;
-        }
-
-        if (!this.legend_box_width) {
-
-            if (this.widget_options.legend_box_width) {
-                this.widget_options.legend_box_width = 40;
-                await this.throttled_update_options();
-            }
-            return;
-        }
-
-        try {
-
-            if (this.widget_options.legend_box_width != parseInt(this.legend_box_width)) {
-                if (parseInt(this.legend_box_width) <= 400) {
-                    this.next_update_options = this.widget_options;
-                    this.next_update_options.legend_box_width = parseInt(this.legend_box_width);
-                }
-                await this.throttled_update_options();
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-    }
-
-    @Watch(reflect<VarRadarChartWidgetOptionsComponent>().legend_padding)
-    public async onchange_legend_padding() {
-        if (!this.widget_options) {
-            return;
-        }
-
-        if (!this.legend_padding) {
-
-            if (this.widget_options.legend_padding) {
-                this.widget_options.legend_padding = 10;
-                await this.throttled_update_options();
-            }
-            return;
-        }
-
-        try {
-
-            if (this.widget_options.legend_padding != parseInt(this.legend_padding)) {
-                this.next_update_options = this.widget_options;
-                this.next_update_options.legend_padding = parseInt(this.legend_padding);
-
-                await this.throttled_update_options();
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-    }
-
-    @Watch(reflect<VarRadarChartWidgetOptionsComponent>().title_font_size)
-    public async onchange_title_font_size() {
-        if (!this.widget_options) {
-            return;
-        }
-
-        if (!this.title_font_size) {
-
-            if (this.widget_options.title_font_size) {
-                this.widget_options.title_font_size = 16;
-                await this.throttled_update_options();
-            }
-            return;
-        }
-
-        try {
-
-            if (this.widget_options.title_font_size != parseInt(this.title_font_size)) {
-                if (parseInt(this.title_font_size) <= 100) {
-                    this.next_update_options = this.widget_options;
-                    this.next_update_options.title_font_size = parseInt(this.title_font_size);
-                }
-                await this.throttled_update_options();
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-    }
-
-    @Watch(reflect<VarRadarChartWidgetOptionsComponent>().title_padding)
-    public async onchange_title_padding() {
-        if (!this.widget_options) {
-            return;
-        }
-
-        if (!this.title_padding) {
-
-            if (this.widget_options.title_padding) {
-                this.widget_options.title_padding = 10;
-                await this.throttled_update_options();
-            }
-            return;
-        }
-
-        try {
-
-            if (this.widget_options.title_padding != parseInt(this.title_padding)) {
-                this.next_update_options = this.widget_options;
-                this.next_update_options.title_padding = parseInt(this.title_padding);
-
-                await this.throttled_update_options();
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-    }
-
-
-    @Watch(reflect<VarRadarChartWidgetOptionsComponent>().border_width_1)
-    public async onchange_border_width_1() {
-        if (!this.widget_options) {
-            return;
-        }
-
-        if (!this.border_width_1) {
-
-            if (this.widget_options.border_width_1) {
-                this.widget_options.border_width_1 = null;
-                await this.throttled_update_options();
-            }
-            return;
-        }
-
-        try {
-
-            if (this.widget_options.border_width_1 != parseInt(this.border_width_1)) {
-                this.next_update_options = this.widget_options;
-                this.next_update_options.border_width_1 = parseInt(this.border_width_1);
-
-                await this.throttled_update_options();
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-    }
-
-    @Watch(reflect<VarRadarChartWidgetOptionsComponent>().border_width_2)
-    public async onchange_border_width_2() {
-        if (!this.widget_options) {
-            return;
-        }
-
-        if (!this.border_width_2) {
-
-            if (this.widget_options.border_width_2) {
-                this.widget_options.border_width_2 = null;
-                await this.throttled_update_options();
-            }
-            return;
-        }
-
-        try {
-
-            if (this.widget_options.border_width_2 != parseInt(this.border_width_2)) {
-                this.next_update_options = this.widget_options;
-                this.next_update_options.border_width_2 = parseInt(this.border_width_2);
-
-                await this.throttled_update_options();
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-    }
-
-    @Watch(reflect<VarRadarChartWidgetOptionsComponent>().max_dimension_values)
-    public async onchange_max_dimension_values() {
-        if (!this.widget_options) {
-            return;
-        }
-
-        if (!this.max_dimension_values) {
-
-            if (this.widget_options.max_dimension_values) {
-                this.widget_options.max_dimension_values = 10;
-                await this.throttled_update_options();
-            }
-            return;
-        }
-
-        try {
-
-            if (this.widget_options.max_dimension_values != parseInt(this.max_dimension_values)) {
-                if (this.widget_options.dimension_is_vo_field_ref) {
-                    if (parseInt(this.max_dimension_values) >= 0) {
-                        this.next_update_options = this.widget_options;
-                        this.next_update_options.max_dimension_values = parseInt(this.max_dimension_values);
-                    }
-                    await this.throttled_update_options();
-                } else {
-                    if (parseInt(this.max_dimension_values) > 0) {
-                        this.next_update_options = this.widget_options;
-                        this.next_update_options.max_dimension_values = parseInt(this.max_dimension_values);
-                    } else {
-                        this.snotify.error('Un custom filter doit avoir un maximum de valeurs à afficher supérieur à 0');
-                        this.next_update_options = this.widget_options;
-                        this.next_update_options.max_dimension_values = 10;
-                    }
-                    await this.throttled_update_options();
-                }
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-    }
-
-    @Watch(reflect<VarRadarChartWidgetOptionsComponent>().max_dataset_values)
-    public async onchange_max_dataset_values() {
-        if (!this.widget_options) {
-            return;
-        }
-
-        if (!this.max_dataset_values) {
-
-            if (this.widget_options.max_dataset_values) {
-                this.widget_options.max_dataset_values = 10;
-                await this.throttled_update_options();
-            }
-            return;
-        }
-
-        try {
-
-            if (this.widget_options.max_dataset_values != parseInt(this.max_dataset_values)) {
-                if (this.widget_options.dimension_is_vo_field_ref) {
-                    if (parseInt(this.max_dataset_values) >= 0) {
-                        this.next_update_options = this.widget_options;
-                        this.next_update_options.max_dataset_values = parseInt(this.max_dataset_values);
-                    }
-                    await this.throttled_update_options();
-                } else {
-                    if (parseInt(this.max_dataset_values) > 0) {
-                        this.next_update_options = this.widget_options;
-                        this.next_update_options.max_dataset_values = parseInt(this.max_dataset_values);
-                    } else {
-                        this.snotify.error('Un custom filter doit avoir un maximum de valeurs à afficher supérieur à 0');
-                        this.next_update_options = this.widget_options;
-                        this.next_update_options.max_dataset_values = 10;
-                    }
-                    await this.throttled_update_options();
-                }
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-    }
-
-    // Accès dynamiques Vuex
-    public vuexGet<K extends keyof IDashboardGetters>(getter: K): IDashboardGetters[K] {
-        return this.$store.getters[`${this.storeNamespace}/${String(getter)}`];
-    }
-    public vuexAct<K extends keyof IDashboardPageActionsMethods>(
-        action: K,
-        ...args: Parameters<IDashboardPageActionsMethods[K]>
-    ) {
-        this.$store.dispatch(`${this.storeNamespace}/${String(action)}`, ...args);
-    }
-
-    public set_page_widget(page_widget: DashboardPageWidgetVO) {
-        return this.vuexAct(reflect<this>().set_page_widget, page_widget);
-    }
-
-    public async update_colors() {
-        if (!this.widget_options) {
-            return;
-        }
-
-        if (!this.next_update_options) {
-            this.next_update_options = this.get_default_options();
-        }
-        this.next_update_options.bg_color_1 = this.bg_color_1;
-        this.next_update_options.bg_color_2 = this.bg_color_2;
-        this.next_update_options.border_color_1 = this.border_color_1;
-        this.next_update_options.border_color_2 = this.border_color_2;
-        this.next_update_options.bg_color = this.bg_color;
-        this.next_update_options.legend_font_color = this.legend_font_color;
-        this.next_update_options.title_font_color = this.title_font_color;
-        await this.throttled_update_options();
-    }
-
-    public async update_options() {
-        try {
-            this.page_widget.json_options = JSON.stringify(this.next_update_options);
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-        await ModuleDAO.instance.insertOrUpdateVO(this.page_widget);
-        this.set_page_widget(this.page_widget);
-        this.$emit('update_layout_widget', this.page_widget);
-    }
-
-    public async remove_dimension_vo_field_ref() {
-        this.next_update_options = this.widget_options;
-
-        if (!this.next_update_options) {
-            return null;
-        }
-
-        if (!this.next_update_options.dimension_vo_field_ref) {
-            return null;
-        }
-
-        this.next_update_options.dimension_vo_field_ref = null;
-
-        await this.throttled_update_options();
-    }
-
-    public async add_dimension_vo_field_ref(api_type_id: string, field_id: string) {
-        this.next_update_options = this.widget_options;
-
-        if (!this.next_update_options) {
-            this.next_update_options = this.get_default_options();
-        }
-
-        let dimension_vo_field_ref = new VOFieldRefVO();
-        dimension_vo_field_ref.api_type_id = api_type_id;
-        dimension_vo_field_ref.field_id = field_id;
-        dimension_vo_field_ref.weight = 0;
-
-        this.next_update_options.dimension_vo_field_ref = dimension_vo_field_ref;
-
-        await this.throttled_update_options();
-    }
-
-    public async remove_sort_dimension_by_vo_field_ref() {
-        this.next_update_options = this.widget_options;
-
-        if (!this.next_update_options) {
-            return null;
-        }
-
-        if (!this.next_update_options.sort_dimension_by_vo_field_ref) {
-            return null;
-        }
-
-        this.next_update_options.sort_dimension_by_vo_field_ref = null;
-
-        await this.throttled_update_options();
-    }
-
-    public async add_sort_dimension_by_vo_field_ref(api_type_id: string, field_id: string) {
-        this.next_update_options = this.widget_options;
-
-        if (!this.next_update_options) {
-            this.next_update_options = this.get_default_options();
-        }
-
-        let sort_dimension_by_vo_field_ref = new VOFieldRefVO();
-        sort_dimension_by_vo_field_ref.api_type_id = api_type_id;
-        sort_dimension_by_vo_field_ref.field_id = field_id;
-        sort_dimension_by_vo_field_ref.weight = 0;
-
-        this.next_update_options.sort_dimension_by_vo_field_ref = sort_dimension_by_vo_field_ref;
-
-        await this.throttled_update_options();
-    }
-
-    public async remove_multiple_dataset_vo_field_ref() {
-        this.next_update_options = this.widget_options;
-
-        if (!this.next_update_options) {
-            return null;
-        }
-
-        if (!this.next_update_options.multiple_dataset_vo_field_ref) {
-            return null;
-        }
-
-        this.next_update_options.multiple_dataset_vo_field_ref = null;
-
-        await this.throttled_update_options();
-    }
-
-    public async add_multiple_dataset_vo_field_ref(api_type_id: string, field_id: string) {
-        this.next_update_options = this.widget_options;
-
-        if (!this.next_update_options) {
-            this.next_update_options = this.get_default_options();
-        }
-
-        let multiple_dataset_vo_field_ref = new VOFieldRefVO();
-        multiple_dataset_vo_field_ref.api_type_id = api_type_id;
-        multiple_dataset_vo_field_ref.field_id = field_id;
-        multiple_dataset_vo_field_ref.weight = 0;
-
-        this.next_update_options.multiple_dataset_vo_field_ref = multiple_dataset_vo_field_ref;
-
-        await this.throttled_update_options();
-    }
-
-    public get_default_options(): VarRadarChartWidgetOptionsVO {
-        return VarRadarChartWidgetOptionsVO.createDefault();
-    }
-
-    public async switch_legend_display() {
-        this.next_update_options = this.widget_options;
-
-        if (!this.next_update_options) {
-            this.next_update_options = this.get_default_options();
-        }
-
-        this.next_update_options.legend_display = !this.next_update_options.legend_display;
-
-        await this.throttled_update_options();
-    }
-
-    public async switch_dimension_is_vo_field_ref() {
-        this.next_update_options = this.widget_options;
-
-        if (!this.next_update_options) {
-            this.next_update_options = this.get_default_options();
-        }
-
-        this.next_update_options.dimension_is_vo_field_ref = !this.next_update_options.dimension_is_vo_field_ref;
-
-        await this.throttled_update_options();
-    }
-
-    public async switch_sort_dimension_by_asc() {
-        this.next_update_options = this.widget_options;
-
-        if (!this.next_update_options) {
-            this.next_update_options = this.get_default_options();
-        }
-
-        this.next_update_options.sort_dimension_by_asc = !this.next_update_options.sort_dimension_by_asc;
-
-        await this.throttled_update_options();
-    }
-
-    public async switch_hide_filter() {
-        this.next_update_options = this.widget_options;
-
-        if (!this.next_update_options) {
-            this.next_update_options = this.get_default_options();
-        }
-
-        this.next_update_options.hide_filter = !this.next_update_options.hide_filter;
-
-        await this.throttled_update_options();
-    }
-
-    public async switch_has_dimension() {
-        if (!this.has_dimension) {
-            this.snotify.error('Not implemented yet');
-        }
-        // this.next_update_options = this.widget_options;
-
-        // if (!this.next_update_options) {
-        //     this.next_update_options = this.get_default_options();
-        // }
-
-        // this.next_update_options.has_dimension = !this.next_update_options.has_dimension;
-
-        // await this.throttled_update_options();
-    }
-
-    public async switch_title_display() {
-        this.next_update_options = this.widget_options;
-
-        if (!this.next_update_options) {
-            this.next_update_options = this.get_default_options();
-        }
-
-        this.next_update_options.title_display = !this.next_update_options.title_display;
-
-        await this.throttled_update_options();
-    }
-
-    public async switch_legend_use_point_style() {
-        this.next_update_options = this.widget_options;
-
-        if (!this.next_update_options) {
-            this.next_update_options = this.get_default_options();
-        }
-
-        this.next_update_options.legend_use_point_style = !this.next_update_options.legend_use_point_style;
-
-        await this.throttled_update_options();
-    }
-
-    public async switch_max_is_sum_of_var_1_and_2() {
-        this.next_update_options = this.widget_options;
-
-        if (!this.next_update_options) {
-            this.next_update_options = this.get_default_options();
-        }
-
-        this.next_update_options.max_is_sum_of_var_1_and_2 = !this.next_update_options.max_is_sum_of_var_1_and_2;
-
-        await this.throttled_update_options();
-    }
-
-
-    public async change_custom_filter_1(field_id: string, custom_filter: string) {
-        if (!this.widget_options) {
-            return;
-        }
-
-        if (!this.next_update_options) {
-            this.next_update_options = this.get_default_options();
-        }
-        this.custom_filter_names_1[field_id] = custom_filter;
-        this.next_update_options.filter_custom_field_filters_1 = this.custom_filter_names_1;
-        await this.throttled_update_options();
-    }
-
-    public async change_custom_filter_2(field_id: string, custom_filter: string) {
-        if (!this.widget_options) {
-            return;
-        }
-
-        if (!this.next_update_options) {
-            this.next_update_options = this.get_default_options();
-        }
-        this.custom_filter_names_2[field_id] = custom_filter;
-        this.next_update_options.filter_custom_field_filters_2 = this.custom_filter_names_2;
-        await this.throttled_update_options();
-    }
-
-
-    public async change_custom_filter_dimension(custom_filter: string) {
-        if (!this.widget_options) {
-            return;
-        }
-
-        if (!this.next_update_options) {
-            this.next_update_options = this.get_default_options();
-        }
-
-        this.dimension_custom_filter_name = custom_filter;
-        this.next_update_options.dimension_custom_filter_name = this.dimension_custom_filter_name;
-
-        await this.throttled_update_options();
-    }
-
-
-    public async update_additional_options(additional_options: string) {
-        if (!this.widget_options) {
-            return;
-        }
-
-        if (!this.next_update_options) {
-            this.next_update_options = this.get_default_options();
-        }
-        this.next_update_options.filter_additional_params = additional_options;
-        await this.throttled_update_options();
-    }
-
-    public async update_filter_type(filter_type: string) {
-        if (!this.widget_options) {
-            return;
-        }
-
-        if (!this.next_update_options) {
-            this.next_update_options = this.get_default_options();
-        }
-        this.next_update_options.filter_type = filter_type;
-        await this.throttled_update_options();
-    }
-
+    @Throttle({
+        param_type: EventifyEventListenerConfVO.PARAM_TYPE_NONE,
+        throttle_ms: 50,
+        leading: false,
+    })
     public reload_options() {
         if (!this.page_widget) {
             this.widget_options = null;
@@ -1167,6 +437,737 @@ export default class VarRadarChartWidgetOptionsComponent extends VueComponentBas
         if (this.next_update_options != this.widget_options) {
             this.next_update_options = this.widget_options;
         }
+    }
+
+    @Watch(reflect<VarRadarChartWidgetOptionsComponent>().page_widget, { immediate: true, deep: true })
+    public async onchange_page_widget() {
+        await this.reload_options();
+    }
+
+    @Watch(reflect<VarRadarChartWidgetOptionsComponent>().widget_options)
+    public async onchange_widget_options() {
+        await this.reload_options();
+    }
+
+    @Watch(reflect<VarRadarChartWidgetOptionsComponent>().tmp_selected_var_name_2)
+    public async onchange_tmp_selected_var_name_2() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (!this.tmp_selected_var_name_2) {
+
+            if (this.widget_options.var_id_2) {
+                this.widget_options.var_id_2 = null;
+                this.custom_filter_names_2 = {};
+                this.widget_options.filter_custom_field_filters_2 = {};
+                await this.update_options();
+            }
+            return;
+        }
+
+        try {
+
+            let selected_var_id_2: number = parseInt(this.tmp_selected_var_name_2.split(' | ')[0]);
+
+            if (this.widget_options.var_id_2 != selected_var_id_2) {
+                this.next_update_options = this.widget_options;
+                this.next_update_options.var_id_2 = selected_var_id_2;
+
+                await this.update_options();
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+    }
+
+    @Throttle({
+        param_type: EventifyEventListenerConfVO.PARAM_TYPE_NONE,
+        throttle_ms: 800,
+        leading: false,
+    })
+    public async update_colors() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+        this.next_update_options.bg_color_1 = this.bg_color_1;
+        this.next_update_options.bg_color_2 = this.bg_color_2;
+        this.next_update_options.border_color_1 = this.border_color_1;
+        this.next_update_options.border_color_2 = this.border_color_2;
+        this.next_update_options.bg_color = this.bg_color;
+        this.next_update_options.legend_font_color = this.legend_font_color;
+        this.next_update_options.title_font_color = this.title_font_color;
+        await this.update_options();
+    }
+
+    @Throttle({
+        param_type: EventifyEventListenerConfVO.PARAM_TYPE_NONE,
+        throttle_ms: 50,
+        leading: false,
+    })
+    public async update_options() {
+        try {
+            this.page_widget.json_options = JSON.stringify(this.next_update_options);
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+        await ModuleDAO.instance.insertOrUpdateVO(this.page_widget);
+    }
+
+
+    @Watch(reflect<VarRadarChartWidgetOptionsComponent>().tmp_selected_var_name_1)
+    public async onchange_tmp_selected_var_name_1() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (!this.tmp_selected_var_name_1) {
+
+            if (this.widget_options.var_id_1) {
+                this.widget_options.var_id_1 = null;
+                this.custom_filter_names_1 = {};
+                this.widget_options.filter_custom_field_filters_1 = {};
+                await this.update_options();
+            }
+            return;
+        }
+
+        try {
+
+            let selected_var_id_1: number = parseInt(this.tmp_selected_var_name_1.split(' | ')[0]);
+
+            if (this.widget_options.var_id_1 != selected_var_id_1) {
+                this.next_update_options = this.widget_options;
+                this.next_update_options.var_id_1 = selected_var_id_1;
+
+                await this.update_options();
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+    }
+
+    @Watch(reflect<VarRadarChartWidgetOptionsComponent>().tmp_selected_dimension_custom_filter_segment_type)
+    public async onchange_tmp_selected_dimension_custom_filter_segment_type() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (!this.tmp_selected_dimension_custom_filter_segment_type) {
+
+            if (this.widget_options.dimension_custom_filter_segment_type) {
+                this.widget_options.dimension_custom_filter_segment_type = null;
+                await this.update_options();
+            }
+            return;
+        }
+
+        try {
+
+            if (this.widget_options.dimension_custom_filter_segment_type != this.get_dimension_custom_filter_segment_type_from_selected_option(this.tmp_selected_dimension_custom_filter_segment_type)) {
+                this.next_update_options = this.widget_options;
+                this.next_update_options.dimension_custom_filter_segment_type = this.get_dimension_custom_filter_segment_type_from_selected_option(this.tmp_selected_dimension_custom_filter_segment_type);
+
+                await this.update_options();
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+    }
+
+    @Watch(reflect<VarRadarChartWidgetOptionsComponent>().tmp_selected_legend_position)
+    public async onchange_tmp_selected_legend_position() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (!this.tmp_selected_legend_position) {
+
+            if (this.widget_options.legend_position) {
+                this.widget_options.legend_position = null;
+                await this.update_options();
+            }
+            return;
+        }
+
+        try {
+
+            if (this.widget_options.legend_position != this.tmp_selected_legend_position) {
+                this.next_update_options = this.widget_options;
+                this.next_update_options.legend_position = this.tmp_selected_legend_position;
+
+                await this.update_options();
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+    }
+
+    @Watch(reflect<VarRadarChartWidgetOptionsComponent>().legend_font_size)
+    public async onchange_legend_font_size() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (!this.legend_font_size) {
+
+            if (this.widget_options.legend_font_size) {
+                this.widget_options.legend_font_size = 12;
+                await this.update_options();
+            }
+            return;
+        }
+
+        try {
+
+            if (this.widget_options.legend_font_size != parseInt(this.legend_font_size)) {
+                if (parseInt(this.legend_font_size) <= 100) {
+                    this.next_update_options = this.widget_options;
+                    this.next_update_options.legend_font_size = parseInt(this.legend_font_size);
+                }
+                await this.update_options();
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+    }
+
+    @Watch(reflect<VarRadarChartWidgetOptionsComponent>().legend_box_width)
+    public async onchange_legend_box_width() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (!this.legend_box_width) {
+
+            if (this.widget_options.legend_box_width) {
+                this.widget_options.legend_box_width = 40;
+                await this.update_options();
+            }
+            return;
+        }
+
+        try {
+
+            if (this.widget_options.legend_box_width != parseInt(this.legend_box_width)) {
+                if (parseInt(this.legend_box_width) <= 400) {
+                    this.next_update_options = this.widget_options;
+                    this.next_update_options.legend_box_width = parseInt(this.legend_box_width);
+                }
+                await this.update_options();
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+    }
+
+    @Watch(reflect<VarRadarChartWidgetOptionsComponent>().legend_padding)
+    public async onchange_legend_padding() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (!this.legend_padding) {
+
+            if (this.widget_options.legend_padding) {
+                this.widget_options.legend_padding = 10;
+                await this.update_options();
+            }
+            return;
+        }
+
+        try {
+
+            if (this.widget_options.legend_padding != parseInt(this.legend_padding)) {
+                this.next_update_options = this.widget_options;
+                this.next_update_options.legend_padding = parseInt(this.legend_padding);
+
+                await this.update_options();
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+    }
+
+    @Watch(reflect<VarRadarChartWidgetOptionsComponent>().title_font_size)
+    public async onchange_title_font_size() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (!this.title_font_size) {
+
+            if (this.widget_options.title_font_size) {
+                this.widget_options.title_font_size = 16;
+                await this.update_options();
+            }
+            return;
+        }
+
+        try {
+
+            if (this.widget_options.title_font_size != parseInt(this.title_font_size)) {
+                if (parseInt(this.title_font_size) <= 100) {
+                    this.next_update_options = this.widget_options;
+                    this.next_update_options.title_font_size = parseInt(this.title_font_size);
+                }
+                await this.update_options();
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+    }
+
+    @Watch(reflect<VarRadarChartWidgetOptionsComponent>().title_padding)
+    public async onchange_title_padding() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (!this.title_padding) {
+
+            if (this.widget_options.title_padding) {
+                this.widget_options.title_padding = 10;
+                await this.update_options();
+            }
+            return;
+        }
+
+        try {
+
+            if (this.widget_options.title_padding != parseInt(this.title_padding)) {
+                this.next_update_options = this.widget_options;
+                this.next_update_options.title_padding = parseInt(this.title_padding);
+
+                await this.update_options();
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+    }
+
+
+    @Watch(reflect<VarRadarChartWidgetOptionsComponent>().border_width_1)
+    public async onchange_border_width_1() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (!this.border_width_1) {
+
+            if (this.widget_options.border_width_1) {
+                this.widget_options.border_width_1 = null;
+                await this.update_options();
+            }
+            return;
+        }
+
+        try {
+
+            if (this.widget_options.border_width_1 != parseInt(this.border_width_1)) {
+                this.next_update_options = this.widget_options;
+                this.next_update_options.border_width_1 = parseInt(this.border_width_1);
+
+                await this.update_options();
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+    }
+
+    @Watch(reflect<VarRadarChartWidgetOptionsComponent>().border_width_2)
+    public async onchange_border_width_2() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (!this.border_width_2) {
+
+            if (this.widget_options.border_width_2) {
+                this.widget_options.border_width_2 = null;
+                await this.update_options();
+            }
+            return;
+        }
+
+        try {
+
+            if (this.widget_options.border_width_2 != parseInt(this.border_width_2)) {
+                this.next_update_options = this.widget_options;
+                this.next_update_options.border_width_2 = parseInt(this.border_width_2);
+
+                await this.update_options();
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+    }
+
+    @Watch(reflect<VarRadarChartWidgetOptionsComponent>().max_dimension_values)
+    public async onchange_max_dimension_values() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (!this.max_dimension_values) {
+
+            if (this.widget_options.max_dimension_values) {
+                this.widget_options.max_dimension_values = 10;
+                await this.update_options();
+            }
+            return;
+        }
+
+        try {
+
+            if (this.widget_options.max_dimension_values != parseInt(this.max_dimension_values)) {
+                if (this.widget_options.dimension_is_vo_field_ref) {
+                    if (parseInt(this.max_dimension_values) >= 0) {
+                        this.next_update_options = this.widget_options;
+                        this.next_update_options.max_dimension_values = parseInt(this.max_dimension_values);
+                    }
+                    await this.update_options();
+                } else {
+                    if (parseInt(this.max_dimension_values) > 0) {
+                        this.next_update_options = this.widget_options;
+                        this.next_update_options.max_dimension_values = parseInt(this.max_dimension_values);
+                    } else {
+                        this.snotify.error('Un custom filter doit avoir un maximum de valeurs à afficher supérieur à 0');
+                        this.next_update_options = this.widget_options;
+                        this.next_update_options.max_dimension_values = 10;
+                    }
+                    await this.update_options();
+                }
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+    }
+
+    @Watch(reflect<VarRadarChartWidgetOptionsComponent>().max_dataset_values)
+    public async onchange_max_dataset_values() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (!this.max_dataset_values) {
+
+            if (this.widget_options.max_dataset_values) {
+                this.widget_options.max_dataset_values = 10;
+                await this.update_options();
+            }
+            return;
+        }
+
+        try {
+
+            if (this.widget_options.max_dataset_values != parseInt(this.max_dataset_values)) {
+                if (this.widget_options.dimension_is_vo_field_ref) {
+                    if (parseInt(this.max_dataset_values) >= 0) {
+                        this.next_update_options = this.widget_options;
+                        this.next_update_options.max_dataset_values = parseInt(this.max_dataset_values);
+                    }
+                    await this.update_options();
+                } else {
+                    if (parseInt(this.max_dataset_values) > 0) {
+                        this.next_update_options = this.widget_options;
+                        this.next_update_options.max_dataset_values = parseInt(this.max_dataset_values);
+                    } else {
+                        this.snotify.error('Un custom filter doit avoir un maximum de valeurs à afficher supérieur à 0');
+                        this.next_update_options = this.widget_options;
+                        this.next_update_options.max_dataset_values = 10;
+                    }
+                    await this.update_options();
+                }
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+    }
+
+    // Accès dynamiques Vuex
+    public vuexGet<K extends keyof IDashboardGetters>(getter: K): IDashboardGetters[K] {
+        return this.$store.getters[`${this.storeNamespace}/${String(getter)}`];
+    }
+    public vuexAct<K extends keyof IDashboardPageActionsMethods>(
+        action: K,
+        ...args: Parameters<IDashboardPageActionsMethods[K]>
+    ) {
+        this.$store.dispatch(`${this.storeNamespace}/${String(action)}`, ...args);
+    }
+
+    public async remove_dimension_vo_field_ref() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            return null;
+        }
+
+        if (!this.next_update_options.dimension_vo_field_ref) {
+            return null;
+        }
+
+        this.next_update_options.dimension_vo_field_ref = null;
+
+        await this.update_options();
+    }
+
+    public async add_dimension_vo_field_ref(api_type_id: string, field_id: string) {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        let dimension_vo_field_ref = new VOFieldRefVO();
+        dimension_vo_field_ref.api_type_id = api_type_id;
+        dimension_vo_field_ref.field_id = field_id;
+        dimension_vo_field_ref.weight = 0;
+
+        this.next_update_options.dimension_vo_field_ref = dimension_vo_field_ref;
+
+        await this.update_options();
+    }
+
+    public async remove_sort_dimension_by_vo_field_ref() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            return null;
+        }
+
+        if (!this.next_update_options.sort_dimension_by_vo_field_ref) {
+            return null;
+        }
+
+        this.next_update_options.sort_dimension_by_vo_field_ref = null;
+
+        await this.update_options();
+    }
+
+    public async add_sort_dimension_by_vo_field_ref(api_type_id: string, field_id: string) {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        let sort_dimension_by_vo_field_ref = new VOFieldRefVO();
+        sort_dimension_by_vo_field_ref.api_type_id = api_type_id;
+        sort_dimension_by_vo_field_ref.field_id = field_id;
+        sort_dimension_by_vo_field_ref.weight = 0;
+
+        this.next_update_options.sort_dimension_by_vo_field_ref = sort_dimension_by_vo_field_ref;
+
+        await this.update_options();
+    }
+
+    public async remove_multiple_dataset_vo_field_ref() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            return null;
+        }
+
+        if (!this.next_update_options.multiple_dataset_vo_field_ref) {
+            return null;
+        }
+
+        this.next_update_options.multiple_dataset_vo_field_ref = null;
+
+        await this.update_options();
+    }
+
+    public async add_multiple_dataset_vo_field_ref(api_type_id: string, field_id: string) {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        let multiple_dataset_vo_field_ref = new VOFieldRefVO();
+        multiple_dataset_vo_field_ref.api_type_id = api_type_id;
+        multiple_dataset_vo_field_ref.field_id = field_id;
+        multiple_dataset_vo_field_ref.weight = 0;
+
+        this.next_update_options.multiple_dataset_vo_field_ref = multiple_dataset_vo_field_ref;
+
+        await this.update_options();
+    }
+
+    public get_default_options(): VarRadarChartWidgetOptionsVO {
+        return VarRadarChartWidgetOptionsVO.createDefault();
+    }
+
+    public async switch_legend_display() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        this.next_update_options.legend_display = !this.next_update_options.legend_display;
+
+        await this.update_options();
+    }
+
+    public async switch_dimension_is_vo_field_ref() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        this.next_update_options.dimension_is_vo_field_ref = !this.next_update_options.dimension_is_vo_field_ref;
+
+        await this.update_options();
+    }
+
+    public async switch_sort_dimension_by_asc() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        this.next_update_options.sort_dimension_by_asc = !this.next_update_options.sort_dimension_by_asc;
+
+        await this.update_options();
+    }
+
+    public async switch_hide_filter() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        this.next_update_options.hide_filter = !this.next_update_options.hide_filter;
+
+        await this.update_options();
+    }
+
+    public async switch_has_dimension() {
+        if (!this.has_dimension) {
+            this.snotify.error('Not implemented yet');
+        }
+        // this.next_update_options = this.widget_options;
+
+        // if (!this.next_update_options) {
+        //     this.next_update_options = this.get_default_options();
+        // }
+
+        // this.next_update_options.has_dimension = !this.next_update_options.has_dimension;
+
+        // await this.update_options();
+    }
+
+    public async switch_title_display() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        this.next_update_options.title_display = !this.next_update_options.title_display;
+
+        await this.update_options();
+    }
+
+    public async switch_legend_use_point_style() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        this.next_update_options.legend_use_point_style = !this.next_update_options.legend_use_point_style;
+
+        await this.update_options();
+    }
+
+    public async switch_max_is_sum_of_var_1_and_2() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        this.next_update_options.max_is_sum_of_var_1_and_2 = !this.next_update_options.max_is_sum_of_var_1_and_2;
+
+        await this.update_options();
+    }
+
+
+    public async change_custom_filter_1(field_id: string, custom_filter: string) {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+        this.custom_filter_names_1[field_id] = custom_filter;
+        this.next_update_options.filter_custom_field_filters_1 = this.custom_filter_names_1;
+        await this.update_options();
+    }
+
+    public async change_custom_filter_2(field_id: string, custom_filter: string) {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+        this.custom_filter_names_2[field_id] = custom_filter;
+        this.next_update_options.filter_custom_field_filters_2 = this.custom_filter_names_2;
+        await this.update_options();
+    }
+
+
+    public async change_custom_filter_dimension(custom_filter: string) {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        this.dimension_custom_filter_name = custom_filter;
+        this.next_update_options.dimension_custom_filter_name = this.dimension_custom_filter_name;
+
+        await this.update_options();
+    }
+
+
+    public async update_additional_options(additional_options: string) {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+        this.next_update_options.filter_additional_params = additional_options;
+        await this.update_options();
+    }
+
+    public async update_filter_type(filter_type: string) {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+        this.next_update_options.filter_type = filter_type;
+        await this.update_options();
     }
 
     public get_dimension_custom_filter_segment_type_from_selected_option(selected_option: string): number {

@@ -1,21 +1,22 @@
 import { cloneDeep } from 'lodash';
 import Component from 'vue-class-component';
 import { Inject, Prop, Watch } from 'vue-property-decorator';
+import Throttle from '../../../../../../../shared/annotations/Throttle';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import ModuleTableController from '../../../../../../../shared/modules/DAO/ModuleTableController';
 import ModuleTableFieldVO from '../../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
+import EventifyEventListenerConfVO from '../../../../../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO';
 import VarsController from '../../../../../../../shared/modules/Var/VarsController';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import ObjectHandler, { reflect } from '../../../../../../../shared/tools/ObjectHandler';
-import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../../../VueComponentBase';
 import SingleVoFieldRefHolderComponent from '../../../options_tools/single_vo_field_ref_holder/SingleVoFieldRefHolderComponent';
+import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../../page/DashboardPageStore';
 import VarWidgetOptions from './VarWidgetOptions';
 import './VarWidgetOptionsComponent.scss';
 import WidgetFilterOptionsComponent from './filters/WidgetFilterOptionsComponent';
-import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../../page/DashboardPageStore';
 
 @Component({
     template: require('./VarWidgetOptionsComponent.pug'),
@@ -32,15 +33,6 @@ export default class VarWidgetOptionsComponent extends VueComponentBase implemen
     private page_widget: DashboardPageWidgetVO;
 
     private next_update_options: VarWidgetOptions = null;
-    private throttled_reload_options = ThrottleHelper.declare_throttle_without_args(
-        'VarWidgetOptionsComponent.throttled_reload_options',
-        this.reload_options.bind(this), 50, false);
-    private throttled_update_options = ThrottleHelper.declare_throttle_without_args(
-        'VarWidgetOptionsComponent.throttled_update_options',
-        this.update_options.bind(this), 50, false);
-    private throttled_update_colors = ThrottleHelper.declare_throttle_without_args(
-        'VarWidgetOptionsComponent.throttled_update_colors',
-        this.update_colors.bind(this), 800, false);
 
     private tmp_selected_var_name: string = null;
     private custom_filter_names: { [field_id: string]: string } = {};
@@ -124,138 +116,11 @@ export default class VarWidgetOptionsComponent extends VueComponentBase implemen
         return this.t(VarsController.get_translatable_name_code_by_var_id(this.widget_options.var_id));
     }
 
-    @Watch('page_widget', { immediate: true })
-    @Watch('widget_options')
-    private async onchange_widget_options() {
-        await this.throttled_reload_options();
-    }
-
-    @Watch('tmp_selected_var_name')
-    private async onchange_tmp_selected_var_name() {
-        if (!this.widget_options) {
-            return;
-        }
-
-        if (!this.tmp_selected_var_name) {
-
-            if (this.widget_options.var_id) {
-                this.widget_options.var_id = null;
-                this.custom_filter_names = {};
-                this.widget_options.filter_custom_field_filters = {};
-                await this.throttled_update_options();
-            }
-            return;
-        }
-
-        try {
-
-            const selected_var_id: number = parseInt(this.tmp_selected_var_name.split(' | ')[0]);
-
-            if (this.widget_options.var_id != selected_var_id) {
-                this.next_update_options = this.widget_options;
-                this.next_update_options.var_id = selected_var_id;
-
-                await this.throttled_update_options();
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-    }
-
-    // Accès dynamiques Vuex
-    public vuexGet<K extends keyof IDashboardGetters>(getter: K): IDashboardGetters[K] {
-        return this.$store.getters[`${this.storeNamespace}/${String(getter)}`];
-    }
-    public vuexAct<K extends keyof IDashboardPageActionsMethods>(
-        action: K,
-        ...args: Parameters<IDashboardPageActionsMethods[K]>
-    ) {
-        this.$store.dispatch(`${this.storeNamespace}/${String(action)}`, ...args);
-    }
-
-    public set_page_widget(page_widget: DashboardPageWidgetVO) {
-        return this.vuexAct(reflect<this>().set_page_widget, page_widget);
-    }
-
-    private async update_colors() {
-        if (!this.widget_options) {
-            return;
-        }
-
-        if (!this.next_update_options) {
-            this.next_update_options = new VarWidgetOptions(
-                this.widget_options.var_id,
-                this.widget_options.filter_type,
-                this.widget_options.filter_custom_field_filters,
-                this.widget_options.filter_additional_params,
-                this.widget_options.bg_color,
-                this.widget_options.fg_color_value,
-                this.widget_options.fg_color_text);
-        }
-        this.widget_options.fg_color_value = this.fg_color_value;
-        this.widget_options.fg_color_text = this.fg_color_text;
-        this.widget_options.bg_color = this.bg_color;
-        await this.throttled_update_options();
-    }
-
-    private async change_custom_filter(field_id: string, custom_filter: string) {
-        if (!this.widget_options) {
-            return;
-        }
-
-        if (!this.next_update_options) {
-            this.next_update_options = new VarWidgetOptions(
-                this.widget_options.var_id,
-                this.widget_options.filter_type,
-                this.widget_options.filter_custom_field_filters,
-                this.widget_options.filter_additional_params,
-                this.widget_options.bg_color,
-                this.widget_options.fg_color_value,
-                this.widget_options.fg_color_text);
-        }
-        this.custom_filter_names[field_id] = custom_filter;
-        this.next_update_options.filter_custom_field_filters = this.custom_filter_names;
-        await this.throttled_update_options();
-    }
-
-    private async update_additional_options(additional_options: string) {
-        if (!this.widget_options) {
-            return;
-        }
-
-        if (!this.next_update_options) {
-            this.next_update_options = new VarWidgetOptions(
-                this.widget_options.var_id,
-                this.widget_options.filter_type,
-                this.widget_options.filter_custom_field_filters,
-                this.widget_options.filter_additional_params,
-                this.widget_options.bg_color,
-                this.widget_options.fg_color_value,
-                this.widget_options.fg_color_text);
-        }
-        this.next_update_options.filter_additional_params = additional_options;
-        await this.throttled_update_options();
-    }
-
-    private async update_filter_type(filter_type: string) {
-        if (!this.widget_options) {
-            return;
-        }
-
-        if (!this.next_update_options) {
-            this.next_update_options = new VarWidgetOptions(
-                this.widget_options.var_id,
-                this.widget_options.filter_type,
-                this.widget_options.filter_custom_field_filters,
-                this.widget_options.filter_additional_params,
-                this.widget_options.bg_color,
-                this.widget_options.fg_color_value,
-                this.widget_options.fg_color_text);
-        }
-        this.next_update_options.filter_type = filter_type;
-        await this.throttled_update_options();
-    }
-
+    @Throttle({
+        param_type: EventifyEventListenerConfVO.PARAM_TYPE_NONE,
+        throttle_ms: 50,
+        leading: false,
+    })
     private reload_options() {
         if (!this.page_widget) {
             this.widget_options = null;
@@ -325,6 +190,11 @@ export default class VarWidgetOptionsComponent extends VueComponentBase implemen
         }
     }
 
+    @Throttle({
+        param_type: EventifyEventListenerConfVO.PARAM_TYPE_NONE,
+        throttle_ms: 50,
+        leading: false,
+    })
     private async update_options() {
         try {
             this.page_widget.json_options = JSON.stringify(this.next_update_options);
@@ -332,8 +202,138 @@ export default class VarWidgetOptionsComponent extends VueComponentBase implemen
             ConsoleHandler.error(error);
         }
         await ModuleDAO.instance.insertOrUpdateVO(this.page_widget);
+    }
 
-        this.set_page_widget(this.page_widget);
-        this.$emit('update_layout_widget', this.page_widget);
+    @Throttle({
+        param_type: EventifyEventListenerConfVO.PARAM_TYPE_NONE,
+        throttle_ms: 800,
+        leading: false,
+    })
+    private async update_colors() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (!this.next_update_options) {
+            this.next_update_options = new VarWidgetOptions(
+                this.widget_options.var_id,
+                this.widget_options.filter_type,
+                this.widget_options.filter_custom_field_filters,
+                this.widget_options.filter_additional_params,
+                this.widget_options.bg_color,
+                this.widget_options.fg_color_value,
+                this.widget_options.fg_color_text);
+        }
+        this.widget_options.fg_color_value = this.fg_color_value;
+        this.widget_options.fg_color_text = this.fg_color_text;
+        this.widget_options.bg_color = this.bg_color;
+        await this.update_options();
+    }
+
+    @Watch('page_widget', { immediate: true })
+    @Watch('widget_options')
+    private async onchange_widget_options() {
+        await this.reload_options();
+    }
+
+    @Watch('tmp_selected_var_name')
+    private async onchange_tmp_selected_var_name() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (!this.tmp_selected_var_name) {
+
+            if (this.widget_options.var_id) {
+                this.widget_options.var_id = null;
+                this.custom_filter_names = {};
+                this.widget_options.filter_custom_field_filters = {};
+                await this.update_options();
+            }
+            return;
+        }
+
+        try {
+
+            const selected_var_id: number = parseInt(this.tmp_selected_var_name.split(' | ')[0]);
+
+            if (this.widget_options.var_id != selected_var_id) {
+                this.next_update_options = this.widget_options;
+                this.next_update_options.var_id = selected_var_id;
+
+                await this.update_options();
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+    }
+
+    // Accès dynamiques Vuex
+    public vuexGet<K extends keyof IDashboardGetters>(getter: K): IDashboardGetters[K] {
+        return this.$store.getters[`${this.storeNamespace}/${String(getter)}`];
+    }
+    public vuexAct<K extends keyof IDashboardPageActionsMethods>(
+        action: K,
+        ...args: Parameters<IDashboardPageActionsMethods[K]>
+    ) {
+        this.$store.dispatch(`${this.storeNamespace}/${String(action)}`, ...args);
+    }
+
+    private async change_custom_filter(field_id: string, custom_filter: string) {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (!this.next_update_options) {
+            this.next_update_options = new VarWidgetOptions(
+                this.widget_options.var_id,
+                this.widget_options.filter_type,
+                this.widget_options.filter_custom_field_filters,
+                this.widget_options.filter_additional_params,
+                this.widget_options.bg_color,
+                this.widget_options.fg_color_value,
+                this.widget_options.fg_color_text);
+        }
+        this.custom_filter_names[field_id] = custom_filter;
+        this.next_update_options.filter_custom_field_filters = this.custom_filter_names;
+        await this.update_options();
+    }
+
+    private async update_additional_options(additional_options: string) {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (!this.next_update_options) {
+            this.next_update_options = new VarWidgetOptions(
+                this.widget_options.var_id,
+                this.widget_options.filter_type,
+                this.widget_options.filter_custom_field_filters,
+                this.widget_options.filter_additional_params,
+                this.widget_options.bg_color,
+                this.widget_options.fg_color_value,
+                this.widget_options.fg_color_text);
+        }
+        this.next_update_options.filter_additional_params = additional_options;
+        await this.update_options();
+    }
+
+    private async update_filter_type(filter_type: string) {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (!this.next_update_options) {
+            this.next_update_options = new VarWidgetOptions(
+                this.widget_options.var_id,
+                this.widget_options.filter_type,
+                this.widget_options.filter_custom_field_filters,
+                this.widget_options.filter_additional_params,
+                this.widget_options.bg_color,
+                this.widget_options.fg_color_value,
+                this.widget_options.fg_color_text);
+        }
+        this.next_update_options.filter_type = filter_type;
+        await this.update_options();
     }
 }

@@ -1,20 +1,21 @@
 import Component from 'vue-class-component';
 import { Inject, Prop, Watch } from 'vue-property-decorator';
+import Throttle from '../../../../../../../shared/annotations/Throttle';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import SupervisionTypeWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/SupervisionTypeWidgetManager';
 import WidgetOptionsVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/WidgetOptionsVOManager';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import DashboardWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
+import EventifyEventListenerConfVO from '../../../../../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import { reflect } from '../../../../../../../shared/tools/ObjectHandler';
-import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/DroppableVoFieldsStore';
+import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../../page/DashboardPageStore';
 import SupervisionWidgetOptions from './SupervisionWidgetOptions';
 import './SupervisionWidgetOptionsComponent.scss';
-import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../../page/DashboardPageStore';
 
 @Component({
     template: require('./SupervisionWidgetOptionsComponent.pug'),
@@ -35,9 +36,6 @@ export default class SupervisionWidgetOptionsComponent extends VueComponentBase 
     public set_selected_fields: (selected_fields: { [api_type_id: string]: { [field_id: string]: boolean } }) => void;
 
     public next_update_options: SupervisionWidgetOptions = null;
-    public throttled_update_options = ThrottleHelper.declare_throttle_without_args(
-        'SupervisionWidgetOptionsComponent.throttled_update_options',
-        this.update_options.bind(this), 50, false);
 
     public supervision_api_type_ids: string[] = [];
     public refresh_button: boolean = true;
@@ -108,7 +106,7 @@ export default class SupervisionWidgetOptionsComponent extends VueComponentBase 
         if (this.supervision_api_type_ids != this.next_update_options.supervision_api_type_ids) {
             this.next_update_options.supervision_api_type_ids = this.supervision_api_type_ids;
 
-            this.throttled_update_options();
+            this.update_options();
         }
     }
 
@@ -123,7 +121,7 @@ export default class SupervisionWidgetOptionsComponent extends VueComponentBase 
         if (this.limit != this.next_update_options.limit) {
             this.next_update_options.limit = this.limit;
 
-            this.throttled_update_options();
+            this.update_options();
         }
     }
 
@@ -138,7 +136,7 @@ export default class SupervisionWidgetOptionsComponent extends VueComponentBase 
         if (this.auto_refresh_seconds != this.next_update_options.auto_refresh_seconds) {
             this.next_update_options.auto_refresh_seconds = this.auto_refresh_seconds;
 
-            this.throttled_update_options();
+            this.update_options();
         }
     }
 
@@ -153,8 +151,27 @@ export default class SupervisionWidgetOptionsComponent extends VueComponentBase 
         if (this.show_bulk_edit != this.next_update_options.show_bulk_edit) {
             this.next_update_options.show_bulk_edit = this.show_bulk_edit;
 
-            this.throttled_update_options();
+            this.update_options();
         }
+    }
+
+    @Throttle({
+        param_type: EventifyEventListenerConfVO.PARAM_TYPE_NONE,
+        throttle_ms: 50,
+        leading: false,
+    })
+    public async update_options() {
+        try {
+            this.page_widget.json_options = JSON.stringify(this.next_update_options);
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+
+        await ModuleDAO.instance.insertOrUpdateVO(this.page_widget);
+
+        const name = this.get_widgets_by_id[this.page_widget.widget_id].name;
+        const get_selected_fields = WidgetOptionsVOManager.widgets_get_selected_fields[name];
+        this.set_selected_fields(get_selected_fields ? get_selected_fields(this.page_widget) : {});
     }
 
     // Accès dynamiques Vuex
@@ -166,10 +183,6 @@ export default class SupervisionWidgetOptionsComponent extends VueComponentBase 
         ...args: Parameters<IDashboardPageActionsMethods[K]>
     ) {
         this.$store.dispatch(`${this.storeNamespace}/${String(action)}`, ...args);
-    }
-
-    public set_page_widget(page_widget: DashboardPageWidgetVO) {
-        return this.vuexAct(reflect<this>().set_page_widget, page_widget);
     }
 
     public initialize() {
@@ -223,23 +236,6 @@ export default class SupervisionWidgetOptionsComponent extends VueComponentBase 
         return new SupervisionWidgetOptions(100, [], true, true, 30, true);
     }
 
-    public async update_options() {
-        try {
-            this.page_widget.json_options = JSON.stringify(this.next_update_options);
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-
-        await ModuleDAO.instance.insertOrUpdateVO(this.page_widget);
-
-        this.set_page_widget(this.page_widget);
-        this.$emit('update_layout_widget', this.page_widget);
-
-        const name = this.get_widgets_by_id[this.page_widget.widget_id].name;
-        const get_selected_fields = WidgetOptionsVOManager.widgets_get_selected_fields[name];
-        this.set_selected_fields(get_selected_fields ? get_selected_fields(this.page_widget) : {});
-    }
-
     public async switch_refresh_button() {
         this.refresh_button = !this.refresh_button;
 
@@ -251,7 +247,7 @@ export default class SupervisionWidgetOptionsComponent extends VueComponentBase 
 
         if (this.next_update_options.refresh_button != this.refresh_button) {
             this.next_update_options.refresh_button = this.refresh_button;
-            this.throttled_update_options();
+            this.update_options();
         }
     }
 
@@ -266,7 +262,7 @@ export default class SupervisionWidgetOptionsComponent extends VueComponentBase 
 
         if (this.next_update_options.auto_refresh != this.auto_refresh) {
             this.next_update_options.auto_refresh = this.auto_refresh;
-            this.throttled_update_options();
+            this.update_options();
         }
     }
 
@@ -281,7 +277,7 @@ export default class SupervisionWidgetOptionsComponent extends VueComponentBase 
 
         if (this.next_update_options.show_bulk_edit != this.show_bulk_edit) {
             this.next_update_options.show_bulk_edit = this.show_bulk_edit;
-            this.throttled_update_options();
+            this.update_options();
         }
     }
 

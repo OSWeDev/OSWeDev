@@ -384,10 +384,6 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
         this.$store.dispatch(`${this.storeNamespace}/${String(action)}`, ...args);
     }
 
-    public set_page_widget(page_widget: DashboardPageWidgetVO) {
-        return this.vuexAct(reflect<this>().set_page_widget, page_widget);
-    }
-
     public set_custom_filters(custom_filters: string[]) {
         return this.vuexAct(reflect<this>().set_custom_filters, custom_filters);
     }
@@ -413,9 +409,6 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
             ConsoleHandler.error(error);
         }
         await ModuleDAO.instance.insertOrUpdateVO(this.page_widget);
-
-        this.set_page_widget(this.page_widget);
-        this.$emit('update_layout_widget', this.page_widget);
 
         const name = this.get_widgets_by_id[this.page_widget.widget_id].name;
         const get_selected_fields = WidgetOptionsVOManager.widgets_get_selected_fields[name];

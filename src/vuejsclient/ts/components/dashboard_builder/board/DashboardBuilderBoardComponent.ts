@@ -1,6 +1,6 @@
 import Component from 'vue-class-component';
 import { GridItem, GridLayout } from "vue-grid-layout";
-import { Inject, Prop, Vue, Watch } from 'vue-property-decorator';
+import { Inject, Prop, Watch } from 'vue-property-decorator';
 import { filter } from '../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../../../shared/modules/ContextFilter/vos/SortByVO';
@@ -17,9 +17,7 @@ import DashboardWidgetVO from '../../../../../shared/modules/DashboardBuilder/vo
 import FieldFiltersVO from '../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import ObjectHandler, { field_names, reflect } from '../../../../../shared/tools/ObjectHandler';
-import { all_promises } from '../../../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../../../shared/tools/RangeHandler';
-import ThrottleHelper from '../../../../../shared/tools/ThrottleHelper';
 import { SyncVOs } from '../../../tools/annotations/SyncVOs';
 import InlineTranslatableText from '../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../VueComponentBase';
@@ -171,11 +169,6 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase imp
 
     public dragged = null;
 
-    public throttled_rebuild_page_layout = ThrottleHelper.declare_throttle_without_args(
-        'DashboardBuilderBoardComponent.throttled_rebuild_page_layout',
-        this.rebuild_page_layout.bind(this), 200);
-
-
     get get_selected_page_page_widgets(): DashboardPageWidgetVO[] {
         return this.vuexGet(reflect<this>().get_selected_page_page_widgets);
     }
@@ -275,16 +268,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase imp
             return;
         }
 
-        if ((!this.editable_dashboard_page) || (this.editable_dashboard_page.id != this.get_dashboard_page.id)) {
-
-            this.throttled_rebuild_page_layout();
-        }
-    }
-
-    @Watch(reflect<DashboardBuilderBoardComponent>().get_widgets_invisibility, { deep: true })
-    public async onchange_get_widgets_invisibility() {
-
-        this.throttled_rebuild_page_layout();
+        this.is_filtres_deplie = this.get_dashboard_page?.collapse_filters;
     }
 
     @Watch(reflect<DashboardBuilderBoardComponent>().viewports)
@@ -372,93 +356,16 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase imp
     }
 
     public clear_active_field_filters() {
-        return this.vuexAct(reflect<this>().clear_active_field_filters);
+        return this.vuexAct(reflect<this>().clear_active_field_filters, null);
     }
 
     public set_page_widgets_components_by_pwid(page_widgets_components_by_pwid: { [pwid: number]: VueComponentBase }): void {
         this.vuexAct(reflect<this>().set_page_widgets_components_by_pwid, page_widgets_components_by_pwid);
     }
 
-    public async update_layout_widget(widget: DashboardPageWidgetVO) {
-        if ((!this.editable_dashboard_page?.layout)) {
-            await this.rebuild_page_layout();
-            return;
-        }
-
-        const i = this.editable_dashboard_page.layout.findIndex((w) => w['id'] == widget.id);
-        if (i < 0) {
-            await this.rebuild_page_layout();
-            return;
-        }
-
-        const has_diff_json_options: boolean = (this.editable_dashboard_page.layout[i]['json_options'] != widget.json_options) ? true : false;
-
-        this.editable_dashboard_page.layout[i] = widget;
-
-        // On va forcer le rechargement que si on modifie réellement les options
-        if (has_diff_json_options) {
-            let res_key: number = -1;
-
-            if (this.item_key[widget.id] != null) {
-                res_key = this.item_key[widget.id];
-            }
-
-            res_key++;
-
-            Vue.set(this.item_key, widget.id, res_key);
-        }
-    }
-
     public mounted() {
         this.set_Dashboardcopywidgetcomponent(this.$refs['Dashboardcopywidgetcomponent'] as DashboardCopyWidgetComponent);
     }
-
-    public async rebuild_page_layout() {
-
-        await all_promises([
-            this.load_widgets()
-        ]);
-
-        /**
-         * Si on a une sélection qui correpond au widget qu'on est en train de recharger, on modifie aussi le lien
-         */
-        if (this.get_selected_widget && this.get_selected_widget.id) {
-            const page_widget = this.widgets.find(
-                (w) => w.id == this.get_selected_widget.id
-            );
-
-            this.set_page_widget(page_widget);
-            this.set_selected_widget(page_widget);
-        }
-
-        this.is_filtres_deplie = this.get_dashboard_page?.collapse_filters;
-
-        this.editable_dashboard_page = Object.assign({
-            layout: this.widgets
-        }, this.get_dashboard_page);
-    }
-
-    public async load_widgets() {
-        let widgets = this.get_selected_page_page_widgets;
-
-        widgets = widgets ? widgets.filter((w) =>
-            !this.get_widgets_invisibility[w.id]
-        ) : null;
-
-        if (widgets?.length) {
-            widgets.sort((a, b) => {
-                let a_weight: number = parseFloat(a.y.toString() + "." + a.x.toString());
-                let b_weight: number = parseFloat(b.y.toString() + "." + b.x.toString());
-
-                return a_weight - b_weight;
-            });
-        }
-
-        this.widgets = widgets;
-    }
-
-
-
 
     public async resized_event(i, newH, newW, newHPx, newWPx) {
         if (!this.dashboard_viewport_page_widgets) {
@@ -500,89 +407,6 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase imp
         await ModuleDAO.instance.insertOrUpdateVO(widget);
     }
 
-    public async delete_widget(page_widget: DashboardPageWidgetVO) {
-        const self = this;
-
-        // On demande confirmation avant toute chose.
-        // si on valide, on lance la suppression
-        self.snotify.confirm(self.label('DashboardBuilderBoardComponent.delete_widget.body'), self.label('DashboardBuilderBoardComponent.delete_widget.title'), {
-            timeout: 10000,
-            showProgressBar: true,
-            closeOnClick: false,
-            pauseOnHover: true,
-            buttons: [
-                {
-                    text: self.t('YES'),
-                    action: async (toast) => {
-                        self.$snotify.remove(toast.id);
-                        self.snotify.async(
-                            self.label('DashboardBuilderBoardComponent.delete_widget.start'),
-                            () => new Promise(async (resolve, reject) => {
-
-                                try {
-
-                                    await ModuleDAO.instance.deleteVOs([page_widget]);
-                                    let i = 0;
-                                    for (; i < self.widgets.length; i++) {
-                                        const w = self.widgets[i];
-
-                                        if (w.i == page_widget.i) {
-                                            break;
-                                        }
-                                    }
-                                    self.widgets.splice(i, 1);
-                                    self.delete_page_widget(page_widget);
-                                    self.set_selected_widget(null);
-
-                                    // On reload les widgets
-                                    await self.throttled_rebuild_page_layout();
-
-                                    resolve({
-                                        body: self.label('DashboardBuilderBoardComponent.delete_widget.ok'),
-                                        config: {
-                                            timeout: 10000,
-                                            showProgressBar: true,
-                                            closeOnClick: false,
-                                            pauseOnHover: true,
-                                        },
-                                    });
-                                } catch (error) {
-                                    reject({
-                                        body: error,
-                                        config: {
-                                            timeout: 10000,
-                                            showProgressBar: true,
-                                            closeOnClick: false,
-                                            pauseOnHover: true,
-                                        },
-                                    });
-                                }
-                            })
-                        );
-                    },
-                    bold: false
-                },
-                {
-                    text: self.t('NO'),
-                    action: (toast) => {
-                        self.$snotify.remove(toast.id);
-                    }
-                }
-            ]
-        });
-    }
-
-    public select_page(page) {
-        this.$emit('select_page', page);
-    }
-
-    public async reload_widgets() {
-        const self = this;
-
-        // On reload les widgets
-        await self.throttled_rebuild_page_layout();
-        self.set_selected_widget(null);
-    }
     public isHide(item: DashboardPageWidgetVO): boolean {
         if (!item || !item.json_options) {
             return false;

@@ -12,8 +12,8 @@ import { field_names, reflect } from '../../../../../../shared/tools/ObjectHandl
 import { SyncVOs } from '../../../../tools/annotations/SyncVOs';
 import { TestAccess } from '../../../../tools/annotations/TestAccess';
 import VueComponentBase from '../../../VueComponentBase';
-import './DashboardSelectedViewportConfComponent.scss';
 import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../page/DashboardPageStore';
+import './DashboardSelectedViewportConfComponent.scss';
 
 @Component({
     template: require('./DashboardSelectedViewportConfComponent.pug'),
@@ -80,7 +80,7 @@ export default class DashboardSelectedViewportConfComponent extends VueComponent
         return this.vuexGet(reflect<this>().get_selected_viewport);
     }
 
-    get get_selected_widget(): DashboardViewportPageWidgetVO {
+    get get_selected_widget(): DashboardPageWidgetVO {
         return this.vuexGet(reflect<this>().get_selected_widget);
     }
 
@@ -108,7 +108,7 @@ export default class DashboardSelectedViewportConfComponent extends VueComponent
         this.$store.dispatch(`${this.storeNamespace}/${String(action)}`, ...args);
     }
 
-    public set_selected_widget(page_widget: DashboardViewportPageWidgetVO) {
+    public set_selected_widget(page_widget: DashboardPageWidgetVO) {
         return this.vuexAct(reflect<this>().set_selected_widget, page_widget);
     }
 

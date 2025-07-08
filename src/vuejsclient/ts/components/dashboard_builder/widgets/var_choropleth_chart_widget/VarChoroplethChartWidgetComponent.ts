@@ -80,8 +80,8 @@ export default class VarChoroplethChartWidgetComponent extends VueComponentBase 
         return this.vuexGet(reflect<this>().get_dashboard_api_type_ids);
     }
 
-    get get_discarded_field_paths(): { [vo_type: string]: { [field_id: string]: boolean } } {
-        return this.vuexGet(reflect<this>().get_discarded_field_paths);
+    get get_dashboard_discarded_field_paths(): { [vo_type: string]: { [field_id: string]: boolean } } {
+        return this.vuexGet(reflect<this>().get_dashboard_discarded_field_paths);
     }
 
     get get_custom_filters(): string[] {

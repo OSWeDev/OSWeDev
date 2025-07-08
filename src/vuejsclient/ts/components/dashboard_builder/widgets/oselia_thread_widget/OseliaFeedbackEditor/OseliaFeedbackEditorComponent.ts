@@ -42,8 +42,8 @@ export default class OseliaFeedbackEditorComponent extends VueComponentBase impl
         return this.vuexGet(reflect<this>().get_active_field_filters);
     }
 
-    get get_discarded_field_paths(): { [vo_type: string]: { [field_id: string]: boolean } } {
-        return this.vuexGet(reflect<this>().get_discarded_field_paths);
+    get get_dashboard_discarded_field_paths(): { [vo_type: string]: { [field_id: string]: boolean } } {
+        return this.vuexGet(reflect<this>().get_dashboard_discarded_field_paths);
     }
 
     get get_dashboard_api_type_ids(): string[] {

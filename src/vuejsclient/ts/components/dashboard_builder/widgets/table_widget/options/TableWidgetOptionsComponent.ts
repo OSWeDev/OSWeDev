@@ -5,6 +5,7 @@ import 'quill/dist/quill.snow.css'; // Compliqué à lazy load
 import Component from 'vue-class-component';
 import { VueNestable, VueNestableHandle } from 'vue-nestable';
 import { Inject, Prop, Watch } from 'vue-property-decorator';
+import Throttle from '../../../../../../../shared/annotations/Throttle';
 import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import ModuleTableController from '../../../../../../../shared/modules/DAO/ModuleTableController';
@@ -17,18 +18,18 @@ import TableColumnDescVO from '../../../../../../../shared/modules/DashboardBuil
 import TableWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/TableWidgetOptionsVO';
 import DataFilterOption from '../../../../../../../shared/modules/DataRender/vos/DataFilterOption';
 import TimeSegment from '../../../../../../../shared/modules/DataRender/vos/TimeSegment';
+import EventifyEventListenerConfVO from '../../../../../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO';
 import VarsController from '../../../../../../../shared/modules/Var/VarsController';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import LocaleManager from '../../../../../../../shared/tools/LocaleManager';
 import { field_names, reflect } from '../../../../../../../shared/tools/ObjectHandler';
-import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import WeightHandler from '../../../../../../../shared/tools/WeightHandler';
 import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/DroppableVoFieldsStore';
+import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../../page/DashboardPageStore';
 import './TableWidgetOptionsComponent.scss';
 import TableWidgetColumnOptionsComponent from './column/TableWidgetColumnOptionsComponent';
-import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../../page/DashboardPageStore';
 
 @Component({
     template: require('./TableWidgetOptionsComponent.pug'),
@@ -52,9 +53,6 @@ export default class TableWidgetOptionsComponent extends VueComponentBase implem
     public set_selected_fields: (selected_fields: { [api_type_id: string]: { [field_id: string]: boolean } }) => void;
 
     public next_update_options: TableWidgetOptionsVO = null;
-    public throttled_update_options = ThrottleHelper.declare_throttle_without_args(
-        'TableWidgetOptionsComponent.throttled_update_options',
-        this.update_options.bind(this), 50, false);
 
     public crud_api_type_id_selected: string = null;
     public cb_bulk_actions: string[] = null;
@@ -449,7 +447,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase implem
         if (this.show_bulk_edit != this.next_update_options.show_bulk_edit) {
             this.next_update_options.show_bulk_edit = this.show_bulk_edit;
 
-            await this.throttled_update_options();
+            await this.update_options();
         }
     }
 
@@ -464,7 +462,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase implem
         if (this.show_bulk_select_all != this.next_update_options.show_bulk_select_all) {
             this.next_update_options.show_bulk_select_all = this.show_bulk_select_all;
 
-            await this.throttled_update_options();
+            await this.update_options();
         }
     }
 
@@ -479,7 +477,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase implem
         if (this.do_not_use_page_widgets?.length != this.next_update_options.do_not_use_page_widget_ids?.length) {
             this.next_update_options.do_not_use_page_widget_ids = this.do_not_use_page_widgets ? this.do_not_use_page_widgets.map((e) => e.id) : null;
 
-            await this.throttled_update_options();
+            await this.update_options();
         }
     }
 
@@ -494,7 +492,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase implem
             this.next_update_options = cloneDeep(this.widget_options);
             this.next_update_options.nbpages_pagination_list = nbpages_pagination_list;
 
-            this.throttled_update_options();
+            this.update_options();
         }
     }
 
@@ -509,7 +507,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase implem
             this.next_update_options = cloneDeep(this.widget_options);
             this.next_update_options.limit = limit;
 
-            this.throttled_update_options();
+            this.update_options();
         }
     }
 
@@ -556,7 +554,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase implem
                 }
             }
 
-            this.throttled_update_options();
+            this.update_options();
         }
     }
 
@@ -570,8 +568,32 @@ export default class TableWidgetOptionsComponent extends VueComponentBase implem
             this.next_update_options = this.widget_options;
             this.next_update_options.cb_bulk_actions = this.cb_bulk_actions;
 
-            await this.throttled_update_options();
+            await this.update_options();
         }
+    }
+
+    @Throttle({
+        param_type: EventifyEventListenerConfVO.PARAM_TYPE_NONE,
+        throttle_ms: 50,
+        leading: false,
+    })
+    public async update_options() {
+        try {
+            this.page_widget.json_options = JSON.stringify(this.next_update_options);
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+
+        await ModuleDAO.instance.insertOrUpdateVO(this.page_widget);
+
+        if (!this.widget_options) {
+            this.tmp_default_export_option = null;
+            return;
+        }
+
+        const name = this.get_widgets_by_id[this.page_widget.widget_id].name;
+        const get_selected_fields = WidgetOptionsVOManager.widgets_get_selected_fields[name];
+        this.set_selected_fields(get_selected_fields ? get_selected_fields(this.page_widget) : {});
     }
 
     @Watch(reflect<TableWidgetOptionsComponent>().tmp_default_export_option)
@@ -588,7 +610,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase implem
             this.next_update_options.default_export_option = this.tmp_default_export_option.id;
         }
 
-        this.throttled_update_options();
+        this.update_options();
     }
 
     @Watch(reflect<TableWidgetOptionsComponent>().tmp_legende_tableau)
@@ -605,7 +627,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase implem
             this.next_update_options.legende_tableau = this.tmp_legende_tableau;
         }
 
-        this.throttled_update_options();
+        this.update_options();
     }
 
     @Watch(reflect<TableWidgetOptionsComponent>().limit_selectable)
@@ -618,7 +640,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase implem
             this.next_update_options = cloneDeep(this.widget_options);
             this.next_update_options.limit_selectable = this.limit_selectable;
 
-            this.throttled_update_options();
+            this.update_options();
         }
     }
 
@@ -631,10 +653,6 @@ export default class TableWidgetOptionsComponent extends VueComponentBase implem
         ...args: Parameters<IDashboardPageActionsMethods[K]>
     ) {
         this.$store.dispatch(`${this.storeNamespace}/${String(action)}`, ...args);
-    }
-
-    public set_page_widget(page_widget: DashboardPageWidgetVO) {
-        return this.vuexAct(reflect<this>().set_page_widget, page_widget);
     }
 
     public filter_visible_label(dfo: DataFilterOption): string {
@@ -683,7 +701,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase implem
 
         this.next_update_options = cloneDeep(this.widget_options);
         this.next_update_options.columns = this.editable_columns;
-        this.throttled_update_options();
+        this.update_options();
     }
 
     /**
@@ -759,7 +777,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase implem
             this.next_update_options.columns[i] = update_column;
         }
 
-        this.throttled_update_options();
+        this.update_options();
     }
 
     public async remove_column(del_column: TableColumnDescVO) {
@@ -801,7 +819,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase implem
             this.next_update_options.columns.splice(i, 1);
         }
 
-        this.throttled_update_options();
+        this.update_options();
     }
 
     public get_default_options(): TableWidgetOptionsVO {
@@ -867,7 +885,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase implem
             this.next_update_options.columns.push(add_column);
         }
 
-        this.throttled_update_options();
+        this.update_options();
     }
 
     public beforeMove({ dragItem, pathFrom, pathTo }) {
@@ -889,28 +907,6 @@ export default class TableWidgetOptionsComponent extends VueComponentBase implem
         return true;
     }
 
-
-    public async update_options() {
-        try {
-            this.page_widget.json_options = JSON.stringify(this.next_update_options);
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-
-        await ModuleDAO.instance.insertOrUpdateVO(this.page_widget);
-
-        if (!this.widget_options) {
-            this.tmp_default_export_option = null;
-            return;
-        }
-
-        this.set_page_widget(this.page_widget);
-        this.$emit('update_layout_widget', this.page_widget);
-
-        const name = this.get_widgets_by_id[this.page_widget.widget_id].name;
-        const get_selected_fields = WidgetOptionsVOManager.widgets_get_selected_fields[name];
-        this.set_selected_fields(get_selected_fields ? get_selected_fields(this.page_widget) : {});
-    }
 
     public read_label(label: string): string {
         const translation = LocaleManager.ALL_FLAT_LOCALE_TRANSLATIONS;
@@ -934,7 +930,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase implem
 
     //         this.next_update_options.vocus_button = this.vocus_button;
     //         this.next_update_options.delete_button = this.delete_button;
-    //         this.throttled_update_options();
+    //         this.update_options();
     //         }
     //     }
 
@@ -949,7 +945,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase implem
 
         if (this.next_update_options.vocus_button != this.vocus_button) {
             this.next_update_options.vocus_button = this.vocus_button;
-            this.throttled_update_options();
+            this.update_options();
         }
     }
 
@@ -964,7 +960,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase implem
 
         if (this.next_update_options.delete_button != this.delete_button) {
             this.next_update_options.delete_button = this.delete_button;
-            this.throttled_update_options();
+            this.update_options();
         }
     }
 
@@ -979,7 +975,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase implem
 
         if (this.next_update_options.archive_button != this.archive_button) {
             this.next_update_options.archive_button = this.archive_button;
-            this.throttled_update_options();
+            this.update_options();
         }
     }
 
@@ -994,7 +990,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase implem
 
         if (this.next_update_options.can_filter_by != this.can_filter_by) {
             this.next_update_options.can_filter_by = this.can_filter_by;
-            this.throttled_update_options();
+            this.update_options();
         }
     }
 
@@ -1009,7 +1005,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase implem
 
         if (this.next_update_options.delete_all_button != this.delete_all_button) {
             this.next_update_options.delete_all_button = this.delete_all_button;
-            this.throttled_update_options();
+            this.update_options();
         }
     }
 
@@ -1024,7 +1020,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase implem
 
         if (this.next_update_options.refresh_button != this.refresh_button) {
             this.next_update_options.refresh_button = this.refresh_button;
-            this.throttled_update_options();
+            this.update_options();
         }
     }
 
@@ -1039,7 +1035,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase implem
 
         if (this.next_update_options.has_default_export_option != this.tmp_has_default_export_option) {
             this.next_update_options.has_default_export_option = this.tmp_has_default_export_option;
-            this.throttled_update_options();
+            this.update_options();
         }
     }
 
@@ -1054,7 +1050,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase implem
 
         if (this.next_update_options.has_export_maintenance_alert != this.tmp_has_export_maintenance_alert) {
             this.next_update_options.has_export_maintenance_alert = this.tmp_has_export_maintenance_alert;
-            await this.throttled_update_options();
+            await this.update_options();
         }
     }
 
@@ -1069,7 +1065,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase implem
 
         if (this.next_update_options.export_button != this.export_button) {
             this.next_update_options.export_button = this.export_button;
-            this.throttled_update_options();
+            this.update_options();
         }
     }
 
@@ -1084,7 +1080,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase implem
 
         this.next_update_options.can_apply_default_field_filters_without_validation = this.can_apply_default_field_filters_without_validation;
 
-        this.throttled_update_options();
+        this.update_options();
     }
 
     public async toggle_can_export_active_field_filters() {
@@ -1099,7 +1095,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase implem
         if (this.next_update_options.can_export_active_field_filters != this.can_export_active_field_filters) {
             this.next_update_options.can_export_active_field_filters = this.can_export_active_field_filters;
 
-            this.throttled_update_options();
+            this.update_options();
         }
     }
 
@@ -1115,7 +1111,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase implem
         if (this.next_update_options.can_export_vars_indicator != this.can_export_vars_indicator) {
             this.next_update_options.can_export_vars_indicator = this.can_export_vars_indicator;
 
-            this.throttled_update_options();
+            this.update_options();
         }
     }
 
@@ -1130,7 +1126,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase implem
 
         if (this.next_update_options.update_button != this.update_button) {
             this.next_update_options.update_button = this.update_button;
-            this.throttled_update_options();
+            this.update_options();
         }
     }
 
@@ -1145,7 +1141,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase implem
 
         if (this.next_update_options.create_button != this.create_button) {
             this.next_update_options.create_button = this.create_button;
-            this.throttled_update_options();
+            this.update_options();
         }
     }
 
@@ -1164,7 +1160,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase implem
 
         if (this.next_update_options.show_limit_selectable != this.show_limit_selectable) {
             this.next_update_options.show_limit_selectable = this.show_limit_selectable;
-            this.throttled_update_options();
+            this.update_options();
         }
     }
 
@@ -1179,7 +1175,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase implem
 
         if (this.next_update_options.show_pagination_resumee != this.show_pagination_resumee) {
             this.next_update_options.show_pagination_resumee = this.show_pagination_resumee;
-            this.throttled_update_options();
+            this.update_options();
         }
     }
 
@@ -1194,7 +1190,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase implem
 
         if (this.next_update_options.show_pagination_slider != this.show_pagination_slider) {
             this.next_update_options.show_pagination_slider = this.show_pagination_slider;
-            this.throttled_update_options();
+            this.update_options();
         }
     }
 
@@ -1209,7 +1205,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase implem
 
         if (this.next_update_options.show_pagination_form != this.show_pagination_form) {
             this.next_update_options.show_pagination_form = this.show_pagination_form;
-            this.throttled_update_options();
+            this.update_options();
         }
     }
 
@@ -1224,7 +1220,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase implem
 
         if (this.next_update_options.show_pagination_list != this.show_pagination_list) {
             this.next_update_options.show_pagination_list = this.show_pagination_list;
-            this.throttled_update_options();
+            this.update_options();
         }
     }
 
@@ -1239,7 +1235,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase implem
 
         if (this.next_update_options.hide_pagination_bottom != this.hide_pagination_bottom) {
             this.next_update_options.hide_pagination_bottom = this.hide_pagination_bottom;
-            this.throttled_update_options();
+            this.update_options();
         }
     }
 
@@ -1254,7 +1250,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase implem
 
         if (this.next_update_options.has_table_total_footer != this.has_table_total_footer) {
             this.next_update_options.has_table_total_footer = this.has_table_total_footer;
-            this.throttled_update_options();
+            this.update_options();
         }
     }
 
@@ -1269,7 +1265,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase implem
 
         if (this.next_update_options.use_for_count != this.use_for_count) {
             this.next_update_options.use_for_count = this.use_for_count;
-            this.throttled_update_options();
+            this.update_options();
         }
     }
 
@@ -1284,7 +1280,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase implem
 
         if (this.next_update_options.show_bulk_edit != this.show_bulk_edit) {
             this.next_update_options.show_bulk_edit = this.show_bulk_edit;
-            await this.throttled_update_options();
+            await this.update_options();
         }
     }
 
@@ -1299,7 +1295,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase implem
 
         if (this.next_update_options.show_bulk_select_all != this.show_bulk_select_all) {
             this.next_update_options.show_bulk_select_all = this.show_bulk_select_all;
-            await this.throttled_update_options();
+            await this.update_options();
         }
     }
 
@@ -1328,7 +1324,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase implem
         if (this.use_kanban_card_archive_if_exists != this.next_update_options.use_kanban_card_archive_if_exists) {
             this.next_update_options.use_kanban_card_archive_if_exists = this.use_kanban_card_archive_if_exists;
 
-            await this.throttled_update_options();
+            await this.update_options();
         }
     }
 
@@ -1344,7 +1340,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase implem
         if (this.use_kanban_column_weight_if_exists != this.next_update_options.use_kanban_column_weight_if_exists) {
             this.next_update_options.use_kanban_column_weight_if_exists = this.use_kanban_column_weight_if_exists;
 
-            await this.throttled_update_options();
+            await this.update_options();
         }
     }
 
@@ -1360,7 +1356,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase implem
         if (this.use_kanban_by_default_if_exists != this.next_update_options.use_kanban_by_default_if_exists) {
             this.next_update_options.use_kanban_by_default_if_exists = this.use_kanban_by_default_if_exists;
 
-            await this.throttled_update_options();
+            await this.update_options();
         }
     }
 

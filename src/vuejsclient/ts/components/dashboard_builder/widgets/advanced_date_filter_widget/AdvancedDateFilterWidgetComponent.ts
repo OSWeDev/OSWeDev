@@ -21,10 +21,10 @@ import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/Tr
 import TSRangeInputComponent from '../../../tsrangeinput/TSRangeInputComponent';
 import TSRangesInputComponent from '../../../tsrangesinput/TSRangesInputComponent';
 import VueComponentBase from '../../../VueComponentBase';
+import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../page/DashboardPageStore';
 import ResetFiltersWidgetController from '../reset_filters_widget/ResetFiltersWidgetController';
 import './AdvancedDateFilterWidgetComponent.scss';
 import AdvancedDateFilterWidgetOptions from './options/AdvancedDateFilterWidgetOptions';
-import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../page/DashboardPageStore';
 
 @Component({
     template: require('./AdvancedDateFilterWidgetComponent.pug'),
@@ -475,15 +475,15 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
     }
 
     public remove_active_field_filter(params: { vo_type: string, field_id: string }) {
-        return this.vuexAct(reflect<this>().set_active_field_filter, params);
+        return this.vuexAct(reflect<this>().remove_active_field_filter, params);
     }
 
     public set_page_widget_component_by_pwid(param: { pwid: number, page_widget_component: VueComponentBase }) {
-        return this.vuexAct(reflect<this>().set_active_field_filter, param);
+        return this.vuexAct(reflect<this>().set_page_widget_component_by_pwid, param);
     }
 
     public clear_active_field_filters() {
-        return this.vuexAct(reflect<this>().set_active_field_filter);
+        return this.vuexAct(reflect<this>().clear_active_field_filters, null);
     }
 
 

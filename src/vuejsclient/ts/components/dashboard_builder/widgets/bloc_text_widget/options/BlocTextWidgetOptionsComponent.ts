@@ -38,8 +38,8 @@ export default class BlocTextWidgetOptionsComponent extends VueComponentBase imp
         'BlocTextWidgetOptionsComponent.throttled_update_options',
         this.update_options.bind(this), 50, false);
 
-    get get_discarded_field_paths(): { [vo_type: string]: { [field_id: string]: boolean } } {
-        return this.vuexGet(reflect<this>().get_discarded_field_paths);
+    get get_dashboard_discarded_field_paths(): { [vo_type: string]: { [field_id: string]: boolean } } {
+        return this.vuexGet(reflect<this>().get_dashboard_discarded_field_paths);
     }
 
     get get_dashboard_api_type_ids(): string[] {
@@ -112,10 +112,6 @@ export default class BlocTextWidgetOptionsComponent extends VueComponentBase imp
         this.$store.dispatch(`${this.storeNamespace}/${String(action)}`, ...args);
     }
 
-    public set_page_widget(page_widget: DashboardPageWidgetVO) {
-        return this.vuexAct(reflect<this>().set_page_widget, page_widget);
-    }
-
     private async mounted() {
 
         if (!this.widget_options) {
@@ -148,9 +144,6 @@ export default class BlocTextWidgetOptionsComponent extends VueComponentBase imp
         if (!this.widget_options) {
             return;
         }
-
-        this.set_page_widget(this.page_widget);
-        this.$emit('update_layout_widget', this.page_widget);
     }
 
 }

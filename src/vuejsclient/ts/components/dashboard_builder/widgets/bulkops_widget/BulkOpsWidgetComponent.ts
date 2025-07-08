@@ -30,10 +30,10 @@ import InlineTranslatableText from '../../../InlineTranslatableText/InlineTransl
 import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../../VueComponentBase';
 import DatatableComponentField from '../../../datatable/component/fields/DatatableComponentField';
+import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../page/DashboardPageStore';
 import TablePaginationComponent from '../table_widget/pagination/TablePaginationComponent';
 import './BulkOpsWidgetComponent.scss';
 import BulkOpsWidgetOptions from './options/BulkOpsWidgetOptions';
-import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../page/DashboardPageStore';
 
 @Component({
     template: require('./BulkOpsWidgetComponent.pug'),
@@ -89,8 +89,8 @@ export default class BulkOpsWidgetComponent extends VueComponentBase implements 
         return this.vuexGet(reflect<this>().get_active_field_filters);
     }
 
-    get get_discarded_field_paths(): { [vo_type: string]: { [field_id: string]: boolean } } {
-        return this.vuexGet(reflect<this>().get_discarded_field_paths);
+    get get_dashboard_discarded_field_paths(): { [vo_type: string]: { [field_id: string]: boolean } } {
+        return this.vuexGet(reflect<this>().get_dashboard_discarded_field_paths);
     }
 
     get get_dashboard_api_type_ids(): string[] {
@@ -386,7 +386,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase implements 
                 FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters)
             ));
 
-        FieldValueFilterWidgetManager.add_discarded_field_paths(query_, this.get_discarded_field_paths);
+        FieldValueFilterWidgetManager.add_discarded_field_paths(query_, this.get_dashboard_discarded_field_paths);
 
         for (const i in this.fields) {
             const field = this.fields[i];
@@ -507,7 +507,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase implements 
                                     const new_value = ModuleTableFieldController.translate_field_to_api(self.new_value, self.moduletable.get_field_by_id(self.field_id_selected), false);
 
                                     const context_query: ContextQueryVO = query(self.api_type_id).using(self.get_dashboard_api_type_ids).add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(self.get_active_field_filters));
-                                    FieldValueFilterWidgetManager.add_discarded_field_paths(context_query, this.get_discarded_field_paths);
+                                    FieldValueFilterWidgetManager.add_discarded_field_paths(context_query, this.get_dashboard_discarded_field_paths);
 
                                     await ModuleContextFilter.instance.update_vos(
                                         context_query, {

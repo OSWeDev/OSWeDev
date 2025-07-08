@@ -1,20 +1,20 @@
 import Component from 'vue-class-component';
 import { Inject, Prop, Watch } from 'vue-property-decorator';
+import Throttle from '../../../../../../../shared/annotations/Throttle';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
+import WidgetOptionsVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/WidgetOptionsVOManager';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
+import DashboardWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
-import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
+import EventifyEventListenerConfVO from '../../../../../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import { reflect } from '../../../../../../../shared/tools/ObjectHandler';
-import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/DroppableVoFieldsStore';
 import SingleVoFieldRefHolderComponent from '../../../options_tools/single_vo_field_ref_holder/SingleVoFieldRefHolderComponent';
+import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../../page/DashboardPageStore';
 import DOWFilterWidgetOptions from './DOWFilterWidgetOptions';
 import './DOWFilterWidgetOptionsComponent.scss';
-import DashboardWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
-import WidgetOptionsVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/WidgetOptionsVOManager';
-import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../../page/DashboardPageStore';
 
 @Component({
     template: require('./DOWFilterWidgetOptionsComponent.pug'),
@@ -35,9 +35,6 @@ export default class DOWFilterWidgetOptionsComponent extends VueComponentBase im
     private custom_filter_name: string = null;
 
     private next_update_options: DOWFilterWidgetOptions = null;
-    private throttled_update_options = ThrottleHelper.declare_throttle_without_args(
-        'DOWFilterWidgetOptionsComponent.throttled_update_options',
-        this.update_options.bind(this), 50, false);
 
     get has_existing_other_custom_filters(): boolean {
         if (!this.other_custom_filters) {
@@ -135,8 +132,26 @@ export default class DOWFilterWidgetOptionsComponent extends VueComponentBase im
             this.next_update_options = this.widget_options;
             this.next_update_options.custom_filter_name = this.custom_filter_name;
 
-            await this.throttled_update_options();
+            await this.update_options();
         }
+    }
+
+    @Throttle({
+        param_type: EventifyEventListenerConfVO.PARAM_TYPE_NONE,
+        leading: false,
+        throttle_ms: 50,
+    })
+    private async update_options() {
+        try {
+            this.page_widget.json_options = JSON.stringify(this.next_update_options);
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+        await ModuleDAO.instance.insertOrUpdateVO(this.page_widget);
+
+        const name = this.get_widgets_by_id[this.page_widget.widget_id].name;
+        const get_selected_fields = WidgetOptionsVOManager.widgets_get_selected_fields[name];
+        this.set_selected_fields(get_selected_fields ? get_selected_fields(this.page_widget) : {});
     }
 
     // Accès dynamiques Vuex
@@ -148,10 +163,6 @@ export default class DOWFilterWidgetOptionsComponent extends VueComponentBase im
         ...args: Parameters<IDashboardPageActionsMethods[K]>
     ) {
         this.$store.dispatch(`${this.storeNamespace}/${String(action)}`, ...args);
-    }
-
-    public set_page_widget(page_widget: DashboardPageWidgetVO) {
-        return this.vuexAct(reflect<this>().set_page_widget, page_widget);
     }
 
     public set_custom_filters(custom_filters: string[]) {
@@ -168,23 +179,7 @@ export default class DOWFilterWidgetOptionsComponent extends VueComponentBase im
 
         this.next_update_options.is_vo_field_ref = !this.next_update_options.is_vo_field_ref;
 
-        await this.throttled_update_options();
-    }
-
-    private async update_options() {
-        try {
-            this.page_widget.json_options = JSON.stringify(this.next_update_options);
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-        await ModuleDAO.instance.insertOrUpdateVO(this.page_widget);
-
-        this.set_page_widget(this.page_widget);
-        this.$emit('update_layout_widget', this.page_widget);
-
-        const name = this.get_widgets_by_id[this.page_widget.widget_id].name;
-        const get_selected_fields = WidgetOptionsVOManager.widgets_get_selected_fields[name];
-        this.set_selected_fields(get_selected_fields ? get_selected_fields(this.page_widget) : {});
+        await this.update_options();
     }
 
     private async remove_field_ref() {
@@ -200,7 +195,7 @@ export default class DOWFilterWidgetOptionsComponent extends VueComponentBase im
 
         this.next_update_options.vo_field_ref = null;
 
-        await this.throttled_update_options();
+        await this.update_options();
     }
 
     private async add_field_ref(api_type_id: string, field_id: string) {
@@ -217,7 +212,7 @@ export default class DOWFilterWidgetOptionsComponent extends VueComponentBase im
 
         this.next_update_options.vo_field_ref = vo_field_ref;
 
-        await this.throttled_update_options();
+        await this.update_options();
     }
 
     private change_custom_filter(custom_filter: string) {

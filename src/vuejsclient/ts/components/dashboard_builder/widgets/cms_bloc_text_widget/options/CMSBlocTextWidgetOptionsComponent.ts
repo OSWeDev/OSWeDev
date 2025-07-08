@@ -241,11 +241,6 @@ export default class CMSBlocTextWidgetOptionsComponent extends VueComponentBase 
         this.$store.dispatch(`${this.storeNamespace}/${String(action)}`, ...args);
     }
 
-    public set_page_widget(page_widget: DashboardPageWidgetVO): void {
-        this.vuexAct<DashboardPageWidgetVO>(reflect<CMSBlocTextWidgetOptionsComponent>().set_page_widget, page_widget);
-    }
-
-
     public async update_options() {
         try {
             this.page_widget.json_options = JSON.stringify(this.next_update_options);
@@ -258,9 +253,6 @@ export default class CMSBlocTextWidgetOptionsComponent extends VueComponentBase 
         if (!this.widget_options) {
             return;
         }
-
-        this.set_page_widget(this.page_widget);
-        this.$emit('update_layout_widget', this.page_widget);
     }
 
     public async switch_titre_template_is_date() {

@@ -156,11 +156,6 @@ export default class ChecklistWidgetOptionsComponent extends VueComponentBase im
         this.$store.dispatch(`${this.storeNamespace}/${String(action)}`, ...args);
     }
 
-    public set_page_widget(page_widget: DashboardPageWidgetVO) {
-        return this.vuexAct(reflect<this>().set_page_widget, page_widget);
-    }
-
-
     private checklist_select_label(checklist: CheckListVO): string {
         return checklist.name;
     }
@@ -177,9 +172,6 @@ export default class ChecklistWidgetOptionsComponent extends VueComponentBase im
             ConsoleHandler.error(error);
         }
         await ModuleDAO.instance.insertOrUpdateVO(this.page_widget);
-
-        this.set_page_widget(this.page_widget);
-        this.$emit('update_layout_widget', this.page_widget);
 
         const name = this.get_widgets_by_id[this.page_widget.widget_id].name;
         const get_selected_fields = WidgetOptionsVOManager.widgets_get_selected_fields[name];

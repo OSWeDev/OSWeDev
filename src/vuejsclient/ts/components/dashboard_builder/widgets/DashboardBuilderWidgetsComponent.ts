@@ -12,8 +12,8 @@ import DashboardWidgetVO from '../../../../../shared/modules/DashboardBuilder/vo
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import { field_names, reflect } from '../../../../../shared/tools/ObjectHandler';
 import VueComponentBase from '../../VueComponentBase';
-import './DashboardBuilderWidgetsComponent.scss';
 import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../page/DashboardPageStore';
+import './DashboardBuilderWidgetsComponent.scss';
 
 @Component({
     template: require('./DashboardBuilderWidgetsComponent.pug'),
@@ -23,10 +23,10 @@ import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer
 export default class DashboardBuilderWidgetsComponent extends VueComponentBase implements IDashboardPageConsumer {
     @Inject('storeNamespace') readonly storeNamespace!: string;
 
-    get get_dashboard_page(): DashboardVO {
+    get get_dashboard_page(): DashboardPageVO {
         return this.vuexGet(reflect<this>().get_dashboard_page);
     }
-    get get_dashboard(): DashboardPageVO {
+    get get_dashboard(): DashboardVO {
         return this.vuexGet(reflect<this>().get_dashboard);
     }
     get get_dashboard_pages(): DashboardPageVO[] {
@@ -73,7 +73,7 @@ export default class DashboardBuilderWidgetsComponent extends VueComponentBase i
     }
 
     public set_selected_widget(page_widget: DashboardPageWidgetVO) {
-        this.vuexAct<DashboardPageWidgetVO>(reflect<this>().set_selected_widget, page_widget);
+        this.vuexAct(reflect<this>().set_selected_widget, page_widget);
     }
 
     private async add_widget_to_page(widget: DashboardWidgetVO) {

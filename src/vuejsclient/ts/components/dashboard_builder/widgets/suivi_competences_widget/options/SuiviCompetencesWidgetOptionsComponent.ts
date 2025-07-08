@@ -4,6 +4,7 @@ import 'quill/dist/quill.core.css'; // Compliqué à lazy load
 import 'quill/dist/quill.snow.css'; // Compliqué à lazy load
 import Component from 'vue-class-component';
 import { Inject, Prop, Watch } from 'vue-property-decorator';
+import Throttle from '../../../../../../../shared/annotations/Throttle';
 import RoleVO from '../../../../../../../shared/modules/AccessPolicy/vos/RoleVO';
 import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
@@ -11,17 +12,17 @@ import DashboardPageWidgetVO from '../../../../../../../shared/modules/Dashboard
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import FieldFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import SuiviCompetencesWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/SuiviCompetencesWidgetOptionsVO';
+import EventifyEventListenerConfVO from '../../../../../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO';
 import NiveauMaturiteStyle from '../../../../../../../shared/modules/SuiviCompetences/class/NiveauMaturiteStyle';
 import SuiviCompetencesGrilleVO from '../../../../../../../shared/modules/SuiviCompetences/vos/SuiviCompetencesGrilleVO';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import EnvHandler from '../../../../../../../shared/tools/EnvHandler';
 import { reflect } from '../../../../../../../shared/tools/ObjectHandler';
 import PromisePipeline from '../../../../../../../shared/tools/PromisePipeline/PromisePipeline';
-import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/DroppableVoFieldsStore';
-import './SuiviCompetencesWidgetOptionsComponent.scss';
 import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../../page/DashboardPageStore';
+import './SuiviCompetencesWidgetOptionsComponent.scss';
 
 @Component({
     template: require('./SuiviCompetencesWidgetOptionsComponent.pug')
@@ -30,32 +31,28 @@ export default class SuiviCompetencesWidgetOptionsComponent extends VueComponent
     @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @Prop({ default: null })
-    private page_widget: DashboardPageWidgetVO;
+    public page_widget: DashboardPageWidgetVO;
 
     @Prop({ default: null })
-    private dashboard: DashboardVO;
+    public dashboard: DashboardVO;
 
     @ModuleDroppableVoFieldsAction
-    private set_selected_fields: (selected_fields: { [api_type_id: string]: { [field_id: string]: boolean } }) => void;
+    public set_selected_fields: (selected_fields: { [api_type_id: string]: { [field_id: string]: boolean } }) => void;
 
-    private next_update_options: SuiviCompetencesWidgetOptionsVO = null;
-    private niveau_maturite_styles: NiveauMaturiteStyle[] = [];
-    private filtered_roles: RoleVO[] = [];
-    private all_filtered_roles: RoleVO[] = [];
-    private filtered_grilles: SuiviCompetencesGrilleVO[] = [];
-    private all_filtered_grilles: SuiviCompetencesGrilleVO[] = [];
-
-    private throttled_update_options = ThrottleHelper.declare_throttle_without_args(
-        'SuiviCompetencesWidgetOptionsComponent.throttled_update_options',
-        this.update_options.bind(this), 50, false);
+    public next_update_options: SuiviCompetencesWidgetOptionsVO = null;
+    public niveau_maturite_styles: NiveauMaturiteStyle[] = [];
+    public filtered_roles: RoleVO[] = [];
+    public all_filtered_roles: RoleVO[] = [];
+    public filtered_grilles: SuiviCompetencesGrilleVO[] = [];
+    public all_filtered_grilles: SuiviCompetencesGrilleVO[] = [];
 
 
     get get_active_field_filters(): FieldFiltersVO {
         return this.vuexGet(reflect<this>().get_active_field_filters);
     }
 
-    get get_discarded_field_paths(): { [vo_type: string]: { [field_id: string]: boolean } } {
-        return this.vuexGet(reflect<this>().get_discarded_field_paths);
+    get get_dashboard_discarded_field_paths(): { [vo_type: string]: { [field_id: string]: boolean } } {
+        return this.vuexGet(reflect<this>().get_dashboard_discarded_field_paths);
     }
 
     get get_dashboard_api_type_ids(): string[] {
@@ -90,7 +87,7 @@ export default class SuiviCompetencesWidgetOptionsComponent extends VueComponent
     }
 
     @Watch('widget_options', { immediate: true, deep: true })
-    private async onchange_widget_options() {
+    public async onchange_widget_options() {
         if (!this.widget_options) {
             return;
         }
@@ -113,8 +110,23 @@ export default class SuiviCompetencesWidgetOptionsComponent extends VueComponent
         this.filtered_grilles = this.widget_options?.filtered_grille_ids?.length ? this.all_filtered_grilles.filter((e) => this.widget_options.filtered_grille_ids.includes(e.id)) : [];
     }
 
+    @Throttle({
+        param_type: EventifyEventListenerConfVO.PARAM_TYPE_NONE,
+        leading: false,
+        throttle_ms: 50,
+    })
+    public async update_options() {
+        try {
+            this.page_widget.json_options = JSON.stringify(this.next_update_options);
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+
+        await ModuleDAO.instance.insertOrUpdateVO(this.page_widget);
+    }
+
     @Watch('filtered_roles')
-    private async onchange_filtered_roles() {
+    public async onchange_filtered_roles() {
         if (!this.widget_options) {
             return;
         }
@@ -129,11 +141,11 @@ export default class SuiviCompetencesWidgetOptionsComponent extends VueComponent
 
         this.next_update_options.filtered_role_ids = filtered_role_ids;
 
-        await this.throttled_update_options();
+        await this.update_options();
     }
 
     @Watch('filtered_grilles')
-    private async onchange_filtered_grilles() {
+    public async onchange_filtered_grilles() {
         if (!this.widget_options) {
             return;
         }
@@ -148,7 +160,7 @@ export default class SuiviCompetencesWidgetOptionsComponent extends VueComponent
 
         this.next_update_options.filtered_grille_ids = filtered_grille_ids;
 
-        await this.throttled_update_options();
+        await this.update_options();
     }
 
     // Accès dynamiques Vuex
@@ -162,22 +174,17 @@ export default class SuiviCompetencesWidgetOptionsComponent extends VueComponent
         this.$store.dispatch(`${this.storeNamespace}/${String(action)}`, ...args);
     }
 
-    public set_page_widget(page_widget: DashboardPageWidgetVO) {
-        return this.vuexAct(reflect<this>().set_page_widget, page_widget);
-    }
-
-
-    private async mounted() {
+    public async mounted() {
         if (!this.widget_options) {
             this.next_update_options = this.get_default_options();
         } else {
             this.next_update_options = this.widget_options;
         }
 
-        await this.throttled_update_options();
+        await this.update_options();
     }
 
-    private async onchange_niveau_maturite_styles() {
+    public async onchange_niveau_maturite_styles() {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
@@ -186,45 +193,28 @@ export default class SuiviCompetencesWidgetOptionsComponent extends VueComponent
 
         this.next_update_options.niveau_maturite_styles = JSON.stringify(this.niveau_maturite_styles);
 
-        await this.throttled_update_options();
+        await this.update_options();
     }
 
-    private async delete_niveau_maturite_style(index: number) {
+    public async delete_niveau_maturite_style(index: number) {
         this.niveau_maturite_styles.splice(index, 1);
 
-        await this.throttled_update_options();
+        await this.update_options();
     }
 
-    private add_niveau_maturite_style() {
+    public add_niveau_maturite_style() {
         this.niveau_maturite_styles.push(new NiveauMaturiteStyle());
     }
 
-    private get_default_options(): SuiviCompetencesWidgetOptionsVO {
+    public get_default_options(): SuiviCompetencesWidgetOptionsVO {
         return new SuiviCompetencesWidgetOptionsVO(null, null, null);
     }
 
-    private async update_options() {
-        try {
-            this.page_widget.json_options = JSON.stringify(this.next_update_options);
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-
-        await ModuleDAO.instance.insertOrUpdateVO(this.page_widget);
-
-        if (!this.widget_options) {
-            return;
-        }
-
-        this.set_page_widget(this.page_widget);
-        this.$emit('update_layout_widget', this.page_widget);
-    }
-
-    private filtered_roles_label(role: RoleVO): string {
+    public filtered_roles_label(role: RoleVO): string {
         return this.label(role.translatable_name);
     }
 
-    private filtered_grilles_label(grille: SuiviCompetencesGrilleVO): string {
+    public filtered_grilles_label(grille: SuiviCompetencesGrilleVO): string {
         return grille.name;
     }
 

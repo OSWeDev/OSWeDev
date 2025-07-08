@@ -973,7 +973,7 @@ export default class FavoritesFiltersModalComponent extends VueComponentBase {
         ];
 
         // Get widget_types for yearfilter and monthfilter
-        const widgets_types = await WidgetOptionsVOManager.get_all_sorted_widgets_types();
+Thr        const widgets_types = await WidgetOptionsVOManager.get_all_sorted_widgets_types();
 
         // Classify the page_widgets by vo_field_ref.field_id
         for (const key in page_widgets_dates) {

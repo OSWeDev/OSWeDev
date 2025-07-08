@@ -1,5 +1,4 @@
 import DashboardPageVO from '../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
-import './DashboardHistoryController.scss';
 
 export default class DashboardHistoryController {
 
@@ -21,9 +20,4 @@ export default class DashboardHistoryController {
         set_dashboard_page(page_history[page_history.length - 1]);
         pop_page_history(null);
     }
-
-    // public select_page_clear_navigation(page: DashboardPageVO) {
-    //     this.set_page_history([]);
-    //     this.set_dashboard_page(page);
-    // }
 }
