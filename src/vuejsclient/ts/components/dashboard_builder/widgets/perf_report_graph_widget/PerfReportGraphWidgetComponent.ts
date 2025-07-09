@@ -117,7 +117,7 @@ export default class PerfReportGraphWidgetComponent extends VueComponentBase imp
             .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
                 FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters)
             ));
-        FieldValueFilterWidgetManager.add_discarded_field_paths(context_query_select, this.get_discarded_field_paths);
+        FieldValueFilterWidgetManager.add_discarded_field_paths(context_query_select, this.get_dashboard_discarded_field_paths);
         context_query_select.query_distinct = true;
 
         const context_query_count: ContextQueryVO = cloneDeep(context_query_select);

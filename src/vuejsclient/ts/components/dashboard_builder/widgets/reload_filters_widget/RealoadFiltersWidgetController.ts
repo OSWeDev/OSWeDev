@@ -6,6 +6,14 @@ import DashboardPageVO from "../../../../../../shared/modules/DashboardBuilder/v
  */
 export default class ReloadFiltersWidgetController {
 
+
+    private static instance = null;
+
+    public reloaders: { [dashboard_id: number]: { [dashboard_page_id: number]: { [page_widget_id: number]: () => Promise<void> } } } = {};
+    public is_init: { [dashboard_id: number]: { [dashboard_page_id: number]: { [page_widget_id: number]: boolean } } } = {};
+
+    private constructor() { }
+
     // istanbul ignore next: nothing to test
     public static getInstance(): ReloadFiltersWidgetController {
         if (!this.instance) {
@@ -14,13 +22,6 @@ export default class ReloadFiltersWidgetController {
 
         return this.instance;
     }
-
-    private static instance = null;
-
-    public reloaders: { [dashboard_id: number]: { [dashboard_page_id: number]: { [page_widget_id: number]: () => Promise<void> } } } = {};
-    public is_init: { [dashboard_id: number]: { [dashboard_page_id: number]: { [page_widget_id: number]: boolean } } } = {};
-
-    private constructor() { }
 
     public register_reloader(dashboard_page: DashboardPageVO, page_widget: DashboardPageWidgetVO, reloader: () => Promise<void>) {
         if (!this.reloaders[dashboard_page.dashboard_id]) {

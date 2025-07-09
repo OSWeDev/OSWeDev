@@ -243,8 +243,8 @@ export default class SharedFiltersModalComponent extends VueComponentBase {
             selectionnable_field_filters: ISelectionnableFieldFilters,
             dashboard_id: number,
         } = null,
-        validation_callback?: (props?: Partial<SharedFiltersVO>) => Promise<void>,
-        close_callback?: (props?: Partial<SharedFiltersVO>) => Promise<void>
+        validation_callback?: (prop?: Partial<SharedFiltersVO>) => Promise<void>,
+        close_callback?: (prop?: Partial<SharedFiltersVO>) => Promise<void>
     ): void {
         this.is_modal_open = true;
 
@@ -291,9 +291,9 @@ export default class SharedFiltersModalComponent extends VueComponentBase {
             shared_filters: SharedFiltersVO,
             dashboard_id: number,
         } = null,
-        validation_callback?: (props?: Partial<SharedFiltersVO>) => Promise<void>,
-        close_callback?: (props?: Partial<SharedFiltersVO>) => Promise<void>,
-        delete_callback?: (props?: Partial<SharedFiltersVO>) => Promise<void>,
+        validation_callback?: (prop?: Partial<SharedFiltersVO>) => Promise<void>,
+        close_callback?: (prop?: Partial<SharedFiltersVO>) => Promise<void>,
+        delete_callback?: (prop?: Partial<SharedFiltersVO>) => Promise<void>,
     ): void {
 
         this.is_modal_open = true;

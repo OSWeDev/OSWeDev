@@ -9,6 +9,12 @@ import ConsoleHandler from "../../../../../../shared/tools/ConsoleHandler";
 
 export default class FieldValueFilterWidgetController extends FieldValueFilterWidgetManager {
 
+    protected static instance = null;
+
+    private constructor() {
+        super();
+    }
+
     public static get_query_param_filter_name(api_type_id: string, field_id: string): string {
         return 'FILTER__' + api_type_id + '__' + field_id;
     }
@@ -20,12 +26,6 @@ export default class FieldValueFilterWidgetController extends FieldValueFilterWi
         }
 
         return this.instance;
-    }
-
-    protected static instance = null;
-
-    private constructor() {
-        super();
     }
 
     public add_discarded_field_paths(q: ContextQueryVO, discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } }): ContextQueryVO {

@@ -273,8 +273,8 @@ export default class FavoritesFiltersModalComponent extends VueComponentBase {
             selectionnable_active_field_filters: FieldFiltersVO,
             exportable_data: { [title_name_code: string]: ExportContextQueryToXLSXParamVO },
         } = null,
-        validation_callback?: (props?: Partial<FavoritesFiltersVO>) => Promise<void>,
-        close_callback?: (props?: Partial<FavoritesFiltersVO>) => Promise<void>
+        validation_callback?: (props_?: Partial<FavoritesFiltersVO>) => Promise<void>,
+        close_callback?: (props_?: Partial<FavoritesFiltersVO>) => Promise<void>
     ): void {
         this.is_modal_open = true;
 
@@ -315,9 +315,9 @@ export default class FavoritesFiltersModalComponent extends VueComponentBase {
             exportable_data: { [title_name_code: string]: ExportContextQueryToXLSXParamVO },
             favorites_filters: FavoritesFiltersVO,
         } = null,
-        validation_callback?: (props?: Partial<FavoritesFiltersVO>) => Promise<void>,
-        close_callback?: (props?: Partial<FavoritesFiltersVO>) => Promise<void>,
-        delete_callback?: (props?: Partial<FavoritesFiltersVO>) => Promise<void>,
+        validation_callback?: (props_?: Partial<FavoritesFiltersVO>) => Promise<void>,
+        close_callback?: (props_?: Partial<FavoritesFiltersVO>) => Promise<void>,
+        delete_callback?: (props_?: Partial<FavoritesFiltersVO>) => Promise<void>,
     ): void {
 
         this.dashboard_page = props.dashboard_page;
@@ -973,7 +973,7 @@ export default class FavoritesFiltersModalComponent extends VueComponentBase {
         ];
 
         // Get widget_types for yearfilter and monthfilter
-Thr        const widgets_types = await WidgetOptionsVOManager.get_all_sorted_widgets_types();
+        const widgets_types = await WidgetOptionsVOManager.get_all_sorted_widgets_types();
 
         // Classify the page_widgets by vo_field_ref.field_id
         for (const key in page_widgets_dates) {

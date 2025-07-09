@@ -65,7 +65,7 @@ import DatatableRowController from '../../../../datatable/component/DatatableRow
 import DatatableComponentField from '../../../../datatable/component/fields/DatatableComponentField';
 import { ModuleModalsAndBasicPageComponentsHolderGetter } from '../../../../modals_and_basic_page_components_holder/ModalsAndBasicPageComponentsHolderStore';
 import SortableListComponent from '../../../../sortable/SortableListComponent';
-import WidgetOptionsVOManager from '../../WidgetOptionsVOManager';
+import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../../page/DashboardPageStore';
 import FieldValueFilterWidgetOptions from '../../field_value_filter_widget/options/FieldValueFilterWidgetOptions';
 import ValidationFiltersWidgetController from '../../validation_filters_widget/ValidationFiltersWidgetController';
 import VarWidgetComponent from '../../var_widget/VarWidgetComponent';
@@ -75,7 +75,6 @@ import CRUDUpdateModalComponent from './../crud_modals/update/CRUDUpdateModalCom
 import './TableWidgetKanbanComponent.scss';
 import TableWidgetKanbanCardFooterLinksComponent from './kanban_card_footer_links/TableWidgetKanbanCardFooterLinksComponent';
 import TableWidgetKanbanCardHeaderCollageComponent from './kanban_card_header_collage/TableWidgetKanbanCardHeaderCollageComponent';
-import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../../page/DashboardPageStore';
 
 //TODO Faire en sorte que les champs qui n'existent plus car supprimés du dashboard ne se conservent pas lors de la création d'un tableau
 
@@ -2116,7 +2115,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase impleme
                 FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters)
             ));
 
-        FieldValueFilterWidgetManager.add_discarded_field_paths(query_, this.get_discarded_field_paths);
+        FieldValueFilterWidgetManager.add_discarded_field_paths(query_, this.get_dashboard_discarded_field_paths);
 
         /**
          * Si on a un filtre actif sur la table on veut ignorer le filtre généré par la table à ce stade et charger toutes les valeurs, et mettre en avant simplement celles qui sont filtrées
@@ -2618,7 +2617,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase impleme
             this.get_active_field_filters,
             this.columns_custom_filters,
             this.get_dashboard_api_type_ids,
-            this.get_discarded_field_paths,
+            this.get_dashboard_discarded_field_paths,
             false,
             null,
             null,

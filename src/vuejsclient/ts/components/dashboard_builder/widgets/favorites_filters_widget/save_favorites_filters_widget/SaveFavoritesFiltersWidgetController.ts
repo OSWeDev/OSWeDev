@@ -7,14 +7,6 @@ import SaveFavoritesFiltersCallUpdaters from "./SaveFavoritesFiltersCallUpdaters
  */
 export default class SaveFavoritesFiltersWidgetController {
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): SaveFavoritesFiltersWidgetController {
-        if (!this.instance) {
-            this.instance = new SaveFavoritesFiltersWidgetController();
-        }
-
-        return this.instance;
-    }
 
     private static instance = null;
 
@@ -26,6 +18,15 @@ export default class SaveFavoritesFiltersWidgetController {
         this.throttled_call_updaters.bind(this), 50);
 
     private constructor() { }
+
+    // istanbul ignore next: nothing to test
+    public static getInstance(): SaveFavoritesFiltersWidgetController {
+        if (!this.instance) {
+            this.instance = new SaveFavoritesFiltersWidgetController();
+        }
+
+        return this.instance;
+    }
 
     public async register_updater(dashboard_id: number, page_id: number, page_widget_id: number, updater: () => Promise<void>) {
         if (!this.updaters[dashboard_id]) {

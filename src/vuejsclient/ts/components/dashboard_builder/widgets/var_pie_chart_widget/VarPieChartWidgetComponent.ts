@@ -16,7 +16,6 @@ import DashboardWidgetVO from '../../../../../../shared/modules/DashboardBuilder
 import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import VarPieChartWidgetOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/VarPieChartWidgetOptionsVO';
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ModuleVar from '../../../../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../../../../shared/modules/Var/VarsController';
 import VarPieDataSetDescriptor from '../../../../../../shared/modules/Var/graph/VarPieDataSetDescriptor';
@@ -28,11 +27,10 @@ import { all_promises } from '../../../../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../../../../shared/tools/RangeHandler';
 import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../../VueComponentBase';
-import WidgetOptionsVOManager from '../WidgetOptionsVOManager';
+import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../page/DashboardPageStore';
 import ValidationFiltersWidgetController from '../validation_filters_widget/ValidationFiltersWidgetController';
 import VarWidgetComponent from '../var_widget/VarWidgetComponent';
 import './VarPieChartWidgetComponent.scss';
-import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../page/DashboardPageStore';
 
 @Component({
     template: require('./VarPieChartWidgetComponent.pug')
@@ -597,7 +595,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase impleme
             .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
                 FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters)
             ));
-        FieldValueFilterWidgetManager.add_discarded_field_paths(query_, this.get_discarded_field_paths);
+        FieldValueFilterWidgetManager.add_discarded_field_paths(query_, this.get_dashboard_discarded_field_paths);
 
         if (this.widget_options.sort_dimension_by_vo_field_ref) {
             query_.set_sort(new SortByVO(
@@ -667,7 +665,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase impleme
                     active_field_filters,
                     custom_filters_1,
                     this.get_dashboard_api_type_ids,
-                    this.get_discarded_field_paths);
+                    this.get_dashboard_discarded_field_paths);
 
                 if (!var_params_by_dimension[dimension_value]) {
                     if (dimension_value !== '[NULL]') {
@@ -804,7 +802,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase impleme
                     active_field_filters,
                     update_custom_filters_1,
                     this.get_dashboard_api_type_ids,
-                    this.get_discarded_field_paths);
+                    this.get_dashboard_discarded_field_paths);
 
                 if (!var_params_by_dimension[dimension_value]) {
                     this.isValid = false;
@@ -943,7 +941,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase impleme
                 this.get_active_field_filters,
                 custom_filters_1,
                 this.get_dashboard_api_type_ids,
-                this.get_discarded_field_paths);
+                this.get_dashboard_discarded_field_paths);
         })());
         promises.push((async () => {
             var_2 = await ModuleVar.getInstance().getVarParamFromContextFilters(
@@ -951,7 +949,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase impleme
                 this.get_active_field_filters,
                 custom_filters_2,
                 this.get_dashboard_api_type_ids,
-                this.get_discarded_field_paths);
+                this.get_dashboard_discarded_field_paths);
         })());
 
         await all_promises(promises);

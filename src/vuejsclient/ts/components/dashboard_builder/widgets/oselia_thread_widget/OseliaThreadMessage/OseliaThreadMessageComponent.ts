@@ -417,7 +417,7 @@ export default class OseliaThreadMessageComponent extends VueComponentBase imple
                 const gpt_files: GPTAssistantAPIFileVO[] = await query(GPTAssistantAPIFileVO.API_TYPE_ID)
                     .filter_by_text_eq(field_names<GPTAssistantAPIFileVO>().gpt_file_id, attachment.gpt_file_id)
                     .select_vos<GPTAssistantAPIFileVO>();
-                const files: FileVO[] = []
+                const files: FileVO[] = [];
                 for (const gpt_file of gpt_files) {
                     const file = await query(FileVO.API_TYPE_ID)
                         .filter_by_id(gpt_file.file_id)
@@ -427,7 +427,8 @@ export default class OseliaThreadMessageComponent extends VueComponentBase imple
                 if (files.length > 0) {
                     for (const file of files) {
                         if (this.thread_message_files.every((value) => {
-                            if (value['.' + file.path.split('.').pop()].id = file.id) {
+                            if (value['.' + file.path.split('.').pop()].id == file.id) { // Je rejoute un = pour transformer en comparaison et pas en assignation comme c'était,
+                                // par contre toute la logique de file.path.split('.').pop() me parait obscure et à checker => c'est pas l'extension du fichier qu'on est en train de choisir là par hasard ?
                                 return false;
                             }
                             return true;

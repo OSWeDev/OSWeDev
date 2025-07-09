@@ -649,7 +649,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
             query_.filters = ContextFilterVOManager.get_context_filters_from_active_field_filters(active_field_filters_query);
             query_.active_api_type_ids = this.get_dashboard_api_type_ids;
 
-            FieldValueFilterWidgetController.getInstance().add_discarded_field_paths(query_, this.get_discarded_field_paths);
+            FieldValueFilterWidgetController.getInstance().add_discarded_field_paths(query_, this.get_dashboard_discarded_field_paths);
 
             query_.filters = ContextFilterVOHandler.add_context_filters_exclude_values(
                 this.exclude_values,
@@ -691,7 +691,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
                 query_ = await FieldValueFilterWidgetController.getInstance().check_segmented_dependencies(
                     query_,
                     this.get_dashboard_api_type_ids,
-                    this.get_discarded_field_paths,
+                    this.get_dashboard_discarded_field_paths,
                     true);
             }
 

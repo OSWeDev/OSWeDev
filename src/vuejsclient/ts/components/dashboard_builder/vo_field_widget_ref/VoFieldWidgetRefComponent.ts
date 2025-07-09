@@ -1,12 +1,10 @@
-import { textChangeRangeIsUnchanged } from 'typescript';
 import Component from 'vue-class-component';
 import { Prop } from 'vue-property-decorator';
+import ModuleTableController from '../../../../../shared/modules/DAO/ModuleTableController';
 import VOFieldRefVO from '../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
-import VOsTypesManager from '../../../../../shared/modules/VO/manager/VOsTypesManager';
 import InlineTranslatableText from '../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../VueComponentBase';
 import './VoFieldWidgetRefComponent.scss';
-import ModuleTableController from '../../../../../shared/modules/DAO/ModuleTableController';
 
 @Component({
     template: require('./VoFieldWidgetRefComponent.pug'),

@@ -26,11 +26,11 @@ import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import { ModuleTranslatableTextGetter } from '../../../../InlineTranslatableText/TranslatableTextStore';
 import { ModuleModalsAndBasicPageComponentsHolderGetter } from '../../../../modals_and_basic_page_components_holder/ModalsAndBasicPageComponentsHolderStore';
 import VueComponentBase from '../../../../VueComponentBase';
+import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../../page/DashboardPageStore';
 import ReloadFiltersWidgetController from '../../reload_filters_widget/RealoadFiltersWidgetController';
 import ResetFiltersWidgetController from '../../reset_filters_widget/ResetFiltersWidgetController';
 import FavoritesFiltersModalComponent from '../modal/FavoritesFiltersModalComponent';
 import './ShowFavoritesFiltersWidgetComponent.scss';
-import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../../page/DashboardPageStore';
 
 @Component({
     template: require('./ShowFavoritesFiltersWidgetComponent.pug'),
@@ -257,7 +257,7 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
     }
 
     public clear_active_field_filters() {
-        return this.vuexAct(reflect<this>().clear_active_field_filters);
+        return this.vuexAct(reflect<this>().clear_active_field_filters, null);
     }
 
     private async update_active_field_filters(): Promise<void> {

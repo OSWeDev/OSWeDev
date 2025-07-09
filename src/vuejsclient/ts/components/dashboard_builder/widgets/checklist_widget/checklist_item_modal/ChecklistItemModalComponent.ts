@@ -23,6 +23,23 @@ export default class ChecklistItemModalComponent extends VueComponentBase {
 
     private initialized: boolean = false;
 
+
+    get checklist_controller(): CheckListControllerBase {
+        if (!this.checklist) {
+            return null;
+        }
+
+        for (const name in CheckListControllerBase.controller_by_name) {
+            const controller = CheckListControllerBase.controller_by_name[name];
+
+            if (controller.checklist_shared_module.checklist_name == this.checklist.name) {
+                return controller;
+            }
+        }
+        return null;
+    }
+
+
     public openmodal(
         checklist: ICheckList,
         selected_checklist_item: ICheckListItem,
@@ -67,20 +84,5 @@ export default class ChecklistItemModalComponent extends VueComponentBase {
 
     private changecheckpoint(cp: ICheckPoint) {
         this.selected_checkpoint = cp;
-    }
-
-    get checklist_controller(): CheckListControllerBase {
-        if (!this.checklist) {
-            return null;
-        }
-
-        for (const name in CheckListControllerBase.controller_by_name) {
-            const controller = CheckListControllerBase.controller_by_name[name];
-
-            if (controller.checklist_shared_module.checklist_name == this.checklist.name) {
-                return controller;
-            }
-        }
-        return null;
     }
 }

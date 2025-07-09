@@ -6,9 +6,9 @@ import { reflect } from '../../../../../../../shared/tools/ObjectHandler';
 import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/DroppableVoFieldsStore';
+import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../../page/DashboardPageStore';
 import OseliaThreadWidgetOptions from './OseliaThreadWidgetOptions';
 import './OseliaThreadWidgetOptionsComponent.scss';
-import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../../page/DashboardPageStore';
 
 @Component({
     template: require('./OseliaThreadWidgetOptionsComponent.pug'),
@@ -55,9 +55,4 @@ export default class OseliaThreadWidgetOptionsComponent extends VueComponentBase
     ) {
         this.$store.dispatch(`${this.storeNamespace}/${String(action)}`, ...args);
     }
-
-    public set_page_widget(page_widget: DashboardPageWidgetVO) {
-        return this.vuexAct(reflect<this>().set_page_widget, page_widget);
-    }
-
 }

@@ -14,24 +14,15 @@ import ModuleTableController from '../../../../../shared/modules/DAO/ModuleTable
 export default class DroppableVosComponent extends VueComponentBase {
 
     @ModuleDroppableVosGetter
+    private get_selected_vos: { [api_type_id: string]: boolean };
+
+    @ModuleDroppableVosGetter
     private get_filter_by_api_type_id: string;
 
     @ModuleDroppableVosAction
     private set_filter_by_api_type_id: (filter_by_api_type_id: string) => void;
 
     private filter_value: string = null;
-
-    @ModuleDroppableVosGetter
-    private get_selected_vos: { [api_type_id: string]: boolean };
-
-    @Watch("get_filter_by_api_type_id", { immediate: true })
-    private onchange_store_filter() {
-        this.filter_value = this.get_filter_by_api_type_id;
-    }
-
-    private filter_by_api_type_id(event) {
-        this.set_filter_by_api_type_id(event.srcElement.value);
-    }
 
     get api_type_ids(): string[] {
         const res: string[] = [];
@@ -61,6 +52,16 @@ export default class DroppableVosComponent extends VueComponentBase {
 
         return res;
     }
+
+    @Watch("get_filter_by_api_type_id", { immediate: true })
+    private onchange_store_filter() {
+        this.filter_value = this.get_filter_by_api_type_id;
+    }
+
+    private filter_by_api_type_id(event) {
+        this.set_filter_by_api_type_id(event.srcElement.value);
+    }
+
 
     // private async drag(event, api_type_id) {
     //     event.dataTransfer.setData("api_type_id", api_type_id);

@@ -16,7 +16,6 @@ import DashboardWidgetVO from '../../../../../../shared/modules/DashboardBuilder
 import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import VarRadarChartWidgetOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/VarRadarChartWidgetOptionsVO';
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ModuleVar from '../../../../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../../../../shared/modules/Var/VarsController';
 import VarRadarDataSetDescriptor from '../../../../../../shared/modules/Var/graph/VarRadarDataSetDescriptor';
@@ -28,11 +27,10 @@ import { all_promises } from '../../../../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../../../../shared/tools/RangeHandler';
 import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../../VueComponentBase';
-import WidgetOptionsVOManager from '../WidgetOptionsVOManager';
+import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../page/DashboardPageStore';
 import ValidationFiltersWidgetController from '../validation_filters_widget/ValidationFiltersWidgetController';
 import VarWidgetComponent from '../var_widget/VarWidgetComponent';
 import './VarRadarChartWidgetComponent.scss';
-import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../page/DashboardPageStore';
 
 @Component({
     template: require('./VarRadarChartWidgetComponent.pug')
@@ -390,6 +388,7 @@ export default class VarRadarChartWidgetComponent extends VueComponentBase imple
 
     private getLabels(value, context) {
         if (this.var_filter) {
+            // eslint-disable-next-line prefer-spread
             return this.var_filter.apply(this, [value].concat(this.var_filter_additional_params));
         } else {
             return value;
@@ -467,7 +466,7 @@ export default class VarRadarChartWidgetComponent extends VueComponentBase imple
             .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
                 FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters)
             ));
-        FieldValueFilterWidgetManager.add_discarded_field_paths(query_, this.get_discarded_field_paths);
+        FieldValueFilterWidgetManager.add_discarded_field_paths(query_, this.get_dashboard_discarded_field_paths);
 
         if (this.widget_options.sort_dimension_by_vo_field_ref) {
             query_.set_sort(new SortByVO(
@@ -495,7 +494,7 @@ export default class VarRadarChartWidgetComponent extends VueComponentBase imple
                 .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
                     FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters)
                 ));
-            FieldValueFilterWidgetManager.add_discarded_field_paths(query_dataset, this.get_discarded_field_paths);
+            FieldValueFilterWidgetManager.add_discarded_field_paths(query_dataset, this.get_dashboard_discarded_field_paths);
 
             const datasets_vos = await query_dataset.select_vos();
 
@@ -595,7 +594,7 @@ export default class VarRadarChartWidgetComponent extends VueComponentBase imple
                         active_field_filters,
                         custom_filters_1,
                         this.get_dashboard_api_type_ids,
-                        this.get_discarded_field_paths);
+                        this.get_dashboard_discarded_field_paths);
 
                     if (!var_params_by_dataset_and_dimension[dataset][dimension_value]) {
                         // Si on est sur du multi dataset, on peut avoir des datasets sans données
@@ -716,7 +715,7 @@ export default class VarRadarChartWidgetComponent extends VueComponentBase imple
                 .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
                     FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters)
                 ));
-            FieldValueFilterWidgetManager.add_discarded_field_paths(query_dataset, this.get_discarded_field_paths);
+            FieldValueFilterWidgetManager.add_discarded_field_paths(query_dataset, this.get_dashboard_discarded_field_paths);
 
             const datasets_vos = await query_dataset.select_vos();
 
@@ -804,7 +803,7 @@ export default class VarRadarChartWidgetComponent extends VueComponentBase imple
                         active_field_filters,
                         update_custom_filters_1,
                         this.get_dashboard_api_type_ids,
-                        this.get_discarded_field_paths);
+                        this.get_dashboard_discarded_field_paths);
 
                     if (!var_params_by_dataset_and_dimension[dataset][dimension_value]) {
                         // Peut arriver si on attend un filtre custom par exemple et qu'il n'est pas encore renseigné
@@ -942,7 +941,7 @@ export default class VarRadarChartWidgetComponent extends VueComponentBase imple
                 .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
                     FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters)
                 ));
-            FieldValueFilterWidgetManager.add_discarded_field_paths(query_dataset, this.get_discarded_field_paths);
+            FieldValueFilterWidgetManager.add_discarded_field_paths(query_dataset, this.get_dashboard_discarded_field_paths);
 
             const datasets_vos = await query_dataset.select_vos();
 
@@ -1004,7 +1003,7 @@ export default class VarRadarChartWidgetComponent extends VueComponentBase imple
                     active_field_filters,
                     custom_filters_1,
                     this.get_dashboard_api_type_ids,
-                    this.get_discarded_field_paths);
+                    this.get_dashboard_discarded_field_paths);
             })());
             promises.push((async () => {
                 var_params_1_et_2_by_dataset_and_dimension[dataset][1] = await ModuleVar.getInstance().getVarParamFromContextFilters(
@@ -1012,7 +1011,7 @@ export default class VarRadarChartWidgetComponent extends VueComponentBase imple
                     active_field_filters,
                     custom_filters_2,
                     this.get_dashboard_api_type_ids,
-                    this.get_discarded_field_paths);
+                    this.get_dashboard_discarded_field_paths);
             })());
         }
 

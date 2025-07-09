@@ -83,7 +83,7 @@ export default class CMSBooleanButtonWidgetComponent extends VueComponentBase {
             .select_one();
 
         try {
-            const res = this.get_value_formatted(vo_field, this.widget_options.vo_field_ref.field_id, this.widget_options.vo_field_ref.api_type_id);
+            const res = await this.get_value_formatted(vo_field, this.widget_options.vo_field_ref.field_id, this.widget_options.vo_field_ref.api_type_id);
             this.boolean_vo_value = JSON.parse(res);
         } catch (error) {
             ConsoleHandler.error(error);

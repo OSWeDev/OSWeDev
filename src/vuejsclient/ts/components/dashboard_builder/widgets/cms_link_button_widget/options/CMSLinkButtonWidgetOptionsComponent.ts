@@ -4,6 +4,7 @@ import 'quill/dist/quill.core.css'; // Compliqué à lazy load
 import 'quill/dist/quill.snow.css'; // Compliqué à lazy load
 import Component from 'vue-class-component';
 import { Inject, Prop, Watch } from 'vue-property-decorator';
+import Throttle from '../../../../../../../shared/annotations/Throttle';
 import RoleVO from '../../../../../../../shared/modules/AccessPolicy/vos/RoleVO';
 import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
@@ -11,14 +12,12 @@ import ModuleTableController from '../../../../../../../shared/modules/DAO/Modul
 import CMSLinkButtonWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/CMSLinkButtonWidgetOptionsVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
+import EventifyEventListenerConfVO from '../../../../../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
-import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../../VueComponentBase';
 import SingleVoFieldRefHolderComponent from '../../../options_tools/single_vo_field_ref_holder/SingleVoFieldRefHolderComponent';
 import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../../page/DashboardPageStore';
 import './CMSLinkButtonWidgetOptionsComponent.scss';
-import Throttle from '../../../../../../../shared/annotations/Throttle';
-import EventifyEventListenerConfVO from '../../../../../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO';
 
 @Component({
     template: require('./CMSLinkButtonWidgetOptionsComponent.pug'),
@@ -49,7 +48,6 @@ export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBas
     public list_roles: RoleVO[] = [];
 
     public next_update_options: CMSLinkButtonWidgetOptionsVO = null;
-    public throttled_update_options = ThrottleHelper.declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
 
     get widget_options(): CMSLinkButtonWidgetOptionsVO {
         if (!this.page_widget) {
@@ -104,6 +102,21 @@ export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBas
         this.mode_bandeau = this.widget_options.mode_bandeau;
     }
 
+    @Throttle({
+        param_type: EventifyEventListenerConfVO.PARAM_TYPE_NONE,
+        throttle_ms: 50,
+        leading: false,
+    })
+    public async update_options() {
+        try {
+            this.page_widget.json_options = JSON.stringify(this.next_update_options);
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+
+        await ModuleDAO.getInstance().insertOrUpdateVO(this.page_widget);
+    }
+
     @Watch('url')
     @Watch('url_field_ref')
     @Watch('is_url_field')
@@ -151,7 +164,7 @@ export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBas
 
             this.is_text_color_white = (this.text_color == '#ffffff');
 
-            await this.throttled_update_options();
+            await this.update_options();
         }
     }
 
@@ -167,7 +180,7 @@ export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBas
 
         this.list_roles = await query(RoleVO.API_TYPE_ID).select_vos();
 
-        await this.throttled_update_options();
+        await this.update_options();
     }
 
     public get_default_options(): CMSLinkButtonWidgetOptionsVO {
@@ -189,21 +202,6 @@ export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBas
         );
     }
 
-    @Throttle({
-        param_type: EventifyEventListenerConfVO.PARAM_TYPE_NONE,
-        throttle_ms: 50,
-        leading: false,
-    })
-    public async update_options() {
-        try {
-            this.page_widget.json_options = JSON.stringify(this.next_update_options);
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-
-        await ModuleDAO.getInstance().insertOrUpdateVO(this.page_widget);
-    }
-
     public crud_api_type_id_select_label(api_type_id: string): string {
         return this.t(ModuleTableController.module_tables_by_vo_type[api_type_id].label.code_text);
     }
@@ -221,7 +219,7 @@ export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBas
 
         this.next_update_options.about_blank = !this.next_update_options.about_blank;
 
-        this.throttled_update_options();
+        this.update_options();
     }
 
     public async switch_mode_bandeau() {
@@ -233,7 +231,7 @@ export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBas
 
         this.next_update_options.mode_bandeau = !this.next_update_options.mode_bandeau;
 
-        this.throttled_update_options();
+        this.update_options();
     }
 
     public async switch_is_url_field() {
@@ -245,7 +243,7 @@ export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBas
 
         this.next_update_options.is_url_field = !this.next_update_options.is_url_field;
 
-        this.throttled_update_options();
+        this.update_options();
     }
 
     // Accès dynamiques Vuex
@@ -274,7 +272,7 @@ export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBas
             this.next_update_options.text_color = '#000000';
         }
 
-        this.throttled_update_options();
+        this.update_options();
     }
 
     public async add_url_field_ref(api_type_id: string, field_id: string) {
@@ -295,7 +293,7 @@ export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBas
 
         this.next_update_options[field_name] = vo_field_ref;
 
-        await this.throttled_update_options();
+        await this.update_options();
     }
 
     public async remove_url_field_ref() {
@@ -315,6 +313,6 @@ export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBas
 
         this.next_update_options[field_name] = null;
 
-        await this.throttled_update_options();
+        await this.update_options();
     }
 }

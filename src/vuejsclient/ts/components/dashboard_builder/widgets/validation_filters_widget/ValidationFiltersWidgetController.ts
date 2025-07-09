@@ -4,14 +4,6 @@ import ValidationFiltersCallUpdaters from "./ValidationFiltersCallUpdaters";
 
 export default class ValidationFiltersWidgetController {
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): ValidationFiltersWidgetController {
-        if (!this.instance) {
-            this.instance = new ValidationFiltersWidgetController();
-        }
-
-        return this.instance;
-    }
 
     private static instance = null;
 
@@ -23,6 +15,16 @@ export default class ValidationFiltersWidgetController {
         this.throttled_call_updaters.bind(this), 50);
 
     private constructor() { }
+
+
+    // istanbul ignore next: nothing to test
+    public static getInstance(): ValidationFiltersWidgetController {
+        if (!this.instance) {
+            this.instance = new ValidationFiltersWidgetController();
+        }
+
+        return this.instance;
+    }
 
     public async register_updater(
         dashboard_id: number,

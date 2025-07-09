@@ -7,10 +7,10 @@ import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import { reflect } from '../../../../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../../../../shared/tools/PromiseTools';
 import VueComponentBase from '../../../VueComponentBase';
+import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../page/DashboardPageStore';
 import ResetFiltersWidgetOptions from './options/ResetFiltersWidgetOptions';
 import './ResetFiltersWidgetComponent.scss';
 import ResetFiltersWidgetController from './ResetFiltersWidgetController';
-import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../page/DashboardPageStore';
 
 @Component({
     template: require('./ResetFiltersWidgetComponent.pug'),
@@ -30,6 +30,25 @@ export default class ResetFiltersWidgetComponent extends VueComponentBase implem
 
     private start_update: boolean = false;
 
+
+    get widget_options() {
+        if (!this.page_widget) {
+            return null;
+        }
+
+        let options: ResetFiltersWidgetOptions = null;
+        try {
+            if (this.page_widget.json_options) {
+                options = JSON.parse(this.page_widget.json_options) as ResetFiltersWidgetOptions;
+                options = options ? new ResetFiltersWidgetOptions() : null;
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+
+        return options;
+    }
+
     // Accès dynamiques Vuex
     public vuexGet<K extends keyof IDashboardGetters>(getter: K): IDashboardGetters[K] {
         return this.$store.getters[`${this.storeNamespace}/${String(getter)}`];
@@ -42,7 +61,7 @@ export default class ResetFiltersWidgetComponent extends VueComponentBase implem
     }
 
     public clear_active_field_filters() {
-        return this.vuexAct(reflect<this>().clear_active_field_filters);
+        return this.vuexAct(reflect<this>().clear_active_field_filters, null);
     }
 
 
@@ -73,23 +92,5 @@ export default class ResetFiltersWidgetComponent extends VueComponentBase implem
         this.clear_active_field_filters();
 
         this.start_update = false;
-    }
-
-    get widget_options() {
-        if (!this.page_widget) {
-            return null;
-        }
-
-        let options: ResetFiltersWidgetOptions = null;
-        try {
-            if (this.page_widget.json_options) {
-                options = JSON.parse(this.page_widget.json_options) as ResetFiltersWidgetOptions;
-                options = options ? new ResetFiltersWidgetOptions() : null;
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-
-        return options;
     }
 }

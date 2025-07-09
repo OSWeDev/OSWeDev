@@ -352,10 +352,6 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase imp
         return this.vuexAct(reflect<this>().set_active_api_type_ids, active_api_type_ids);
     }
 
-    public set_page_widget(page_widget: DashboardPageWidgetVO) {
-        return this.vuexAct(reflect<this>().set_page_widget, page_widget);
-    }
-
     private async mounted() {
         const has_supervision_category_filters = (!!this.get_active_field_filters && !!this.get_active_field_filters[SupervisedCategoryVO.API_TYPE_ID]);
         const has_supervision_group_selection_filters = (!!this.get_active_field_filters && !!this.get_active_field_filters[SupervisedProbeGroupVO.API_TYPE_ID]);
@@ -528,6 +524,7 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase imp
             return;
         }
 
+        // eslint-disable-next-line no-constant-condition
         while (true) {
             if (!this.widget_options.auto_refresh) {
                 return;

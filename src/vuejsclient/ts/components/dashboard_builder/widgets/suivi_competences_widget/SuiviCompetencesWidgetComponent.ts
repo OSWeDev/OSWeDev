@@ -277,7 +277,7 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase im
             .using(this.get_dashboard_api_type_ids)
             .add_filters(context_filters);
 
-        FieldValueFilterWidgetManager.add_discarded_field_paths(context_query_rapport, this.get_discarded_field_paths);
+        FieldValueFilterWidgetManager.add_discarded_field_paths(context_query_rapport, this.get_dashboard_discarded_field_paths);
 
         const rapports: SuiviCompetencesRapportVO[] = await context_query_rapport.select_vos();
 

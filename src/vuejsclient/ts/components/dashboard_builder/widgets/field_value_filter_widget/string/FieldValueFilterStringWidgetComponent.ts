@@ -24,7 +24,6 @@ import FieldFiltersVO from '../../../../../../../shared/modules/DashboardBuilder
 import FieldValueFilterWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldValueFilterWidgetOptionsVO';
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import DataFilterOption from '../../../../../../../shared/modules/DataRender/vos/DataFilterOption';
-import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import EnvHandler from '../../../../../../../shared/tools/EnvHandler';
 import { reflect } from '../../../../../../../shared/tools/ObjectHandler';
@@ -35,14 +34,13 @@ import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import { ModuleTranslatableTextGetter } from '../../../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/DroppableVoFieldsStore';
-import WidgetOptionsVOManager from '../../WidgetOptionsVOManager';
+import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../../page/DashboardPageStore';
 import ResetFiltersWidgetController from '../../reset_filters_widget/ResetFiltersWidgetController';
 import ValidationFiltersCallUpdaters from '../../validation_filters_widget/ValidationFiltersCallUpdaters';
 import ValidationFiltersWidgetController from '../../validation_filters_widget/ValidationFiltersWidgetController';
 import FieldValueFilterWidgetController from '../FieldValueFilterWidgetController';
 import AdvancedStringFilter from './AdvancedStringFilter';
 import './FieldValueFilterStringWidgetComponent.scss';
-import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../../page/DashboardPageStore';
 
 @Component({
     template: require('./FieldValueFilterStringWidgetComponent.pug'),
@@ -857,10 +855,6 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         return this.vuexAct(reflect<this>().set_widget_visibility, w_id);
     }
 
-    public set_page_widget(page_widget: DashboardPageWidgetVO) {
-        return this.vuexAct(reflect<this>().set_page_widget, page_widget);
-    }
-
     private throttled_update_visible_options = (timeout: number = 300) => (ThrottleHelper.declare_throttle_without_args(
         'FieldValueFilterStringWidgetComponent.throttled_update_visible_options',
         this.update_visible_options.bind(this), timeout, false))();
@@ -1301,7 +1295,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
 
             FieldValueFilterWidgetController.getInstance().add_discarded_field_paths(
                 context_query,
-                this.get_discarded_field_paths
+                this.get_dashboard_discarded_field_paths
             );
 
             context_query.filters = ContextFilterVOHandler.add_context_filters_exclude_values(
@@ -1352,7 +1346,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                 context_query = await FieldValueFilterWidgetController.getInstance().check_segmented_dependencies(
                     context_query,
                     this.get_dashboard_api_type_ids,
-                    this.get_discarded_field_paths,
+                    this.get_dashboard_discarded_field_paths,
                     true);
             }
 
@@ -1399,7 +1393,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                             .set_sort(new SortByVO(field_sort.api_type_id, field_sort.field_id, true))
                             .using(this.get_dashboard_api_type_ids);
 
-                        FieldValueFilterWidgetController.getInstance().add_discarded_field_paths(query_field_ref, this.get_discarded_field_paths);
+                        FieldValueFilterWidgetController.getInstance().add_discarded_field_paths(query_field_ref, this.get_dashboard_discarded_field_paths);
 
                         const tmp_field_ref: DataFilterOption[] = await ModuleContextFilter.instance.select_filter_visible_options(
                             query_field_ref,
@@ -1499,7 +1493,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
 
                         FieldValueFilterWidgetController.getInstance().add_discarded_field_paths(
                             context_query_lvl2,
-                            this.get_discarded_field_paths
+                            this.get_dashboard_discarded_field_paths
                         );
 
                         ConsoleHandler.log('select_filter_visible_options:3:' + context_query_lvl2.base_api_type_id);

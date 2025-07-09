@@ -2,12 +2,11 @@ import Component from "vue-class-component";
 import { Inject, Prop } from "vue-property-decorator";
 import DashboardPageVO from "../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO";
 import DashboardPageWidgetVO from "../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO";
-import { reflect } from "../../../../../../../shared/tools/ObjectHandler";
 import InlineTranslatableText from "../../../../InlineTranslatableText/InlineTranslatableText";
 import VueComponentBase from "../../../../VueComponentBase";
 import SingleVoFieldRefHolderComponent from "../../../options_tools/single_vo_field_ref_holder/SingleVoFieldRefHolderComponent";
-import './OseliaRunGraphWidgetOptionsComponent.scss';
 import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from "../../../page/DashboardPageStore";
+import './OseliaRunGraphWidgetOptionsComponent.scss';
 @Component({
     template: require('./OseliaRunGraphWidgetOptionsComponent.pug'),
     components: {
@@ -37,9 +36,4 @@ export default class OseliaRunGraphWidgetOptionsComponent extends VueComponentBa
     ) {
         this.$store.dispatch(`${this.storeNamespace}/${String(action)}`, ...args);
     }
-
-    public set_page_widget(page_widget: DashboardPageWidgetVO) {
-        return this.vuexAct(reflect<this>().set_page_widget, page_widget);
-    }
-
 }

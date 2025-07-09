@@ -22,7 +22,6 @@ import VarChartScalesOptionsVO from '../../../../../../shared/modules/DashboardB
 import VarMixedChartWidgetOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/VarMixedChartWidgetOptionsVO';
 
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 
 import ModuleVar from '../../../../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../../../../shared/modules/Var/VarsController';
@@ -39,12 +38,11 @@ import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/Tr
 import { IChartOptions } from '../../../Var/components/mixed-chart/VarMixedChartComponent';
 import VueComponentBase from '../../../VueComponentBase';
 
-import WidgetOptionsVOManager from '../WidgetOptionsVOManager';
 import ValidationFiltersWidgetController from '../validation_filters_widget/ValidationFiltersWidgetController';
 import VarWidgetComponent from '../var_widget/VarWidgetComponent';
 
-import './VarMixedChartsWidgetComponent.scss';
 import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../page/DashboardPageStore';
+import './VarMixedChartsWidgetComponent.scss';
 
 
 @Component({
@@ -956,7 +954,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase impl
                 .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
                     FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters)
                 ));
-            FieldValueFilterWidgetManager.add_discarded_field_paths(q, this.get_discarded_field_paths);
+            FieldValueFilterWidgetManager.add_discarded_field_paths(q, this.get_dashboard_discarded_field_paths);
 
             const datasets_vos = await q.select_vos();
             for (const i in datasets_vos) {
@@ -1032,7 +1030,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase impl
             .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
                 FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters)
             ));
-        FieldValueFilterWidgetManager.add_discarded_field_paths(context_query, this.get_discarded_field_paths);
+        FieldValueFilterWidgetManager.add_discarded_field_paths(context_query, this.get_dashboard_discarded_field_paths);
 
         // Tri si besoin
         if (this.widget_options.sort_dimension_by_vo_field_ref) {
@@ -1143,7 +1141,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase impl
                             active_field_filters,
                             custom_filter,
                             this.get_dashboard_api_type_ids,
-                            this.get_discarded_field_paths
+                            this.get_dashboard_discarded_field_paths
                         );
 
                         // Si pas de VarParam, c'est qu'on a pas réussi à le construire, donc sûrement que le chemin demandé est impossible
@@ -1319,7 +1317,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase impl
                                 active_field_filters,
                                 update_custom_filters,
                                 this.get_dashboard_api_type_ids,
-                                this.get_discarded_field_paths
+                                this.get_dashboard_discarded_field_paths
                             );
 
                         if (!charts_var_params_by_dimension[var_chart_id_dataset][dimension_value]) {

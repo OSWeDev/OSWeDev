@@ -1,16 +1,15 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
+import ModuleTableController from '../../../../../../../../shared/modules/DAO/ModuleTableController';
 import SimpleDatatableFieldVO from '../../../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import AdvancedDateFilterOptDescVO from '../../../../../../../../shared/modules/DashboardBuilder/vos/AdvancedDateFilterOptDescVO';
 import DashboardPageWidgetVO from '../../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
-import VOsTypesManager from '../../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../../shared/tools/ConsoleHandler';
 import InlineTranslatableText from '../../../../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../../../../VueComponentBase';
 import VoFieldWidgetRefComponent from '../../../../vo_field_widget_ref/VoFieldWidgetRefComponent';
 import AdvancedDateFilterWidgetOptions from '../AdvancedDateFilterWidgetOptions';
 import './AdvancedDateFilterWidgetOptionsOptComponent.scss';
-import ModuleTableController from '../../../../../../../../shared/modules/DAO/ModuleTableController';
 
 @Component({
     template: require('./AdvancedDateFilterWidgetOptionsOptComponent.pug'),
@@ -30,30 +29,6 @@ export default class AdvancedDateFilterWidgetOptionsOptComponent extends VueComp
     private show_options: boolean = false;
     private object_opt: AdvancedDateFilterOptDescVO = null;
 
-    @Watch('opt', { immediate: true })
-    private onchange_opt() {
-        if (!this.opt) {
-            return;
-        }
-
-        this.object_opt = Object.assign(new AdvancedDateFilterOptDescVO(), this.opt);
-    }
-
-    private unhide_options() {
-        this.show_options = true;
-    }
-
-    private hide_options() {
-        this.show_options = false;
-    }
-
-    private remove_opt() {
-        this.$emit('remove_opt', this.object_opt);
-    }
-
-    private onchange_object_opt() {
-        this.$emit('update_opt', this.object_opt);
-    }
 
     get widget_options(): AdvancedDateFilterWidgetOptions {
         if (!this.page_widget) {
@@ -123,5 +98,31 @@ export default class AdvancedDateFilterWidgetOptionsOptComponent extends VueComp
 
     get opt_segmentation_type_editable_field() {
         return SimpleDatatableFieldVO.createNew('segmentation_type').setModuleTable(ModuleTableController.module_tables_by_vo_type[AdvancedDateFilterOptDescVO.API_TYPE_ID]);
+    }
+
+
+    @Watch('opt', { immediate: true })
+    private onchange_opt() {
+        if (!this.opt) {
+            return;
+        }
+
+        this.object_opt = Object.assign(new AdvancedDateFilterOptDescVO(), this.opt);
+    }
+
+    private unhide_options() {
+        this.show_options = true;
+    }
+
+    private hide_options() {
+        this.show_options = false;
+    }
+
+    private remove_opt() {
+        this.$emit('remove_opt', this.object_opt);
+    }
+
+    private onchange_object_opt() {
+        this.$emit('update_opt', this.object_opt);
     }
 }

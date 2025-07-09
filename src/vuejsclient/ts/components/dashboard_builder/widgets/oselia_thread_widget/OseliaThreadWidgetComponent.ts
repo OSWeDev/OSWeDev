@@ -287,7 +287,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase implem
     }
 
     @Watch(reflect<OseliaThreadWidgetComponent>().get_active_field_filters, { immediate: true, deep: true })
-    @Watch(reflect<OseliaThreadWidgetComponent>().get_discarded_field_paths, { deep: true })
+    @Watch(reflect<OseliaThreadWidgetComponent>().get_dashboard_discarded_field_paths, { deep: true })
     @Watch(reflect<OseliaThreadWidgetComponent>().page_widget)
     private async on_change_filters_or_page_widget() {
         this.throttle_load_thread();
@@ -833,7 +833,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase implem
             .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
                 FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters)
             ));
-        FieldValueFilterWidgetManager.add_discarded_field_paths(context_query_select, this.get_discarded_field_paths);
+        FieldValueFilterWidgetManager.add_discarded_field_paths(context_query_select, this.get_dashboard_discarded_field_paths);
         context_query_select.query_distinct = true;
 
         const context_query_count: ContextQueryVO = cloneDeep(context_query_select);
@@ -876,7 +876,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase implem
             .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
                 FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters)
             ));
-        FieldValueFilterWidgetManager.add_discarded_field_paths(context_query_select, this.get_discarded_field_paths);
+        FieldValueFilterWidgetManager.add_discarded_field_paths(context_query_select, this.get_dashboard_discarded_field_paths);
 
         const context_query_count: ContextQueryVO = cloneDeep(context_query_select);
 

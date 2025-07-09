@@ -7,12 +7,11 @@ import CMSPrintParamWidgetOptionsVO from '../../../../../../shared/modules/Dashb
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
+import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import ModuleParams from '../../../../../../shared/modules/Params/ModuleParams';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import VueComponentBase from '../../../VueComponentBase';
 import './CMSPrintParamWidgetComponent.scss';
-import ParamVO from '../../../../../../shared/modules/Params/vos/ParamVO';
-import ModuleParams from '../../../../../../shared/modules/Params/ModuleParams';
-import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 
 @Component({
     template: require('./CMSPrintParamWidgetComponent.pug'),
@@ -86,20 +85,20 @@ export default class CMSPrintParamWidgetComponent extends VueComponentBase {
         switch (type_param) {
 
             case CMSPrintParamWidgetOptionsVO.TYPE_STRING:
-                return await ModuleParams.getInstance().getParamValueAsString(param_name);
+                return await ModuleParams.getInstance().getParamValueAsString(param_name, null, null);
 
             case CMSPrintParamWidgetOptionsVO.TYPE_BOOLEAN:
-                bool = await ModuleParams.getInstance().getParamValueAsBoolean(param_name);
+                bool = await ModuleParams.getInstance().getParamValueAsBoolean(param_name, null, null);
                 return bool ? this.label('print_param.boolean.true') : this.label('print_param.boolean.false');
 
             case CMSPrintParamWidgetOptionsVO.TYPE_INT:
-                return (await ModuleParams.getInstance().getParamValueAsInt(param_name)).toString();
+                return (await ModuleParams.getInstance().getParamValueAsInt(param_name, null, null)).toString();
 
             case CMSPrintParamWidgetOptionsVO.TYPE_FLOAT:
-                return (await ModuleParams.getInstance().getParamValueAsFloat(param_name)).toString();
+                return (await ModuleParams.getInstance().getParamValueAsFloat(param_name, null, null)).toString();
 
             case CMSPrintParamWidgetOptionsVO.TYPE_DATE:
-                date = await ModuleParams.getInstance().getParamValueAsInt(param_name);
+                date = await ModuleParams.getInstance().getParamValueAsInt(param_name, null, null);
                 return date ? Dates.format(date, "DD/MM/YYYY") : null;
 
             default:

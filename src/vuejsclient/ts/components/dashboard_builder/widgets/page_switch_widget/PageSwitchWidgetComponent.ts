@@ -4,13 +4,13 @@ import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/v
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
+import { reflect } from '../../../../../../shared/tools/ObjectHandler';
 import InlineTranslatableText from '../../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../../VueComponentBase';
+import DashboardHistoryController from '../../DashboardHistoryController';
+import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../page/DashboardPageStore';
 import PageSwitchWidgetOptions from './options/PageSwitchWidgetOptions';
 import './PageSwitchWidgetComponent.scss';
-import DashboardHistoryController from '../../DashboardHistoryController';
-import { reflect } from '../../../../../../shared/tools/ObjectHandler';
-import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../page/DashboardPageStore';
 
 @Component({
     template: require('./PageSwitchWidgetComponent.pug'),
@@ -96,19 +96,10 @@ export default class PageSwitchWidgetComponent extends VueComponentBase implemen
     }
 
     public set_dashboard_page(page: DashboardPageVO) {
-        this.vuexAct<DashboardPageVO>(reflect<this>().set_dashboard_page, page);
+        this.vuexAct(reflect<this>().set_dashboard_page, page);
     }
 
     public add_page_history(page_history: DashboardPageVO) {
         return this.vuexAct(reflect<this>().add_page_history, page_history);
-    }
-
-
-    private select_page() {
-        if (!this.page) {
-            return;
-        }
-
-        this.$emit('select_page', this.page);
     }
 }

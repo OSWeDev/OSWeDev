@@ -76,7 +76,7 @@ import { ModuleDAOAction } from '../../../../dao/store/DaoStore';
 import DatatableRowController from '../../../../datatable/component/DatatableRowController';
 import DatatableComponentField from '../../../../datatable/component/fields/DatatableComponentField';
 import { ModuleModalsAndBasicPageComponentsHolderGetter } from '../../../../modals_and_basic_page_components_holder/ModalsAndBasicPageComponentsHolderStore';
-import WidgetOptionsVOManager from '../../WidgetOptionsVOManager';
+import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../../page/DashboardPageStore';
 import FieldValueFilterWidgetOptions from '../../field_value_filter_widget/options/FieldValueFilterWidgetOptions';
 import ResetFiltersWidgetController from '../../reset_filters_widget/ResetFiltersWidgetController';
 import ValidationFiltersWidgetController from '../../validation_filters_widget/ValidationFiltersWidgetController';
@@ -89,7 +89,6 @@ import CRUDCreateModalComponent from './../crud_modals/create/CRUDCreateModalCom
 import CRUDUpdateModalComponent from './../crud_modals/update/CRUDUpdateModalComponent';
 import TablePaginationComponent from './../pagination/TablePaginationComponent';
 import './TableWidgetTableComponent.scss';
-import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../../page/DashboardPageStore';
 
 //TODO Faire en sorte que les champs qui n'existent plus car supprimés du dashboard ne se conservent pas lors de la création d'un tableau
 
@@ -1379,7 +1378,7 @@ export default class TableWidgetTableComponent extends VueComponentBase implemen
     }
 
     public clear_active_field_filters() {
-        return this.vuexAct(reflect<this>().clear_active_field_filters);
+        return this.vuexAct(reflect<this>().clear_active_field_filters, null);
     }
 
     public async open_update(type: string, id: number) {
@@ -2136,7 +2135,7 @@ export default class TableWidgetTableComponent extends VueComponentBase implemen
             .using(this.get_dashboard_api_type_ids)
             .add_filters(context_filters);
 
-        FieldValueFilterWidgetManager.add_discarded_field_paths(context_query, this.get_discarded_field_paths);
+        FieldValueFilterWidgetManager.add_discarded_field_paths(context_query, this.get_dashboard_discarded_field_paths);
 
         /**
          * Si on a un filtre actif sur la table on veut ignorer le filtre généré par la table à ce stade et charger toutes les valeurs, et mettre en avant simplement celles qui sont filtrées
@@ -2777,7 +2776,7 @@ export default class TableWidgetTableComponent extends VueComponentBase implemen
             ),
             this.columns_custom_filters,
             this.get_dashboard_api_type_ids,
-            this.get_discarded_field_paths,
+            this.get_dashboard_discarded_field_paths,
             false,
             null,
             null,

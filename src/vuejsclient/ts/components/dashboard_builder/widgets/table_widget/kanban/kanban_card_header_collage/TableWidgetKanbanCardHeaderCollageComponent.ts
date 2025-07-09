@@ -44,6 +44,37 @@ export default class TableWidgetKanbanCardHeaderCollageComponent extends VueComp
     private two_rows_second_row_height: string;
 
 
+    get collage(): any {
+
+        if ((!this.image_ids) || (!this.image_ids.length)) { //image_ids == image_ids pour le moment
+            return null;
+        }
+
+        const nb_images = this.image_ids.length;
+        let height = [this.single_row_height];
+        let layout = [this.max_images_row_1];
+        if (nb_images > this.max_images_row_1) {
+            height = [this.two_rows_first_row_height, this.two_rows_second_row_height];
+            layout = [this.max_images_row_1, this.max_images_row_2];
+        }
+
+        const photos: Array<{ source: string }> = [];
+        for (const i in this.image_ids) {
+            const image_url = this.image_ids[i];
+            photos.push({ source: image_url });
+        }
+
+        return {
+            gapSize: this.collage_gap_size,
+            borderRadius: this.collage_border_radius,
+            width: this.collage_width,
+            height,
+            layout,
+            photos,
+            showNumOfRemainingPhotos: true,
+        };
+    }
+
     // private image_urls: string[] = [];
 
     // @Watch('image_ids', { immediate: true })
@@ -76,36 +107,5 @@ export default class TableWidgetKanbanCardHeaderCollageComponent extends VueComp
         }
 
         window.open(window.location.origin + '/' + item.source, '_blank');
-    }
-
-    get collage(): any {
-
-        if ((!this.image_ids) || (!this.image_ids.length)) { //image_ids == image_ids pour le moment
-            return null;
-        }
-
-        const nb_images = this.image_ids.length;
-        let height = [this.single_row_height];
-        let layout = [this.max_images_row_1];
-        if (nb_images > this.max_images_row_1) {
-            height = [this.two_rows_first_row_height, this.two_rows_second_row_height];
-            layout = [this.max_images_row_1, this.max_images_row_2];
-        }
-
-        const photos: Array<{ source: string }> = [];
-        for (const i in this.image_ids) {
-            const image_url = this.image_ids[i];
-            photos.push({ source: image_url });
-        }
-
-        return {
-            gapSize: this.collage_gap_size,
-            borderRadius: this.collage_border_radius,
-            width: this.collage_width,
-            height,
-            layout,
-            photos,
-            showNumOfRemainingPhotos: true,
-        };
     }
 }
