@@ -11,7 +11,6 @@ import ModuleDAO from '../DAO/ModuleDAO';
 import ModuleTableCompositeUniqueKeyController from '../DAO/ModuleTableCompositeUniqueKeyController';
 import ModuleTableController from '../DAO/ModuleTableController';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import TranslatableFieldController from '../DAO/TranslatableFieldController';
 import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import ModuleTableVO from '../DAO/vos/ModuleTableVO';
 import CRUDActionsDatatableFieldVO from '../DAO/vos/datatable/CRUDActionsDatatableFieldVO';
@@ -128,6 +127,8 @@ export default class ModuleDashboardBuilder extends Module {
     }
 
     public initialize() {
+
+        this.init_DashboardViewportVO();
         const db_table = this.init_DashboardVO();
 
         const db_page = this.init_DashboardPageVO(db_table);
@@ -168,12 +169,6 @@ export default class ModuleDashboardBuilder extends Module {
     }
 
     private initialize_DBBConfVO() {
-        ModuleTableFieldController.create_new(DBBConfVO.API_TYPE_ID, field_names<DBBConfVO>().role_id_ranges, ModuleTableFieldVO.FIELD_TYPE_refrange_array, 'Rôles concernés', true)
-            .set_many_to_one_target_moduletable_name(RoleVO.API_TYPE_ID);
-        ModuleTableFieldController.create_new(DBBConfVO.API_TYPE_ID, field_names<DBBConfVO>().valid_moduletable_id_ranges, ModuleTableFieldVO.FIELD_TYPE_refrange_array, 'Tables visibles', true)
-            .set_many_to_one_target_moduletable_name(ModuleTableVO.API_TYPE_ID);
-        ModuleTableFieldController.create_new(DBBConfVO.API_TYPE_ID, field_names<DBBConfVO>().valid_widget_id_ranges, ModuleTableFieldVO.FIELD_TYPE_refrange_array, 'Widgets visibles', true)
-            .set_many_to_one_target_moduletable_name(DashboardWidgetVO.API_TYPE_ID);
 
         const label = ModuleTableFieldController.create_new(DBBConfVO.API_TYPE_ID, field_names<DBBConfVO>().name, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Nom de la conf', true).unique();
         ModuleTableFieldController.create_new(DBBConfVO.API_TYPE_ID, field_names<DBBConfVO>().description, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Description de la conf', true);
@@ -245,13 +240,21 @@ export default class ModuleDashboardBuilder extends Module {
         ModuleTableFieldController.create_new(DashboardVO.API_TYPE_ID, field_names<DashboardVO>().dbb_conf_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'DBB Conf', false) // théoriquement ça devrait être obligatoire, mais on a pas encore créé les confs, compliqué de passer en obligatoire maintenant
             .set_many_to_one_target_moduletable_name(DBBConfVO.API_TYPE_ID);
 
-        ModuleTableFieldController.create_new(DashboardVO.API_TYPE_ID, field_names<DashboardVO>().activated_viewport_id_ranges, ModuleTableFieldVO.FIELD_TYPE_refrange_array, 'Viewport activés', true)
+        ModuleTableFieldController.create_new(DashboardVO.API_TYPE_ID, field_names<DashboardVO>().activated_viewport_id_ranges, ModuleTableFieldVO.FIELD_TYPE_refrange_array, 'Viewport activés', false)
             .set_many_to_one_target_moduletable_name(DashboardViewportVO.API_TYPE_ID);
 
         const res = ModuleTableController.create_new(this.name, DashboardVO, null, "Dashboards");
         return res;
     }
 
+    private init_DashboardViewportVO() {
+        const label = ModuleTableFieldController.create_new(DashboardViewportVO.API_TYPE_ID, field_names<DashboardViewportVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true).unique();
+        ModuleTableFieldController.create_new(DashboardViewportVO.API_TYPE_ID, field_names<DashboardViewportVO>().screen_min_width, ModuleTableFieldVO.FIELD_TYPE_int, 'Largeur minimale', true, true, 0);
+        ModuleTableFieldController.create_new(DashboardViewportVO.API_TYPE_ID, field_names<DashboardViewportVO>().is_default, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Viewport par défaut', true, true, false);
+        ModuleTableFieldController.create_new(DashboardViewportVO.API_TYPE_ID, field_names<DashboardViewportVO>().nb_columns, ModuleTableFieldVO.FIELD_TYPE_int, 'Nombre de colonnes', true, true, 3);
+
+        ModuleTableController.create_new(this.name, DashboardViewportVO, label, "Résolutions d'affichage des Dashboards");
+    }
 
     private init_DashboardGraphVORefVO(db_table: ModuleTableVO): ModuleTableVO {
 

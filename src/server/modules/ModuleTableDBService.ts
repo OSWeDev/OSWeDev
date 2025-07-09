@@ -663,7 +663,14 @@ export default class ModuleTableDBService {
                 let pgSQL: string = 'ALTER TABLE ' + full_name + ' ADD COLUMN ';
 
                 try {
-                    pgSQL = pgSQL + field.getPGSqlFieldDescription() + ';';
+                    pgSQL = pgSQL + field.getPGSqlFieldDescription();
+
+                    if (field.field_type == ModuleTableFieldVO.FIELD_TYPE_translatable_string) {
+                        // On génère le code par défaut pour simplifier/permettre la création de la colonne
+                        pgSQL = pgSQL + " DEFAULT ('" + field.module_table_vo_type + ".' || nextval('global_translatable_string_default_value_seq') || '." + field.field_name + "')";
+                    }
+
+                    pgSQL = pgSQL + ';';
                     await this.db.none(pgSQL);
                     res = true;
                     ConsoleHandler.error('ACTION: OK');

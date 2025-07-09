@@ -150,6 +150,7 @@ import Patch20240923AddViewportDatas from './patchs/postmodules/Patch20240923Add
 import Patch20250701ActivatePageWidgetsInDefaultDashboardViewPort from './patchs/postmodules/Patch20250701ActivatePageWidgetsInDefaultDashboardViewPort';
 import Patch20250701ActivateDefaultViewportOnAllDbs from './patchs/postmodules/Patch20250701ActivateDefaultViewportOnAllDbs';
 import Patch20250702ChangeDbbTrad from './patchs/postmodules/Patch20250702ChangeDbbTrad';
+import Patch20250709AddSerialForTranslatableDefaultValues from './patchs/premodules/Patch20250709AddSerialForTranslatableDefaultValues';
 
 export default class GeneratorPatchsListHandler {
 
@@ -213,6 +214,8 @@ export default class GeneratorPatchsListHandler {
         Patch20250625InitAutresTranslatablesDashboardPageWidgets.getInstance(),
 
         Patch20250627TruncateTableColumnDescVO.getInstance(),
+
+        Patch20250709AddSerialForTranslatableDefaultValues.getInstance(),
     ];
 
     public static post_modules_workers: IGeneratorWorker[] = [

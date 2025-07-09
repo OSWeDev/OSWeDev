@@ -609,7 +609,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }
 
         const query_res = await ModuleDAOServer.instance.query(
-            'SELECT max(y + h) as max_y from ' + ModuleTableController.module_tables_by_vo_type[DashboardViewportPageWidgetVO.API_TYPE_ID].full_name + ' vpw ' +
+            'SELECT max(vpw.y + vpw.h) as max_y from ' + ModuleTableController.module_tables_by_vo_type[DashboardViewportPageWidgetVO.API_TYPE_ID].full_name + ' vpw ' +
             ' join ' + ModuleTableController.module_tables_by_vo_type[DashboardPageWidgetVO.API_TYPE_ID].full_name + ' pw on vpw.page_widget_id = pw.id ' +
             ' where pw.page_id = ' + this_page_widget?.page_id + ' and vpw.viewport_id = ' + viewport_page_widget.viewport_id, // le max de y+h des widgets de cette page, dans ce viewport
             null, true);
@@ -715,7 +715,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
 
         // On demande la suppression de tous les viewport pages widgets qui sont plus d'actualité
         await query(DashboardViewportPageWidgetVO.API_TYPE_ID)
-            .filter_by_num_is_in_ranges(field_names<DashboardViewportPageWidgetVO>().viewport_id, removed_viewport_id_ranges)
+            .filter_by_num_x_ranges(field_names<DashboardViewportPageWidgetVO>().viewport_id, removed_viewport_id_ranges)
             .filter_by_num_eq(field_names<DashboardPageVO>().dashboard_id, update.post_update_vo.id, DashboardPageVO.API_TYPE_ID)
             .using(DashboardPageWidgetVO.API_TYPE_ID)
             .exec_as_server()
