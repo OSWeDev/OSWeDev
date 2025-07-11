@@ -11,18 +11,24 @@ import OseliaChatVO from './vos/OseliaChatVO';
 export default class OseliaController {
 
     public static PARAM_NAME_UNBLOCK_REALTIME_API: string = 'OseliaController.unblock_realtime_api';
+    public static BLOCK_REALTIME_ON_THIS_PAGE: boolean = true;
+
+    public static get can_use_realtime_on_current_page(): boolean {
+        return !OseliaController.BLOCK_REALTIME_ON_THIS_PAGE;
+    }
 
     public static async get_referrer_id(url: string): Promise<number> {
         const vos: OseliaChatVO[] = await query(OseliaChatVO.API_TYPE_ID).select_vos<OseliaChatVO>();
         for (const i in vos) {
             const chat_instance: OseliaChatVO = vos[i];
             if (new RegExp(chat_instance.regex).test(url)) {
+                this.BLOCK_REALTIME_ON_THIS_PAGE = false;
                 return chat_instance.referrer_id;
             }
         }
+        this.BLOCK_REALTIME_ON_THIS_PAGE = true;
         return null;
     }
-
 
     public static async take_screenshot() {
         try {
@@ -84,5 +90,6 @@ export default class OseliaController {
         } catch (error) {
             ConsoleHandler.error("Erreur lors de la capture de l'écran :" + JSON.stringify(error));
         }
+
     }
 }

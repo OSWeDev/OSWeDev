@@ -30,6 +30,7 @@ import OseliaRealtimeController from '../../../dashboard_builder/widgets/oselia_
 import EnvHandler from '../../../../../../shared/tools/EnvHandler';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleGPT from '../../../../../../shared/modules/GPT/ModuleGPT';
+import OseliaController from '../../../../../../shared/modules/Oselia/OseliaController';
 const debounce = require('lodash/debounce');
 
 @Component({
@@ -298,7 +299,10 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
     }
 
     get oselia_blocked(): boolean {
-        return EnvHandler.block_oselia_on_cr;
+        if(OseliaController.can_use_realtime_on_current_page) {
+            return EnvHandler.block_oselia_on_cr;
+        }
+        return true;
     }
 
     @Watch('oselia_opened')

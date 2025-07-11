@@ -11,7 +11,7 @@ export default class EnvHandler {
     public static version: string = null;
     public static activate_pwa: boolean = false;
     public static block_oselia_on_cr: boolean = true;
-    public static block_oselia_realtime: boolean = false;
+    public static block_oselia_realtime: boolean = true;
     public static block_oselia_on_bonus: boolean = true;
     public static max_pool: number = null;
     public static debug_promise_pipeline: boolean = false;
