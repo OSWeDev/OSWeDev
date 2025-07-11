@@ -1,9 +1,10 @@
-import { Watch } from 'vue-property-decorator';
 import Throttle from '../../../../shared/annotations/Throttle';
-import EventifyEventListenerConfVO from '../../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO';
 import { filter } from '../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
-import DataSynchroController from '../../modules/PushData/DataSynchroController';
+import EventifyEventListenerConfVO from '../../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
+import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
+import DataSynchroController from '../../modules/PushData/DataSynchroController';
+import { SafeWatch } from './SafeWatch';
 
 interface VueWithSyncVO extends Vue {
     created?: () => void | Promise<void>;
@@ -25,6 +26,8 @@ interface SyncVOParameters<T extends VueWithSyncVO, V extends IDistantVOBase> {
 
     sync_to_store_namespace?: string | ((vm: T) => string);
     sync_to_store_property?: string;
+
+    debug?: boolean;
 }
 
 export function SyncVO<T extends VueWithSyncVO, V extends IDistantVOBase>(
@@ -43,12 +46,21 @@ export function SyncVO<T extends VueWithSyncVO, V extends IDistantVOBase>(
             const vo = vo_or_id ? (typeof vo_or_id === 'number' ? null : vo_or_id) : null;
             const vo_id = vo_or_id ? (vo ? vo.id : vo_or_id as number) : null;
 
-            if (vo_id !== null) {
+            if (vo_id != null) {
                 if (vo && vo.id) {
                     this[propertyKey] = vo;
                 }
 
-                await this.register_single_vo_updates(api_type_id, vo_id, propertyKey, vo && vo.id);
+                await DataSynchroController.register_single_vo_updates(
+                    this,
+                    api_type_id,
+                    vo_id,
+                    propertyKey,
+                    !!(vo && vo.id),
+                    params.debug ? (updated_vo: V) => {
+                        ConsoleHandler.debug(`SyncVO: Registered updates for ${propertyKey} with id:${vo_id}. Current value: ${JSON.stringify(updated_vo)}`);
+                    } : undefined,
+                );
                 this.__previousSyncVOId = vo_id;
             }
         };
@@ -63,6 +75,10 @@ export function SyncVO<T extends VueWithSyncVO, V extends IDistantVOBase>(
         if (params.sync_to_store_namespace) {
             const updateStore = function (vm: T) {
 
+                if (params.debug) {
+                    ConsoleHandler.debug(`SyncVO: Updating store for ${propertyKey} with value`, vm[propertyKey]);
+                }
+
                 // Ajout de la synchro du store en même temps
                 const namespace = typeof params.sync_to_store_namespace === 'function'
                     ? params.sync_to_store_namespace(vm)
@@ -76,9 +92,20 @@ export function SyncVO<T extends VueWithSyncVO, V extends IDistantVOBase>(
                 }
             };
 
-            Watch(propertyKey, { deep: true })(target, `__storeWatcher_${propertyKey}`, {
-                value: function () { updateStore(this); }
+            const storeWatcherMethodName = `__storeWatcher_${propertyKey}`;
+
+            Object.defineProperty(target, storeWatcherMethodName, {
+                value: function () {
+                    updateStore(this);
+                },
+                configurable: true,
             });
+
+            SafeWatch(propertyKey, { deep: true })(
+                target,
+                storeWatcherMethodName,
+                Object.getOwnPropertyDescriptor(target, storeWatcherMethodName),
+            );
         }
 
         if (params.watch_fields.length && params.id_factory) {
@@ -99,8 +126,8 @@ export function SyncVO<T extends VueWithSyncVO, V extends IDistantVOBase>(
                         const old_simple_filters_on_api_type_id = [
                             filter(api_type_id).by_id(this.__previousSyncVOId),
                         ];
-                        const old_room_vo = this.get_room_vo_for_register_vo_updates(api_type_id, old_simple_filters_on_api_type_id);
-                        const old_room_id = JSON.stringify(old_room_vo);
+                        const old_room_vo = this.__previousSyncVOFilters ? this.get_room_vo_for_register_vo_updates(api_type_id, old_simple_filters_on_api_type_id) : null;
+                        const old_room_id = this.__previousSyncVOFilters ? JSON.stringify(old_room_vo) : null;
 
                         const new_simple_filters_on_api_type_id = [
                             filter(api_type_id).by_id(vo_id),
@@ -108,18 +135,41 @@ export function SyncVO<T extends VueWithSyncVO, V extends IDistantVOBase>(
                         const new_room_vo = this.get_room_vo_for_register_vo_updates(api_type_id, new_simple_filters_on_api_type_id);
                         const new_room_id = JSON.stringify(new_room_vo);
 
-                        if (old_room_id === new_room_id) return;
+                        if (old_room_id === new_room_id) {
+                            if (params.debug) {
+                                ConsoleHandler.debug(`SyncVO: No change in room id for ${propertyKey}, skipping updates.`);
+                            }
+
+                            return;
+                        }
 
                         if (!!old_room_id) {
+                            if (params.debug) {
+                                ConsoleHandler.debug(`SyncVO: Unregistering old room id ${old_room_id} for ${propertyKey}.`);
+                            }
+
                             await DataSynchroController.unregister_room_id_vo_event_callbacks(old_room_id);
                         }
 
-                        if (vo_id !== null) {
+                        if (vo_id != null) {
 
                             if (vo && vo.id) {
                                 this[propertyKey] = vo;
                             }
-                            await this.register_single_vo_updates(api_type_id, vo_id, propertyKey, vo && vo.id);
+
+                            if (params.debug) {
+                                ConsoleHandler.debug(`SyncVO: Registering new room id ${new_room_id} for ${propertyKey}.`);
+                            }
+                            await DataSynchroController.register_single_vo_updates(
+                                this,
+                                api_type_id,
+                                vo_id,
+                                propertyKey,
+                                !!(vo && vo.id),
+                                params.debug ? (updated_vo: V) => {
+                                    ConsoleHandler.debug(`SyncVO: Registered updates for ${propertyKey} with id:${vo_id}. Current value: ${JSON.stringify(updated_vo)}`);
+                                } : undefined,
+                            );
                         }
 
                         this.__previousSyncVOId = vo_id;
@@ -127,7 +177,47 @@ export function SyncVO<T extends VueWithSyncVO, V extends IDistantVOBase>(
                 }).value
             });
 
-            Watch(params.watch_fields.join(','), { deep: params.deep_watch || false })(target, watcherMethodName, {});
+            params.watch_fields.forEach((field) => {
+                SafeWatch(field, { deep: params.deep_watch || false })(
+                    target,
+                    watcherMethodName,
+                    Object.getOwnPropertyDescriptor(target, watcherMethodName),
+                );
+            });
+        } else {
+
+            const vo_or_id = params.id_factory(target);
+            const vo = vo_or_id ? (typeof vo_or_id === 'number' ? null : vo_or_id) : null;
+            const vo_id = vo_or_id ? (vo ? vo.id : vo_or_id as number) : null;
+
+            if (!vo_id) return;
+
+            const new_simple_filters_on_api_type_id = [
+                filter(api_type_id).by_id(vo_id),
+            ];
+            const new_room_vo = DataSynchroController.get_room_vo_for_register_vo_updates(api_type_id, new_simple_filters_on_api_type_id);
+            const new_room_id = JSON.stringify(new_room_vo);
+
+            if (vo_id != null) {
+
+                if (vo && vo.id) {
+                    target[propertyKey] = vo;
+                }
+
+                if (params.debug) {
+                    ConsoleHandler.debug(`SyncVO: Registering new room id ${new_room_id} for ${propertyKey}.`);
+                }
+                DataSynchroController.register_single_vo_updates(
+                    target,
+                    api_type_id,
+                    vo_id,
+                    propertyKey,
+                    !!(vo && vo.id),
+                    params.debug ? (updated_vo: V) => {
+                        ConsoleHandler.debug(`SyncVO: Registered updates for ${propertyKey} with id:${vo_id}. Current value: ${JSON.stringify(updated_vo)}`);
+                    } : undefined,
+                );
+            }
         }
     };
 }

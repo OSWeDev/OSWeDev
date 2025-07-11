@@ -1,3 +1,4 @@
+import Vue from "vue";
 import ContextFilterVO, { filter } from "../../../../shared/modules/ContextFilter/vos/ContextFilterVO";
 import { query } from "../../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 import SortByVO from "../../../../shared/modules/ContextFilter/vos/SortByVO";
@@ -8,13 +9,14 @@ import { all_promises } from "../../../../shared/tools/PromiseTools";
 import AjaxCacheClientController from "../AjaxCache/AjaxCacheClientController";
 import VOEventRegistrationKey from "./VOEventRegistrationKey";
 import VOEventRegistrationsHandler from "./VOEventRegistrationsHandler";
+import RangeHandler from "../../../../shared/tools/RangeHandler";
 
 export default class DataSynchroController {
 
     public static vo_events_registration_keys_by_room_id: { [room_id: string]: VOEventRegistrationKey[] } = {};
 
     /**
-     * LISTE RÉACTIVE – VERSION 100% TS / AUCUNE DÉPENDANCE À VUE
+     * LISTE RÉACTIVE – VERSION 100% TS / AUCUNE DÉPENDANCE À VUE - mais compatible
      */
     public static async register_vo_updates_on_list(
         this_elt: any, // Pour éditer directement l'attribut dans la classe ciblée
@@ -31,10 +33,10 @@ export default class DataSynchroController {
 
         // ────────────── INIT STATE ──────────────
         if (map_name) {
-            if (!this_elt[map_name]) (this_elt as any)[map_name] = {};
-            (this_elt as any)[map_name][list_name] = [];
+            if (!this_elt[map_name]) Vue.set(this_elt, map_name, {});
+            Vue.set(this_elt[map_name], list_name, []);
         } else {
-            (this_elt as any)[list_name] = [];
+            Vue.set(this_elt, list_name, []);
         }
         const sort_fn = DataSynchroController.get_sort_function_for_register_vo_updates(simple_sorts_by_on_api_type_id);
         const room_vo = DataSynchroController.get_room_vo_for_register_vo_updates(API_TYPE_ID, simple_filters_on_api_type_id);
@@ -47,8 +49,9 @@ export default class DataSynchroController {
             map_name ? this_elt[map_name][list_name] : this_elt[list_name];
 
         const pushAndNotify = (vo: IDistantVOBase) => {
-            DataSynchroController.handle_created_vo_event_callback(list_name, sort_fn, vo, map_name);
-            on_list_change?.(listRef());
+            DataSynchroController.handle_created_vo_event_callback(this_elt, list_name, sort_fn, vo, map_name);
+            on_list_change?.(listRef()); // TODO THROTTLE probablement ce on_list_change, et attention à l'init de la liste synchronisée qui déclenche il semblerait autant
+            // de mise à jour que d'éléments dans la liste, ce qui peut être problématique si la liste est grande
         };
 
         // ────────────── PROMISES PARALLÈLES ──────────────
@@ -96,7 +99,7 @@ export default class DataSynchroController {
                             .invalidateCachesFromApiTypesInvolved([vo._type]);
                         const list = listRef();
                         const idx = list.findIndex((e) => e.id === vo.id);
-                        if (idx > -1) list.splice(idx, 1, vo);
+                        if (idx > -1) Vue.set(listRef(), idx, vo);
                         on_list_change?.(list);
                     });
                 DataSynchroController.vo_events_registration_keys_by_room_id[room_id].push(k);
@@ -105,7 +108,7 @@ export default class DataSynchroController {
     }
 
     /**
-     * VO UNIQUE – VERSION 100% TS / AUCUNE DÉPENDANCE À VUE
+     * VO UNIQUE – VERSION 100% TS / AUCUNE DÉPENDANCE À VUE - mais compatible
      */
     public static async register_single_vo_updates(
         this_elt: any, // Pour éditer directement l'attribut dans la classe ciblée
@@ -195,6 +198,15 @@ export default class DataSynchroController {
                         (simple_filter_on_api_type_id.filter_type != ContextFilterVO.TYPE_NUMERIC_EQUALS_ANY)) {
                         throw new Error('simple_filters_on_api_type_id filter_type Not implemented :' + simple_filter_on_api_type_id.filter_type +
                             ' for field_id ' + simple_filter_on_api_type_id.field_name + ' of field_type ' + field_type);
+                    }
+
+                    // On ajoute la gestion du param_numeric_array, dans le cas d'un intersect (TYPE_NUMERIC_EQUALS_ANY)
+                    if ((simple_filter_on_api_type_id.filter_type == ContextFilterVO.TYPE_NUMERIC_EQUALS_ANY) &&
+                        (simple_filter_on_api_type_id.param_numeric_array != null)) {
+                        if (!Array.isArray(simple_filter_on_api_type_id.param_numeric_array)) {
+                            throw new Error('simple_filters_on_api_type_id param_numeric_array must be an array for TYPE_NUMERIC_EQUALS_ANY');
+                        }
+                        break;
                     }
 
                     if (simple_filter_on_api_type_id.param_numeric == null) {
@@ -324,6 +336,14 @@ export default class DataSynchroController {
                 case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
                 case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
                 case ModuleTableFieldVO.FIELD_TYPE_prct:
+
+                    if ((simple_filter_on_api_type_id.param_numeric == null) &&
+                        (simple_filter_on_api_type_id.param_numeric_array !== null)) {
+                        room_vo[simple_filter_on_api_type_id.field_name] = 'RNGS:' + RangeHandler.translate_to_api(
+                            RangeHandler.get_ids_ranges_from_list(simple_filter_on_api_type_id.param_numeric_array));
+                        break;
+                    }
+
                     room_vo[simple_filter_on_api_type_id.field_name] = simple_filter_on_api_type_id.param_numeric;
                     break;
 
@@ -390,6 +410,7 @@ export default class DataSynchroController {
      * INSERTION TRIÉE DANS LA LISTE (100% TS, 0% Vue)
      */
     public static handle_created_vo_event_callback(
+        this_elt: Vue,
         list_name: string,
         sort_function: (a, b) => number,
         created_vo: IDistantVOBase,
@@ -397,7 +418,7 @@ export default class DataSynchroController {
     ): void {
 
         // ───── Assure l’existence de la liste ─────
-        const root: any = this;
+        const root: any = this_elt;
         if (map_name) {
             if (!root[map_name]) root[map_name] = {};
             if (!root[map_name][list_name]) root[map_name][list_name] = [];

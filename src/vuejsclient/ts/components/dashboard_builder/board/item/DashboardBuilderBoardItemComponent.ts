@@ -1,8 +1,6 @@
 import Component from 'vue-class-component';
 import { Inject, Prop, Watch } from 'vue-property-decorator';
 import Throttle from '../../../../../../shared/annotations/Throttle';
-import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
@@ -11,9 +9,9 @@ import EventifyEventListenerConfVO from '../../../../../../shared/modules/Eventi
 import { reflect } from '../../../../../../shared/tools/ObjectHandler';
 import VueComponentBase from '../../../VueComponentBase';
 import DashboardCopyWidgetComponent from '../../copy_widget/DashboardCopyWidgetComponent';
+import DashboardPageWidgetController from '../../DashboardPageWidgetController';
 import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../page/DashboardPageStore';
 import './DashboardBuilderBoardItemComponent.scss';
-import DashboardPageWidgetController from '../../DashboardPageWidgetController';
 
 @Component({
     template: require('./DashboardBuilderBoardItemComponent.pug'),
@@ -45,15 +43,30 @@ export default class DashboardBuilderBoardItemComponent extends VueComponentBase
     @Prop({ default: false })
     public is_selected: boolean;
 
-    public widget: DashboardWidgetVO = null;
+    get widget(): DashboardWidgetVO {
+
+        if (!this.get_widgets_by_id) {
+            return null;
+        }
+
+        if (!this.page_widget || !this.page_widget.widget_id) {
+            return null;
+        }
+
+        return this.get_widgets_by_id[this.page_widget.widget_id] || null;
+    }
+
+    get get_widgets_by_id(): { [id: number]: DashboardWidgetVO } {
+        return this.vuexGet(reflect<this>().get_widgets_by_id);
+    }
 
     get get_Dashboardcopywidgetcomponent(): DashboardCopyWidgetComponent {
         return this.vuexGet(reflect<this>().get_Dashboardcopywidgetcomponent);
     }
 
 
-    @Watch('page_widget', { immediate: true })
-    @Watch('dashboard_page')
+    @Watch(reflect<DashboardBuilderBoardItemComponent>().page_widget, { immediate: true })
+    @Watch(reflect<DashboardBuilderBoardItemComponent>().dashboard_page)
     public async on_prop_updates() {
         this.onchange_widget();
     }
@@ -66,10 +79,6 @@ export default class DashboardBuilderBoardItemComponent extends VueComponentBase
         if ((!this.page_widget) || (this.page_widget.page_id != this.dashboard_page?.id)) {
             return;
         }
-
-        this.widget = await query(DashboardWidgetVO.API_TYPE_ID)
-            .filter_by_id(this.page_widget.widget_id)
-            .select_vo<DashboardWidgetVO>();
 
         if (!this.page_widget.id) {
             return;

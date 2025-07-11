@@ -1433,7 +1433,7 @@ export default class DatatableComponent extends VueComponentBase {
                 let res: number = null;
                 for (const item of raw_data) {
                     const current = Dates.parse(item);
-                    if ((current !== null) && (res === null) || (current < res)) {
+                    if ((current != null) && (res == null) || (current < res)) {
                         res = current;
                     }
                 }

@@ -331,7 +331,7 @@ export default class TSRangeInputComponent extends VueComponentBase {
 
     get format_localized_time_(): boolean {
 
-        if (this.format_localized_time !== null) {
+        if (this.format_localized_time != null) {
             return this.format_localized_time;
         }
 

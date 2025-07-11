@@ -2,11 +2,8 @@
 import moment from "moment";
 import screenfull from "screenfull";
 import { Vue } from "vue-property-decorator";
-import ContextFilterVO, { filter } from "../../../shared/modules/ContextFilter/vos/ContextFilterVO";
-import { query } from "../../../shared/modules/ContextFilter/vos/ContextQueryVO";
+import ContextFilterVO from "../../../shared/modules/ContextFilter/vos/ContextFilterVO";
 import SortByVO from "../../../shared/modules/ContextFilter/vos/SortByVO";
-import ModuleTableController from "../../../shared/modules/DAO/ModuleTableController";
-import ModuleTableFieldVO from "../../../shared/modules/DAO/vos/ModuleTableFieldVO";
 import ModuleDataExport from "../../../shared/modules/DataExport/ModuleDataExport";
 import ExportDataToXLSXParamVO from "../../../shared/modules/DataExport/vos/apis/ExportDataToXLSXParamVO";
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
@@ -26,6 +23,7 @@ import { all_promises } from "../../../shared/tools/PromiseTools";
 import VocusHandler from '../../../shared/tools/VocusHandler';
 import VueAppController from "../../VueAppController";
 import AjaxCacheClientController from "../modules/AjaxCache/AjaxCacheClientController";
+import DataSynchroController from "../modules/PushData/DataSynchroController";
 import VOEventRegistrationKey from "../modules/PushData/VOEventRegistrationKey";
 import VOEventRegistrationsHandler from "../modules/PushData/VOEventRegistrationsHandler";
 import AppVuexStoreManager from "../store/AppVuexStoreManager";
@@ -1050,103 +1048,14 @@ export default class VueComponentBase extends Vue
         map_name: string = null,
     ) {
 
-        // if (true) { /** FIXME DEBUG */
-        //     ConsoleHandler.log('register_vo_updates_on_list:IN:' + API_TYPE_ID + ':' + list_name + ':' + JSON.stringify(simple_filters_on_api_type_id) + ':' + JSON.stringify(simple_sorts_by_on_api_type_id) + ':' + map_name);
-        // }
-
-        this.assert_compatibility_for_register_vo_list_updates(API_TYPE_ID, list_name, simple_filters_on_api_type_id, simple_sorts_by_on_api_type_id);
-
-        if (map_name) {
-            if (!this[map_name]) {
-                Vue.set(this, map_name, {});
-            }
-            Vue.set(this[map_name], list_name, []);
-        } else {
-            Vue.set(this, list_name, []);
-        }
-        const sort_function: (a, b) => number = this.get_sort_function_for_register_vo_updates(simple_sorts_by_on_api_type_id);
-
-        const room_vo = this.get_room_vo_for_register_vo_updates(API_TYPE_ID, simple_filters_on_api_type_id);
-        const room_id = JSON.stringify(room_vo);
-
-        await this.unregister_room_id_vo_event_callbacks(room_id);
-        this.vo_events_registration_keys_by_room_id[room_id] = [];
-
-        const promises = [];
-
-        promises.push((async () => {
-            const vos = await query(API_TYPE_ID)
-                .add_filters(simple_filters_on_api_type_id)
-                .set_sorts(simple_sorts_by_on_api_type_id)
-                .select_vos();
-
-            for (const i in vos) {
-                const vo = vos[i];
-                this.handle_created_vo_event_callback(list_name, sort_function, vo, map_name);
-            }
-        })());
-
-        promises.push((async () => {
-            const vo_event_registration_key = await VOEventRegistrationsHandler.register_vo_create_callback(
-                room_vo,
-                room_id,
-                (created_vo: IDistantVOBase) => {
-
-                    // On doit invalider du coup les apis get sur ce vo_type !
-                    AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([created_vo._type]);
-
-                    this.handle_created_vo_event_callback(list_name, sort_function, created_vo, map_name);
-                },
-            );
-            this.vo_events_registration_keys_by_room_id[room_id].push(vo_event_registration_key);
-        })());
-
-        promises.push((async () => {
-            const vo_event_registration_key = await VOEventRegistrationsHandler.register_vo_delete_callback(
-                room_vo,
-                room_id,
-                async (deleted_vo: IDistantVOBase) => {
-
-                    // On doit invalider du coup les apis get sur ce vo_type !
-                    AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([deleted_vo._type]);
-
-                    const list = map_name ? (this[map_name] ? this[map_name][list_name] : null) : this[list_name];
-
-                    const index = list ? list.findIndex((vo) => vo.id == deleted_vo.id) : null;
-                    if (index >= 0) {
-                        list.splice(index, 1);
-                    }
-                },
-            );
-            this.vo_events_registration_keys_by_room_id[room_id].push(vo_event_registration_key);
-        })());
-
-        promises.push((async () => {
-            const vo_event_registration_key = await VOEventRegistrationsHandler.register_vo_update_callback(
-                room_vo,
-                room_id,
-                async (pre_update_vo: IDistantVOBase, post_update_vo: IDistantVOBase) => {
-
-                    // On doit invalider du coup les apis get sur ce vo_type !
-                    AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([pre_update_vo._type]);
-
-                    const list = map_name ? (this[map_name] ? this[map_name][list_name] : null) : this[list_name];
-
-                    const index = list.findIndex((vo) => vo.id == post_update_vo.id);
-                    if (index >= 0) {
-                        list.splice(index, 1, post_update_vo);
-                    }
-                },
-            );
-            this.vo_events_registration_keys_by_room_id[room_id].push(vo_event_registration_key);
-        })());
-
-        await all_promises(promises);
-
-        // if (true) { /** FIXME DEBUG */
-        //     ConsoleHandler.log('register_vo_updates_on_list:OUT:' + API_TYPE_ID + ':' + list_name + ':' + JSON.stringify(simple_filters_on_api_type_id) + ':' + JSON.stringify(simple_sorts_by_on_api_type_id) + ':' + map_name);
-        // }
-
+        await DataSynchroController.register_vo_updates_on_list(
+            this, // référence au composant actuel
+            API_TYPE_ID,
+            list_name,
+            simple_filters_on_api_type_id,
+            simple_sorts_by_on_api_type_id,
+            map_name,
+        );
     }
 
     /**
@@ -1167,265 +1076,12 @@ export default class VueComponentBase extends Vue
         vo_has_been_preloaded: boolean = true,
     ) {
 
-        // if (true) { /** FIXME DEBUG */
-        //     ConsoleHandler.log('register_vo_updates_on_list:IN:' + API_TYPE_ID + ':' + vo_id + ':' + field_name + ':' + vo_has_been_preloaded);
-        // }
-
-        this.assert_compatibility_for_register_single_vo_updates(API_TYPE_ID, vo_id, field_name);
-
-        if (!vo_has_been_preloaded) {
-            this[field_name] = null;
-        }
-
-        const simple_filters_on_api_type_id = [
-            filter(API_TYPE_ID).by_id(vo_id),
-        ];
-        const room_vo = this.get_room_vo_for_register_vo_updates(API_TYPE_ID, simple_filters_on_api_type_id);
-        const room_id = JSON.stringify(room_vo);
-
-        await this.unregister_room_id_vo_event_callbacks(room_id);
-        this.vo_events_registration_keys_by_room_id[room_id] = [];
-
-        const promises = [];
-
-        if (!vo_has_been_preloaded) {
-            promises.push((async () => {
-                const vo = await query(API_TYPE_ID)
-                    .add_filters(simple_filters_on_api_type_id)
-                    .select_vo();
-
-                this[field_name] = vo;
-            })());
-        }
-
-        promises.push((async () => {
-            const vo_event_registration_key = await VOEventRegistrationsHandler.register_vo_delete_callback(
-                room_vo,
-                room_id,
-                async (deleted_vo: IDistantVOBase) => {
-                    this[field_name] = null;
-                },
-            );
-            this.vo_events_registration_keys_by_room_id[room_id].push(vo_event_registration_key);
-        })());
-
-        promises.push((async () => {
-            const vo_event_registration_key = await VOEventRegistrationsHandler.register_vo_update_callback(
-                room_vo,
-                room_id,
-                async (pre_update_vo: IDistantVOBase, post_update_vo: IDistantVOBase) => {
-                    this[field_name] = post_update_vo;
-                },
-            );
-            this.vo_events_registration_keys_by_room_id[room_id].push(vo_event_registration_key);
-        })());
-
-        await all_promises(promises);
-
-        // if (true) { /** FIXME DEBUG */
-        //     ConsoleHandler.log('register_vo_updates_on_list:OUT:' + API_TYPE_ID + ':' + vo_id + ':' + field_name + ':' + vo_has_been_preloaded);
-        // }
-    }
-
-
-    private assert_compatibility_for_register_vo_list_updates(
-        API_TYPE_ID: string,
-        list_name: string,
-        simple_filters_on_api_type_id: ContextFilterVO[] = [],
-        simple_sorts_by_on_api_type_id: SortByVO[] = [],
-    ) {
-        if (!API_TYPE_ID) {
-            throw new Error('API_TYPE_ID is mandatory');
-        }
-
-        if (!list_name) {
-            throw new Error('list_name is mandatory');
-        }
-
-        for (const i in simple_filters_on_api_type_id) {
-            const simple_filter_on_api_type_id = simple_filters_on_api_type_id[i];
-
-            if (simple_filter_on_api_type_id.vo_type != API_TYPE_ID) {
-                throw new Error('simple_filters_on_api_type_id must be on API_TYPE_ID');
-            }
-
-            const vo_field = ModuleTableController.module_tables_by_vo_type[simple_filter_on_api_type_id.vo_type].get_field_by_id(simple_filter_on_api_type_id.field_name);
-            const field_type = vo_field ? vo_field.field_type : ModuleTableFieldVO.FIELD_TYPE_int;
-            switch (field_type) {
-                case ModuleTableFieldVO.FIELD_TYPE_amount:
-                case ModuleTableFieldVO.FIELD_TYPE_float:
-                case ModuleTableFieldVO.FIELD_TYPE_int:
-                case ModuleTableFieldVO.FIELD_TYPE_date:
-                case ModuleTableFieldVO.FIELD_TYPE_file_ref:
-                case ModuleTableFieldVO.FIELD_TYPE_image_ref:
-                case ModuleTableFieldVO.FIELD_TYPE_enum:
-                case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
-                case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
-                case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
-                case ModuleTableFieldVO.FIELD_TYPE_prct:
-                    if ((simple_filter_on_api_type_id.filter_type != ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL) &&
-                        (simple_filter_on_api_type_id.filter_type != ContextFilterVO.TYPE_NUMERIC_EQUALS_ANY)) {
-                        throw new Error('simple_filters_on_api_type_id filter_type Not implemented :' + simple_filter_on_api_type_id.filter_type +
-                            ' for field_id ' + simple_filter_on_api_type_id.field_name + ' of field_type ' + field_type);
-                    }
-
-                    if (simple_filter_on_api_type_id.param_numeric == null) {
-                        throw new Error('simple_filters_on_api_type_id only not null param_numeric is supported right now on numbers');
-                    }
-                    break;
-
-                case ModuleTableFieldVO.FIELD_TYPE_html:
-                case ModuleTableFieldVO.FIELD_TYPE_textarea:
-                case ModuleTableFieldVO.FIELD_TYPE_email:
-                case ModuleTableFieldVO.FIELD_TYPE_string:
-                case ModuleTableFieldVO.FIELD_TYPE_color:
-                case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
-                case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
-                case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
-                case ModuleTableFieldVO.FIELD_TYPE_password:
-                case ModuleTableFieldVO.FIELD_TYPE_file_field:
-                case ModuleTableFieldVO.FIELD_TYPE_image_field:
-                    if ((simple_filter_on_api_type_id.filter_type != ContextFilterVO.TYPE_TEXT_EQUALS_ALL) &&
-                        (simple_filter_on_api_type_id.filter_type != ContextFilterVO.TYPE_TEXT_EQUALS_ANY)) {
-                        throw new Error('simple_filters_on_api_type_id filter_type Not implemented :' + simple_filter_on_api_type_id.filter_type +
-                            ' for field_id ' + simple_filter_on_api_type_id.field_name + ' of field_type ' + field_type);
-                    }
-
-                    if (simple_filter_on_api_type_id.param_text == null) {
-                        throw new Error('simple_filters_on_api_type_id only not null param_text is supported right now on texts');
-                    }
-                    break;
-
-                case ModuleTableFieldVO.FIELD_TYPE_boolean:
-                    if ((simple_filter_on_api_type_id.filter_type != ContextFilterVO.TYPE_BOOLEAN_FALSE_ALL) &&
-                        (simple_filter_on_api_type_id.filter_type != ContextFilterVO.TYPE_BOOLEAN_FALSE_ANY) &&
-                        (simple_filter_on_api_type_id.filter_type != ContextFilterVO.TYPE_BOOLEAN_TRUE_ALL) &&
-                        (simple_filter_on_api_type_id.filter_type != ContextFilterVO.TYPE_BOOLEAN_TRUE_ANY)) {
-                        throw new Error('simple_filters_on_api_type_id filter_type Not implemented :' + simple_filter_on_api_type_id.filter_type +
-                            ' for field_id ' + simple_filter_on_api_type_id.field_name + ' of field_type ' + field_type);
-                    }
-                    break;
-
-                default:
-                    throw new Error('simple_filters_on_api_type_id field_type Not implemented' +
-                        ' for field_id ' + simple_filter_on_api_type_id.field_name + ' of field_type ' + field_type);
-            }
-        }
-
-        for (const i in simple_sorts_by_on_api_type_id) {
-            if (simple_sorts_by_on_api_type_id[i].vo_type != API_TYPE_ID) {
-                throw new Error('simple_sorts_by_on_api_type_id must be on API_TYPE_ID');
-            }
-        }
-    }
-
-    private assert_compatibility_for_register_single_vo_updates(
-        API_TYPE_ID: string,
-        vo_id: number,
-        field_name: string,
-    ) {
-        if (!API_TYPE_ID) {
-            throw new Error('API_TYPE_ID is mandatory');
-        }
-
-        if (!field_name) {
-            throw new Error('field_name is mandatory');
-        }
-
-        if (!vo_id) {
-            throw new Error('vo_id is mandatory');
-        }
-    }
-
-
-    private get_sort_function_for_register_vo_updates(simple_sorts_by_on_api_type_id: SortByVO[]): (a, b) => number {
-        const sort_function = (a, b) => {
-            if ((!simple_sorts_by_on_api_type_id) || (!simple_sorts_by_on_api_type_id.length)) {
-                return a.id - b.id;
-            }
-
-            for (const i in simple_sorts_by_on_api_type_id) {
-                const sort_by = simple_sorts_by_on_api_type_id[i];
-
-                let compare_a = a[sort_by.field_name];
-                let compare_b = b[sort_by.field_name];
-
-                if (!sort_by.sort_asc) {
-                    const tmp = compare_a;
-                    compare_a = compare_b;
-                    compare_b = tmp;
-                }
-
-                if (compare_a == compare_b) {
-                    continue;
-                }
-
-                if (compare_a > compare_b) {
-                    return 1;
-                }
-
-                return -1;
-            }
-
-            return 0;
-        };
-
-        return sort_function;
-    }
-
-    private get_room_vo_for_register_vo_updates(API_TYPE_ID: string, simple_filters_on_api_type_id: ContextFilterVO[] = []): {
-        _type: string;
-    } {
-        const room_vo = {
-            _type: API_TYPE_ID,
-        };
-        for (const i in simple_filters_on_api_type_id) {
-            const simple_filter_on_api_type_id = simple_filters_on_api_type_id[i];
-
-            const vo_field = ModuleTableController.module_tables_by_vo_type[simple_filter_on_api_type_id.vo_type].get_field_by_id(simple_filter_on_api_type_id.field_name);
-            const field_type = vo_field ? vo_field.field_type : ModuleTableFieldVO.FIELD_TYPE_int;
-            switch (field_type) {
-                case ModuleTableFieldVO.FIELD_TYPE_amount:
-                case ModuleTableFieldVO.FIELD_TYPE_float:
-                case ModuleTableFieldVO.FIELD_TYPE_int:
-                case ModuleTableFieldVO.FIELD_TYPE_date:
-                case ModuleTableFieldVO.FIELD_TYPE_file_ref:
-                case ModuleTableFieldVO.FIELD_TYPE_image_ref:
-                case ModuleTableFieldVO.FIELD_TYPE_enum:
-                case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
-                case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
-                case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
-                case ModuleTableFieldVO.FIELD_TYPE_prct:
-                    room_vo[simple_filter_on_api_type_id.field_name] = simple_filter_on_api_type_id.param_numeric;
-                    break;
-
-                case ModuleTableFieldVO.FIELD_TYPE_html:
-                case ModuleTableFieldVO.FIELD_TYPE_textarea:
-                case ModuleTableFieldVO.FIELD_TYPE_email:
-                case ModuleTableFieldVO.FIELD_TYPE_string:
-                case ModuleTableFieldVO.FIELD_TYPE_color:
-                case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
-                case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
-                case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
-                case ModuleTableFieldVO.FIELD_TYPE_password:
-                case ModuleTableFieldVO.FIELD_TYPE_file_field:
-                case ModuleTableFieldVO.FIELD_TYPE_image_field:
-                    room_vo[simple_filter_on_api_type_id.field_name] = simple_filter_on_api_type_id.param_text;
-                    break;
-
-                case ModuleTableFieldVO.FIELD_TYPE_boolean:
-                    room_vo[simple_filter_on_api_type_id.field_name] =
-                        (
-                            (simple_filter_on_api_type_id.filter_type == ContextFilterVO.TYPE_BOOLEAN_FALSE_ALL) ||
-                            (simple_filter_on_api_type_id.filter_type == ContextFilterVO.TYPE_BOOLEAN_FALSE_ANY)
-                        ) ? false : true;
-                    break;
-
-                default:
-                    throw new Error('get_room_vo_for_register_vo_updates field_type Not implemented' +
-                        ' for field_id ' + simple_filter_on_api_type_id.field_name + ' of field_type ' + field_type);
-            }
-        }
-        return room_vo;
+        await DataSynchroController.register_single_vo_updates(
+            this, // référence au composant actuel
+            API_TYPE_ID,
+            vo_id,
+            field_name,
+            vo_has_been_preloaded,
+        );
     }
 }

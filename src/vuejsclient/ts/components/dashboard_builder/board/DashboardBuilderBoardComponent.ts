@@ -1,11 +1,10 @@
 import Component from 'vue-class-component';
 import { GridItem, GridLayout } from "vue-grid-layout";
-import { Inject, Prop, Watch } from 'vue-property-decorator';
+import { Inject, Prop } from 'vue-property-decorator';
 import { filter } from '../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../../../shared/modules/ContextFilter/vos/SortByVO';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
-import IEditableDashboardPage from '../../../../../shared/modules/DashboardBuilder/interfaces/IEditableDashboardPage';
 import DashboardVOManager from '../../../../../shared/modules/DashboardBuilder/manager/DashboardVOManager';
 import DashboardGraphVORefVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardGraphVORefVO';
 import DashboardPageVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
@@ -18,6 +17,7 @@ import FieldFiltersVO from '../../../../../shared/modules/DashboardBuilder/vos/F
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import ObjectHandler, { field_names, reflect } from '../../../../../shared/tools/ObjectHandler';
 import RangeHandler from '../../../../../shared/tools/RangeHandler';
+import { SafeWatch } from '../../../tools/annotations/SafeWatch';
 import { SyncVOs } from '../../../tools/annotations/SyncVOs';
 import InlineTranslatableText from '../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../VueComponentBase';
@@ -52,6 +52,8 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase imp
     public editable: boolean;
 
     @SyncVOs(DashboardViewportPageWidgetVO.API_TYPE_ID, {
+        debug: true,
+
         watch_fields: [
             reflect<DashboardBuilderBoardComponent>().get_dashboard_current_viewport,
             reflect<DashboardBuilderBoardComponent>().page_widgets,
@@ -72,27 +74,11 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase imp
         },
         sync_to_store_namespace: (self) => self.storeNamespace,
     })
-    public dashboard_viewport_page_widgets: DashboardViewportPageWidgetVO[]; // All page widgets of the current viewport of the current page of the dashboard
-
-    @SyncVOs(DashboardViewportVO.API_TYPE_ID, {
-        sync_to_store_namespace: (self) => self.storeNamespace,
-    })
-    public viewports: DashboardViewportVO[] = [];
-
-    @SyncVOs(DashboardViewportVO.API_TYPE_ID, {
-        watch_fields: [reflect<DashboardBuilderBoardComponent>().get_dashboard_id],
-        filters_factory: (self) => {
-            if (!self.get_dashboard_id) {
-                return null;
-            }
-
-            return [filter(DashboardVO.API_TYPE_ID, field_names<DashboardVO>().id).by_num_eq(self.get_dashboard_id)];
-        },
-        sync_to_store_namespace: (self) => self.storeNamespace,
-    })
-    public dashboard_valid_viewports: DashboardViewportVO[]; // Valid viewports of the current dashboard
+    public dashboard_viewport_page_widgets: DashboardViewportPageWidgetVO[] = []; // All page widgets of the current viewport of the current page of the dashboard
 
     @SyncVOs(DashboardPageVO.API_TYPE_ID, {
+        debug: true,
+
         watch_fields: [reflect<DashboardBuilderBoardComponent>().get_dashboard],
         filters_factory: (self) => {
             if (!self.get_dashboard) {
@@ -108,6 +94,8 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase imp
     public dashboard_pages: DashboardPageVO[] = [];
 
     @SyncVOs(DashboardPageWidgetVO.API_TYPE_ID, {
+        debug: true,
+
         watch_fields: [reflect<DashboardBuilderBoardComponent>().dashboard_pages],
         filters_factory: (self) => {
             if (!self.dashboard_pages || !self.dashboard_pages.length) {
@@ -122,6 +110,8 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase imp
     public page_widgets: DashboardPageWidgetVO[] = []; // All the page_widgets of the dashboard, for all its pages
 
     @SyncVOs(DashboardPageWidgetVO.API_TYPE_ID, {
+        debug: true,
+
         watch_fields: [reflect<DashboardBuilderBoardComponent>().get_dashboard_page],
         filters_factory: (self) => {
             if (!self.get_dashboard_page) {
@@ -136,6 +126,8 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase imp
     public selected_page_page_widgets: DashboardPageWidgetVO[] = []; // The widgets of the current page, used in the board component
 
     @SyncVOs(DashboardGraphVORefVO.API_TYPE_ID, {
+        debug: true,
+
         watch_fields: [reflect<DashboardBuilderBoardComponent>().get_dashboard_id],
         filters_factory: (self) => {
             if (!self.get_dashboard_id) {
@@ -150,6 +142,8 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase imp
     public db_graph_vo_refs: DashboardGraphVORefVO[] = []; // The tables references of the current dashboard
 
     @SyncVOs(DashboardWidgetVO.API_TYPE_ID, {
+        debug: true,
+
         sync_to_store_namespace: (self) => self.storeNamespace,
     })
     public all_widgets: DashboardWidgetVO[] = null;
@@ -162,12 +156,27 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase imp
 
     public widgets: DashboardPageWidgetVO[] = [];
 
-    public editable_dashboard_page: IEditableDashboardPage = null;
     public layout: DashboardViewportPageWidgetVO[] = [];
 
     public is_filtres_deplie: boolean = false;
 
     public dragged = null;
+
+    get selected_page_page_widgets_by_id(): { [id: number]: DashboardPageWidgetVO } {
+        const selected_widgets: { [id: number]: DashboardPageWidgetVO } = {};
+
+        if (this.get_selected_page_page_widgets) {
+            for (const widget of this.get_selected_page_page_widgets) {
+                selected_widgets[widget.id] = widget;
+            }
+        }
+
+        return selected_widgets;
+    }
+
+    get get_dashboard_valid_viewports(): DashboardViewportVO[] {
+        return this.vuexGet(reflect<this>().get_dashboard_valid_viewports);
+    }
 
     get get_selected_page_page_widgets(): DashboardPageWidgetVO[] {
         return this.vuexGet(reflect<this>().get_selected_page_page_widgets);
@@ -229,7 +238,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase imp
         return this.vuexGet(reflect<this>().get_widgets_by_id);
     }
 
-    @Watch(reflect<DashboardBuilderBoardComponent>().get_dashboard)
+    @SafeWatch(reflect<DashboardBuilderBoardComponent>().get_dashboard, { immediate: true })
     public async on_change_dashboard() {
         this.set_page_widgets_components_by_pwid({});
         this.check_current_viewport_vs_viewports_and_selected_dashboard();
@@ -243,13 +252,13 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase imp
         );
     }
 
-    @Watch(reflect<DashboardBuilderBoardComponent>().dashboard_pages)
+    @SafeWatch(reflect<DashboardBuilderBoardComponent>().dashboard_pages)
     public async onchange_pages(): Promise<void> {
         // On check si la page actuelle est ok, sinon on prend la première disponible
         if (!(this.dashboard_pages?.length > 0)) {
             // on vide l'historique aussi
             this.set_page_history([]);
-            this.set_dashboard_page = null;
+            this.set_dashboard_page(null);
             return;
         }
 
@@ -261,17 +270,12 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase imp
     }
 
 
-    @Watch(reflect<DashboardBuilderBoardComponent>().get_dashboard_page, { immediate: true })
+    @SafeWatch(reflect<DashboardBuilderBoardComponent>().get_dashboard_page, { immediate: true })
     public async onchange_dbdashboard() {
-        if (!this.get_dashboard_page) {
-            this.editable_dashboard_page = null;
-            return;
-        }
-
         this.is_filtres_deplie = this.get_dashboard_page?.collapse_filters;
     }
 
-    @Watch(reflect<DashboardBuilderBoardComponent>().viewports)
+    @SafeWatch(reflect<DashboardBuilderBoardComponent>().get_dashboard_valid_viewports)
     public async on_change_viewports(): Promise<void> {
         // Si on charge des viewports, et qu'on en a pas sélectionné pour le moment, on sélectionne le plus adapté par défaut parmis les viewports valides
         this.check_current_viewport_vs_viewports_and_selected_dashboard();
@@ -300,14 +304,13 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase imp
          * Si on a pas de viewport sélectionné, on en cherche un valide et le plus approprié
          */
         if (!next_selected_viewport) {
-            if (this.viewports && this.viewports.length > 0) {
+            if (this.get_dashboard_valid_viewports && this.get_dashboard_valid_viewports.length > 0) {
                 // Si on a pas de viewport selectionné (cas du viewer), on prend le plus grand possible selon la taille de l'écran
                 const screen_width = window.innerWidth;
-                this.viewports = await query(DashboardViewportVO.API_TYPE_ID).select_vos<DashboardViewportVO>();
-                next_selected_viewport = this.viewports.find((v) => v.is_default == true);
+                next_selected_viewport = this.get_dashboard_valid_viewports.find((v) => v.is_default == true);
 
-                for (const i in this.viewports) {
-                    const viewport = this.viewports[i];
+                for (const i in this.get_dashboard_valid_viewports) {
+                    const viewport = this.get_dashboard_valid_viewports[i];
 
                     if (viewport.screen_min_width <= screen_width &&
                         (viewport.screen_min_width > next_selected_viewport.screen_min_width || next_selected_viewport.screen_min_width > screen_width)) {

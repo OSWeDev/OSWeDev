@@ -6,11 +6,10 @@
         ref='Dashboardcopywidgetcomponent'
     )
 
-    //- (@click="(event) => select_widget_and_stop(event, null)")
-    .grid_wrapper(:class="{ filter_plie: (get_dashboard_page.group_filters && !is_filtres_deplie) }")
-        template(v-if='(!editable_dashboard_page) || (editable_dashboard_page.id != get_dashboard_page.id)')
-            i.fa-solid.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
-        template(v-else)
+    template(v-if='get_dashboard_page')
+
+        //- (@click="(event) => select_widget_and_stop(event, null)")
+        .grid_wrapper(:class="{ filter_plie: (get_dashboard_page.group_filters && !is_filtres_deplie) }")
             Gridlayout(
                 :layout="dashboard_viewport_page_widgets"
                 :row-height="elt_height"
@@ -24,7 +23,7 @@
                 :margin="[10, 10]"
                 :key="'Gridlayout__' + get_dashboard_page.id"
             )
-  
+
                 template(v-if="get_dashboard_page.group_filters")
                     .filters-bloc.mt-3
                         .header-filters-bloc.clickable(@click="change_is_filtres_deplie")
@@ -37,18 +36,25 @@
                                     i.fa-solid.fa-chevron-down
 
                         .row.body-filters-bloc(v-show="is_filtres_deplie")
-                            template(v-for="item in editable_dashboard_page.layout")
+                            template(v-for="item in dashboard_viewport_page_widgets")
                                 template(v-if='!item.hide')
-                                    template(v-if='get_widgets_by_id[item.widget_id].is_filter')
+                                    template(v-if='get_widgets_by_id[selected_page_page_widgets_by_id[item.page_widget_id]?.widget_id]?.is_filter')
                                         include ./grid_item.pug
 
                     .datatable-bloc
-                        template(v-for="item in editable_dashboard_page.layout")
+                        template(v-for="item in dashboard_viewport_page_widgets")
                             template(v-if='!item.hide')
-                                template(v-if='!get_widgets_by_id[item.widget_id].is_filter')
+                                template(v-if='!get_widgets_by_id[selected_page_page_widgets_by_id[item.page_widget_id]?.widget_id]?.is_filter')
                                     include ./grid_item.pug
 
                 template(v-else)
-                    template(v-for="item in editable_dashboard_page.layout")
+                    template(v-for="item in dashboard_viewport_page_widgets")
                         template(v-if='!item.hide')
                             include ./grid_item.pug
+
+
+    template(v-else)
+        .row.no_page_wrapper
+            .col-sm-12
+                .is_loading
+                    i.fa-duotone.fa-refresh.fa-spin.fa-fw(aria-hidden="true")

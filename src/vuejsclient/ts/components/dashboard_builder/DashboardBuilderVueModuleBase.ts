@@ -1,6 +1,12 @@
 import Vue from 'vue';
 import DashboardBuilderController from '../../../../shared/modules/DashboardBuilder/DashboardBuilderController';
 import ModuleDashboardBuilder from '../../../../shared/modules/DashboardBuilder/ModuleDashboardBuilder';
+import WidgetOptionsVOManager from '../../../../shared/modules/DashboardBuilder/manager/WidgetOptionsVOManager';
+import CMSBlocTextWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/CMSBlocTextWidgetOptionsVO';
+import CMSCrudButtonsWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/CMSCrudButtonsWidgetOptionsVO';
+import CMSImageWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/CMSImageWidgetOptionsVO';
+import CMSLinkButtonWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/CMSLinkButtonWidgetOptionsVO';
+import CMSVisionneusePdfWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/CMSVisionneusePdfWidgetOptionsVO';
 import CurrentUserFilterWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/CurrentUserFilterWidgetOptionsVO';
 import DashboardWidgetVO from '../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
 import FavoritesFiltersVO from '../../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersVO';
@@ -13,28 +19,21 @@ import VarMixedChartWidgetOptionsVO from '../../../../shared/modules/DashboardBu
 import VarPieChartWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/VarPieChartWidgetOptionsVO';
 import VarRadarChartWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/VarRadarChartWidgetOptionsVO';
 import YearFilterWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/YearFilterWidgetOptionsVO';
+import { all_promises } from '../../../../shared/tools/PromiseTools';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
-import WidgetOptionsVOManager from './widgets/WidgetOptionsVOManager';
 import AdvancedDateFilterWidgetOptions from './widgets/advanced_date_filter_widget/options/AdvancedDateFilterWidgetOptions';
 import BulkOpsWidgetOptions from './widgets/bulkops_widget/options/BulkOpsWidgetOptions';
 import ChecklistWidgetOptions from './widgets/checklist_widget/options/ChecklistWidgetOptions';
 import DOWFilterWidgetOptions from './widgets/dow_filter_widget/options/DOWFilterWidgetOptions';
 import AdvancedStringFilter from './widgets/field_value_filter_widget/string/AdvancedStringFilter';
 import MonthFilterWidgetOptions from './widgets/month_filter_widget/options/MonthFilterWidgetOptions';
+import OseliaRunGraphWidgetComponent from './widgets/oselia_run_graph_widget/OseliaRunGraphWidgetComponent';
 import OseliaThreadWidgetOptions from './widgets/oselia_thread_widget/options/OseliaThreadWidgetOptions';
 import PageSwitchWidgetOptions from './widgets/page_switch_widget/options/PageSwitchWidgetOptions';
 import SupervisionTypeWidgetOptions from './widgets/supervision_type_widget/options/SupervisionTypeWidgetOptions';
 import SupervisionWidgetOptions from './widgets/supervision_widget/options/SupervisionWidgetOptions';
 import VarChoroplethChartWidgetOptions from './widgets/var_choropleth_chart_widget/options/VarChoroplethChartWidgetOptions';
 import VarWidgetOptions from './widgets/var_widget/options/VarWidgetOptions';
-import OseliaRunGraphWidgetComponent from './widgets/oselia_run_graph_widget/OseliaRunGraphWidgetComponent';
-import CMSCrudButtonsWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/CMSCrudButtonsWidgetOptionsVO';
-import CMSVisionneusePdfWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/CMSVisionneusePdfWidgetOptionsVO';
-import CMSLinkButtonWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/CMSLinkButtonWidgetOptionsVO';
-import CMSImageWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/CMSImageWidgetOptionsVO';
-import CMSBlocTextWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/CMSBlocTextWidgetOptionsVO';
-import { all_promises } from '../../../../shared/tools/PromiseTools';
-import WidgetOptionsVOManager from '../../../../shared/modules/DashboardBuilder/manager/WidgetOptionsVOManager';
 export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
     protected static instance: DashboardBuilderVueModuleBase = null;

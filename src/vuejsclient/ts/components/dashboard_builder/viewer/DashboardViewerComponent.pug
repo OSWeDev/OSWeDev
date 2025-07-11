@@ -18,7 +18,7 @@
                             i.fa-duotone.fa-pencil.btn-primary
         .row.pages_wrapper
             .col-sm-12
-                template(v-if='!pages')
+                template(v-if='!get_dashboard_pages')
                     template(v-if="loading")
                         .is_loading
                             i.fa-duotone.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
@@ -37,30 +37,15 @@
                         template(v-if='(visible_pages && (visible_pages.length > 1))')
                             template(v-for='(page_, pagei) in visible_pages')
                                 .page(@click="select_page(page_)")
-                                    .btn-primary.select(v-if='page && (page_.id != page.id)')
+                                    .btn-primary.select(v-if='get_dashboard_page && (page_.id != get_dashboard_page.id)')
                                         i.fa-duotone.fa-grid-horizontal.fa-fw.btn_icon(aria-hidden="true")
                                     .btn-success.selected(v-else)
                                         i.fa-duotone.fa-check-circle.fa-fw(aria-hidden="true")
                                     .name
                                         Inlinetranslatabletext(:code_text="page_.titre_page" :is_editable="false")
 
-        template(v-if='!page')
-            .row.no_page_wrapper
-                .col-sm-12
-                    template(v-if="loading")
-                        .is_loading
-                            i.fa-duotone.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
-                    template(v-else)
-                        .loading_failed 
-                            i.fa-duotone.fa-exclamation-triangle.fa-fw.icon_error(aria-hidden="true")
-                            | {{ label('dashboard_viewer.loading_failed') }}
-
-        template(v-else)
-            .row.content_wrapper
-                .col-sm-12.viewer_wrapper
-                    Dashboardbuilderboardcomponent(
-                        :dashboard_page='page' 
-                        :dashboard_pages='pages'
-                        :dashboard='dashboard' 
-                        :editable='false'
-                    )
+        .row.content_wrapper
+            .col-sm-12.viewer_wrapper
+                Dashboardbuilderboardcomponent(
+                    :editable='false'
+                )

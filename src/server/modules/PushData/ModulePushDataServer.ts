@@ -1,6 +1,9 @@
 
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleTableController from '../../../shared/modules/DAO/ModuleTableController';
+import ModuleTableFieldController from '../../../shared/modules/DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../../shared/modules/DAO/vos/ModuleTableFieldVO';
+import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import ModulePushData from '../../../shared/modules/PushData/ModulePushData';
@@ -11,6 +14,7 @@ import DefaultTranslationVO from '../../../shared/modules/Translation/vos/Defaul
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import EnvHandler from '../../../shared/tools/EnvHandler';
 import { reflect } from '../../../shared/tools/ObjectHandler';
+import RangeHandler from '../../../shared/tools/RangeHandler';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
 import StackContext from '../../StackContext';
 import { RunsOnMainThread } from '../BGThread/annotations/RunsOnMainThread';
@@ -71,7 +75,6 @@ export default class ModulePushDataServer extends ModuleServerBase {
         }
 
         let room: string = null;
-        let room_vo: any = null;
         try {
             for (let i = 0; i < room_vo_fields.length; i += 2) {
                 const field_name = room_vo_fields[i];
@@ -86,12 +89,18 @@ export default class ModulePushDataServer extends ModuleServerBase {
                 room += '"' + field_name + '":' + field_value;
             }
             room += '}';
-            room_vo = JSON.parse(room);
         } catch (error) {
             ConsoleHandler.error('Impossible de parser la room IO:' + room);
         }
 
         if (!room) {
+            ConsoleHandler.error('Impossible de récuperer la room IO:' + room);
+            return;
+        }
+
+        const room_vo = this.get_room_vo_from_id(room);
+
+        if (!room_vo) {
             ConsoleHandler.error('Impossible de récuperer la room IO:' + room);
             return;
         }
@@ -125,7 +134,6 @@ export default class ModulePushDataServer extends ModuleServerBase {
         }
 
         let room: string = null;
-        let room_vo: any = null;
         try {
             for (let i = 0; i < room_vo_fields.length; i += 2) {
                 const field_name = room_vo_fields[i];
@@ -140,7 +148,6 @@ export default class ModulePushDataServer extends ModuleServerBase {
                 room += '"' + field_name + '":' + field_value;
             }
             room += '}';
-            room_vo = JSON.parse(room);
         } catch (error) {
             ConsoleHandler.error('Impossible de parser la room IO:' + room);
         }
@@ -262,7 +269,11 @@ export default class ModulePushDataServer extends ModuleServerBase {
         try {
             for (const i in room_ids) {
                 const room_id = room_ids[i];
-                this.registered_rooms[room_id] = JSON.parse(room_id);
+                this.registered_rooms[room_id] = this.get_room_vo_from_id(room_id);
+                if (!this.registered_rooms[room_id]) {
+                    ConsoleHandler.error('Impossible de parser la room IO: ' + room_id);
+                    continue;
+                }
             }
         } catch (error) {
             ConsoleHandler.error('Impossible de parser les rooms IO: ' + room_ids.toString());
@@ -320,15 +331,7 @@ export default class ModulePushDataServer extends ModuleServerBase {
                 continue;
             }
 
-            let ignore_vo = false;
-            for (const field_name in vo_filter) {
-                if (vo_filter[field_name] != vo[field_name]) {
-                    ignore_vo = true;
-                    break;
-                }
-            }
-
-            if (ignore_vo) {
+            if (!this.vo_matches_room(vo, vo_filter)) {
                 continue;
             }
 
@@ -343,28 +346,13 @@ export default class ModulePushDataServer extends ModuleServerBase {
                 continue;
             }
 
-            let ignore_pre_vo = false;
-            for (const field_name in vo_filter) {
-                if (vo_filter[field_name] != vo_updtae_wrapper.pre_update_vo[field_name]) {
-                    ignore_pre_vo = true;
-                    break;
-                }
-            }
-
-            if (!ignore_pre_vo) {
+            if (!this.vo_matches_room(vo_updtae_wrapper.pre_update_vo, vo_filter)) {
                 PushDataServerController.notify_vo_update(room_id, vo_updtae_wrapper.pre_update_vo, vo_updtae_wrapper.post_update_vo);
                 continue;
             }
 
-            let ignore_post_vo = false;
-            for (const field_name in vo_filter) {
-                if (vo_filter[field_name] != vo_updtae_wrapper.post_update_vo[field_name]) {
-                    ignore_post_vo = true;
-                    break;
-                }
-            }
-
-            if (!ignore_post_vo) {
+            if (this.vo_matches_room(vo_updtae_wrapper.post_update_vo, vo_filter)) {
+                // On notifie la room IO de la mise à jour
                 PushDataServerController.notify_vo_update(room_id, vo_updtae_wrapper.pre_update_vo, vo_updtae_wrapper.post_update_vo);
                 continue;
             }
@@ -379,15 +367,7 @@ export default class ModulePushDataServer extends ModuleServerBase {
                 continue;
             }
 
-            let ignore_vo = false;
-            for (const field_name in vo_filter) {
-                if (vo_filter[field_name] != vo[field_name]) {
-                    ignore_vo = true;
-                    break;
-                }
-            }
-
-            if (ignore_vo) {
+            if (!this.vo_matches_room(vo, vo_filter)) {
                 continue;
             }
 
@@ -411,5 +391,94 @@ export default class ModulePushDataServer extends ModuleServerBase {
 
     private async get_app_version(): Promise<string> {
         return EnvHandler.version;
+    }
+
+    private vo_matches_room(vo: IDistantVOBase, room_vo: any): boolean {
+        let ignore_vo = false;
+        for (const field_name in room_vo) {
+
+            const field = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[vo._type][field_name];
+
+            if (field) {
+                switch (field.field_type) {
+                    case ModuleTableFieldVO.FIELD_TYPE_amount:
+                    case ModuleTableFieldVO.FIELD_TYPE_float:
+                    case ModuleTableFieldVO.FIELD_TYPE_int:
+                    case ModuleTableFieldVO.FIELD_TYPE_date:
+                    case ModuleTableFieldVO.FIELD_TYPE_file_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_image_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_enum:
+                    case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                    case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
+                    case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
+                    case ModuleTableFieldVO.FIELD_TYPE_prct:
+                        // Cas du range qu'on a identifié avec un RNGS: en début de valeur sur un field de type nombre
+                        if (Array.isArray(room_vo[field_name])) {
+                            // On ne gère que le intersecte pour le moment
+                            if (!RangeHandler.elt_intersects_any_range(vo[field_name], room_vo[field_name])) {
+                                ignore_vo = true;
+                                break;
+                            }
+                        } else {
+
+                            if (room_vo[field_name] != vo[field_name]) {
+                                ignore_vo = true;
+                                break;
+                            }
+                        }
+                        break;
+
+                    default:
+                        if (room_vo[field_name] != vo[field_name]) {
+                            ignore_vo = true;
+                            break;
+                        }
+                }
+
+                if (ignore_vo) {
+                    break;
+                }
+            } else {
+
+                if (room_vo[field_name] != vo[field_name]) {
+                    ignore_vo = true;
+                    break;
+                }
+            }
+        }
+
+        return !ignore_vo;
+    }
+
+    private get_room_vo_from_id(room_id: string): any {
+
+        if (!room_id) {
+            ConsoleHandler.error('get_room_vo_from_id: room_id is null or empty');
+            return null;
+        }
+
+        const room_vo: any = {};
+        try {
+            const room_vo_fields = JSON.parse(room_id);
+
+            for (const field_name in room_vo_fields) {
+                const field_value = room_vo_fields[field_name];
+
+                // On gère le cas des ranges
+                if ((typeof field_value == "string") && field_value.startsWith('RNGS:')) {
+                    const ranges_string = field_value.substring(5);
+                    const ranges = RangeHandler.translate_from_api(NumRange.RANGE_TYPE, ranges_string);
+                    room_vo[field_name] = ranges;
+                } else {
+                    room_vo[field_name] = field_value;
+                }
+            }
+
+        } catch (error) {
+            ConsoleHandler.error('get_room_vo_from_id: Impossible de parser la room IO:' + room_id);
+            return null;
+        }
+
+        return room_vo;
     }
 }

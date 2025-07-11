@@ -39,7 +39,9 @@ export default class DashboardAllViewportsConfComponent extends VueComponentBase
     @Prop()
     public readonly dashboard: DashboardVO;
 
-    @SyncVOs(DashboardViewportVO.API_TYPE_ID)
+    @SyncVOs(DashboardViewportVO.API_TYPE_ID, {
+        debug: true,
+    })
     public all_viewports: DashboardViewportVO[] = [];
 
     @TestAccess(DAOController.getAccessPolicyName(DashboardViewportVO.API_TYPE_ID, ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE))

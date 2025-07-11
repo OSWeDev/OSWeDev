@@ -84,7 +84,6 @@ export interface IDashboardPageState {
 
     viewports: DashboardViewportVO[]; // All viewports
     dashboard_current_viewport: DashboardViewportVO; // Current viewport of the dashboard
-    dashboard_valid_viewports: DashboardViewportVO[]; // Valid viewports of the current dashboard
 
     dashboard_viewport_page_widgets: DashboardViewportPageWidgetVO[]; // All page widgets of the current viewport of the current page of the dashboard
 
@@ -95,6 +94,35 @@ export interface IDashboardPageState {
 }
 
 const getters = {
+
+    get_dashboard_valid_viewports(state: IDashboardPageState): DashboardViewportVO[] {
+
+        if (!state.dashboard) {
+            return [];
+        }
+
+        if (!state.viewports || state.viewports.length <= 0) {
+            return [];
+        }
+
+        if (!state.dashboard.activated_viewport_id_ranges || state.dashboard.activated_viewport_id_ranges.length <= 0) {
+            // No activated viewport id ranges, return all viewports
+            return state.viewports;
+        }
+
+        const res: DashboardViewportVO[] = [];
+
+        for (const i in state.viewports) {
+            const viewport = state.viewports[i];
+
+            if (RangeHandler.elt_intersects_any_range(viewport.id, state.dashboard.activated_viewport_id_ranges)) {
+                // If the viewport id intersects with the activated viewport id ranges
+                res.push(viewport);
+            }
+        }
+
+        return res;
+    },
 
     get_crud_vo(state: IDashboardPageState): IDistantVOBase {
         return state.crud_vo;
@@ -158,9 +186,6 @@ const getters = {
         return state.dashboard_current_viewport;
     },
 
-    get_dashboard_valid_viewports(state: IDashboardPageState): DashboardViewportVO[] {
-        return state.dashboard_valid_viewports;
-    },
     get_dashboard_viewport_page_widgets(state: IDashboardPageState): DashboardViewportPageWidgetVO[] {
         return state.dashboard_viewport_page_widgets;
     },
@@ -332,7 +357,6 @@ const actions = {
     set_dashboard_id: (context: DashboardPageContext, dashboard_id: number) => context.commit(store_mutations_names(storeInstance).set_dashboard_id, dashboard_id),
     set_viewports: (context: DashboardPageContext, viewports: DashboardViewportVO[]) => context.commit(store_mutations_names(storeInstance).set_viewports, viewports),
     set_dashboard_current_viewport: (context: DashboardPageContext, dashboard_current_viewport: DashboardViewportVO) => context.commit(store_mutations_names(storeInstance).set_dashboard_current_viewport, dashboard_current_viewport),
-    set_dashboard_valid_viewports: (context: DashboardPageContext, dashboard_valid_viewports: DashboardViewportVO[]) => context.commit(store_mutations_names(storeInstance).set_dashboard_valid_viewports, dashboard_valid_viewports),
     set_dashboard_viewport_page_widgets: (context: DashboardPageContext, dashboard_viewport_page_widgets: DashboardViewportPageWidgetVO[]) => context.commit(store_mutations_names(storeInstance).set_dashboard_viewport_page_widgets, dashboard_viewport_page_widgets),
     set_all_widgets: (context: DashboardPageContext, all_widgets: DashboardWidgetVO[]) => context.commit(store_mutations_names(storeInstance).set_all_widgets, all_widgets),
     set_dashboard_pages: (context: DashboardPageContext, dashboard_pages: DashboardPageVO[]) => context.commit(store_mutations_names(storeInstance).set_dashboard_pages, dashboard_pages),
@@ -447,13 +471,6 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
             }
 
             state.dashboard_current_viewport = dashboard_current_viewport;
-        },
-        set_dashboard_valid_viewports(state: IDashboardPageState, dashboard_valid_viewports: DashboardViewportVO[]) {
-            if (state.dashboard_valid_viewports === dashboard_valid_viewports) {
-                return;
-            }
-
-            state.dashboard_valid_viewports = dashboard_valid_viewports;
         },
         set_dashboard_viewport_page_widgets(state: IDashboardPageState, dashboard_viewport_page_widgets: DashboardViewportPageWidgetVO[]) {
             if (state.dashboard_viewport_page_widgets === dashboard_viewport_page_widgets) {

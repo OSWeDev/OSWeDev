@@ -68,7 +68,7 @@
 
         .row 
             .col-sm-12
-                template(v-if='!pages')
+                template(v-if='!get_dashboard_pages')
                     .is_loading
                         i.fa-duotone.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
                     //- template(v-if="loading")
@@ -97,12 +97,12 @@
                             .page
                                 .back
                                     i.fa-duotone.fa-arrow-circle-left.fa-fw.btn_icon(aria-hidden="true" @click="select_previous_page" v-tooltip.top='label("dashboard_builder.pages.tooltip_select_previous_page")')
-                        template(v-for='(page_, pagei) in pages')
+                        template(v-for='(page_, pagei) in get_dashboard_pages')
                             .page
 
                                 .btn-secondary.move_page(v-if='POLICY_DBB_CAN_EDIT_PAGES && (pagei > 0)')
                                     i.fa-duotone.fa-square-left.fa-fw.btn_icon(aria-hidden="true" @click="move_page_left(page_, pagei)")
-                                .btn-secondary.move_page(v-if='POLICY_DBB_CAN_EDIT_PAGES && (pagei < (pages.length-1))')
+                                .btn-secondary.move_page(v-if='POLICY_DBB_CAN_EDIT_PAGES && (pagei < (get_dashboard_pages.length-1))')
                                     i.fa-duotone.fa-square-right.fa-fw.btn_icon(aria-hidden="true" @click="move_page_right(page_, pagei)")
 
                                 .btn-primary.select(v-if='page && (page_.id != page.id)')

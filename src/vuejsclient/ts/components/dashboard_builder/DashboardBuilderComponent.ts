@@ -1,5 +1,5 @@
 import Component from 'vue-class-component';
-import { Prop, Provide, Watch } from 'vue-property-decorator';
+import { Prop, Provide } from 'vue-property-decorator';
 import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import ModuleTableController from '../../../../shared/modules/DAO/ModuleTableController';
@@ -41,6 +41,7 @@ import DashboardPageStore, { IDashboardGetters, IDashboardPageActionsMethods, ID
 import DashboardSharedFiltersComponent from './shared_filters/DashboardSharedFiltersComponent';
 import DashboardViewportConfComponent from './viewport_conf/DashboardViewportConfComponent';
 import DashboardBuilderWidgetsComponent from './widgets/DashboardBuilderWidgetsComponent';
+import { SafeWatch } from '../../tools/annotations/SafeWatch';
 
 @Component({
     template: require('./DashboardBuilderComponent.pug'),
@@ -94,16 +95,19 @@ export default class DashboardBuilderComponent extends VueComponentBase implemen
     @Provide('storeNamespace')
     public readonly storeNamespace = `dashboardStore_${DashboardPageStore.__UID++}`;
 
-    @SyncVOs(DashboardVO.API_TYPE_ID)
+    @SyncVOs(DashboardVO.API_TYPE_ID, { debug: true })
     public dashboards: DashboardVO[] = []; // All the dashboards available in the system, used to select a dashboard to edit
 
     @SyncVO(DashboardVO.API_TYPE_ID, {
+        debug: true,
+
         watch_fields: [reflect<DashboardBuilderComponent>().dashboard_id],
         id_factory: (self) => self.dashboard_id,
+        sync_to_store_namespace: (self) => self.storeNamespace,
     })
     public dashboard: DashboardVO = null; // The current dashboard
 
-    @SyncVOs(DBBConfVO.API_TYPE_ID)
+    @SyncVOs(DBBConfVO.API_TYPE_ID, { debug: true })
     public dbb_confs: DBBConfVO[] = []; // All the DBB configurations available in the system
 
     @TestAccess(ModuleDashboardBuilder.POLICY_DBB_ACCESS_ONGLET_TABLE)
@@ -265,22 +269,22 @@ export default class DashboardBuilderComponent extends VueComponentBase implemen
         return this.vuexGet(reflect<this>().get_widgets_by_id);
     }
 
-    @Watch(reflect<DashboardBuilderComponent>().get_dashboard_page)
+    @SafeWatch(reflect<DashboardBuilderComponent>().get_dashboard_page)
     public onchange_page() {
         this.set_selected_widget(null);
     }
 
-    @Watch(reflect<DashboardBuilderComponent>().dashboard_id)
+    @SafeWatch(reflect<DashboardBuilderComponent>().dashboard_id, { immediate: true })
     public async onchange_dashboard_id() {
         this.set_dashboard_id(this.dashboard_id);
     }
 
-    @Watch(reflect<DashboardBuilderComponent>().dashboard)
+    @SafeWatch(reflect<DashboardBuilderComponent>().dashboard)
     public async on_change_dashboard() {
         this.init_dashboard_tab();
     }
 
-    @Watch(reflect<DashboardBuilderComponent>().dashboards)
+    @SafeWatch(reflect<DashboardBuilderComponent>().dashboards)
     public async onchange_dashboards(): Promise<void> {
 
         // On vérifie simplement que si on a pas de db actuellement sélectionné, on sélectionne le premier dispo
@@ -293,7 +297,7 @@ export default class DashboardBuilderComponent extends VueComponentBase implemen
         }
     }
 
-    @Watch(reflect<DashboardBuilderComponent>().get_page_widgets)
+    @SafeWatch(reflect<DashboardBuilderComponent>().get_page_widgets)
     public async onchange_on_pages_page_widgets() {
         if (this.get_page_widgets?.length > 0) {
             const custom_filters: { [name: string]: boolean } = {};

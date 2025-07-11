@@ -1,5 +1,5 @@
 import Component from 'vue-class-component';
-import { Prop, Provide, Watch } from 'vue-property-decorator';
+import { Prop, Provide } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import SortByVO from '../../../../../shared/modules/ContextFilter/vos/SortByVO';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
@@ -13,6 +13,7 @@ import DashboardVO from '../../../../../shared/modules/DashboardBuilder/vos/Dash
 import FieldFiltersVO from '../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import SharedFiltersVO from '../../../../../shared/modules/DashboardBuilder/vos/SharedFiltersVO';
 import { field_names, reflect } from '../../../../../shared/tools/ObjectHandler';
+import { SafeWatch } from '../../../tools/annotations/SafeWatch';
 import { SyncVO } from '../../../tools/annotations/SyncVO';
 import InlineTranslatableText from '../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../VueComponentBase';
@@ -34,13 +35,17 @@ export default class DashboardViewerComponent extends VueComponentBase {
     public dashboard_id: number;
 
     @SyncVO(DashboardVO.API_TYPE_ID, {
+        debug: true,
+
         watch_fields: [reflect<DashboardViewerComponent>().dashboard_id],
         id_factory: (self) => self.dashboard_id,
+        sync_to_store_namespace: (self) => self.storeNamespace,
     })
     public dashboard: DashboardVO = null; // The current dashboard
 
 
-    public loading: boolean = true;
+    // public loading: boolean = true;
+    public loading: boolean = false;
 
     // namespace dynamique
     // eslint-disable-next-line @typescript-eslint/member-ordering
@@ -96,12 +101,17 @@ export default class DashboardViewerComponent extends VueComponentBase {
         return this.vuexGet(reflect<this>().get_viewports);
     }
 
-    @Watch(reflect<DashboardViewerComponent>().get_dashboard_page)
+    @SafeWatch(reflect<DashboardViewerComponent>().dashboard_id, { immediate: true })
+    public async onchange_dashboard_id_update_store() {
+        this.set_dashboard_id(this.dashboard_id);
+    }
+
+    @SafeWatch(reflect<DashboardViewerComponent>().get_dashboard_page)
     public onchange_page() {
         this.set_selected_widget(null);
     }
 
-    @Watch(reflect<DashboardViewerComponent>().dashboard)
+    @SafeWatch(reflect<DashboardViewerComponent>().dashboard)
     public async onchange_dashboard() {
         // We should load the shared_filters with the current dashboard
         await DashboardVOManager.load_shared_filters_with_dashboard(
@@ -117,7 +127,7 @@ export default class DashboardViewerComponent extends VueComponentBase {
      *  on pourrait vouloir garder les filtres communs aussi => non implémenté (il faut un switch et supprimer les filtres non applicables aux widgets du dashboard)
      *  et on pourrait vouloir garder tous les filtres => non implémenté (il faut un switch et simplement ne pas supprimer les filtres)
      */
-    @Watch(reflect<DashboardViewerComponent>().dashboard_id)
+    @SafeWatch(reflect<DashboardViewerComponent>().dashboard_id)
     public async onchange_dashboard_id() {
         this.loading = true;
 
@@ -259,5 +269,9 @@ export default class DashboardViewerComponent extends VueComponentBase {
         );
 
         return dashboard_pages;
+    }
+
+    public set_dashboard_id(dashboard_id: number): void {
+        this.vuexAct(reflect<this>().set_dashboard_id, dashboard_id);
     }
 }
