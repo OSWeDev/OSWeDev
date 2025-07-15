@@ -529,7 +529,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
     }
 
     private async check_default_height(viewport_page_widget: DashboardViewportPageWidgetVO) {
-        if (viewport_page_widget.w) {
+        if (!!viewport_page_widget.w) {
             return;
         }
 
@@ -549,7 +549,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
     }
 
     private async check_default_width_vs_viewport(viewport_page_widget: DashboardViewportPageWidgetVO) {
-        if (viewport_page_widget.w) {
+        if (!!viewport_page_widget.w) {
             return;
         }
 
@@ -579,7 +579,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
 
 
     private async check_DashboardViewportPageWidgetVO_i(viewport_page_widget: DashboardViewportPageWidgetVO) {
-        if (viewport_page_widget.i) {
+        if (!!viewport_page_widget.i) {
             return;
         }
 
@@ -595,7 +595,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
     }
 
     private async check_DashboardViewportPageWidgetVO_y(viewport_page_widget: DashboardViewportPageWidgetVO) {
-        if (viewport_page_widget.y) {
+        if (!!viewport_page_widget.y) {
             return;
         }
 
@@ -714,12 +714,14 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         const removed_viewport_id_ranges = RangeHandler.cuts_ranges(post_update_activated_viewport_id_ranges, pre_update_activated_viewport_id_ranges)?.remaining_items;
 
         // On demande la suppression de tous les viewport pages widgets qui sont plus d'actualité
-        await query(DashboardViewportPageWidgetVO.API_TYPE_ID)
-            .filter_by_num_x_ranges(field_names<DashboardViewportPageWidgetVO>().viewport_id, removed_viewport_id_ranges)
-            .filter_by_num_eq(field_names<DashboardPageVO>().dashboard_id, update.post_update_vo.id, DashboardPageVO.API_TYPE_ID)
-            .using(DashboardPageWidgetVO.API_TYPE_ID)
-            .exec_as_server()
-            .delete_vos();
+        if (removed_viewport_id_ranges && removed_viewport_id_ranges.length > 0) {
+            await query(DashboardViewportPageWidgetVO.API_TYPE_ID)
+                .filter_by_num_x_ranges(field_names<DashboardViewportPageWidgetVO>().viewport_id, removed_viewport_id_ranges)
+                .filter_by_num_eq(field_names<DashboardPageVO>().dashboard_id, update.post_update_vo.id, DashboardPageVO.API_TYPE_ID)
+                .using(DashboardPageWidgetVO.API_TYPE_ID)
+                .exec_as_server()
+                .delete_vos();
+        }
 
         const all_page_widgets: DashboardPageWidgetVO[] = await query(DashboardPageWidgetVO.API_TYPE_ID)
             .filter_by_num_eq(field_names<DashboardPageVO>().dashboard_id, update.post_update_vo.id, DashboardPageVO.API_TYPE_ID)
@@ -740,11 +742,19 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
                 new_viewport_page_widget.page_widget_id = page_widget.id;
                 new_viewport_page_widget.viewport_id = new_viewport_id;
 
+                new_viewport_page_widget.x = page_widget.x;
+                new_viewport_page_widget.y = page_widget.y;
+                new_viewport_page_widget.w = page_widget.w;
+                new_viewport_page_widget.h = page_widget.h;
+                new_viewport_page_widget.i = page_widget.i; // On garde l'index du widget
+
                 new_viewport_page_widgets.push(new_viewport_page_widget);
             }
         });
 
-        await ModuleDAOServer.instance.insertOrUpdateVOs_as_server(new_viewport_page_widgets);
+        if (new_viewport_page_widgets && new_viewport_page_widgets.length > 0) {
+            await ModuleDAOServer.instance.insertOrUpdateVOs_as_server(new_viewport_page_widgets);
+        }
     }
 
     private async postCreate_DashboardVO(dashboard: DashboardVO) {

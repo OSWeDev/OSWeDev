@@ -5,16 +5,8 @@ import TranslatableTextVO from "../../../../shared/modules/Translation/vos/Trans
 import TranslationVO from "../../../../shared/modules/Translation/vos/TranslationVO";
 
 export default class TranslatableTextController {
-    public static getInstance(): TranslatableTextController {
-        if (!TranslatableTextController.instance) {
-            TranslatableTextController.instance = new TranslatableTextController();
-        }
-        return TranslatableTextController.instance;
-    }
 
-    private static instance: TranslatableTextController;
-
-    public async save_translation(code_lang: string, code_text: string, translation: string): Promise<boolean> {
+    public static async save_translation(code_lang: string, code_text: string, translation: string): Promise<boolean> {
 
         if (!translation) {
             translation = '';

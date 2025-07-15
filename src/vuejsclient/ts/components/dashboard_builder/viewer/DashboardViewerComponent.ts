@@ -1,6 +1,7 @@
 import Component from 'vue-class-component';
 import { Prop, Provide } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../../../shared/modules/ContextFilter/vos/SortByVO';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import DashboardPageVOManager from '../../../../../shared/modules/DashboardBuilder/manager/DashboardPageVOManager';
@@ -19,7 +20,7 @@ import InlineTranslatableText from '../../InlineTranslatableText/InlineTranslata
 import VueComponentBase from '../../VueComponentBase';
 import DashboardBuilderBoardComponent from '../board/DashboardBuilderBoardComponent';
 import DashboardHistoryController from '../DashboardHistoryController';
-import DashboardPageStore, { IDashboardGetters, IDashboardPageActionsMethods } from '../page/DashboardPageStore';
+import DashboardPageStore, { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../page/DashboardPageStore';
 import './DashboardViewerComponent.scss';
 
 @Component({
@@ -29,10 +30,13 @@ import './DashboardViewerComponent.scss';
         Dashboardbuilderboardcomponent: DashboardBuilderBoardComponent,
     }
 })
-export default class DashboardViewerComponent extends VueComponentBase {
+export default class DashboardViewerComponent extends VueComponentBase implements IDashboardPageConsumer {
 
     @Prop({ default: null })
     public dashboard_id: number;
+
+    @Prop({ default: null })
+    public viewport_id: number; // The viewport id to display if forced
 
     @SyncVO(DashboardVO.API_TYPE_ID, {
         debug: true,
@@ -42,7 +46,6 @@ export default class DashboardViewerComponent extends VueComponentBase {
         sync_to_store_namespace: (self) => self.storeNamespace,
     })
     public dashboard: DashboardVO = null; // The current dashboard
-
 
     // public loading: boolean = true;
     public loading: boolean = false;
@@ -74,9 +77,8 @@ export default class DashboardViewerComponent extends VueComponentBase {
         return this.vuexGet(reflect<this>().get_active_field_filters);
     }
 
-
     get has_navigation_history(): boolean {
-        return this.get_page_history && (this.get_page_history.length > 0);
+        return this.vuexGet(reflect<this>().has_navigation_history);
     }
 
     get visible_pages(): DashboardPageVO[] {
@@ -99,6 +101,22 @@ export default class DashboardViewerComponent extends VueComponentBase {
 
     get get_viewports(): DashboardViewportVO[] {
         return this.vuexGet(reflect<this>().get_viewports);
+    }
+
+    @SafeWatch(reflect<DashboardViewerComponent>().viewport_id, { immediate: true })
+    public async on_change_viewport_id() {
+
+        if (!this.viewport_id) {
+            return;
+        }
+
+        const viewport = await query(DashboardViewportVO.API_TYPE_ID)
+            .filter_by_id(this.viewport_id)
+            .select_vo<DashboardViewportVO>();
+
+        if (viewport) {
+            this.set_dashboard_current_viewport(viewport);
+        }
     }
 
     @SafeWatch(reflect<DashboardViewerComponent>().dashboard_id, { immediate: true })
@@ -273,5 +291,9 @@ export default class DashboardViewerComponent extends VueComponentBase {
 
     public set_dashboard_id(dashboard_id: number): void {
         this.vuexAct(reflect<this>().set_dashboard_id, dashboard_id);
+    }
+
+    public set_dashboard_current_viewport(viewport: DashboardViewportVO): void {
+        this.vuexAct(reflect<this>().set_dashboard_current_viewport, viewport);
     }
 }

@@ -1,4 +1,3 @@
-import { RouteConfig } from 'vue-router';
 import ContextFilterVO, { filter } from '../ContextFilter/vos/ContextFilterVO';
 import ModuleTableController from '../DAO/ModuleTableController';
 import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
@@ -9,6 +8,7 @@ export default class DashboardBuilderController {
 
     /**
      * On ajoute l'id tout simplement après le prefix et on a le code trad
+     *  A supprimer au profit des translatable_string !
      */
 
     public static DASHBOARD_NAME_CODE_PREFIX: string = "dashboard.name.";
@@ -18,14 +18,6 @@ export default class DashboardBuilderController {
     public static TableColumnDesc_NAME_CODE_PREFIX: string = "dashboard.table_column_desc.name.";
 
     public static DASHBOARD_EXPORT_TO_JSON_CONF_NAME: string = "DashboardBuilderController.ExportDBVOToJSONConf";
-
-    public static DASHBOARD_VO_ACTION_ADD: string = "add";
-    public static DASHBOARD_VO_ACTION_EDIT: string = "edit";
-    public static DASHBOARD_VO_ACTION_DELETE: string = "delete";
-    public static DASHBOARD_VO_ACTION_VOCUS: string = "vocus";
-
-    public static ROUTE_NAME_CRUD: string = "__CRUD";
-    public static ROUTE_NAME_CRUD_ALL: string = "__all";
 
     private static instance: DashboardBuilderController = null;
 
@@ -40,52 +32,10 @@ export default class DashboardBuilderController {
         return DashboardBuilderController.instance;
     }
 
-    public addRouteForDashboard(path: string, name: string, component: any, crud: boolean): RouteConfig[] {
-        const routes: RouteConfig[] = [{
-            path: path,
-            name: name,
-            component: component,
-            props: (route) => ({
-                dashboard_id: parseInt(route.params.dashboard_id),
-            })
-        }];
-
-        if (crud) {
-            name += DashboardBuilderController.ROUTE_NAME_CRUD;
-
-            routes.push({
-                path: path + '/:dashboard_vo_action/:dashboard_vo_id',
-                name: name,
-                component: component,
-                props: (route) => ({
-                    dashboard_id: parseInt(route.params.dashboard_id),
-                    dashboard_vo_action: route.params.dashboard_vo_action,
-                    dashboard_vo_id: route.params.dashboard_vo_id,
-                })
-            });
-
-            name += DashboardBuilderController.ROUTE_NAME_CRUD_ALL;
-
-            routes.push({
-                path: path + '/:dashboard_vo_action/:dashboard_vo_id/:api_type_id_action',
-                name: name,
-                component: component,
-                props: (route) => ({
-                    dashboard_id: parseInt(route.params.dashboard_id),
-                    api_type_id_action: route.params.api_type_id_action,
-                    dashboard_vo_action: route.params.dashboard_vo_action,
-                    dashboard_vo_id: route.params.dashboard_vo_id,
-                })
-            });
-        }
-
-        return routes;
-    }
-
     public add_table_row_context(
         context: FieldFiltersVO,
         columns: TableColumnDescVO[],
-        row_value: any
+        row_value: any,
     ): FieldFiltersVO {
 
         /**

@@ -64,7 +64,33 @@
                                 i.fa-duotone.fa-upload.fa-fw.btn_icon(aria-hidden="true" @click="paste_dashboard(null)" v-tooltip='label("dashboard_builder.create_dashboard_from")')
 
         .row
-            .col-sm-12 {{ TODO FIXME ADD VIEWPORT SELECTOR }}
+            .col-sm-12
+                .viewport_selector
+                    multiselect(
+                        :preselect-first="false"
+                        :multiple="false"
+                        
+                        :value="get_dashboard_current_viewport"
+                        @input="set_dashboard_current_viewport($event)"
+
+                        :placeholder="label('dashboard_builder.select_viewport')"
+                        :options="get_viewports"
+                        :custom-label="viewport_label"
+                        :allow-empty="false",
+
+                        autocomplete="off"
+
+                        :searchable="true"
+                        :internal-search="true"
+
+                        track-by="id"
+
+                        :select-label='label("multiselect.selectLabel")'
+                        :select-group-label='label("multiselect.selectGroupLabel")'
+                        :selected-label='label("multiselect.selectedLabel")'
+                        :deselect-label='label("multiselect.deselectLabel")'
+                        :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                    )
 
         .row 
             .col-sm-12
@@ -81,18 +107,20 @@
 
                 template(v-else)
                     .row.steps
-                        .col-sm-3(v-if='POLICY_DBB_ACCESS_ONGLET_TABLE')
-                            .step.select_vos(@click='select_vos' :class="{'selected' : show_select_vos}") {{ label('dashboard_builder.select_vos') }}
-                        .col-sm-3(v-if='POLICY_DBB_ACCESS_ONGLET_VIEWPORT')
-                            .step.select_vos(@click='viewport_conf' :class="{'selected' : show_viewport_conf}") {{ label('dashboard_builder.viewport_conf') }}
-                        .col-sm-3(v-if='POLICY_DBB_ACCESS_ONGLET_WIDGETS')
-                            .step.build_page(v-if='can_build_page' @click='build_page' :class="{'selected' : show_build_page}") {{ label('dashboard_builder.build_page') }}
-                        .col-sm-3(v-if='POLICY_DBB_ACCESS_ONGLET_MENUS')
-                            .step.menu_conf(v-if='can_build_page' @click='menu_conf' :class="{'selected' : show_menu_conf}") {{ label('dashboard_builder.menu_conf') }}
-                        .col-sm-3(v-if='POLICY_DBB_ACCESS_ONGLET_FILTRES_PARTAGES')
-                            .step.shared_filters(v-if='can_build_page' @click='select_shared_filters' :class="{'selected' : show_shared_filters}") {{ label('dashboard_builder.shared_filters') }}
+                        .col-sm-2(v-if='validite_onglets[onglet_table]')
+                            .step.select_vos(@click='set_selected_onglet(onglet_table)' :class="{'selected' : get_selected_onglet == onglet_table}") {{ label('dashboard_builder.select_vos') }}
+                        .col-sm-2(v-if='validite_onglets[onglet_viewport]')
+                            .step.select_vos(@click='set_selected_onglet(onglet_viewport)' :class="{'selected' : get_selected_onglet == onglet_viewport}") {{ label('dashboard_builder.viewport_conf') }}
+                        .col-sm-2(v-if='validite_onglets[onglet_widgets]')
+                            .step.build_page(@click='set_selected_onglet(onglet_widgets)' :class="{'selected' : get_selected_onglet == onglet_widgets}") {{ label('dashboard_builder.build_page') }}
+                        .col-sm-2(v-if='validite_onglets[onglet_menus]')
+                            .step.menu_conf(@click='set_selected_onglet(onglet_menus)' :class="{'selected' : get_selected_onglet == onglet_menus}") {{ label('dashboard_builder.menu_conf') }}
+                        .col-sm-2(v-if='validite_onglets[onglet_shared_filters]')
+                            .step.shared_filters(@click='set_selected_onglet(onglet_shared_filters)' :class="{'selected' : get_selected_onglet == onglet_shared_filters}") {{ label('dashboard_builder.shared_filters') }}
+                        .col-sm-2(v-if='validite_onglets[onglet_rights]')
+                            .step.shared_filters(@click='set_selected_onglet(onglet_rights)' :class="{'selected' : get_selected_onglet == onglet_rights}") {{ label('dashboard_builder.rights') }}
 
-                    .pages
+                    .pages(v-show='get_selected_onglet == onglet_widgets || get_selected_onglet == onglet_viewport')
                         template(v-if='has_navigation_history')
                             .page
                                 .back
@@ -105,7 +133,7 @@
                                 .btn-secondary.move_page(v-if='POLICY_DBB_CAN_EDIT_PAGES && (pagei < (get_dashboard_pages.length-1))')
                                     i.fa-duotone.fa-square-right.fa-fw.btn_icon(aria-hidden="true" @click="move_page_right(page_, pagei)")
 
-                                .btn-primary.select(v-if='page && (page_.id != page.id)')
+                                .btn-primary.select(v-if='get_dashboard_page && (page_.id != get_dashboard_page.id)')
                                     i.fa-duotone.fa-grid-horizontal.fa-fw.btn_icon(aria-hidden="true" @click="select_page(page_)" v-tooltip.top='label("dashboard_builder.pages.tooltip_select_page")')
                                     //- pourquoi on select_page_clear_navigation à la base ???
                                 .btn-success.selected(v-else)
@@ -148,64 +176,52 @@
                         .btn-primary.create_dashboard_page(v-if='POLICY_DBB_CAN_EDIT_PAGES')
                             i.fa-duotone.fa-plus.fa-fw.btn_icon(aria-hidden="true" @click="create_dashboard_page" v-tooltip.top='label("dashboard_builder.pages.tooltip_create_dashboard_page")')
 
-        template(v-if='!page')
-            .row
-                .col-sm-12
-                    .is_loading
-                        i.fa-duotone.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
-                    //- template(v-if="loading")
-                    //-     .is_loading
-                    //-         i.fa-duotone.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
-                    //- template(v-else)
-                    //-     .loading_failed 
-                    //-         i.fa-duotone.fa-exclamation-triangle.fa-fw.icon_error(aria-hidden="true")
-                    //-         | {{ label('dashboard_builder.loading_failed') }}
-
-        template(v-else)
-            .row(v-if='selected_onglet == "onglet_table"')
+        .row(v-if='get_selected_onglet == onglet_table')
+            
+            .col-sm-3.crud_db_link_wrapper
+                Cruddblinkcomponent
                 
-                .col-sm-3.crud_db_link_wrapper
-                    Cruddblinkcomponent
-                    
-                .col-sm-9.tables_graph_wrapper(v-if="POLICY_DBB_ACCESS_ONGLET_TABLE_TABLES_GRAPH")
-                    Moduletablescomponent(
-                        :fields_by_table_name_and_field_name='fields_by_table_name_and_field_name'
-                        :tables_by_table_name='tables_by_table_name'
-                        :discarded_field_paths='get_discarded_field_paths'
-                        :all_tables_by_table_name='all_tables_by_table_name'
-                        :dashboard_id='dashboard_id'
-                    )
+            .col-sm-9.tables_graph_wrapper(v-if="POLICY_DBB_ACCESS_ONGLET_TABLE_TABLES_GRAPH")
+                Moduletablescomponent(
+                    :fields_by_table_name_and_field_name='fields_by_table_name_and_field_name'
+                    :tables_by_table_name='tables_by_table_name'
+                    :discarded_field_paths='get_discarded_field_paths'
+                    :all_tables_by_table_name='all_tables_by_table_name'
+                    :dashboard_id='dashboard_id'
+                )
 
-            .row(v-if='selected_onglet == "onglet_viewport"')
-                .col-sm-12.builder_wrapper
-                    DashboardViewportConfComponent(
-                        ref='DashboardViewportConfComponent'
-                    )
+        .row(v-if='get_selected_onglet == onglet_viewport')
+            .col-sm-12.builder_wrapper
+                DashboardViewportConfComponent(
+                    ref='DashboardViewportConfComponent'
+                )
 
-            .fields_wrapper(v-if='selected_onglet == "onglet_widgets"' :class='{"collapsed":collapsed_fields_wrapper}')
+        .fields_wrapper(v-if='get_selected_onglet == "onglet_widgets"' :class='{"collapsed":collapsed_fields_wrapper}')
 
-                .collapse_fields_wrapper(@click='reverse_collapse_fields_wrapper' :class='{"collapsed":collapsed_fields_wrapper}')
-                    i.fa-duotone.fa-square-caret-right.fa-fw(aria-hidden="true" v-if='!collapsed_fields_wrapper')
-                    i.fa-duotone.fa-square-caret-left.fa-fw(aria-hidden="true" v-if='collapsed_fields_wrapper')
+            .collapse_fields_wrapper(@click='reverse_collapse_fields_wrapper' :class='{"collapsed":collapsed_fields_wrapper}')
+                i.fa-duotone.fa-square-caret-right.fa-fw(aria-hidden="true" v-if='!collapsed_fields_wrapper')
+                i.fa-duotone.fa-square-caret-left.fa-fw(aria-hidden="true" v-if='collapsed_fields_wrapper')
 
-                .collapsible_component_wrapper(:class='{"collapsed":collapsed_fields_wrapper}')
-                    Dashboardbuilderwidgetscomponent
-                    Droppablevofieldscomponent(:dashboard='dashboard')
+            .collapsible_component_wrapper(:class='{"collapsed":collapsed_fields_wrapper}')
+                Dashboardbuilderwidgetscomponent
+                Droppablevofieldscomponent(:dashboard='dashboard')
 
-            .row(v-show='selected_onglet == "onglet_widgets"') // On est en v-show pour charger toujours le Dashboardbuilderboardcomponent et toutes les synchros de données que ce composant initie
-                .col-sm-12.builder_wrapper
-                    Dashboardbuilderboardcomponent(
-                        ref='Dashboardbuilderboardcomponent'
-                    )
+        //- On est en v-show pour charger toujours le Dashboardbuilderboardcomponent et toutes les synchros de données que ce composant initie
+        .row(v-show='get_selected_onglet == onglet_widgets')
+            .col-sm-12.builder_wrapper
+                Dashboardbuilderboardcomponent(
+                    ref='Dashboardbuilderboardcomponent'
+                )
+               
 
-            .row(v-if='selected_onglet == "onglet_menus"')
-                .col-sm-12.menu_conf_wrapper 
-                    Dashboardmenuconfcomponent
+        .row(v-if='get_selected_onglet == onglet_menus')
+            .col-sm-12.menu_conf_wrapper 
+                Dashboardmenuconfcomponent
 
-            .row(v-if='selected_onglet == "onglet_shared_filters"')
-                .col-sm-12.shared_filters_wrapper 
-                    Dashboardsharedfilterscomponent
+        .row(v-if='get_selected_onglet == onglet_shared_filters')
+            .col-sm-12.shared_filters_wrapper 
+                Dashboardsharedfilterscomponent
 
-            .row(v-if='selected_onglet == "onglet_rights"')
-                .col-sm-12.shared_filters_wrapper 
-                    DashboardRightscomponent
+        .row(v-if='get_selected_onglet == onglet_rights')
+            .col-sm-12.shared_filters_wrapper 
+                DashboardRightscomponent

@@ -7,6 +7,7 @@ import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
 import UserRoleVO from '../../../shared/modules/AccessPolicy/vos/UserRoleVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import EventifyEventListenerConfVO from '../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO';
 import ModuleVO from '../../../shared/modules/ModuleVO';
@@ -185,6 +186,16 @@ export default class AccessPolicyServerController {
         const target_policy: AccessPolicyVO = AccessPolicyServerController.get_registered_policy(policy_name);
         if (!target_policy) {
             ConsoleHandler.error('checkAccessSync:!target_policy:' + policy_name + ':');
+
+            // Cas particulier identifiable facilement
+            if (policy_name.startsWith(ModuleDAO.POLICY_GROUP_DATAS) && (
+                policy_name.endsWith('.' + ModuleDAO.DAO_ACCESS_TYPE_DELETE) ||
+                policy_name.endsWith('.' + ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE) ||
+                policy_name.endsWith('.' + ModuleDAO.DAO_ACCESS_TYPE_READ) ||
+                policy_name.endsWith('.' + ModuleDAO.DAO_ACCESS_TYPE_LIST_LABELS))) {
+                ConsoleHandler.error('checkAccessSync:You probably inversed the params of getAccessPolicyName, please check your code.');
+            }
+
             return false;
         }
 

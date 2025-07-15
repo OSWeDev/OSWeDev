@@ -74,6 +74,12 @@ export default class DataSynchroController {
                             .invalidateCachesFromApiTypesInvolved([vo._type]);
                         pushAndNotify(vo);
                     });
+
+                if (!DataSynchroController.vo_events_registration_keys_by_room_id[room_id]) {
+                    // On a une désynchro entre l'enregistrement de la room et l'enregistrement du callback, on supprime la room_id pour éviter de la laisser orpheline
+                    VOEventRegistrationsHandler.unregister_vo_event_callback(k);
+                    return;
+                }
                 DataSynchroController.vo_events_registration_keys_by_room_id[room_id].push(k);
             })(),
 
@@ -88,6 +94,12 @@ export default class DataSynchroController {
                         if (idx > -1) list.splice(idx, 1);
                         on_list_change?.(list);
                     });
+
+                if (!DataSynchroController.vo_events_registration_keys_by_room_id[room_id]) {
+                    // On a une désynchro entre l'enregistrement de la room et l'enregistrement du callback, on supprime la room_id pour éviter de la laisser orpheline
+                    VOEventRegistrationsHandler.unregister_vo_event_callback(k);
+                    return;
+                }
                 DataSynchroController.vo_events_registration_keys_by_room_id[room_id].push(k);
             })(),
 
@@ -102,6 +114,12 @@ export default class DataSynchroController {
                         if (idx > -1) Vue.set(listRef(), idx, vo);
                         on_list_change?.(list);
                     });
+
+                if (!DataSynchroController.vo_events_registration_keys_by_room_id[room_id]) {
+                    // On a une désynchro entre l'enregistrement de la room et l'enregistrement du callback, on supprime la room_id pour éviter de la laisser orpheline
+                    VOEventRegistrationsHandler.unregister_vo_event_callback(k);
+                    return;
+                }
                 DataSynchroController.vo_events_registration_keys_by_room_id[room_id].push(k);
             })(),
         ]);
@@ -147,6 +165,13 @@ export default class DataSynchroController {
             (async () => {
                 const k = await VOEventRegistrationsHandler.register_vo_delete_callback(
                     room_vo, room_id, () => setAndNotify(null));
+
+                if (!DataSynchroController.vo_events_registration_keys_by_room_id[room_id]) {
+                    // On a une désynchro entre l'enregistrement de la room et l'enregistrement du callback, on supprime la room_id pour éviter de la laisser orpheline
+                    VOEventRegistrationsHandler.unregister_vo_event_callback(k);
+                    return;
+                }
+
                 DataSynchroController.vo_events_registration_keys_by_room_id[room_id].push(k);
             })(),
 
@@ -154,6 +179,13 @@ export default class DataSynchroController {
             (async () => {
                 const k = await VOEventRegistrationsHandler.register_vo_update_callback(
                     room_vo, room_id, (_, vo) => setAndNotify(vo));
+
+                if (!DataSynchroController.vo_events_registration_keys_by_room_id[room_id]) {
+                    // On a une désynchro entre l'enregistrement de la room et l'enregistrement du callback, on supprime la room_id pour éviter de la laisser orpheline
+                    VOEventRegistrationsHandler.unregister_vo_event_callback(k);
+                    return;
+                }
+
                 DataSynchroController.vo_events_registration_keys_by_room_id[room_id].push(k);
             })(),
         ].filter(Boolean));

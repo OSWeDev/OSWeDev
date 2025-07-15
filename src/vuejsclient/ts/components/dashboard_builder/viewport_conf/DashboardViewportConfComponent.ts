@@ -10,6 +10,7 @@ import DashboardAllViewportsConfComponent from './all_viewports_conf/DashboardAl
 import './DashboardViewportConfComponent.scss';
 import DashboardSelectedViewportConfComponent from './selected_viewport_conf/DashboardSelectedViewportConfComponent';
 import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../page/DashboardPageStore';
+import DashboardBuilderVueController from '../DashboardBuilderVueController';
 
 @Component({
     template: require('./DashboardViewportConfComponent.pug'),
@@ -24,8 +25,8 @@ export default class DashboardViewportConfComponent extends VueComponentBase imp
 
     @Inject('storeNamespace') readonly storeNamespace!: string;
 
-    get get_selected_viewport(): DashboardViewportVO {
-        return this.vuexGet(reflect<this>().get_selected_viewport);
+    get get_dashboard_current_viewport(): DashboardViewportVO {
+        return this.vuexGet(reflect<this>().get_dashboard_current_viewport);
     }
 
     get get_dashboard(): DashboardVO {
@@ -41,5 +42,14 @@ export default class DashboardViewportConfComponent extends VueComponentBase imp
         ...args: Parameters<IDashboardPageActionsMethods[K]>
     ) {
         this.$store.dispatch(`${this.storeNamespace}/${String(action)}`, ...args);
+    }
+
+    public set_selected_onglet(onglet: string) {
+        this.vuexAct('set_selected_onglet', onglet);
+    }
+
+    // On renvoie sur l'onglet des widgets
+    public on_click_previsualization() {
+        this.set_selected_onglet(DashboardBuilderVueController.DBB_ONGLET_WIDGETS);
     }
 }

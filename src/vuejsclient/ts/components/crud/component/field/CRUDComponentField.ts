@@ -26,7 +26,6 @@ import RefRangesReferenceDatatableFieldVO from '../../../../../../shared/modules
 import SimpleDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import InsertOrDeleteQueryResult from '../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import ModuleTableFieldVO from '../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
-import DashboardBuilderController from '../../../../../../shared/modules/DashboardBuilder/DashboardBuilderController';
 import DataFilterOption from '../../../../../../shared/modules/DataRender/vos/DataFilterOption';
 import NumRange from '../../../../../../shared/modules/DataRender/vos/NumRange';
 import NumSegment from '../../../../../../shared/modules/DataRender/vos/NumSegment';
@@ -47,10 +46,12 @@ import { all_promises } from '../../../../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../../../../shared/tools/RangeHandler';
 import { ModuleAlertAction, ModuleAlertGetter } from '../../../alert/AlertStore';
 import { ModuleDAOAction, ModuleDAOGetter } from '../../../dao/store/DaoStore';
+import DashboardBuilderVueController from '../../../dashboard_builder/DashboardBuilderVueController';
 import TableWidgetExternalSelectorController from '../../../dashboard_builder/widgets/table_widget/external_selector/TableWidgetExternalSelectorController';
 import FileComponent from '../../../file/FileComponent';
 import HourrangeInputComponent from '../../../hourrangeinput/HourrangeInputComponent';
 import ImageComponent from '../../../image/ImageComponent';
+import InlineTranslatableText from '../../../InlineTranslatableText/InlineTranslatableText';
 import IsoWeekDaysInputComponent from '../../../isoweekdaysinput/IsoWeekDaysInputComponent';
 import MultiInputComponent from '../../../multiinput/MultiInputComponent';
 import NumRangeInputComponent from '../../../numrangeinput/NumRangeInputComponent';
@@ -65,7 +66,6 @@ import CRUDCreateFormController from '../create/CRUDCreateFormController';
 import CRUDFormServices from '../CRUDFormServices';
 import CRUDUpdateFormComponent from '../update/CRUDUpdateFormComponent';
 import './CRUDComponentField.scss';
-import InlineTranslatableText from '../../../InlineTranslatableText/InlineTranslatableText';
 const debounce = require('lodash/debounce');
 
 @Component({
@@ -2454,9 +2454,9 @@ export default class CRUDComponentField extends VueComponentBase
             }
 
             if (vo_id) {
-                res += DashboardBuilderController.DASHBOARD_VO_ACTION_EDIT;
+                res += DashboardBuilderVueController.DASHBOARD_VO_ACTION_EDIT;
             } else {
-                res += DashboardBuilderController.DASHBOARD_VO_ACTION_ADD;
+                res += DashboardBuilderVueController.DASHBOARD_VO_ACTION_ADD;
             }
 
             res += '/' + vo_id + '/' + api_type_id;

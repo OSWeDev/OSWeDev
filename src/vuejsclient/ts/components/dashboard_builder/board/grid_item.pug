@@ -1,26 +1,28 @@
 .grid_item_wrapper(
-    :class="{'selected': get_selected_widget && (item.i == get_selected_widget.i), ['widget_name__' + ((get_widgets_by_id && get_widgets_by_id[item.widget_id]) ? get_widgets_by_id[item.widget_id].name : '__')]: true, ['item__' + item.id]: true, hide: isHide(item) && !editable, shaded: isHide(item) && editable}" 
+    :class="{'selected': get_selected_widget && (selected_page_page_widgets_by_id[item.page_widget_id].id == get_selected_widget.id), ['widget_name__' + ((get_widgets_by_id && get_widgets_by_id[item.widget_id]) ? get_widgets_by_id[item.widget_id].name : '__')]: true, ['item__' + item.id]: true, hide: isHide(item) && !editable, shaded: isHide(item) && editable}" 
 )
-    Griditem(
-        :static="(!editable) || item.static"
-        :x="item.x"
-        :y="item.y"
-        :w="item.w"
-        :h="item.h"
-        :i="item.i"
-        @resized="resized_event"
-        @moved="moved_event"
-        :style="'background:' + item.background"
-        :key="'Griditem__' + item.id"
-    )
-        template(v-if='selected_page_page_widgets_by_id && selected_page_page_widgets_by_id[item.page_widget_id]')
-            Dashboardbuilderboarditemcomponent(
-                :dashboard_page='get_dashboard_page'
-                :dashboard_pages='get_dashboard_pages'
-                :dashboard='get_dashboard'
-                :page_widget='selected_page_page_widgets_by_id[item.page_widget_id]'
-                :all_page_widget='get_selected_page_page_widgets'
-                :is_edit_mode='editable'
-                :is_selected='get_selected_widget && (item.i == get_selected_widget.i)'
-                :key="'Dashboardbuilderboarditemcomponent__' + item.id + '__' + item_key[item.id]"
-            )
+
+    template(v-if='!!selected_page_page_widgets_by_id[item.page_widget_id]')
+        Griditem(
+            :static="(!editable) || item.static"
+            :x="item.x"
+            :y="item.y"
+            :w="item.w"
+            :h="item.h"
+            :i="item.i"
+            @resized="resized_event"
+            @moved="moved_event"
+            :style="'background:' + selected_page_page_widgets_by_id[item.page_widget_id].background"
+            :key="'Griditem__' + item.id"
+        )
+            template(v-if='selected_page_page_widgets_by_id && selected_page_page_widgets_by_id[item.page_widget_id]')
+                Dashboardbuilderboarditemcomponent(
+                    :dashboard_page='get_dashboard_page'
+                    :dashboard_pages='get_dashboard_pages'
+                    :dashboard='get_dashboard'
+                    :page_widget='selected_page_page_widgets_by_id[item.page_widget_id]'
+                    :all_page_widget='get_selected_page_page_widgets'
+                    :is_edit_mode='editable'
+                    :is_selected='get_selected_widget && (selected_page_page_widgets_by_id[item.page_widget_id].id == get_selected_widget.id)'
+                    :key="'Dashboardbuilderboarditemcomponent__' + item.id + '__' + item_key[item.id]"
+                )

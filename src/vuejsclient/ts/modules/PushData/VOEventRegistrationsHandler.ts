@@ -32,6 +32,11 @@ export default class VOEventRegistrationsHandler {
         }
 
         const cb_id: number = VOEventRegistrationsHandler.VO_EVENTS_CB_ID++;
+
+        // Attention : contrôle secondaire pour des cas de concurrence entre un register et un unregister sur le même room_id... je suis pas sûr que ce soit normal en soit..
+        if (!VOEventRegistrationsHandler.registered_vo_create_callbacks[room_id]) {
+            VOEventRegistrationsHandler.registered_vo_create_callbacks[room_id] = {};
+        }
         VOEventRegistrationsHandler.registered_vo_create_callbacks[room_id][cb_id] = cb;
 
         return new VOEventRegistrationKey(VOEventRegistrationKey.EVENT_TYPE_CREATION, room_vo, room_fields, room_id, cb_id);
@@ -82,6 +87,12 @@ export default class VOEventRegistrationsHandler {
         }
 
         const cb_id: number = VOEventRegistrationsHandler.VO_EVENTS_CB_ID++;
+
+        // Attention : contrôle secondaire pour des cas de concurrence entre un register et un unregister sur le même room_id... je suis pas sûr que ce soit normal en soit..
+        if (!VOEventRegistrationsHandler.registered_vo_update_callbacks[room_id]) {
+            VOEventRegistrationsHandler.registered_vo_update_callbacks[room_id] = {};
+        }
+
         VOEventRegistrationsHandler.registered_vo_update_callbacks[room_id][cb_id] = cb;
 
         return new VOEventRegistrationKey(VOEventRegistrationKey.EVENT_TYPE_UPDATE, room_vo, room_fields, room_id, cb_id);
@@ -104,6 +115,12 @@ export default class VOEventRegistrationsHandler {
         }
 
         const cb_id: number = VOEventRegistrationsHandler.VO_EVENTS_CB_ID++;
+
+        // Attention : contrôle secondaire pour des cas de concurrence entre un register et un unregister sur le même room_id... je suis pas sûr que ce soit normal en soit..
+        if (!VOEventRegistrationsHandler.registered_vo_delete_callbacks[room_id]) {
+            VOEventRegistrationsHandler.registered_vo_delete_callbacks[room_id] = {};
+        }
+
         VOEventRegistrationsHandler.registered_vo_delete_callbacks[room_id][cb_id] = cb;
 
         return new VOEventRegistrationKey(VOEventRegistrationKey.EVENT_TYPE_DELETION, room_vo, room_fields, room_id, cb_id);

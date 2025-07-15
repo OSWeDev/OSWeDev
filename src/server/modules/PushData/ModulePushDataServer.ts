@@ -346,15 +346,13 @@ export default class ModulePushDataServer extends ModuleServerBase {
                 continue;
             }
 
-            if (!this.vo_matches_room(vo_updtae_wrapper.pre_update_vo, vo_filter)) {
+            if (this.vo_matches_room(vo_updtae_wrapper.pre_update_vo, vo_filter)) {
                 PushDataServerController.notify_vo_update(room_id, vo_updtae_wrapper.pre_update_vo, vo_updtae_wrapper.post_update_vo);
-                continue;
             }
 
             if (this.vo_matches_room(vo_updtae_wrapper.post_update_vo, vo_filter)) {
                 // On notifie la room IO de la mise à jour
                 PushDataServerController.notify_vo_update(room_id, vo_updtae_wrapper.pre_update_vo, vo_updtae_wrapper.post_update_vo);
-                continue;
             }
         }
     }

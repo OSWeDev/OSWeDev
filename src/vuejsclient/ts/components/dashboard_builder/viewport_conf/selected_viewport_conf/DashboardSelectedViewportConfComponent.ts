@@ -52,21 +52,21 @@ export default class DashboardSelectedViewportConfComponent extends VueComponent
     @SyncVOs(DashboardViewportPageWidgetVO.API_TYPE_ID, {
         debug: true,
 
-        watch_fields: [reflect<DashboardSelectedViewportConfComponent>().all_dashboard_page_widgets, reflect<DashboardSelectedViewportConfComponent>().get_selected_viewport],
+        watch_fields: [reflect<DashboardSelectedViewportConfComponent>().all_dashboard_page_widgets, reflect<DashboardSelectedViewportConfComponent>().get_dashboard_current_viewport],
         filters_factory: (self) => {
-            if (!self.dashboard || !self.all_dashboard_page_widgets || self.all_dashboard_page_widgets.length <= 0 || !self.get_selected_viewport) {
+            if (!self.dashboard || !self.all_dashboard_page_widgets || self.all_dashboard_page_widgets.length <= 0 || !self.get_dashboard_current_viewport) {
                 return null;
             }
 
             return [
                 filter(DashboardViewportPageWidgetVO.API_TYPE_ID, field_names<DashboardViewportPageWidgetVO>().page_widget_id).by_num_has(self.all_dashboard_page_widgets.map(pwidget => pwidget.id)),
-                filter(DashboardViewportPageWidgetVO.API_TYPE_ID, field_names<DashboardViewportPageWidgetVO>().viewport_id).by_num_eq(self.get_selected_viewport.id),
+                filter(DashboardViewportPageWidgetVO.API_TYPE_ID, field_names<DashboardViewportPageWidgetVO>().viewport_id).by_num_eq(self.get_dashboard_current_viewport.id),
             ];
         },
     })
     public viewport_page_widgets: DashboardViewportPageWidgetVO[] = [];
 
-    @TestAccess(DAOController.getAccessPolicyName(DashboardPageWidgetVO.API_TYPE_ID, ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE))
+    @TestAccess(DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, DashboardPageWidgetVO.API_TYPE_ID))
     public can_edit: boolean = false;
 
     get viewport_page_widgets_by_page_widget_id(): { [id: number]: DashboardViewportPageWidgetVO } {
@@ -82,8 +82,8 @@ export default class DashboardSelectedViewportConfComponent extends VueComponent
         return res;
     }
 
-    get get_selected_viewport(): DashboardViewportVO {
-        return this.vuexGet(reflect<this>().get_selected_viewport);
+    get get_dashboard_current_viewport(): DashboardViewportVO {
+        return this.vuexGet(reflect<this>().get_dashboard_current_viewport);
     }
 
     get get_selected_widget(): DashboardPageWidgetVO {
@@ -119,7 +119,7 @@ export default class DashboardSelectedViewportConfComponent extends VueComponent
     }
 
     public async switch_page_widget_activation(viewport_page_widget: DashboardViewportPageWidgetVO) {
-        if (!this.dashboard || !this.get_selected_viewport || !viewport_page_widget) {
+        if (!this.dashboard || !this.get_dashboard_current_viewport || !viewport_page_widget) {
             return;
         }
 

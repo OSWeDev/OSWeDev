@@ -1212,6 +1212,14 @@ export default class ModuleDashboardBuilderDefaultTranslationsHolder {
         }, 'dashboard_builder.shared_filters.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Droits'
+        }, 'dashboard_builder.rights.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Vous ne pouvez pas désactiver le dernier écran actif'
+        }, 'DashboardAllViewportsConfComponent.switch_viewport_activation.last_viewport.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Écrans'
         }, 'dashboard_builder.viewport_conf.___LABEL___'));
 

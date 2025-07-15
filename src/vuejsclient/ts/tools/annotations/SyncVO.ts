@@ -20,7 +20,7 @@ interface VueWithSyncVO extends Vue {
 
 interface SyncVOParameters<T extends VueWithSyncVO, V extends IDistantVOBase> {
     watch_fields?: string[];
-    id_factory: (vm: T) => number | V;
+    id_factory: (vm: T) => number | V | Promise<number | V>;
     deep_watch?: boolean;
     throttle_ms?: number;
 
@@ -42,7 +42,7 @@ export function SyncVO<T extends VueWithSyncVO, V extends IDistantVOBase>(
         target.created = async function () {
             if (originalCreated) await originalCreated.call(this);
 
-            const vo_or_id = params.id_factory(this);
+            const vo_or_id = await params.id_factory(this);
             const vo = vo_or_id ? (typeof vo_or_id === 'number' ? null : vo_or_id) : null;
             const vo_id = vo_or_id ? (vo ? vo.id : vo_or_id as number) : null;
 
@@ -117,7 +117,7 @@ export function SyncVO<T extends VueWithSyncVO, V extends IDistantVOBase>(
                     throttle_ms: params.throttle_ms || 100,
                 })(target, watcherMethodName, {
                     value: async function () {
-                        const vo_or_id = params.id_factory(this);
+                        const vo_or_id = await params.id_factory(this);
                         const vo = vo_or_id ? (typeof vo_or_id === 'number' ? null : vo_or_id) : null;
                         const vo_id = vo_or_id ? (vo ? vo.id : vo_or_id as number) : null;
 
@@ -126,13 +126,13 @@ export function SyncVO<T extends VueWithSyncVO, V extends IDistantVOBase>(
                         const old_simple_filters_on_api_type_id = [
                             filter(api_type_id).by_id(this.__previousSyncVOId),
                         ];
-                        const old_room_vo = this.__previousSyncVOFilters ? this.get_room_vo_for_register_vo_updates(api_type_id, old_simple_filters_on_api_type_id) : null;
+                        const old_room_vo = this.__previousSyncVOFilters ? DataSynchroController.get_room_vo_for_register_vo_updates(api_type_id, old_simple_filters_on_api_type_id) : null;
                         const old_room_id = this.__previousSyncVOFilters ? JSON.stringify(old_room_vo) : null;
 
                         const new_simple_filters_on_api_type_id = [
                             filter(api_type_id).by_id(vo_id),
                         ];
-                        const new_room_vo = this.get_room_vo_for_register_vo_updates(api_type_id, new_simple_filters_on_api_type_id);
+                        const new_room_vo = DataSynchroController.get_room_vo_for_register_vo_updates(api_type_id, new_simple_filters_on_api_type_id);
                         const new_room_id = JSON.stringify(new_room_vo);
 
                         if (old_room_id === new_room_id) {
@@ -186,37 +186,53 @@ export function SyncVO<T extends VueWithSyncVO, V extends IDistantVOBase>(
             });
         } else {
 
-            const vo_or_id = params.id_factory(target);
-            const vo = vo_or_id ? (typeof vo_or_id === 'number' ? null : vo_or_id) : null;
-            const vo_id = vo_or_id ? (vo ? vo.id : vo_or_id as number) : null;
+            const id_fact_res = params.id_factory(target);
 
-            if (!vo_id) return;
+            const use_vo_or_id = (vo_or_id) => {
+                const vo = vo_or_id ? (typeof vo_or_id === 'number' ? null : vo_or_id) : null;
+                const vo_id = vo_or_id ? (vo ? vo.id : vo_or_id as number) : null;
 
-            const new_simple_filters_on_api_type_id = [
-                filter(api_type_id).by_id(vo_id),
-            ];
-            const new_room_vo = DataSynchroController.get_room_vo_for_register_vo_updates(api_type_id, new_simple_filters_on_api_type_id);
-            const new_room_id = JSON.stringify(new_room_vo);
+                if (!vo_id) return;
 
-            if (vo_id != null) {
+                const new_simple_filters_on_api_type_id = [
+                    filter(api_type_id).by_id(vo_id),
+                ];
+                const new_room_vo = DataSynchroController.get_room_vo_for_register_vo_updates(api_type_id, new_simple_filters_on_api_type_id);
+                const new_room_id = JSON.stringify(new_room_vo);
 
-                if (vo && vo.id) {
-                    target[propertyKey] = vo;
+                if (vo_id != null) {
+
+                    if (vo && vo.id) {
+                        target[propertyKey] = vo;
+                    }
+
+                    if (params.debug) {
+                        ConsoleHandler.debug(`SyncVO: Registering new room id ${new_room_id} for ${propertyKey}.`);
+                    }
+                    DataSynchroController.register_single_vo_updates(
+                        target,
+                        api_type_id,
+                        vo_id,
+                        propertyKey,
+                        !!(vo && vo.id),
+                        params.debug ? (updated_vo: V) => {
+                            ConsoleHandler.debug(`SyncVO: Registered updates for ${propertyKey} with id:${vo_id}. Current value: ${JSON.stringify(updated_vo)}`);
+                        } : undefined,
+                    );
                 }
+            };
 
-                if (params.debug) {
-                    ConsoleHandler.debug(`SyncVO: Registering new room id ${new_room_id} for ${propertyKey}.`);
-                }
-                DataSynchroController.register_single_vo_updates(
-                    target,
-                    api_type_id,
-                    vo_id,
-                    propertyKey,
-                    !!(vo && vo.id),
-                    params.debug ? (updated_vo: V) => {
-                        ConsoleHandler.debug(`SyncVO: Registered updates for ${propertyKey} with id:${vo_id}. Current value: ${JSON.stringify(updated_vo)}`);
-                    } : undefined,
-                );
+
+
+            if (id_fact_res instanceof Promise) {
+
+                id_fact_res.then(use_vo_or_id).catch((error) => {
+                    if (params.debug) {
+                        ConsoleHandler.error(`SyncVO: Error during initialization of ${propertyKey}:`, error);
+                    }
+                });
+            } else {
+                use_vo_or_id(id_fact_res);
             }
         }
     };

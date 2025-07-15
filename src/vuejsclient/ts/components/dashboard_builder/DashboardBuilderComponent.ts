@@ -24,6 +24,7 @@ import ExportVOsToJSONHistoricVO from '../../../../shared/modules/DataExport/vos
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import LocaleManager from '../../../../shared/tools/LocaleManager';
 import ObjectHandler, { field_names, reflect } from '../../../../shared/tools/ObjectHandler';
+import { SafeWatch } from '../../tools/annotations/SafeWatch';
 import { SyncVO } from '../../tools/annotations/SyncVO';
 import { SyncVOs } from '../../tools/annotations/SyncVOs';
 import { TestAccess } from '../../tools/annotations/TestAccess';
@@ -41,7 +42,7 @@ import DashboardPageStore, { IDashboardGetters, IDashboardPageActionsMethods, ID
 import DashboardSharedFiltersComponent from './shared_filters/DashboardSharedFiltersComponent';
 import DashboardViewportConfComponent from './viewport_conf/DashboardViewportConfComponent';
 import DashboardBuilderWidgetsComponent from './widgets/DashboardBuilderWidgetsComponent';
-import { SafeWatch } from '../../tools/annotations/SafeWatch';
+import DashboardBuilderVueController from './DashboardBuilderVueController';
 
 @Component({
     template: require('./DashboardBuilderComponent.pug'),
@@ -58,22 +59,6 @@ import { SafeWatch } from '../../tools/annotations/SafeWatch';
     },
 })
 export default class DashboardBuilderComponent extends VueComponentBase implements IDashboardPageConsumer {
-
-    public static DBB_ONGLET_TABLE: string = 'onglet_table';
-    public static DBB_ONGLET_VIEWPORT: string = 'onglet_viewport';
-    public static DBB_ONGLET_WIDGETS: string = 'onglet_widgets';
-    public static DBB_ONGLET_MENUS: string = 'onglet_menus';
-    public static DBB_ONGLET_FILTRES_PARTAGES: string = 'onglet_shared_filters';
-    public static DBB_ONGLET_RIGHTS: string = 'onglet_rights';
-    public static ALL_DBB_ONGLETS: string[] = [
-        DashboardBuilderComponent.DBB_ONGLET_TABLE,
-        DashboardBuilderComponent.DBB_ONGLET_VIEWPORT,
-        DashboardBuilderComponent.DBB_ONGLET_WIDGETS,
-        DashboardBuilderComponent.DBB_ONGLET_MENUS,
-        DashboardBuilderComponent.DBB_ONGLET_FILTRES_PARTAGES,
-        DashboardBuilderComponent.DBB_ONGLET_RIGHTS,
-    ];
-
 
     @Prop({ default: null })
     public readonly dashboard_id: number;
@@ -107,7 +92,11 @@ export default class DashboardBuilderComponent extends VueComponentBase implemen
     })
     public dashboard: DashboardVO = null; // The current dashboard
 
-    @SyncVOs(DBBConfVO.API_TYPE_ID, { debug: true })
+    @SyncVOs(DBBConfVO.API_TYPE_ID,
+        {
+            debug: true,
+            sync_to_store_namespace: (self) => self.storeNamespace,
+        })
     public dbb_confs: DBBConfVO[] = []; // All the DBB configurations available in the system
 
     @TestAccess(ModuleDashboardBuilder.POLICY_DBB_ACCESS_ONGLET_TABLE)
@@ -135,24 +124,25 @@ export default class DashboardBuilderComponent extends VueComponentBase implemen
     @TestAccess(ModuleDashboardBuilder.POLICY_DBB_CAN_EDIT_PAGES)
     public POLICY_DBB_CAN_EDIT_PAGES: boolean = false;
 
-    public show_shared_filters: boolean = false;
-    public show_build_page: boolean = false;
-    public show_select_vos: boolean = true;
-    public show_menu_conf: boolean = false;
-
     public collapsed_fields_wrapper: boolean = true;
     public collapsed_fields_wrapper_2: boolean = true;
 
     public can_use_clipboard: boolean = false;
 
-    public selected_onglet: string = DashboardBuilderComponent.DBB_ONGLET_TABLE;
-
     public export_vos_to_json_conf: ExportVOsToJSONConfVO = null;
 
     public all_tables_by_table_name: { [table_name: string]: ModuleTableVO } = {};
 
+    get get_selected_onglet(): string {
+        return this.vuexGet(reflect<this>().get_selected_onglet);
+    }
+
     get get_dashboard_current_viewport(): DashboardViewportVO {
         return this.vuexGet(reflect<this>().get_dashboard_current_viewport);
+    }
+
+    get has_navigation_history(): boolean {
+        return this.vuexGet(reflect<this>().has_navigation_history);
     }
 
     get get_current_dbb_conf(): DBBConfVO {
@@ -163,29 +153,62 @@ export default class DashboardBuilderComponent extends VueComponentBase implemen
         return this.vuexGet(reflect<this>().get_page_history);
     }
 
+    get onglet_table(): string {
+        return DashboardBuilderVueController.DBB_ONGLET_TABLE;
+    }
+
+    get onglet_viewport(): string {
+        return DashboardBuilderVueController.DBB_ONGLET_VIEWPORT;
+    }
+
+    get onglet_widgets(): string {
+        return DashboardBuilderVueController.DBB_ONGLET_WIDGETS;
+    }
+
+    get onglet_menus(): string {
+        return DashboardBuilderVueController.DBB_ONGLET_MENUS;
+    }
+
+    get onglet_shared_filters(): string {
+        return DashboardBuilderVueController.DBB_ONGLET_FILTRES_PARTAGES;
+    }
+
+    get onglet_rights(): string {
+        return DashboardBuilderVueController.DBB_ONGLET_RIGHTS;
+    }
+
+    get get_discarded_field_paths(): { [vo_type: string]: { [field_id: string]: boolean } } {
+        return this.vuexGet(reflect<this>().get_dashboard_discarded_field_paths);
+    }
+
     get validite_onglets(): { [onglet: string]: boolean } {
+
+        if (!this.get_current_dbb_conf) {
+            return {};
+        }
+
         const validite_onglets: { [onglet: string]: boolean } = {};
 
-        for (const i in DashboardBuilderComponent.ALL_DBB_ONGLETS) {
-            const onglet = DashboardBuilderComponent.ALL_DBB_ONGLETS[i];
+        for (const i in DashboardBuilderVueController.ALL_DBB_ONGLETS) {
+            const onglet = DashboardBuilderVueController.ALL_DBB_ONGLETS[i];
 
             switch (onglet) {
-                case DashboardBuilderComponent.DBB_ONGLET_TABLE:
+                case DashboardBuilderVueController.DBB_ONGLET_TABLE:
                     validite_onglets[onglet] = this.POLICY_DBB_ACCESS_ONGLET_TABLE && this.get_current_dbb_conf.has_access_to_tables_tab;
                     break;
-                case DashboardBuilderComponent.DBB_ONGLET_VIEWPORT:
+                case DashboardBuilderVueController.DBB_ONGLET_VIEWPORT:
                     validite_onglets[onglet] = this.POLICY_DBB_ACCESS_ONGLET_VIEWPORT && this.get_current_dbb_conf.has_access_to_viewport_tab;
                     break;
-                case DashboardBuilderComponent.DBB_ONGLET_WIDGETS:
+                case DashboardBuilderVueController.DBB_ONGLET_WIDGETS:
                     validite_onglets[onglet] = this.POLICY_DBB_ACCESS_ONGLET_WIDGETS && this.get_current_dbb_conf.has_access_to_widgets_tab;
                     break;
-                case DashboardBuilderComponent.DBB_ONGLET_MENUS:
+                case DashboardBuilderVueController.DBB_ONGLET_MENUS:
                     validite_onglets[onglet] = this.POLICY_DBB_ACCESS_ONGLET_MENUS && this.get_current_dbb_conf.has_access_to_menus_tab;
                     break;
-                case DashboardBuilderComponent.DBB_ONGLET_FILTRES_PARTAGES:
+                case DashboardBuilderVueController.DBB_ONGLET_FILTRES_PARTAGES:
                     validite_onglets[onglet] = this.POLICY_DBB_ACCESS_ONGLET_FILTRES_PARTAGES && this.get_current_dbb_conf.has_access_to_shared_filters_tab;
                     break;
-                case DashboardBuilderComponent.DBB_ONGLET_RIGHTS:
+                case DashboardBuilderVueController.DBB_ONGLET_RIGHTS:
                     validite_onglets[onglet] = this.POLICY_DBB_ACCESS_ONGLET_RIGHTS && this.get_current_dbb_conf.has_access_to_rights_tab;
                     break;
                 default:
@@ -223,6 +246,10 @@ export default class DashboardBuilderComponent extends VueComponentBase implemen
         }
 
         return res;
+    }
+
+    get get_viewports(): DashboardViewportVO[] {
+        return this.vuexGet(reflect<this>().get_viewports);
     }
 
     get can_build_page() {
@@ -704,7 +731,7 @@ export default class DashboardBuilderComponent extends VueComponentBase implemen
     public init_dashboard_tab() {
 
         // On doit d'abord mettre à jour les droits d'accès aux onglets en fonction des droits et de la configuration du DBB
-        if (this.validite_onglets[this.selected_onglet]) {
+        if (this.validite_onglets[this.get_selected_onglet]) {
             return; // Si l'onglet sélectionné est valide, on ne change rien
         }
 
@@ -714,9 +741,9 @@ export default class DashboardBuilderComponent extends VueComponentBase implemen
         }
 
         // On cherche le premier onglet valide
-        for (const onglet of DashboardBuilderComponent.ALL_DBB_ONGLETS) {
+        for (const onglet of DashboardBuilderVueController.ALL_DBB_ONGLETS) {
             if (this.validite_onglets[onglet]) {
-                this.selected_onglet = onglet;
+                this.set_selected_onglet(onglet);
                 break;
             }
         }
@@ -790,6 +817,13 @@ export default class DashboardBuilderComponent extends VueComponentBase implemen
         });
     }
 
+    public async create_dashboard_page(): Promise<void> {
+        const new_page = new (ModuleTableController.vo_constructor_by_vo_type[DashboardPageVO.API_TYPE_ID])() as DashboardPageVO; // On passe par le moduletablecontroller comme ça on a les inits par défaut des champs aussi
+        new_page.dashboard_id = this.dashboard.id;
+        new_page.weight = this.get_dashboard_pages.length;
+        await ModuleDAO.getInstance().insertOrUpdateVO(new_page);
+    }
+
     public async confirm_delete_page(page: DashboardPageVO) {
 
         if ((!page) || (!this.get_dashboard_page) || (!this.dashboard) || (!this.get_dashboard_pages) || (!this.get_dashboard_pages.length)) {
@@ -832,56 +866,6 @@ export default class DashboardBuilderComponent extends VueComponentBase implemen
         });
     }
 
-    /**
-     * select_configuration_tab
-     * - Set the active tab by the given tab name
-     *
-     * @param {string} activate_tab
-     * @returns {void}
-     */
-    public select_configuration_tab(activate_tab: string): void {
-
-        if (!activate_tab) {
-            return;
-        }
-
-        this.show_shared_filters = false;
-        this.show_select_vos = false;
-        this.show_build_page = false;
-        this.show_menu_conf = false;
-
-        switch (activate_tab) {
-            case 'shared_filters':
-                this.show_shared_filters = true;
-                break;
-            case 'select_vos':
-                this.show_select_vos = true;
-                break;
-            case 'menu_conf':
-                this.show_menu_conf = true;
-                break;
-            case 'build_page':
-                this.show_build_page = true;
-                break;
-        }
-    }
-
-    public select_vos() {
-        this.select_configuration_tab('select_vos');
-    }
-
-    public build_page() {
-        this.select_configuration_tab('build_page');
-    }
-
-    public menu_conf() {
-        this.select_configuration_tab('menu_conf');
-    }
-
-    public select_shared_filters() {
-        this.select_configuration_tab('shared_filters');
-    }
-
     public async mounted() {
         const self = this;
         await navigator.permissions.query({ name: "clipboard-write" as any }).then((result) => {
@@ -920,5 +904,17 @@ export default class DashboardBuilderComponent extends VueComponentBase implemen
             all_tables_by_table_name[table_name] = ModuleTableController.module_tables_by_vo_type[table_name];
         }
         this.all_tables_by_table_name = all_tables_by_table_name;
+    }
+
+    public viewport_label(viewport: DashboardViewportVO): string {
+        if ((viewport == null) || (typeof viewport == 'undefined')) {
+            return '';
+        }
+
+        return viewport.id + ' | ' + viewport.name + ' | ' + viewport.screen_min_width + ' px | ' + viewport.nb_columns + this.label('dashboard_builder.viewport.columns');
+    }
+
+    public set_selected_onglet(onglet: string): void {
+        this.vuexAct(reflect<this>().set_selected_onglet, onglet);
     }
 }

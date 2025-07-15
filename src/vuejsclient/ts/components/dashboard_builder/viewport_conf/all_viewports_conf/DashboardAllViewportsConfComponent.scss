@@ -4,16 +4,29 @@
         align-items: center;
         padding: 8px 12px;
         cursor: pointer;
-        transition: background-color 0.3s, box-shadow 0.3s;
-        position: relative;
+        transition: background-color 0.3s, box-shadow 0.2s ease;
+        border-radius: 8px;
+        margin-bottom: 4px;
 
         &:hover {
             background-color: rgba(0, 0, 0, 0.05);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         &.selected {
-            background-color: rgba(0, 0, 0, 0.1);
-            font-weight: bold;
+            background-color: rgba(0, 123, 255, 0.1);
+            box-shadow: inset 3px 0 0 #007bff;
+        }
+
+        &.new_viewport {
+            justify-content: center;
+            color: #007bff;
+            border: 1px dashed #007bff;
+            background-color: transparent;
+
+            &:hover {
+                background-color: rgba(0, 123, 255, 0.05);
+            }
         }
 
         .viewport_conf {
@@ -21,54 +34,139 @@
             align-items: center;
             width: 100%;
 
+            i {
+                border-radius: 4px;
+                padding: .4em;
+                font-size: 1.2em;
+            }
+
             .is_viewport_activated {
                 width: 24px;
                 height: 24px;
-                margin-right: 10px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                transition: color 0.3s;
 
                 &.activated {
-                    color: #55c57a; // vert activé
+                    color: #28a745;
                 }
 
                 &.disabled {
-                    opacity: 0.3;
-                    pointer-events: none;
+                    color: #ced4da;
                 }
             }
 
             .name {
                 flex-grow: 1;
-                transition: color 0.3s;
+                margin-left: 8px;
+                font-weight: 500;
             }
 
-            .edit,
-            .delete {
-                width: 24px;
-                height: 24px;
-                opacity: 0;
-                transition: opacity 0.3s;
+            .actions {
                 display: flex;
                 align-items: center;
-                justify-content: center;
-                cursor: pointer;
 
-                // &.edit {
-                //     color: #3498db; // bleu éditer
-                // }
+                .edit,
+                .delete {
+                    width: 24px;
+                    height: 24px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    opacity: 0.7;
+                    transition: opacity 0.2s;
 
-                // &.delete {
-                //     color: #e74c3c; // rouge supprimer
-                // }
+                    &:hover {
+                        opacity: 1;
+                    }
+                }
+
+                .edit {
+                    color: #17a2b8;
+                }
+
+                .delete {
+                    color: #dc3545;
+                }
             }
-        }
-
-        &:hover .viewport_conf .edit,
-        &:hover .viewport_conf .delete {
-            opacity: 1;
         }
     }
 }
+
+// .DashboardAllViewportsConfComponent {
+//     .viewport_conf_wrapper {
+//         border-radius: 4px;
+//         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+//         display: flex;
+//         align-items: center;
+//         padding: 8px 12px;
+//         cursor: pointer;
+//         transition: background-color 0.3s, box-shadow 0.3s;
+//         position: relative;
+
+//         &:hover {
+//             background-color: rgba(0, 0, 0, 0.05);
+//         }
+
+//         &.selected {
+//             background-color: rgba(0, 0, 0, 0.1);
+//             font-weight: bold;
+//         }
+
+//         .viewport_conf {
+//             display: flex;
+//             align-items: center;
+//             width: 100%;
+
+//             .is_viewport_activated {
+//                 width: 24px;
+//                 height: 24px;
+//                 margin-right: 10px;
+//                 display: flex;
+//                 align-items: center;
+//                 justify-content: center;
+//                 transition: color 0.3s;
+
+//                 &.activated {
+//                     color: #55c57a; // vert activé
+//                 }
+
+//                 &.disabled {
+//                     opacity: 0.3;
+//                     pointer-events: none;
+//                 }
+//             }
+
+//             .name {
+//                 flex-grow: 1;
+//                 transition: color 0.3s;
+//             }
+
+//             .edit,
+//             .delete {
+//                 width: 24px;
+//                 height: 24px;
+//                 opacity: 0;
+//                 transition: opacity 0.3s;
+//                 display: flex;
+//                 align-items: center;
+//                 justify-content: center;
+//                 cursor: pointer;
+
+//                 // &.edit {
+//                 //     color: #3498db; // bleu éditer
+//                 // }
+
+//                 // &.delete {
+//                 //     color: #e74c3c; // rouge supprimer
+//                 // }
+//             }
+//         }
+
+//         &:hover .viewport_conf .edit,
+//         &:hover .viewport_conf .delete {
+//             opacity: 1;
+//         }
+//     }
+// }

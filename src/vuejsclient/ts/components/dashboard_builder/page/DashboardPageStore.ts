@@ -20,6 +20,7 @@ import IStoreModule from "../../../store/IStoreModule";
 import { store_mutations_names } from '../../../store/StoreModuleBase';
 import VueComponentBase from "../../VueComponentBase";
 import DashboardCopyWidgetComponent from "../copy_widget/DashboardCopyWidgetComponent";
+import DashboardBuilderVueController from '../DashboardBuilderVueController';
 
 export type DashboardPageContext = ActionContext<IDashboardPageState, any>;
 
@@ -40,11 +41,6 @@ export interface IDashboardPageState {
      * Tous les page_widgets de la page actuellement visualisée du Dashboard
      */
     selected_page_page_widgets: DashboardPageWidgetVO[];
-
-    /**
-     * Current Viewport
-     */
-    selected_viewport: DashboardViewportVO;
 
     /**
      * Currently Selected Widget
@@ -88,12 +84,17 @@ export interface IDashboardPageState {
     dashboard_viewport_page_widgets: DashboardViewportPageWidgetVO[]; // All page widgets of the current viewport of the current page of the dashboard
 
     dbb_confs: DBBConfVO[]; // All the DBB configurations available in the system
-    current_dbb_conf: DBBConfVO; // Current DBB configuration used (from the dashboard or selected by the user in the DBB)
 
     crud_vo: IDistantVOBase; // VO used for CRUD operations (read, create, update) in the dashboard / used by template widgets
+
+    selected_onglet: string; // Dans un DBB, permet de switcher d'onglet
 }
 
 const getters = {
+
+    get_selected_onglet(state: IDashboardPageState): string {
+        return state.selected_onglet || DashboardBuilderVueController.DBB_ONGLET_TABLE;
+    },
 
     get_dashboard_valid_viewports(state: IDashboardPageState): DashboardViewportVO[] {
 
@@ -133,7 +134,12 @@ const getters = {
     },
 
     get_current_dbb_conf(state: IDashboardPageState): DBBConfVO {
-        return state.current_dbb_conf;
+        if (!state.dashboard || !state.dbb_confs || state.dbb_confs.length <= 0) {
+            // No dashboard or no DBB confs, return the first valid DBB conf
+            return null;
+        }
+
+        return state.dbb_confs.find((dbb_conf) => dbb_conf.id == state.dashboard.dbb_conf_id) || null;
     },
 
     get_user_valid_dbb_confs(state: IDashboardPageState): DBBConfVO[] {
@@ -240,8 +246,8 @@ const getters = {
         return state.selected_widget;
     },
 
-    get_selected_viewport(state: IDashboardPageState): DashboardViewportVO {
-        return state.selected_viewport;
+    has_navigation_history(state: IDashboardPageState): boolean {
+        return state.page_history && (state.page_history.length > 0);
     },
 
     get_page_widgets_components_by_pwid(state: IDashboardPageState): { [pwid: number]: VueComponentBase } {
@@ -348,9 +354,9 @@ const getters = {
 
 
 const actions = {
+    set_selected_onglet: (context: DashboardPageContext, selected_onglet: string) => context.commit(store_mutations_names(storeInstance).set_selected_onglet, selected_onglet),
     set_crud_vo: (context: DashboardPageContext, crud_vo: IDistantVOBase) => context.commit(store_mutations_names(storeInstance).set_crud_vo, crud_vo),
     set_dbb_confs: (context: DashboardPageContext, dbb_confs: DBBConfVO[]) => context.commit(store_mutations_names(storeInstance).set_dbb_confs, dbb_confs),
-    set_current_dbb_conf: (context: DashboardPageContext, current_dbb_conf: DBBConfVO) => context.commit(store_mutations_names(storeInstance).set_current_dbb_conf, current_dbb_conf),
     set_page_widgets: (context: DashboardPageContext, page_widgets: DashboardPageWidgetVO[]) => context.commit(store_mutations_names(storeInstance).set_page_widgets, page_widgets),
     set_page_widget_component_by_pwid: (context: DashboardPageContext, param: { pwid: number, page_widget_component: VueComponentBase }) => context.commit(store_mutations_names(storeInstance).set_page_widget_component_by_pwid, param),
     set_dashboard_page: (context: DashboardPageContext, dashboard_page: DashboardPageVO) => context.commit(store_mutations_names(storeInstance).set_dashboard_page, dashboard_page),
@@ -365,7 +371,6 @@ const actions = {
     set_dashboard: (context: DashboardPageContext, dashboard: DashboardVO) => context.commit(store_mutations_names(storeInstance).set_dashboard, dashboard),
     set_callback_for_set_selected_widget: (context: DashboardPageContext, callback_for_set_selected_widget: (page_widget: DashboardPageWidgetVO) => void) => context.commit(store_mutations_names(storeInstance).set_callback_for_set_selected_widget, callback_for_set_selected_widget),
     set_selected_widget: (context: DashboardPageContext, selected_widget: DashboardPageWidgetVO) => context.commit(store_mutations_names(storeInstance).set_selected_widget, selected_widget),
-    set_selected_viewport: (context: DashboardPageContext, selected_viewport: DashboardViewportVO) => context.commit(store_mutations_names(storeInstance).set_selected_viewport, selected_viewport),
     set_page_widgets_components_by_pwid: (context: DashboardPageContext, page_widgets_components_by_pwid: { [pwid: number]: VueComponentBase }) => context.commit(store_mutations_names(storeInstance).set_page_widgets_components_by_pwid, page_widgets_components_by_pwid),
     set_widget_invisibility: (context: DashboardPageContext, w_id: number) => context.commit(store_mutations_names(storeInstance).set_widget_invisibility, w_id),
     set_widget_visibility: (context: DashboardPageContext, w_id: number) => context.commit(store_mutations_names(storeInstance).set_widget_visibility, w_id),
@@ -418,6 +423,14 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
     public getters: GetterTree<IDashboardPageState, DashboardPageContext>;
     public mutations = {
 
+        set_selected_onglet(state: IDashboardPageState, selected_onglet: string) {
+            if (state.selected_onglet === selected_onglet) {
+                return;
+            }
+
+            state.selected_onglet = selected_onglet;
+        },
+
         set_crud_vo(state: IDashboardPageState, crud_vo: IDistantVOBase) {
             if (state.crud_vo === crud_vo) {
                 return;
@@ -432,14 +445,6 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
             }
 
             state.dbb_confs = dbb_confs;
-        },
-
-        set_current_dbb_conf(state: IDashboardPageState, current_dbb_conf: DBBConfVO) {
-            if (state.current_dbb_conf?.id == current_dbb_conf?.id) {
-                return;
-            }
-
-            state.current_dbb_conf = current_dbb_conf;
         },
 
         set_dashboard_page(state: IDashboardPageState, dashboard_page: DashboardPageVO) {
@@ -539,20 +544,7 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
                 return;
             }
 
-            this.callback_for_set_selected_widget(selected_widget);
-        },
-
-        set_selected_viewport(state: IDashboardPageState, selected_viewport: DashboardViewportVO) {
-            if (!selected_viewport) {
-                // On ne peut pas désélectionner le viewport
-                return;
-            }
-
-            if (state.selected_viewport?.id == selected_viewport.id) {
-                return;
-            }
-
-            state.selected_viewport = selected_viewport;
+            state.callback_for_set_selected_widget(selected_widget);
         },
 
         set_page_widgets_components_by_pwid(state: IDashboardPageState, page_widgets_components_by_pwid: { [pwid: number]: VueComponentBase }) {
@@ -685,13 +677,13 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
 
 
         this.state = {
+            selected_onglet: DashboardBuilderVueController.DBB_ONGLET_TABLE, // Dans un DBB, permet de switcher d'onglet
             crud_vo: null, // VO used for CRUD operations (read, create, update) in the dashboard / used by template widgets
             dashboard_page: null, // Current dashboard page
             dashboard_id: null, // Dashboard id of the current dashboard
             selected_page_page_widgets: [], // DashboardPageWidgetVO[] - Page widgets of the currently selected page
             dashboard: null,
             selected_widget: null,
-            selected_viewport: null,
             page_widgets: [],
             page_widgets_components_by_pwid: {},
             active_field_filters: {},
@@ -720,7 +712,6 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
             dashboard_valid_viewports: [], // DashboardViewportVO[]
             dashboard_viewport_page_widgets: [], // DashboardViewportPageWidgetVO[]
             dbb_confs: [], // DBBConfVO[]
-            current_dbb_conf: null, // DBBConfVO
             user_valid_dbb_confs: [], // DBBConfVO[]
         };
 

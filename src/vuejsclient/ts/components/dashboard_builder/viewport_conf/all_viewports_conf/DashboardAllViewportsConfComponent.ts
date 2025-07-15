@@ -17,10 +17,12 @@ import { ModuleDAOAction } from '../../../dao/store/DaoStore';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 import CRUDCreateModalComponent from '../../widgets/table_widget/crud_modals/create/CRUDCreateModalComponent';
 import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../page/DashboardPageStore';
+import InlineTranslatableText from '../../../InlineTranslatableText/InlineTranslatableText';
 
 @Component({
     template: require('./DashboardAllViewportsConfComponent.pug'),
     components: {
+        Inlinetranslatabletext: InlineTranslatableText,
     }
 })
 export default class DashboardAllViewportsConfComponent extends VueComponentBase implements IDashboardPageConsumer {
@@ -36,34 +38,40 @@ export default class DashboardAllViewportsConfComponent extends VueComponentBase
     @ModuleDAOAction
     public storeDatas: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void;
 
-    @Prop()
-    public readonly dashboard: DashboardVO;
-
     @SyncVOs(DashboardViewportVO.API_TYPE_ID, {
         debug: true,
     })
     public all_viewports: DashboardViewportVO[] = [];
 
-    @TestAccess(DAOController.getAccessPolicyName(DashboardViewportVO.API_TYPE_ID, ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE))
+    @TestAccess(DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, DashboardViewportVO.API_TYPE_ID))
     public can_edit: boolean = false;
 
-    @TestAccess(DAOController.getAccessPolicyName(DashboardViewportVO.API_TYPE_ID, ModuleDAO.DAO_ACCESS_TYPE_DELETE))
+    @TestAccess(DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_DELETE, DashboardViewportVO.API_TYPE_ID))
     public can_delete: boolean = false;
 
-    @TestAccess(DAOController.getAccessPolicyName(DashboardViewportVO.API_TYPE_ID, ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE))
+    @TestAccess(DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, DashboardViewportVO.API_TYPE_ID))
     public can_create: boolean = false;
 
-    get get_selected_viewport(): DashboardViewportVO {
-        return this.vuexGet(reflect<this>().get_selected_viewport);
+    get get_dashboard_current_viewport(): DashboardViewportVO {
+        return this.vuexGet(reflect<this>().get_dashboard_current_viewport);
+    }
+
+    get get_dashboard(): DashboardVO {
+        return this.vuexGet(reflect<this>().get_dashboard);
+    }
+
+    get has_only_one_activated_viewport(): boolean {
+        return this.get_dashboard && this.get_dashboard.activated_viewport_id_ranges &&
+            (RangeHandler.getCardinalFromArray(this.get_dashboard.activated_viewport_id_ranges) === 1);
     }
 
     get activated_viewports_by_id(): { [id: number]: boolean } {
-        if (!this.dashboard || !this.dashboard.activated_viewport_id_ranges) {
+        if (!this.get_dashboard || !this.get_dashboard.activated_viewport_id_ranges) {
             return {};
         }
 
         const res: { [id: number]: boolean } = {};
-        RangeHandler.foreach_ranges_sync(this.dashboard.activated_viewport_id_ranges, (viewport_id: number) => {
+        RangeHandler.foreach_ranges_sync(this.get_dashboard.activated_viewport_id_ranges, (viewport_id: number) => {
             res[viewport_id] = true;
         });
         return res;
@@ -80,30 +88,31 @@ export default class DashboardAllViewportsConfComponent extends VueComponentBase
         this.$store.dispatch(`${this.storeNamespace}/${String(action)}`, ...args);
     }
 
-    public set_selected_viewport(selected_viewport: DashboardViewportVO) {
-        return this.vuexAct(reflect<this>().set_selected_viewport, selected_viewport);
+    public set_dashboard_current_viewport(dashboard_current_viewport: DashboardViewportVO) {
+        return this.vuexAct(reflect<this>().set_dashboard_current_viewport, dashboard_current_viewport);
     }
 
     private async switch_viewport_activation(viewport: DashboardViewportVO) {
-        if (!this.dashboard || !this.activated_viewports_by_id) {
+        if (!this.get_dashboard || !this.activated_viewports_by_id) {
             return;
         }
 
-        // Si le viewport est le viewport par défaut on peut pas le désactiver
-        if (viewport.is_default && this.activated_viewports_by_id[viewport.id]) {
+        // Si le viewport est le dernier activé, on peut pas le désactiver
+        if (this.has_only_one_activated_viewport && this.activated_viewports_by_id[viewport.id]) {
+            this.snotify.warning(this.label('DashboardAllViewportsConfComponent.switch_viewport_activation.last_viewport'));
             return;
         }
 
         // On active ou désactive le viewport
         if (this.activated_viewports_by_id[viewport.id]) {
             // Désactivation
-            this.dashboard.activated_viewport_id_ranges = RangeHandler.cut_ranges(RangeHandler.create_single_elt_NumRange(viewport.id, NumSegment.TYPE_INT), this.dashboard.activated_viewport_id_ranges).remaining_items || [];
+            this.get_dashboard.activated_viewport_id_ranges = RangeHandler.cut_ranges(RangeHandler.create_single_elt_NumRange(viewport.id, NumSegment.TYPE_INT), this.get_dashboard.activated_viewport_id_ranges).remaining_items || [];
         } else {
             // Activation
-            this.dashboard.activated_viewport_id_ranges.push(RangeHandler.create_single_elt_NumRange(viewport.id, NumSegment.TYPE_INT));
+            this.get_dashboard.activated_viewport_id_ranges.push(RangeHandler.create_single_elt_NumRange(viewport.id, NumSegment.TYPE_INT));
         }
 
-        await ModuleDAO.getInstance().insertOrUpdateVO(this.dashboard);
+        await ModuleDAO.getInstance().insertOrUpdateVO(this.get_dashboard);
     }
 
     private async edit_viewport(viewport: DashboardViewportVO) {

@@ -334,8 +334,8 @@ export default class GeneratorPatchsListHandler {
 
         Patch20250701AddBasicDBBConfs.getInstance(),
         Patch20250701SwitchTemplateWidgetsIds.getInstance(),
-        Patch20250701ActivatePageWidgetsInDefaultDashboardViewPort.getInstance(),
         Patch20250701ActivateDefaultViewportOnAllDbs.getInstance(),
+        Patch20250701ActivatePageWidgetsInDefaultDashboardViewPort.getInstance(),
         Patch20250702ChangeDbbTrad.getInstance(),
     ];
 }

@@ -5,7 +5,7 @@
             .title {{ label('dashboard_builder_widgets.title') }}
 
         .widgets 
-            template(v-for="(widget_, widget_i) in widgets")
+            template(v-for="(widget_, widget_i) in get_all_widgets")
                 .widget(@click="add_widget_to_page(widget_)" v-tooltip.top="label('dashboards.widgets.icons_tooltips.' + widget_.name)")
                     template(v-if='widget_.icon_html')
                         .widget_icone(v-html="widget_.icon_html")

@@ -8,7 +8,6 @@ import DatatableField from '../../../../../../shared/modules/DAO/vos/datatable/D
 import ManyToOneReferenceDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableFieldVO';
 import SimpleDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import VarDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/datatable/VarDatatableFieldVO';
-import DashboardBuilderController from '../../../../../../shared/modules/DashboardBuilder/DashboardBuilderController';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import TableColumnDescVO from '../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
@@ -24,12 +23,13 @@ import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import RangeHandler from '../../../../../../shared/tools/RangeHandler';
 import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import TypesHandler from '../../../../../../shared/tools/TypesHandler';
+import InlineTranslatableText from '../../../InlineTranslatableText/InlineTranslatableText';
 import VarDataRefComponent from '../../../Var/components/dataref/VarDataRefComponent';
 import VueComponentBase from '../../../VueComponentBase';
+import DashboardBuilderVueController from '../../../dashboard_builder/DashboardBuilderVueController';
 import FileDatatableFieldComponent from '../fields/file/file_datatable_field';
 import './DatatableComponentField.scss';
 import DBVarDatatableFieldComponent from './dashboard_var/db_var_datatable_field';
-import InlineTranslatableText from '../../../InlineTranslatableText/InlineTranslatableText';
 
 @Component({
     template: require('./DatatableComponentField.pug'),
@@ -257,16 +257,16 @@ export default class DatatableComponentField extends VueComponentBase {
         }
 
         if (this.is_dashboard_builder) {
-            let route_name: string = this.$route.name.replace(DashboardBuilderController.ROUTE_NAME_CRUD, '').replace(DashboardBuilderController.ROUTE_NAME_CRUD_ALL, '');
+            let route_name: string = this.$route.name.replace(DashboardBuilderVueController.ROUTE_NAME_CRUD, '').replace(DashboardBuilderVueController.ROUTE_NAME_CRUD_ALL, '');
 
-            route_name += DashboardBuilderController.ROUTE_NAME_CRUD + DashboardBuilderController.ROUTE_NAME_CRUD_ALL;
+            route_name += DashboardBuilderVueController.ROUTE_NAME_CRUD + DashboardBuilderVueController.ROUTE_NAME_CRUD_ALL;
 
             const route_params = cloneDeep(this.$route.params);
 
             if (vo_id) {
-                route_params.dashboard_vo_action = DashboardBuilderController.DASHBOARD_VO_ACTION_EDIT;
+                route_params.dashboard_vo_action = DashboardBuilderVueController.DASHBOARD_VO_ACTION_EDIT;
             } else {
-                route_params.dashboard_vo_action = DashboardBuilderController.DASHBOARD_VO_ACTION_ADD;
+                route_params.dashboard_vo_action = DashboardBuilderVueController.DASHBOARD_VO_ACTION_ADD;
             }
 
             route_params.dashboard_vo_id = vo_id ? vo_id.toString() : null;

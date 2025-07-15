@@ -27,7 +27,6 @@ import DatatableField from '../../../../../../../shared/modules/DAO/vos/datatabl
 import SelectBoxDatatableFieldVO from '../../../../../../../shared/modules/DAO/vos/datatable/SelectBoxDatatableFieldVO';
 import SimpleDatatableFieldVO from '../../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import VarDatatableFieldVO from '../../../../../../../shared/modules/DAO/vos/datatable/VarDatatableFieldVO';
-import DashboardBuilderController from '../../../../../../../shared/modules/DashboardBuilder/DashboardBuilderController';
 import FieldFiltersVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
 import FieldValueFilterWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterWidgetManager';
 import DashboardPageVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
@@ -65,6 +64,7 @@ import DatatableRowController from '../../../../datatable/component/DatatableRow
 import DatatableComponentField from '../../../../datatable/component/fields/DatatableComponentField';
 import { ModuleModalsAndBasicPageComponentsHolderGetter } from '../../../../modals_and_basic_page_components_holder/ModalsAndBasicPageComponentsHolderStore';
 import SortableListComponent from '../../../../sortable/SortableListComponent';
+import DashboardBuilderVueController from '../../../DashboardBuilderVueController';
 import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../../page/DashboardPageStore';
 import FieldValueFilterWidgetOptions from '../../field_value_filter_widget/options/FieldValueFilterWidgetOptions';
 import ValidationFiltersWidgetController from '../../validation_filters_widget/ValidationFiltersWidgetController';
@@ -1862,7 +1862,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase impleme
     }
 
     private async onclose_modal() {
-        const route_name: string = this.$route.name.replace(DashboardBuilderController.ROUTE_NAME_CRUD, '').replace(DashboardBuilderController.ROUTE_NAME_CRUD_ALL, '');
+        const route_name: string = this.$route.name.replace(DashboardBuilderVueController.ROUTE_NAME_CRUD, '').replace(DashboardBuilderVueController.ROUTE_NAME_CRUD_ALL, '');
 
         const route_params = cloneDeep(this.$route.params);
 
@@ -1887,12 +1887,12 @@ export default class TableWidgetKanbanComponent extends VueComponentBase impleme
     }
 
     private async onchange_dashboard_vo_route_param() {
-        if (this.dashboard_vo_action == DashboardBuilderController.DASHBOARD_VO_ACTION_ADD) {
+        if (this.dashboard_vo_action == DashboardBuilderVueController.DASHBOARD_VO_ACTION_ADD) {
             await this.open_create();
             return;
         }
 
-        if ((this.dashboard_vo_action == DashboardBuilderController.DASHBOARD_VO_ACTION_EDIT) && (!!this.dashboard_vo_id)) {
+        if ((this.dashboard_vo_action == DashboardBuilderVueController.DASHBOARD_VO_ACTION_EDIT) && (!!this.dashboard_vo_id)) {
             const api_type_id: string = this.api_type_id_action ? this.api_type_id_action : this.crud_activated_api_type;
 
             if (api_type_id) {
@@ -1902,7 +1902,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase impleme
             return;
         }
 
-        if ((this.dashboard_vo_action == DashboardBuilderController.DASHBOARD_VO_ACTION_DELETE) && (!!this.dashboard_vo_id)) {
+        if ((this.dashboard_vo_action == DashboardBuilderVueController.DASHBOARD_VO_ACTION_DELETE) && (!!this.dashboard_vo_id)) {
             const api_type_id: string = this.api_type_id_action ? this.api_type_id_action : this.crud_activated_api_type;
 
             if (api_type_id) {
@@ -1912,7 +1912,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase impleme
             return;
         }
 
-        if ((this.dashboard_vo_action == DashboardBuilderController.DASHBOARD_VO_ACTION_VOCUS) && (!!this.dashboard_vo_id)) {
+        if ((this.dashboard_vo_action == DashboardBuilderVueController.DASHBOARD_VO_ACTION_VOCUS) && (!!this.dashboard_vo_id)) {
             const api_type_id: string = this.api_type_id_action ? this.api_type_id_action : this.crud_activated_api_type;
 
             if (api_type_id) {

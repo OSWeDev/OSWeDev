@@ -1,17 +1,50 @@
 .DashboardAllViewportsConfComponent
     template(v-for='viewport in all_viewports')
-        .viewport_conf_wrapper(@click='select_viewport(viewport)' :class='{ "selected": viewport.id == get_selected_viewport?.id }')
+        .viewport_conf_wrapper(:class='{ selected: viewport.id == get_dashboard_current_viewport?.id }')
             .viewport_conf
-                .is_viewport_activated(@click='switch_viewport_activation(viewport)' :class='{ "activated": activated_viewports_by_id[viewport.id], "disabled": viewport.is_default }')
-                    i.fa-duotone.fa-check-circle.fa-fw(aria-hidden="true" v-if='activated_viewports_by_id[viewport.id]')
-                .name.display_inline_block
+                .is_viewport_activated(@click.stop='switch_viewport_activation(viewport)' :class='{ activated: activated_viewports_by_id[viewport.id], disabled: has_only_one_activated_viewport }')
+                    i.fa-duotone.fa-check-circle(v-if='activated_viewports_by_id[viewport.id]')
+                    i.fa-duotone.fa-ban(v-else)
+                
+                .select_viewport(@click='set_dashboard_current_viewport(viewport)')
+                    i.fa-duotone(:class="viewport.id == get_dashboard_current_viewport?.id ? 'fa-eye' : 'fa-eye-slash'")
+
+                .name.ml-2.flex-grow-1
                     Inlinetranslatabletext(:code_text="viewport.name" :is_editable="can_edit")
-                .edit.display_inline_block.ml-3(v-if='can_edit')
-                    i.fa-duotone.fa-pencil.btn-primary(aria-hidden="true" @click.stop='edit_viewport(viewport)')
-                .delete.display_inline_block.ml-3(v-if='can_delete')
-                    i.fa-duotone.fa-trash.btn-danger(aria-hidden="true" @click.stop='delete_viewport(viewport)')
-    .viewport_conf_wrapper(@click='create_new_viewport' v-if='can_create')
-        .viewport_conf
-            .viewport_conf_empty
-                i.fa-duotone.fa-plus-circle.fa-fw(aria-hidden="true")
-                | {{ label('dashboard_builder.viewports_conf.add_viewport') }}
+
+                .actions.ml-auto.flex-row(v-if='can_edit || can_delete')
+                    .edit.ml-2(v-if='can_edit' @click.stop='edit_viewport(viewport)')
+                        i.fa-duotone.fa-pencil.btn-primary
+                    .delete.ml-2(v-if='can_delete' @click.stop='delete_viewport(viewport)')
+                        i.fa-duotone.fa-trash.btn-danger
+    .viewport_conf_wrapper.new_viewport(v-if='can_create' @click='create_new_viewport')
+        .viewport_conf_empty
+            i.fa-duotone.fa-plus-circle
+            span.ml-2 {{ label('dashboard_builder.viewports_conf.add_viewport') }}
+
+
+//- .DashboardAllViewportsConfComponent
+//-     template(v-for='viewport in all_viewports' :key='viewport.id')
+//-         .viewport_conf_wrapper(:class='{ "selected": viewport.id == get_dashboard_current_viewport?.id }')
+//-             .viewport_conf
+//-                 .is_viewport_activated(@click='switch_viewport_activation(viewport)' :class='{ "activated": activated_viewports_by_id[viewport.id], "disabled": has_only_one_activated_viewport }')
+//-                     i.fa-duotone.fa-check-circle.fa-fw(aria-hidden="true" v-if='activated_viewports_by_id[viewport.id]')
+                    
+//-                 .select_viewport(@click='set_dashboard_current_viewport(viewport)')
+//-                     template(v-if='activated_viewports_by_id[viewport.id]')
+//-                         template(v-if='viewport.id == get_dashboard_current_viewport?.id')
+//-                             i.fa-duotone.fa-eye.fa-fw(aria-hidden="true")
+//-                         template(v-else)
+//-                             i.fa-duotone.fa-eye-slash.fa-fw(aria-hidden="true")
+//-                 .name.display_inline_block
+//-                     Inlinetranslatabletext(:code_text="viewport.name" :is_editable="can_edit")
+//-                 .edit.display_inline_block.ml-3(v-if='can_edit')
+//-                     i.fa-duotone.fa-pencil.btn-primary(aria-hidden="true" @click.stop='edit_viewport(viewport)')
+//-                 .delete.display_inline_block.ml-3(v-if='can_delete')
+//-                     i.fa-duotone.fa-trash.btn-danger(aria-hidden="true" @click.stop='delete_viewport(viewport)')
+//-     .viewport_conf_wrapper(@click='create_new_viewport' v-if='can_create')
+//-         .viewport_conf
+//-             .viewport_conf_empty
+//-                 i.fa-duotone.fa-plus-circle.fa-fw(aria-hidden="true")
+//-                 | {{ label('dashboard_builder.viewports_conf.add_viewport') }}
+

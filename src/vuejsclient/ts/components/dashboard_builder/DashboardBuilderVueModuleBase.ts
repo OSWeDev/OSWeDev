@@ -1,5 +1,4 @@
 import Vue from 'vue';
-import DashboardBuilderController from '../../../../shared/modules/DashboardBuilder/DashboardBuilderController';
 import ModuleDashboardBuilder from '../../../../shared/modules/DashboardBuilder/ModuleDashboardBuilder';
 import WidgetOptionsVOManager from '../../../../shared/modules/DashboardBuilder/manager/WidgetOptionsVOManager';
 import CMSBlocTextWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/CMSBlocTextWidgetOptionsVO';
@@ -21,6 +20,7 @@ import VarRadarChartWidgetOptionsVO from '../../../../shared/modules/DashboardBu
 import YearFilterWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/YearFilterWidgetOptionsVO';
 import { all_promises } from '../../../../shared/tools/PromiseTools';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
+import DashboardBuilderVueController from './DashboardBuilderVueController';
 import AdvancedDateFilterWidgetOptions from './widgets/advanced_date_filter_widget/options/AdvancedDateFilterWidgetOptions';
 import BulkOpsWidgetOptions from './widgets/bulkops_widget/options/BulkOpsWidgetOptions';
 import ChecklistWidgetOptions from './widgets/checklist_widget/options/ChecklistWidgetOptions';
@@ -70,7 +70,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         let url: string = "/dashboard/view/:dashboard_id";
         let main_route_name: string = 'Dashboard View';
 
-        this.routes = this.routes.concat(DashboardBuilderController.getInstance().addRouteForDashboard(
+        this.routes = this.routes.concat(DashboardBuilderVueController.addRouteForDashboard(
             url,
             main_route_name,
             () => import('./viewer/DashboardViewerComponent'),
@@ -92,7 +92,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         url = "/dashboard_builder" + "/:dashboard_id";
         main_route_name = 'DashboardBuilder_id';
 
-        this.routes = this.routes.concat(DashboardBuilderController.getInstance().addRouteForDashboard(
+        this.routes = this.routes.concat(DashboardBuilderVueController.addRouteForDashboard(
             url,
             main_route_name,
             () => import('./DashboardBuilderComponent'),

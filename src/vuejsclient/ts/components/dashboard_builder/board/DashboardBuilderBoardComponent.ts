@@ -56,20 +56,20 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase imp
 
         watch_fields: [
             reflect<DashboardBuilderBoardComponent>().get_dashboard_current_viewport,
-            reflect<DashboardBuilderBoardComponent>().page_widgets,
+            reflect<DashboardBuilderBoardComponent>().selected_page_page_widgets,
         ],
         filters_factory: (self) => {
             if (!self.get_dashboard_current_viewport) {
                 return null;
             }
 
-            if (!self.page_widgets || !self.page_widgets.length) {
+            if (!self.selected_page_page_widgets || !self.selected_page_page_widgets.length) {
                 return null;
             }
 
             return [
                 filter(DashboardViewportPageWidgetVO.API_TYPE_ID, field_names<DashboardViewportPageWidgetVO>().viewport_id).by_num_eq(self.get_dashboard_current_viewport.id),
-                filter(DashboardViewportPageWidgetVO.API_TYPE_ID, field_names<DashboardViewportPageWidgetVO>().page_widget_id).by_num_has(self.page_widgets.map((widget) => widget.id)),
+                filter(DashboardViewportPageWidgetVO.API_TYPE_ID, field_names<DashboardViewportPageWidgetVO>().page_widget_id).by_num_has(self.selected_page_page_widgets.map((widget) => widget.id)),
             ];
         },
         sync_to_store_namespace: (self) => self.storeNamespace,
@@ -87,7 +87,10 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase imp
 
             return [filter(DashboardPageVO.API_TYPE_ID, field_names<DashboardPageVO>().dashboard_id).by_num_eq(self.get_dashboard.id)];
         },
-        simple_sorts_by_on_api_type_id: [new SortByVO(DashboardPageVO.API_TYPE_ID, field_names<DashboardPageVO>().weight, true)],
+        simple_sorts_by_on_api_type_id: [
+            new SortByVO(DashboardPageVO.API_TYPE_ID, field_names<DashboardPageVO>().weight, true),
+            new SortByVO(DashboardPageVO.API_TYPE_ID, field_names<DashboardPageVO>().id, true),
+        ],
         sync_to_store_namespace: (self) => self.storeNamespace,
         // sync_to_store_property: reflect<DashboardBuilderBoardComponent>().dashboard_pages, // Nom iso, pas utile
     })
@@ -148,6 +151,14 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase imp
     })
     public all_widgets: DashboardWidgetVO[] = null;
 
+    @SyncVOs(DashboardViewportVO.API_TYPE_ID, {
+        debug: true,
+
+        sync_to_store_namespace: (self) => self.storeNamespace,
+    })
+    public viewports: DashboardViewportVO[] = null;
+
+
     public elt_height: number = DashboardBuilderBoardComponent.GridLayout_ELT_HEIGHT;
     public col_num: number = DashboardBuilderBoardComponent.GridLayout_TOTAL_COLUMNS;
     public max_rows: number = DashboardBuilderBoardComponent.GridLayout_TOTAL_ROWS;
@@ -196,10 +207,6 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase imp
 
     get get_dashboard_id(): number {
         return this.vuexGet(reflect<this>().get_dashboard_id);
-    }
-
-    get has_navigation_history(): boolean {
-        return this.get_page_history && (this.get_page_history.length > 0);
     }
 
     get get_page_history(): DashboardPageVO[] {
