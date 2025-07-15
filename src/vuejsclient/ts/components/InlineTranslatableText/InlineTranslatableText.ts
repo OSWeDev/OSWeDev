@@ -1,4 +1,5 @@
 import { Component, Prop } from "vue-property-decorator";
+import { filter } from "../../../../shared/modules/ContextFilter/vos/ContextFilterVO";
 import { query } from "../../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 import ModuleDAO from "../../../../shared/modules/DAO/ModuleDAO";
 import LangVO from "../../../../shared/modules/Translation/vos/LangVO";
@@ -93,7 +94,7 @@ export default class InlineTranslatableText extends VueComponentBase {
 
         debug: true,
 
-        id_factory: async (self) => {
+        filters_factory: (self) => {
 
             if (!self.translatable_text) {
                 return null;
@@ -103,12 +104,11 @@ export default class InlineTranslatableText extends VueComponentBase {
                 return null;
             }
 
-            // On  ne crée pas automatiquement une traduction. un code oui si il manque en base, mais pas la trad, sinon la trad par défaut (ou code) deviennent la trad officielle. ya plus de fallback...
-            return query(TranslationVO.API_TYPE_ID)
-                .filter_by_id(self.lang.id, LangVO.API_TYPE_ID)
-                .filter_by_id(self.translatable_text.id, TranslatableTextVO.API_TYPE_ID)
-                .select_vo<TranslationVO>();
-        }
+            return [
+                filter(TranslationVO.API_TYPE_ID, field_names<TranslationVO>().lang_id).by_num_eq(self.lang.id),
+                filter(TranslationVO.API_TYPE_ID, field_names<TranslationVO>().text_id).by_num_eq(self.translatable_text.id),
+            ];
+        },
     })
     public translation: TranslationVO = null;
 
