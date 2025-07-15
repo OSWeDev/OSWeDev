@@ -215,6 +215,9 @@ export default abstract class ServerBase {
         EnvHandler.zoom_auto = !!this.envParam.zoom_auto;
         EnvHandler.debug_vars = !!this.envParam.debug_vars;
         EnvHandler.logo_path = this.envParam.logo_path;
+        EnvHandler.block_oselia_on_bonus = !!this.envParam.block_oselia_on_bonus;
+        EnvHandler.block_oselia_on_cr = !!this.envParam.block_oselia_on_cr;
+        EnvHandler.block_oselia_realtime = !!this.envParam.block_oselia_realtime;
         this.connectionString = this.envParam.connection_string;
         this.uiDebug = null; // JNE MODIF FLK process.env.UI_DEBUG;
         this.port = process.env.PORT ? process.env.PORT : this.envParam.port;
@@ -1827,13 +1830,13 @@ export default abstract class ServerBase {
     }
 
     private async thread_alive_middleware(req, res) {
-        let uid = req.params.uid;
+        const uid = req.params.uid;
 
         if (!uid) {
             return res.status(404).send('Pas de uid envoyé');
         }
 
-        let fork: IFork = ForkServerController.forks[uid];
+        const fork: IFork = ForkServerController.forks[uid];
 
         if (!fork) {
             return res.status(404).send('Pas de fork trouvé pour uid: ' + uid);
@@ -1841,18 +1844,18 @@ export default abstract class ServerBase {
 
         let check_process: boolean = false;
 
-        for (let i in fork.processes) {
-            let process = fork.processes[i];
+        for (const i in fork.processes) {
+            const process = fork.processes[i];
 
             if (process.type != BGThreadServerDataManager.ForkedProcessType) {
                 continue;
             }
 
-            let thrower = (error) => {
+            const thrower = (error) => {
                 ConsoleHandler.error('API thread_alive:' + error);
                 return res.status(500).send(false);
             };
-            let resolver = async (res_resolver) => {
+            const resolver = async (res_resolver) => {
                 return res.status(200).send(res_resolver);
             };
 
@@ -1873,9 +1876,9 @@ export default abstract class ServerBase {
             return;
         }
 
-        let msg = new PingForkMessage(fork.uid, Dates.now_ms());
+        const msg = new PingForkMessage(fork.uid, Dates.now_ms());
 
-        let is_alive: boolean = await ForkMessageController.send(msg, fork.worker, fork);
+        const is_alive: boolean = await ForkMessageController.send(msg, fork.worker, fork);
 
         return res.status(200).send(is_alive);
     }

@@ -91,6 +91,9 @@ export default class ModulesClientInitializationDatasGenerator {
         fileContent += "    EnvHandler.max_pool = " + ConfigurationService.node_configuration.max_pool + ";\n";
         fileContent += "    EnvHandler.zoom_auto = " + ((ConfigurationService.node_configuration.zoom_auto) ? 'true' : 'false') + ';\n';
         fileContent += "    EnvHandler.logo_path = '" + ConfigurationService.node_configuration.logo_path + "';\n";
+        fileContent += "    EnvHandler.block_oselia_on_bonus = " + ((ConfigurationService.node_configuration.block_oselia_on_bonus) ? 'true' : 'false') + ';\n';
+        fileContent += "    EnvHandler.block_oselia_on_cr = " + ((ConfigurationService.node_configuration.block_oselia_on_cr) ? 'true' : 'false') + ';\n';
+        fileContent += "    EnvHandler.block_oselia_realtime = " + ((ConfigurationService.node_configuration.block_oselia_realtime) ? 'true' : 'false') + ';\n';
 
 
         fileContent += this.generateModulesCode(this.generateModuleData, target);

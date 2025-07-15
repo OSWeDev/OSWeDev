@@ -166,6 +166,8 @@ export default interface IEnvParam {
 
     block_teams_messages?: boolean;
     block_oselia_on_cr?: boolean;
+    block_oselia_realtime?: boolean,
+    block_oselia_on_bonus?: boolean,
     debug_oselia_realtime?: boolean;
 
     express_secret: string;

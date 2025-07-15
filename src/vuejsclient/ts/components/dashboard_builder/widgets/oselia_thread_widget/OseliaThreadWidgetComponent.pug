@@ -241,10 +241,8 @@
                                     button.fa-solid.fa-bug(v-on:click='switch_show_hidden_messages')
                                 template(v-else)
                                     button.fa-solid.fa-bug-slash(v-on:click='switch_show_hidden_messages')
-                            //- Oseliarealtimebutton(
-                            //-         :has_access_to_thread='has_access_to_thread'
-                            //-         :gpt_thread_id='null'
-                            //-     )
+                            .oselia_chat_btn_closed.fa-duotone.fa-vacuum-robot(v-if="!oselia_blocked && POLICY_CAN_USE_REALTIME" :class="{ 'opened': use_realtime_voice }" @click='switchOpenRealtime()')
+
                             
                                 
                                 
@@ -383,6 +381,7 @@
                                         button.fa-solid.fa-bug(v-on:click='switch_show_hidden_messages')
                                     template(v-else)
                                         button.fa-solid.fa-bug-slash(v-on:click='switch_show_hidden_messages')
+                                .oselia_chat_btn_closed.fa-duotone.fa-vacuum-robot(v-if="!oselia_blocked && POLICY_CAN_USE_REALTIME" :class="{ 'opened': use_realtime_voice }" @click='switchOpenRealtime()')
 
                                     
                             .thread_message_input_send

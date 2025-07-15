@@ -53,6 +53,14 @@ import { EventEmitter } from "events";
 import EventsController from "../../../../../../shared/modules/Eventify/EventsController";
 import EventifyEventInstanceVO from "../../../../../../shared/modules/Eventify/vos/EventifyEventInstanceVO";
 import EventifyEventListenerInstanceVO from "../../../../../../shared/modules/Eventify/vos/EventifyEventListenerInstanceVO";
+import EnvHandler from "../../../../../../shared/tools/EnvHandler";
+import { ref } from "vue";
+import OseliaRealtimeController from "./OseliaRealtimeController";
+import GPTAssistantAPIAssistantFunctionVO from "../../../../../../shared/modules/GPT/vos/GPTAssistantAPIAssistantFunctionVO";
+import GPTAssistantAPIFunctionParamVO from "../../../../../../shared/modules/GPT/vos/GPTAssistantAPIFunctionParamVO";
+import GPTRealtimeAPIFunctionVO from "../../../../../../shared/modules/GPT/vos/GPTRealtimeAPIFunctionVO";
+import GPTRealtimeAPIFunctionParametersVO from "../../../../../../shared/modules/GPT/vos/GPTRealtimeAPIFunctionParametersVO";
+import { Console } from "console";
 
 @Component({
     template: require('./OseliaThreadWidgetComponent.pug'),
@@ -138,6 +146,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     public oselia_runs: OseliaRunVO[] = [];
     public realtime_session: GPTRealtimeAPISessionVO = null;
     public is_loading_thread: boolean = true;
+    public use_realtime_voice: boolean = false;
     private has_access_to_thread: boolean = false;
     private assistant_is_busy: boolean = false;
     private current_thread_id: number = null;
@@ -156,9 +165,9 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     private is_creating_thread: boolean = false;
     private realtime_on: boolean = false;
     private send_message_create: boolean = false;
+    private POLICY_CAN_USE_REALTIME: boolean = false;
     // private is_recording_voice: boolean = false;
     // private voice_record: MediaRecorder = null;
-    private use_realtime_voice: boolean = false;
     private has_access_to_debug: boolean = false;
 
     private expand_thread_cached_datas: boolean = false;
@@ -187,6 +196,10 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     get file_system_url() {
         const { protocol, hostname, port } = window.location;
         return `${protocol}//${hostname}${(port ? `:${port}` : '')}/admin#/dashboard/view/`;
+    }
+
+    get oselia_blocked(): boolean {
+        return EnvHandler.block_oselia_realtime;
     }
 
     @Watch(reflect<OseliaThreadWidgetComponent>().currently_selected_assistant)
@@ -292,6 +305,90 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         await ModuleOselia.getInstance().notify_thread_loaded(this.get_parent_client_tab_id, ModuleOselia.EVENT_OSELIA_LOADED_FRAME,param );
     }
 
+    @Watch(reflect<OseliaThreadWidgetComponent>().use_realtime_voice, { immediate: true })
+    private async on_use_realtime_voice_change() {
+        const controller = await OseliaRealtimeController.getInstance();
+        if (this.use_realtime_voice && this.POLICY_CAN_USE_REALTIME) {
+            let used_assistant = null;
+            // On peut utiliser le realtime
+            if (!this.thread) {
+                const new_thread: number = await ModuleOselia.getInstance().create_thread();
+
+                if (new_thread) {
+                    this.set_active_field_filter({
+                        field_id: field_names<GPTAssistantAPIThreadVO>().id,
+                        vo_type: GPTAssistantAPIThreadVO.API_TYPE_ID,
+                        active_field_filter: filter(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().id).by_id(new_thread)
+                    });
+                    const context_query_select: ContextQueryVO = query(GPTAssistantAPIThreadVO.API_TYPE_ID)
+                        .using(this.get_dashboard_api_type_ids)
+                        .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
+                            FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters)
+                        ));
+                    const thread = await context_query_select.select_vo<GPTAssistantAPIThreadVO>();
+                    used_assistant = thread.current_default_assistant_id;
+                } else {
+                    return;
+                }
+            } else {
+                used_assistant = this.currently_selected_assistant ? this.currently_selected_assistant : this.assistant;
+            }
+            if (!this.realtime_session) {
+                if (!used_assistant) {
+                    ConsoleHandler.error("No assistant selected for the realtime session.");
+                    return;
+                }
+                this.realtime_session = new GPTRealtimeAPISessionVO();
+                this.realtime_session.instructions = used_assistant.instructions;
+                this.realtime_session.name = used_assistant.nom;
+                this.realtime_session.created_at = Dates.now();
+                const assistant_assistant_functions = await query(GPTAssistantAPIAssistantFunctionVO.API_TYPE_ID)
+                    .filter_by_num_eq(field_names<GPTAssistantAPIAssistantFunctionVO>().assistant_id, used_assistant.id)
+                    .select_vos<GPTAssistantAPIAssistantFunctionVO>();
+                const assistant_functions: GPTAssistantAPIFunctionVO[] = [];
+                for (const assistant_function of assistant_assistant_functions) {
+                    const functions = await query(GPTAssistantAPIFunctionVO.API_TYPE_ID)
+                        .filter_by_id(assistant_function.function_id)
+                        .select_vos<GPTAssistantAPIFunctionVO>();
+                    assistant_functions.push(...functions);
+                }
+                const assistant_parameters: GPTAssistantAPIFunctionParamVO[] = [];
+                for (const assistant_function of assistant_functions) {
+                    const params = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
+                        .filter_by_num_eq(field_names<GPTAssistantAPIFunctionParamVO>().function_id, assistant_function.id)
+                        .select_vos<GPTAssistantAPIFunctionParamVO>();
+                    assistant_parameters.push(...params);
+                }
+
+                for (const func of assistant_functions) {
+                    const new_func = new GPTRealtimeAPIFunctionVO();
+                    new_func.name = func.gpt_function_name;
+                    new_func.description = func.gpt_function_description;
+                    new_func.session_id = this.realtime_session.id;
+                    for (const param of assistant_parameters) {
+                        if (param.function_id === func.id) {
+                            const new_param = new GPTRealtimeAPIFunctionParametersVO();
+                            new_param.name = param.gpt_funcparam_name;
+                            new_param.description = param.gpt_funcparam_description;
+                            new_param.type = param.type;
+                            new_param.default_json_value = param.default_json_value;
+                            new_param.required = param.required;
+                            new_param.function_id = new_func.id;
+                            await ModuleDAO.getInstance().insertOrUpdateVO(new_param);
+                        }
+                    }
+                    await ModuleDAO.getInstance().insertOrUpdateVO(new_func);
+                }
+                this.realtime_session.id = (await ModuleDAO.getInstance().insertOrUpdateVO(this.realtime_session)).id;
+            }
+            controller.session_overload_object = this.realtime_session;
+            await controller.connect_to_realtime();
+        } else {
+            // On ne peut pas utiliser le realtime
+            controller.disconnect_to_realtime();
+        }
+    }
+
     private select_thread_id(thread_id: number) {
         this.set_active_field_filter({
             vo_type: GPTAssistantAPIThreadVO.API_TYPE_ID,
@@ -312,16 +409,21 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         this.set_show_hidden_messages(!this.get_show_hidden_messages);
     }
 
+    private switchOpenRealtime() {
+        this.use_realtime_voice = !this.use_realtime_voice;
+    }
+
     private async mounted() {
+        this.POLICY_CAN_USE_REALTIME = await ModuleAccessPolicy.getInstance().testAccess(ModuleGPT.POLICY_USE_OSELIA_REALTIME_IN_CR);
 
         await all_promises([
             (async () => {
                 this.selectable_assistants = await query(GPTAssistantAPIAssistantVO.API_TYPE_ID)
                     .select_vos<GPTAssistantAPIAssistantVO>();
             })(),
-            (async () => {
-                this.use_realtime_voice = await ModuleParams.getInstance().getParamValueAsBoolean(OseliaController.PARAM_NAME_UNBLOCK_REALTIME_API, false, 120000);
-            })(),
+            // (async () => {
+            //     this.use_realtime_voice = await ModuleParams.getInstance().getParamValueAsBoolean(OseliaController.PARAM_NAME_UNBLOCK_REALTIME_API, false, 120000);
+            // })(),
             (async () => {
                 this.has_access_to_debug = await ModuleAccessPolicy.getInstance().testAccess(ModuleOselia.POLICY_BO_ACCESS);
             })(),

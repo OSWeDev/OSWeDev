@@ -138,7 +138,7 @@ async function patchedReadFilePromisified(
     try {
         return await originalFsPromisesReadFile(filePath, options);
     } catch (err) {
-        if (typeof filePath === 'string') {
+        if (typeof filePath === 'string' && BGThreadServerController.SERVER_READY) {
             const fileVO = await query(FileVO.API_TYPE_ID)
                 .filter_by_text_eq(field_names<FileVO>().path, filePath)
                 .exec_as_server()
@@ -169,7 +169,7 @@ function patchedReadFile(
     }
 
     originalReadFile(filePath, options, async (err, data) => {
-        if (err && typeof filePath === 'string') {
+        if (err && typeof filePath === 'string' && BGThreadServerController.SERVER_READY) {
             try {
                 const fileVO = await query(FileVO.API_TYPE_ID)
                     .filter_by_text_eq(field_names<FileVO>().path, filePath)
@@ -227,7 +227,7 @@ function patchedStat(
     callback: (err: NodeJS.ErrnoException | null, stats?: Stats) => void
 ): void {
     originalStat(filePath, async (err, stats) => {
-        if (err && typeof filePath === 'string') {
+        if (err && typeof filePath === 'string' && BGThreadServerController.SERVER_READY) {
             try {
                 const fileVO = await query(FileVO.API_TYPE_ID)
                     .filter_by_text_eq(field_names<FileVO>().path, filePath)
@@ -259,7 +259,7 @@ async function patchedStatPromisified(filePath: PathLike): Promise<Stats> {
     try {
         return await originalFsPromisesStat(filePath);
     } catch (err) {
-        if (typeof filePath === 'string') {
+        if (typeof filePath === 'string' && BGThreadServerController.SERVER_READY) {
             const fileVO = await query(FileVO.API_TYPE_ID)
                 .filter_by_text_eq(field_names<FileVO>().path, filePath)
                 .exec_as_server()
@@ -293,7 +293,7 @@ function patchedCreateReadStream(filePath: PathLike, options?: any) {
 
     (async () => {
         try {
-            if ((typeof filePath === 'string') && !fs.existsSync(filePath)) {
+            if ((typeof filePath === 'string') && !fs.existsSync(filePath) && BGThreadServerController.SERVER_READY) {
                 // On regarde s'il existe un FileVO
                 const fileVO = await query(FileVO.API_TYPE_ID)
                     .filter_by_text_eq(field_names<FileVO>().path, filePath)

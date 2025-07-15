@@ -133,6 +133,7 @@ export default class CanvasDiagram extends VueComponentBase {
     // Agents (template) : pliage/dépliage
     private expandedAgents: { [agentId: string]: boolean } = {};
 
+    private expandedRuns: { [runId: string]: boolean } = {};
     // Adjacency & runFunctions info
     private adjacency: { [id: string]: string[] } = {};
 
@@ -161,7 +162,8 @@ export default class CanvasDiagram extends VueComponentBase {
         if (this.isRunVo) {
             const { blockPositions } = DiagramLayout.layoutRunDiagram(
                 this.items as any,
-                this.adjacency
+                this.adjacency,
+                this.expandedRuns
             );
             return blockPositions;
         } else {
@@ -178,7 +180,8 @@ export default class CanvasDiagram extends VueComponentBase {
         if (this.isRunVo) {
             const { drawnLinks } = DiagramLayout.layoutRunDiagram(
                 this.items as any,
-                this.adjacency
+                this.adjacency,
+                this.expandedRuns
             );
             return drawnLinks;
         } else {
@@ -404,6 +407,13 @@ export default class CanvasDiagram extends VueComponentBase {
             for (const k of Object.keys(res.items)) {
                 this.$set(this.items, k, res.items[k]);
             }
+            // init expandedRuns
+            for (const id of Object.keys(this.items)) {
+                const vo = this.items[id] as OseliaRunVO | OseliaRunFunctionCallVO;
+                if (vo._type === OseliaRunVO.API_TYPE_ID && typeof this.expandedRuns[id] === 'undefined') {
+                    this.$set(this.expandedRuns, id, true);
+                }
+            }
         } else {
             const res = await DiagramDataService.prepareTemplateData(this.items as any);
             this.adjacency = res.adjacency;
@@ -531,6 +541,9 @@ export default class CanvasDiagram extends VueComponentBase {
             } else {
                 this.draggingChildId = String(vo.id);
             }
+        } else {
+            // En mode run, on mémorise juste le run cliqué pour le toggle
+            this.draggingChildId = clickedBlock;
         }
     }
 
@@ -628,7 +641,14 @@ export default class CanvasDiagram extends VueComponentBase {
             }
         } else {
             // Clique sur un agent => toggle expand
-            if (!this.isRunVo && this.draggingChildId) {
+            if (this.isRunVo && this.draggingChildId) {
+                const vo = this.items[this.draggingChildId] as OseliaRunVO;
+                if (vo._type === OseliaRunVO.API_TYPE_ID) {
+                    this.expandedRuns[this.draggingChildId] = !this.expandedRuns[this.draggingChildId];
+                    this.throttle_reRender();
+                }
+            } else if (!this.isRunVo && this.draggingChildId) {
+                // Clique sur un agent => toggle expand pour template
                 const vo = this.items[this.draggingChildId] as OseliaRunTemplateVO;
                 if (vo.run_type === OseliaRunVO.RUN_TYPE_AGENT) {
                     this.expandedAgents[this.draggingChildId] = !this.expandedAgents[this.draggingChildId];

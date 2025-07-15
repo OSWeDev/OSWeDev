@@ -1,8 +1,16 @@
 .add-panel
     h3 {{ label('oselia_run_graph_widget_component.add_panel.title') }}
 
+
+    select(v-model="localDisplayMode" @change="onModeChange")
+        option(value="runs") Runs
+        option(value="templates") Templates
+
     input(type="text" v-model="addSearch" :placeholder=" label('oselia_run_graph_widget_component.add_panel.search_placeholder') " )
 
     ul
-        li(v-for="tmpl in items" :key="tmpl.id" @click="onAddItem(tmpl.id)" style="cursor:pointer;")
-            | {{ tmpl.name }}
+        transition-group(name="fade" tag="div")
+            li(v-for="tmpl in itemsArray" :key="tmpl.id" @click="onAddItem(tmpl.id)" style="cursor:pointer;")
+                | {{ tmpl.name }}
+            li(v-if="itemsArray.length === 0" :key="'no-results'")
+                i Aucun résultat trouvé.
