@@ -49,8 +49,6 @@ import IPlanRDV from '../../../shared/modules/ProgramPlan/interfaces/IPlanRDV';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ModuleGPT from '../../../shared/modules/GPT/ModuleGPT';
 import GPTRealtimeAPISessionVO from '../../../shared/modules/GPT/vos/GPTRealtimeAPISessionVO';
-import GPTRealtimeAPIFunctionVO from '../../../shared/modules/GPT/vos/GPTRealtimeAPIFunctionVO';
-import GPTRealtimeAPIFunctionParametersVO from '../../../shared/modules/GPT/vos/GPTRealtimeAPIFunctionParametersVO';
 import ICheckListItem from '../../../shared/modules/CheckList/interfaces/ICheckListItem';
 import DatatableField from '../../../shared/modules/DAO/vos/datatable/DatatableField';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
@@ -1204,39 +1202,57 @@ export default class GPTAssistantAPIServerController {
      * @param conversationId identifiant logique de la conversation – un seul par socket OpenAI
      */
     private static async create_realtime_session(session: GPTRealtimeAPISessionVO, conversationId: string, thread_id: string, user_id: number): Promise<void> {
+
         try {
-            let session_functions: GPTRealtimeAPIFunctionVO[] = [];
-            let params_by_function_id: Record<number, GPTRealtimeAPIFunctionParametersVO[]> = {};
             if (!session) {
                 ConsoleHandler.error('GPTAssistantAPIServerController.create_realtime_session: Invalid session');
                 return;
-            } else {
-                session_functions = await query(GPTRealtimeAPIFunctionVO.API_TYPE_ID)
-                    .filter_by_num_eq(field_names<GPTRealtimeAPIFunctionVO>().session_id, session.id)
-                    .exec_as_server()
-                    .select_vos<GPTRealtimeAPIFunctionVO>();
-                const functionIds = session_functions.map(f => f.id);
-
-                const sessionFunctionParams: GPTRealtimeAPIFunctionParametersVO[] = [];
-                for (const func of session_functions) {
-                    sessionFunctionParams.push(...await query(GPTRealtimeAPIFunctionParametersVO.API_TYPE_ID)
-                        .filter_by_num_eq(field_names<GPTRealtimeAPIFunctionParametersVO>().function_id, func.id)
-                        .exec_as_server()
-                        .select_vos<GPTRealtimeAPIFunctionParametersVO>());
-                }
-
-                // test unitaires
-                if( sessionFunctionParams.length === 0) {
-                    ConsoleHandler.error('GPTAssistantAPIServerController.create_realtime_session: No function parameters found for session ' + session.id);
-                } else {
-
-                params_by_function_id =
-                    sessionFunctionParams.reduce((acc, p) => {
-                        (acc[p.function_id] ||= []).push(p);
-                        return acc;
-                    }, {} as Record<number, GPTRealtimeAPIFunctionParametersVO[]>);
-                }
             }
+
+            // Récupération de l'assistant lié à la session
+            const assistant = await query(GPTAssistantAPIAssistantVO.API_TYPE_ID)
+                .filter_by_num_eq(field_names<GPTAssistantAPIAssistantVO>().id, session.assistant_id)
+                .exec_as_server()
+                .select_vo<GPTAssistantAPIAssistantVO>();
+
+            // Récupération des fonctions Assistant via assistant_id
+            const assistant_functions = await query(GPTAssistantAPIAssistantFunctionVO.API_TYPE_ID)
+                .filter_by_num_eq(field_names<GPTAssistantAPIAssistantFunctionVO>().assistant_id, session.assistant_id)
+                .exec_as_server()
+                .select_vos<GPTAssistantAPIAssistantFunctionVO>();
+
+            // Récupération des paramètres des fonctions Assistant
+            const functionParams = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
+                .filter_by_num_in(field_names<GPTAssistantAPIFunctionParamVO>().function_id,
+                    query(GPTAssistantAPIAssistantFunctionVO.API_TYPE_ID)
+                        .filter_by_num_eq(field_names<GPTAssistantAPIAssistantFunctionVO>().assistant_id, session.assistant_id)
+                        .field(field_names<GPTAssistantAPIAssistantFunctionVO>().function_id))
+                .exec_as_server()
+                .select_vos<GPTAssistantAPIFunctionParamVO>();
+
+            const params_by_function_id = functionParams.reduce((acc, param) => {
+                (acc[param.function_id] ||= []).push(param);
+                return acc;
+            }, {} as Record<number, GPTAssistantAPIFunctionParamVO[]>);
+
+            // Conversion en tools pour OpenAI
+            const tools = assistant_functions.map(f => ({
+                type: 'function',
+                name: f.function_id.toString(),
+                description: '', // adapter selon besoin, si dispo dans GPTAssistantAPIFunctionVO
+                parameters: {
+                    type: 'object',
+                    properties: (params_by_function_id[f.function_id] || []).reduce((acc, param) => {
+                        acc[param.gpt_funcparam_name] = {
+                            type: GPTAssistantAPIFunctionParamVO.TYPE_TO_OPENAI[param.type],
+                            description: param.gpt_funcparam_description,
+                        };
+                        return acc;
+                    }, {} as Record<string, { type: string; description: string }>),
+                    required: (params_by_function_id[f.function_id] || []).filter(p => p.required).map(p => p.gpt_funcparam_name),
+                },
+            }));
+
             /* ────────────────────────────────────────────────────────────────
             0)  Récupère l’utilisateur courant pour l’injecter dans le contexte
             ──────────────────────────────────────────────────────────────────*/
@@ -1403,64 +1419,31 @@ export default class GPTAssistantAPIServerController {
                 // ► relance la génération (texte + audio suivant les préférences)
                 openaiSocket.send(JSON.stringify({ type: 'response.create', response: { modalities: ['text', 'audio'] }}));
             };
-            const tools: {
-                type: string,
-                name: string,
-                description: string,
-                parameters: {
-                    type: string,
-                    properties: object,
-                    required: string[],
-                }
-            }[] = [];
-
-            for (const func of session_functions) {
-                tools.push({
-                    type: 'function',
-                    name: func.name,
-                    description: func.description,
-                    parameters:  Object.keys(params_by_function_id).length > 0 ?{
-                        type: 'object',
-                        properties: params_by_function_id[func.id].reduce((acc, param) => {
-                            acc[param.name] = {
-                                type: GPTRealtimeAPIFunctionParametersVO.TYPE_TO_OPENAI[param.type],
-                                description: param.description,
-                            };
-                            return acc;
-                        }, {} as Record<string, { type: string; description: string }>),
-                        required: params_by_function_id[func.id].filter(p => p.required).map(p => p.name),
-                    } : {
-                        type: 'object',
-                        properties: {},
-                        required: [],
-                    },
-                });
-            }
             // — Socket OPEN ------------------------------------------------------------
-            openaiSocket.once('open', () => {
-                const sessionUpdate = {
-                    type: 'session.update',
-                    session: {
-                        modalities: session.modalities ? session.modalities : ['text', 'audio'],
-                        output_audio_format: session.output_audio_format ? session.output_audio_format : 'pcm16',
-                        input_audio_transcription: {  model: session.input_audio_transcription_model ? session.input_audio_transcription_model: 'whisper-1' },
-                        input_audio_format: session.input_audio_format ? session.input_audio_format : 'pcm16',
-                        turn_detection: {
-                            type: session.turn_detection_type ? session.turn_detection_type : 'server_vad',
-                            threshold: session.turn_detection_threshold ? session.turn_detection_threshold : 0.5,
-                            silence_duration_ms: session.turn_detection_silence_duration_ms ? session.turn_detection_silence_duration_ms : 400,
-                            prefix_padding_ms: session.turn_detection_prefix_padding_ms ? session.turn_detection_prefix_padding_ms : 150,
-                            create_response: true,
-                            interrupt_response: true,
-                        },
-                        voice: session.voice ? session.voice : 'shimmer',
-                        instructions: session.instructions ? session.instructions : 'Vous êtes un assistant virtuel.',
-                        tools: [...tools],
-                        tool_choice: 'auto',
-                        speed:1.2,
+            const sessionUpdate = {
+                type: 'session.update',
+                session: {
+                    modalities: session.modalities ?? ['text', 'audio'],
+                    output_audio_format: session.output_audio_format ?? 'pcm16',
+                    input_audio_transcription: { model: session.input_audio_transcription_model ?? 'whisper-1' },
+                    input_audio_format: session.input_audio_format ?? 'pcm16',
+                    turn_detection: {
+                        type: session.turn_detection_type ?? 'server_vad',
+                        threshold: session.turn_detection_threshold ?? 0.5,
+                        silence_duration_ms: session.turn_detection_silence_duration_ms ?? 400,
+                        prefix_padding_ms: session.turn_detection_prefix_padding_ms ?? 150,
+                        create_response: true,
+                        interrupt_response: true,
                     },
-                } as const;
+                    voice: session.voice ?? 'shimmer',
+                    instructions: assistant.instructions ?? 'Vous êtes un assistant virtuel.',
+                    tools,
+                    tool_choice: 'auto',
+                    speed: 1.2,
+                },
+            };
 
+            openaiSocket.once('open', () => {
                 openaiSocket.send(JSON.stringify(sessionUpdate));
             });
 

@@ -58,8 +58,6 @@ import { ref } from "vue";
 import OseliaRealtimeController from "./OseliaRealtimeController";
 import GPTAssistantAPIAssistantFunctionVO from "../../../../../../shared/modules/GPT/vos/GPTAssistantAPIAssistantFunctionVO";
 import GPTAssistantAPIFunctionParamVO from "../../../../../../shared/modules/GPT/vos/GPTAssistantAPIFunctionParamVO";
-import GPTRealtimeAPIFunctionVO from "../../../../../../shared/modules/GPT/vos/GPTRealtimeAPIFunctionVO";
-import GPTRealtimeAPIFunctionParametersVO from "../../../../../../shared/modules/GPT/vos/GPTRealtimeAPIFunctionParametersVO";
 import { Console } from "console";
 
 @Component({
@@ -333,58 +331,25 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
             } else {
                 used_assistant = this.currently_selected_assistant ? this.currently_selected_assistant : this.assistant;
             }
+
             if (!this.realtime_session) {
                 if (!used_assistant) {
                     ConsoleHandler.error("No assistant selected for the realtime session.");
                     return;
                 }
+
                 this.realtime_session = new GPTRealtimeAPISessionVO();
-                this.realtime_session.instructions = used_assistant.instructions;
                 this.realtime_session.name = used_assistant.nom;
                 this.realtime_session.created_at = Dates.now();
-                const assistant_assistant_functions = await query(GPTAssistantAPIAssistantFunctionVO.API_TYPE_ID)
-                    .filter_by_num_eq(field_names<GPTAssistantAPIAssistantFunctionVO>().assistant_id, used_assistant.id)
-                    .select_vos<GPTAssistantAPIAssistantFunctionVO>();
-                const assistant_functions: GPTAssistantAPIFunctionVO[] = [];
-                for (const assistant_function of assistant_assistant_functions) {
-                    const functions = await query(GPTAssistantAPIFunctionVO.API_TYPE_ID)
-                        .filter_by_id(assistant_function.function_id)
-                        .select_vos<GPTAssistantAPIFunctionVO>();
-                    assistant_functions.push(...functions);
-                }
-                const assistant_parameters: GPTAssistantAPIFunctionParamVO[] = [];
-                for (const assistant_function of assistant_functions) {
-                    const params = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
-                        .filter_by_num_eq(field_names<GPTAssistantAPIFunctionParamVO>().function_id, assistant_function.id)
-                        .select_vos<GPTAssistantAPIFunctionParamVO>();
-                    assistant_parameters.push(...params);
-                }
+                this.realtime_session.assistant_id = used_assistant.id;
 
-                for (const func of assistant_functions) {
-                    const new_func = new GPTRealtimeAPIFunctionVO();
-                    new_func.name = func.gpt_function_name;
-                    new_func.description = func.gpt_function_description;
-                    new_func.session_id = this.realtime_session.id;
-                    for (const param of assistant_parameters) {
-                        if (param.function_id === func.id) {
-                            const new_param = new GPTRealtimeAPIFunctionParametersVO();
-                            new_param.name = param.gpt_funcparam_name;
-                            new_param.description = param.gpt_funcparam_description;
-                            new_param.type = param.type;
-                            new_param.default_json_value = param.default_json_value;
-                            new_param.required = param.required;
-                            new_param.function_id = new_func.id;
-                            await ModuleDAO.getInstance().insertOrUpdateVO(new_param);
-                        }
-                    }
-                    await ModuleDAO.getInstance().insertOrUpdateVO(new_func);
-                }
                 this.realtime_session.id = (await ModuleDAO.getInstance().insertOrUpdateVO(this.realtime_session)).id;
             }
+
             controller.session_overload_object = this.realtime_session;
             await controller.connect_to_realtime();
         } else {
-            // On ne peut pas utiliser le realtime
+        // On ne peut pas utiliser le realtime
             controller.disconnect_to_realtime();
         }
     }

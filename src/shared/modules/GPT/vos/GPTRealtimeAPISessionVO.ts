@@ -1,7 +1,6 @@
 
 import IDistantVOBase from '../../IDistantVOBase';
 import GPTAssistantAPIErrorVO from './GPTAssistantAPIErrorVO';
-import GPTRealtimeAPIFunctionVO from './GPTRealtimeAPIFunctionVO';
 
 export default class GPTRealtimeAPISessionVO implements IDistantVOBase {
     public static API_TYPE_ID: string = "gpt_realtime_session";
@@ -15,6 +14,8 @@ export default class GPTRealtimeAPISessionVO implements IDistantVOBase {
     // Timestamp for when the token expires. Currently, all tokens expire after one minute.
     public client_secret_expires_at: string;
 
+    public assistant_id: number;
+
     // Ephemeral key usable in client environments to authenticate connections to the Realtime API. Use this in client-side environments rather than a standard API token, which should only be used server-side.
     public client_secret_value: string;
 
@@ -26,10 +27,6 @@ export default class GPTRealtimeAPISessionVO implements IDistantVOBase {
 
     // The language of the input audio. Supplying the input language in ISO-639-1 (e.g. en) format will improve accuracy and latency.
     public input_audio_transcription_language?: string;
-
-    // The default system instructions (i.e. system message) prepended to model calls. This field allows the client to guide the model on desired responses. The model can be instructed on response content and format, (e.g. "be extremely succinct", "act friendly", "here are examples of good responses") and on audio behavior (e.g. "talk quickly", "inject emotion into your voice", "laugh frequently"). The instructions are not guaranteed to be followed by the model, but they provide guidance to the model on the desired behavior.
-    // Note that the server sets default instructions which will be used if this field is not set and are visible in the session.created event at the start of the session.
-    public instructions?: string;
 
     // Maximum number of output tokens for a single assistant response, inclusive of tool calls. Provide an integer between 1 and 4096 to limit output tokens, or inf for the maximum available tokens for a given model. Defaults to inf.
     public max_response_output_tokens?: number;
