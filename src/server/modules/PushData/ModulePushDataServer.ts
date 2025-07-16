@@ -221,6 +221,9 @@ export default class ModulePushDataServer extends ModuleServerBase {
             'fr-fr': 'Supprimer'
         }, 'UserNotifComponent.mark_as_read.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Cliquez ici'
+        }, 'UserNotifComponent.redirect.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Télécharger'
         }, 'notification.simple_downloadable_link.download.___LABEL___'));
 

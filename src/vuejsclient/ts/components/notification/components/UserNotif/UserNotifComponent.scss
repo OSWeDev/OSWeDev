@@ -49,4 +49,13 @@
         font-size: x-small;
         color: #555;
     }
+
+    .notif_route {
+        color: $main_link_color;
+        font-size: smaller;
+
+        &:hover {
+            color: lighten($main_link_color, 30%);
+        }
+    }
 }

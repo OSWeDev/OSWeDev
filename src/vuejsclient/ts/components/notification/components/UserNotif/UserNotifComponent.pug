@@ -1,6 +1,5 @@
-.UserNotifComponent
-
-    .type_icon_wrapper(@click='redirect_notification()') 
+.UserNotifComponent(:class="{'clickable': !!notification?.notif_route}")
+    .type_icon_wrapper(@click='redirect_notification') 
         template(v-if='is_error')
             i.fa-solid.fa-exclamation-triangle.fa-fw.type_icon_error(aria-hidden="true")
         template(v-if='is_warn')
@@ -10,8 +9,10 @@
         template(v-if='is_success')
             i.fa-solid.fa-check-circle.fa-fw.type_icon_success(aria-hidden="true")
 
-    .notif_date(@click='redirect_notification()')  {{ date_notification }}
-    .notif_content(@click='redirect_notification()')  {{ notification.simple_notif_json_params ? t(notification.simple_notif_label, JSON.parse(notification.simple_notif_json_params)) : t(notification.simple_notif_label) }}
+    .notif_date(@click='redirect_notification')  {{ date_notification }}
+    .notif_content(@click='redirect_notification')  {{ notification.simple_notif_json_params ? t(notification.simple_notif_label, JSON.parse(notification.simple_notif_json_params)) : t(notification.simple_notif_label) }}
+    template(v-if="!!notification?.notif_route")
+        .notif_route(@click='redirect_notification') {{ label('UserNotifComponent.redirect') }}
 
     .notif_downloadable_link(v-if='notification.simple_downloadable_link')
         button.btn.btn-sm.btn-primary.m-1(@click='download_file' v-tooltip='notification.simple_downloadable_link')
