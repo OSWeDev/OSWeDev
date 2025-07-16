@@ -77,6 +77,7 @@ export default class SuiviCompetencesWidgetController {
                         file_name,
                         html_content,
                         true,
+                        null
                     ));
                 }
             }, 50);

@@ -29,7 +29,8 @@ export default class OseliaRunVO implements IDistantVOBase, IVersionedVO {
         "OseliaRunVO.STATE_CANCELLED",
         "OseliaRunVO.STATE_EXPIRED",
         "OseliaRunVO.STATE_NEEDS_RERUN",
-        "OseliaRunVO.STATE_RERUN_ASKED"
+        "OseliaRunVO.STATE_RERUN_ASKED",
+        "OseliaRunVO.STATE_INITIALIZING",
     ];
     public static STATE_TODO: number = 0;
     public static STATE_SPLITTING: number = 1;
@@ -46,6 +47,7 @@ export default class OseliaRunVO implements IDistantVOBase, IVersionedVO {
     public static STATE_EXPIRED: number = 12;
     public static STATE_NEEDS_RERUN: number = 13;
     public static STATE_RERUN_ASKED: number = 14;
+    public static STATE_INITIALIZING: number = 15;
 
 
     public id: number;
@@ -283,6 +285,16 @@ export default class OseliaRunVO implements IDistantVOBase, IVersionedVO {
      * Le lien vers le listener qui a instancié ce run (si il y en a un)
      */
     public listener_id: number;
+
+    /**
+     * Ajout d'un système de résumé vocal pour les interactions vocales simplifiées
+     */
+    public generate_voice_summary: boolean;
+
+    /**
+     * Le lien vers le résumé vocal qui a été généré pour ce run (si il y en a un)
+     */
+    public voice_summary_id: number;
 
     public error_msg: string;
 

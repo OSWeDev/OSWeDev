@@ -51,6 +51,7 @@
                                 :thread='thread'
                                 :thread_message='thread_message'
                                 @thread_message_updated='thread_message_updated'
+                                @push_tts_file_id='push_tts_file_id'
                             )
                         template(v-if='thread.oselia_is_running')
                             .thread_message.thread_message_assistant
@@ -123,12 +124,28 @@
                                     :thread_id='thread.id',
                                     class="in-chat-view",
                                 )
-                        //-         template(v-for='function_call in function_calls')
-                        //-             .function_call(:class='{"is_replay":!!function_call.replay_from_id}')
-                        //-                 .function_call_name {{ functions_by_id[function_call.gpt_function_id].gpt_function_name }}
-                        //-                     i(@click='replay_from_id(function_call.id)').fa-duotone.fa-play-circle
-                        //-                 vue-json-pretty.function_call_function_call_parameters_initial(:data='try_parse_json(function_call.function_call_parameters_initial)' :deep='1')
-                        //-                 vue-json-pretty.function_call_result(:data='try_parse_json(function_call.result)' :deep='1')
+
+                    .function_calls(v-if='get_show_hidden_messages && function_calls && function_calls.length')
+                        
+                        .function_calls_wrapper(:class="{'expand':expand_function_calls}")
+                            .function_calls_header(@click='expand_function_calls = !expand_function_calls') {{ label('oselia_thread_widget_component.function_calls_header') }}
+                                i.fa-duotone.fa-chevron-down(v-if='!expand_function_calls')
+                                i.fa-duotone.fa-chevron-up(v-else)
+                                
+                            .function_calls_content(v-if='expand_function_calls')
+                                template(v-for='function_call in function_calls')
+                                    .function_call(:class='{"is_replay":!!function_call.replay_from_id}')
+                                        template(v-if='!!functions_by_id[function_call.gpt_function_id]')
+                                            .function_call_name {{ functions_by_id[function_call.gpt_function_id].gpt_function_name }}
+                                                i(@click='replay_from_id(function_call.id)').fa-duotone.fa-play-circle
+                                            vue-json-pretty.function_call_function_call_parameters_initial(:data='try_parse_json(function_call.function_call_parameters_initial)' :deep='1')
+                                            vue-json-pretty.function_call_result(:data='try_parse_json(function_call.result)' :deep='1')
+                                        template(v-else)
+                                            .function_call_name {{ JSON.stringify(function_call) }}
+                                                i(@click='replay_from_id(function_call.id)').fa-duotone.fa-play-circle
+                                            vue-json-pretty.function_call_function_call_parameters_initial(:data='try_parse_json(function_call.function_call_parameters_initial)' :deep='1')
+                                            vue-json-pretty.function_call_result(:data='try_parse_json(function_call.result)' :deep='1')
+
 
                     .thread_cached_datas(v-if='get_show_hidden_messages && thread_cached_datas && thread_cached_datas.length')
                         .thread_cached_datas_wrapper(:class="{'expand':expand_thread_cached_datas}")

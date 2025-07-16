@@ -140,8 +140,15 @@ export default class OseliaRunBGThread implements IBGThread {
             }
 
             // On doit créer/récupérer le thread asap pour le sémaphore
-            const assistant = await OseliaRunServerController.get_run_assistant(run);
+            let assistant = await OseliaRunServerController.get_run_assistant(run);
             const thread = await OseliaRunServerController.get_run_thread(run, assistant);
+
+            if ((!assistant) && (thread.current_oselia_assistant_id || thread.current_default_assistant_id)) {
+                assistant = await query(GPTAssistantAPIAssistantVO.API_TYPE_ID)
+                    .filter_by_id(thread.current_oselia_assistant_id || thread.current_default_assistant_id)
+                    .exec_as_server()
+                    .select_vo<GPTAssistantAPIAssistantVO>();
+            }
 
             // On prend le semaphore
             this.currently_running_thread_ids[run.thread_id] = run.thread_id;
@@ -215,7 +222,10 @@ export default class OseliaRunBGThread implements IBGThread {
                         .filter_by_id(next_handleable_run.assistant_id)
                         .exec_as_server()
                         .select_vo<GPTAssistantAPIAssistantVO>() :
-                    null;
+                    await query(GPTAssistantAPIAssistantVO.API_TYPE_ID)
+                        .filter_by_id(thread.current_oselia_assistant_id)
+                        .exec_as_server()
+                        .select_vo<GPTAssistantAPIAssistantVO>();
         }
 
         switch (next_handleable_run.state) {
@@ -354,6 +364,12 @@ export default class OseliaRunBGThread implements IBGThread {
         thread: GPTAssistantAPIThreadVO,
         assistant: GPTAssistantAPIAssistantVO,
     ) {
+
+        // Si le thread ne référence pas ce run comme étant l'actif, il faut faire la modif
+        if (thread.last_oselia_run_id != run.id) {
+            thread.last_oselia_run_id = run.id;
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(thread);
+        }
 
         switch (run.run_type) {
 

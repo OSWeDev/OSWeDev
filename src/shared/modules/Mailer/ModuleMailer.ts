@@ -94,9 +94,13 @@ export default class ModuleMailer extends Module {
     }
 
     private initialize_MailCategoryUserVO() {
-        ModuleTableFieldController.create_new(MailCategoryUserVO.API_TYPE_ID, field_names<MailCategoryUserVO>().mail_category_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Catégorie', true).set_many_to_one_target_moduletable_name(MailCategoryVO.API_TYPE_ID);
-        ModuleTableFieldController.create_new(MailCategoryUserVO.API_TYPE_ID, field_names<MailCategoryUserVO>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Utilisateur', true).set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
+        const mail_category_id = ModuleTableFieldController.create_new(MailCategoryUserVO.API_TYPE_ID, field_names<MailCategoryUserVO>().mail_category_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Catégorie', true).set_many_to_one_target_moduletable_name(MailCategoryVO.API_TYPE_ID);
+        const user_id = ModuleTableFieldController.create_new(MailCategoryUserVO.API_TYPE_ID, field_names<MailCategoryUserVO>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Utilisateur', true).set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
         ModuleTableController.create_new(this.name, MailCategoryUserVO, null, "Optin/Optout des utilisateurs");
+
+        ModuleTableController.unique_fields_by_vo_type[MailCategoryUserVO.API_TYPE_ID] = [
+            [mail_category_id, user_id]
+        ];
     }
     private initializeMailCategoryVO() {
         const label = ModuleTableFieldController.create_new(MailCategoryVO.API_TYPE_ID, field_names<MailCategoryVO>().name, ModuleTableFieldVO.FIELD_TYPE_translatable_text, 'Nom', true).unique();

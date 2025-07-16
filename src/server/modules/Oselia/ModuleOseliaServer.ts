@@ -2,7 +2,7 @@ import axios from 'axios';
 import { Request, Response } from 'express';
 import fs, { createWriteStream } from "fs";
 import { ChatCompletion, ImagesResponse } from 'openai/resources';
-import { Thread } from 'openai/resources/beta/threads/threads';
+import { Thread, Threads } from 'openai/resources/beta/threads/threads';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ExternalAPIAuthentificationVO from '../../../shared/modules/API/vos/ExternalAPIAuthentificationVO';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
@@ -283,7 +283,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
             'oselia.join_request.deny.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
-            { 'fr-fr': 'Maintenir appuyer et parler (nécessite d\'accepter la demande d\'accès au micro)' },
+            { 'fr-fr': 'Maintenir appuyé et parler (nécessite d\'accepter la demande d\'accès au micro) - Raccourci clavier : Maintenir la touche "v" (pour *vocal*).' },
             'oselia_thread_widget_component.thread_message_input_voice.tooltip.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
@@ -369,6 +369,9 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Réexecution demandée' },
             'OseliaRunVO.STATE_RERUN_ASKED'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'En cours de paramétrage' },
+            'OseliaRunVO.STATE_INITIALIZING'));
 
         ModuleBGThreadServer.getInstance().registerBGThread(OseliaThreadTitleBuilderBGThread.getInstance());
         ModuleBGThreadServer.getInstance().registerBGThread(OseliaOldRunsResyncBGThread.getInstance());
@@ -478,6 +481,10 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                 if (new_file_vo) {
 
                     const new_thread_message = new GPTAssistantAPIThreadMessageVO();
+
+                    new_thread_message.oselia_run_id = null;
+                    new_thread_message.autogen_voice_summary = false;
+
                     new_thread_message.thread_id = thread_vo.id;
                     new_thread_message.date = Dates.now();
                     new_thread_message.role = GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_ASSISTANT;
@@ -1423,6 +1430,36 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         return 'OK';
     }
 
+    public async add_function_to_assistant(assistant: GPTAssistantAPIAssistantVO, module_name: string, function_name: string) {
+
+        const current_link = await query(GPTAssistantAPIAssistantFunctionVO.API_TYPE_ID)
+            .filter_by_id(assistant.id, GPTAssistantAPIAssistantVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<GPTAssistantAPIFunctionVO>().module_name, module_name, GPTAssistantAPIFunctionVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<GPTAssistantAPIFunctionVO>().gpt_function_name, function_name, GPTAssistantAPIFunctionVO.API_TYPE_ID)
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIAssistantFunctionVO>();
+
+        if (current_link) {
+            return;
+        }
+
+        const function_vo = await query(GPTAssistantAPIFunctionVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<GPTAssistantAPIFunctionVO>().module_name, module_name)
+            .filter_by_text_eq(field_names<GPTAssistantAPIFunctionVO>().gpt_function_name, function_name)
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIFunctionVO>();
+
+        if (!function_vo) {
+            ConsoleHandler.error('add_function_to_assistant:No function_vo found for module_name:' + module_name + ' function_name:' + function_name);
+            return;
+        }
+
+        const assistant_function_link = new GPTAssistantAPIAssistantFunctionVO();
+        assistant_function_link.assistant_id = assistant.id;
+        assistant_function_link.function_id = function_vo.id;
+
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(assistant_function_link);
+    }
 
     public async accept_join_request(action_url: ActionURLVO, uid: number, req: Request, api_call_id: number): Promise<ActionURLCRVO> {
         if (!action_url.params) {
@@ -2081,6 +2118,10 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                         ConsoleHandler.log('ModuleOseliaServer:send_join_request:Owner of the thread is on the thread');
 
                         const new_thread_message = new GPTAssistantAPIThreadMessageVO();
+
+                        new_thread_message.oselia_run_id = null;
+                        new_thread_message.autogen_voice_summary = false;
+
                         new_thread_message.thread_id = target_thread.id;
                         new_thread_message.date = Dates.now();
                         new_thread_message.role = GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_ASSISTANT;
@@ -2764,8 +2805,14 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                 // On tente de relancer le run avec un prompt de correction indiquant qu'il faut dans tous les cas valider ou refuser mais on peut pas rester comme ça
                 ConsoleHandler.warn('update_oselia_run_step_on_u_gpt_run:Validation GPT Run ended without validation or rerun. This is unexpected:' + run.id + ': auto rerun');
 
-                const assistant = await OseliaRunServerController.get_run_assistant(run);
+                let assistant = await OseliaRunServerController.get_run_assistant(run);
                 const thread = await OseliaRunServerController.get_run_thread(run, assistant);
+                if ((!assistant) && (thread.current_oselia_assistant_id || thread.current_default_assistant_id)) {
+                    assistant = await query(GPTAssistantAPIAssistantVO.API_TYPE_ID)
+                        .filter_by_id(thread.current_oselia_assistant_id || thread.current_default_assistant_id)
+                        .exec_as_server()
+                        .select_vo<GPTAssistantAPIAssistantVO>();
+                }
                 const files = await OseliaRunServerController.get_run_files(run);
 
                 const validate_run_function = await query(GPTAssistantAPIFunctionVO.API_TYPE_ID)
@@ -3254,37 +3301,6 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                 this.add_function_to_assistant(assistant, this.name, reflect<this>().app_mem_set_mem),
             ]);
         }
-    }
-
-    private async add_function_to_assistant(assistant: GPTAssistantAPIAssistantVO, module_name: string, function_name: string) {
-
-        const current_link = await query(GPTAssistantAPIAssistantFunctionVO.API_TYPE_ID)
-            .filter_by_id(assistant.id, GPTAssistantAPIAssistantVO.API_TYPE_ID)
-            .filter_by_text_eq(field_names<GPTAssistantAPIFunctionVO>().module_name, module_name, GPTAssistantAPIFunctionVO.API_TYPE_ID)
-            .filter_by_text_eq(field_names<GPTAssistantAPIFunctionVO>().gpt_function_name, function_name, GPTAssistantAPIFunctionVO.API_TYPE_ID)
-            .exec_as_server()
-            .select_vo<GPTAssistantAPIAssistantFunctionVO>();
-
-        if (current_link) {
-            return;
-        }
-
-        const function_vo = await query(GPTAssistantAPIFunctionVO.API_TYPE_ID)
-            .filter_by_text_eq(field_names<GPTAssistantAPIFunctionVO>().module_name, module_name)
-            .filter_by_text_eq(field_names<GPTAssistantAPIFunctionVO>().gpt_function_name, function_name)
-            .exec_as_server()
-            .select_vo<GPTAssistantAPIFunctionVO>();
-
-        if (!function_vo) {
-            ConsoleHandler.error('add_function_to_assistant:No function_vo found for module_name:' + module_name + ' function_name:' + function_name);
-            return;
-        }
-
-        const assistant_function_link = new GPTAssistantAPIAssistantFunctionVO();
-        assistant_function_link.assistant_id = assistant.id;
-        assistant_function_link.function_id = function_vo.id;
-
-        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(assistant_function_link);
     }
 
     private async rmv_function_from_assistant(assistant: GPTAssistantAPIAssistantVO, module_name: string, function_name: string) {

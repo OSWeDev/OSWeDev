@@ -17,6 +17,7 @@ import DefaultTranslationManager from '../../../shared/modules/Translation/Defau
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ModuleVocus from '../../../shared/modules/Vocus/ModuleVocus';
 import VocusInfoVO from '../../../shared/modules/Vocus/vos/VocusInfoVO';
+import { all_promises } from '../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
@@ -25,19 +26,19 @@ import ModulesManagerServer from '../ModulesManagerServer';
 
 export default class ModuleVocusServer extends ModuleServerBase {
 
+    private static instance: ModuleVocusServer = null;
+
+    // istanbul ignore next: cannot test module constructor
+    private constructor() {
+        super(ModuleVocus.getInstance().name);
+    }
+
     // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleVocusServer.instance) {
             ModuleVocusServer.instance = new ModuleVocusServer();
         }
         return ModuleVocusServer.instance;
-    }
-
-    private static instance: ModuleVocusServer = null;
-
-    // istanbul ignore next: cannot test module constructor
-    private constructor() {
-        super(ModuleVocus.getInstance().name);
     }
 
     // istanbul ignore next: cannot test configure
@@ -201,6 +202,8 @@ export default class ModuleVocusServer extends ModuleServerBase {
                 break;
             }
         }
+
+        await all_promises(promises);
 
         const res: VocusInfoVO[] = [];
         for (const i in res_map) {

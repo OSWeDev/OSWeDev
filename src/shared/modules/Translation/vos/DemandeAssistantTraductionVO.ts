@@ -8,4 +8,12 @@ export default class DemandeAssistantTraductionVO implements IDistantVOBase {
     public lang_id: number;
     public text_id: number;
     public oselia_run_id: number;
+
+    public code_text: string;
+    public code_lang: string;
+    public traduction: string;
+    public degre_certitude: number;
+    public explication: string;
+
+    public traduction_appliquee: boolean;
 }

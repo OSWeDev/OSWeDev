@@ -29,15 +29,6 @@ export default class ModulesManager {
      */
 
     public static initialize() {
-
-        // Il faut quand même qu'on register une moduleTable pour le admin.modules
-        const label_field = ModuleTableFieldController.create_new(ModuleVO.API_TYPE_ID, field_names<ModuleVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': 'Nom' }), true)
-            .unique();
-        ModuleTableFieldController.create_new(ModuleVO.API_TYPE_ID, field_names<ModuleVO>().actif, ModuleTableFieldVO.FIELD_TYPE_boolean, DefaultTranslationVO.create_new({ 'fr-fr': 'Actif' }), true);
-
-        ModuleTableController.create_new(null, ModuleVO, label_field, DefaultTranslationVO.create_new({ 'fr-fr': 'Modules' }))
-            .set_description('Les modules disponibles / activés pour cette instance d\'OSWEDEV')
-            .set_bdd_ref('admin', 'modules');
     }
 
     public static registerModule(role: string, moduleObj: IModuleBase) {

@@ -238,6 +238,8 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 session = Object.assign(session, session.impersonated_from);
                 delete session.impersonated_from;
 
+                ExpressDBSessionsServerCacheHolder.parsed_session_cache[ExpressDBSessionsServerCacheHolder.session_id_by_sid[sid]] = session;
+
                 if (!session.save) {
                     ConsoleHandler.error('ModuleAccessPolicyServer.logout_sid:session.save:session.save not found:SID:' + sid);
                     return;
@@ -474,6 +476,8 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
             session = Object.assign(session, session.impersonated_from);
             delete session.impersonated_from; // POURQUOI c'était commenté ???
+
+            ExpressDBSessionsServerCacheHolder.parsed_session_cache[ExpressDBSessionsServerCacheHolder.session_id_by_sid[sid]] = session;
 
             const uid: number = session.uid;
 
@@ -1881,7 +1885,8 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         await ModuleDAOServer.instance.query('update ' + ModuleTableController.module_tables_by_vo_type[UserVO.API_TYPE_ID].full_name + ' set ' +
             "lang_id=$1 where id=$2",
-            [num, user_id]);
+            [num, user_id],
+            true);
     }
 
     /**
@@ -1928,7 +1933,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 return true;
             }
 
-            const res = await ModuleDAOServer.instance.query('select invalidated or blocked as invalidated from ' + ModuleTableController.module_tables_by_vo_type[UserVO.API_TYPE_ID].full_name + ' where id=$1', [uid]);
+            const res = await ModuleDAOServer.instance.query('select invalidated or blocked as invalidated from ' + ModuleTableController.module_tables_by_vo_type[UserVO.API_TYPE_ID].full_name + ' where id=$1', [uid], true);
             const invalidated = (res && (res.length == 1) && (typeof res[0]['invalidated'] != 'undefined') && (res[0]['invalidated'] !== null)) ? res[0]['invalidated'] : false;
             return !invalidated;
         } catch (error) {

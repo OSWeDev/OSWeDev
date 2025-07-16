@@ -114,6 +114,8 @@ export default class OnPageTranslation extends VueComponentBase {
 
     private openModule() {
         this.isOpened = true;
+
+        this.fire_modal_inert('.on_page_translation_module_wrapper');
     }
 
     private closeModule() {

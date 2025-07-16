@@ -58,6 +58,10 @@ export default class ExportContextQueryToXLSXQueryVO implements IDistantVOBase {
     // public vars_indicator: ExportVarIndicatorVO[];
     public vars_indicator: ExportVarIndicatorVO;
 
+    public creation_date: number;
+    public start_date: number;
+    public end_date: number;
+
     public static create_new(
         filename: string,
         context_query: ContextQueryVO,

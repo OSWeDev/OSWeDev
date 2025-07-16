@@ -3,16 +3,15 @@ import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import DashboardPageWidgetVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/DashboardPageWidgetVOManager';
 import MonthFilterWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/MonthFilterWidgetManager';
-import MonthFilterWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/MonthFilterWidgetOptionsVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
+import MonthFilterWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/MonthFilterWidgetOptionsVO';
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
-import { ModuleTranslatableTextGetter } from '../../../../InlineTranslatableText/TranslatableTextStore';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
+import { ModuleTranslatableTextGetter } from '../../../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../../../VueComponentBase';
 import MonthFilterInputComponent from '../../../../month_filter_input/MonthFilterInputComponent';
-import MonthFilterWidgetComponent from '../MonthFilterWidgetComponent';
 import { ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import './MonthFilterWidgetOptionsButtonSetterComponent.scss';
 
@@ -76,7 +75,7 @@ export default class MonthFilterWidgetOptionsButtonSetterComponent extends VueCo
     // Current filter may cumulate months
     private is_month_cumulated_selected: boolean = false;
 
-    private can_configure_auto_select_month_relative_mode: boolean = false;
+    private can_configure_auto_select_month_relative_mode: boolean = true;
 
     private widget_options: MonthFilterWidgetOptionsVO = null;
 
@@ -87,8 +86,56 @@ export default class MonthFilterWidgetOptionsButtonSetterComponent extends VueCo
         false
     );
 
-    private mounted() {
-        this.throttled_load_all_months_page_widgets();
+    get vo_field_ref(): VOFieldRefVO {
+        const options: MonthFilterWidgetOptionsVO = this.widget_options;
+
+        if ((!options) || (!options.vo_field_ref)) {
+            return null;
+        }
+
+        return Object.assign(new VOFieldRefVO(), options.vo_field_ref);
+    }
+    get is_vo_field_ref(): boolean {
+        if (!this.widget_options) {
+            return true;
+        }
+
+        return this.widget_options.is_vo_field_ref;
+    }
+
+    get custom_filter_name(): string {
+        if (!this.widget_options) {
+            return null;
+        }
+
+        return this.widget_options.custom_filter_name;
+    }
+
+    get months(): string[] {
+        return MonthFilterWidgetManager.get_available_months_from_widget_options(
+            this.widget_options
+        );
+    }
+
+    /**
+     * Can Select All
+     *  - Can select all clickable button
+     */
+    get can_select_all(): boolean {
+
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return !!this.widget_options.can_select_all;
+    }
+
+    get vo_field_ref_label(): string {
+        if ((!this.widget_options) || (!this.vo_field_ref)) {
+            return null;
+        }
+
+        return this.get_flat_locale_translations[this.vo_field_ref.get_translatable_name_code_text(this.page_widget.id)];
     }
 
     /**
@@ -293,16 +340,16 @@ export default class MonthFilterWidgetOptionsButtonSetterComponent extends VueCo
         );
     }
 
-    /**
-     * toggle_can_configure_auto_select_month_relative_mode
-     */
-    private toggle_can_configure_auto_select_month_relative_mode(): void {
-        this.can_configure_auto_select_month_relative_mode = !this.can_configure_auto_select_month_relative_mode;
-        if (!this.can_configure_auto_select_month_relative_mode) {
-            this.auto_select_month_min = 0;
-            this.auto_select_month_max = 0;
-        }
-    }
+    // /**
+    //  * toggle_can_configure_auto_select_month_relative_mode
+    //  */
+    // private toggle_can_configure_auto_select_month_relative_mode(): void {
+    //     this.can_configure_auto_select_month_relative_mode = !this.can_configure_auto_select_month_relative_mode;
+    //     if (!this.can_configure_auto_select_month_relative_mode) {
+    //         this.auto_select_month_min = 0;
+    //         this.auto_select_month_max = 0;
+    //     }
+    // }
 
     /**
      * Handle Select All Change
@@ -310,6 +357,11 @@ export default class MonthFilterWidgetOptionsButtonSetterComponent extends VueCo
     private handle_all_months_selected_change(is_all_months_selected: boolean): void {
         this.is_all_months_selected = is_all_months_selected;
     }
+
+    private mounted() {
+        this.throttled_load_all_months_page_widgets();
+    }
+
 
     /**
      * Handle Selected Month Change
@@ -512,144 +564,90 @@ export default class MonthFilterWidgetOptionsButtonSetterComponent extends VueCo
         ).from(props);
     }
 
-    get other_filter_selected_months(): { [year: string]: boolean } {
-        if (!this.relative_to_this_filter) {
-            return null;
-        }
+    // get other_filter_selected_months(): { [year: string]: boolean } {
+    //     if (!this.relative_to_this_filter) {
+    //         return null;
+    //     }
 
-        const other_filter_selected_months = this.relative_to_this_filter.selected_months;
-        if (!other_filter_selected_months) {
-            return null;
-        }
+    //     const other_filter_selected_months = this.relative_to_this_filter.selected_months;
+    //     if (!other_filter_selected_months) {
+    //         return null;
+    //     }
 
-        return other_filter_selected_months;
-    }
+    //     return other_filter_selected_months;
+    // }
 
-    get other_filters_by_name(): { [filter_name: string]: DashboardPageWidgetVO } {
-        if (!this.all_months_page_widgets) {
-            return null;
-        }
+    // get other_filters_by_name(): { [filter_name: string]: DashboardPageWidgetVO } {
+    //     if (!this.all_months_page_widgets) {
+    //         return null;
+    //     }
 
-        const res: { [filter_name: string]: DashboardPageWidgetVO } = {};
+    //     const res: { [filter_name: string]: DashboardPageWidgetVO } = {};
 
-        for (const i in this.all_months_page_widgets) {
-            const month_page_widget = this.all_months_page_widgets[i];
+    //     for (const i in this.all_months_page_widgets) {
+    //         const month_page_widget = this.all_months_page_widgets[i];
 
-            if (month_page_widget.id == this.page_widget.id) {
-                continue;
-            }
+    //         if (month_page_widget.id == this.page_widget.id) {
+    //             continue;
+    //         }
 
-            // Only MonthFilterWidget (of the same type)
-            if (month_page_widget.widget_id !== this.page_widget.widget_id) {
-                continue;
-            }
+    //         // Only MonthFilterWidget (of the same type)
+    //         if (month_page_widget.widget_id !== this.page_widget.widget_id) {
+    //             continue;
+    //         }
 
-            if (!month_page_widget.json_options) {
-                continue;
-            }
+    //         if (!month_page_widget.json_options) {
+    //             continue;
+    //         }
 
-            const other_filter_options = JSON.parse(month_page_widget.json_options) as MonthFilterWidgetOptionsVO;
-            if (!other_filter_options) {
-                continue;
-            }
+    //         const other_filter_options = JSON.parse(month_page_widget.json_options) as MonthFilterWidgetOptionsVO;
+    //         if (!other_filter_options) {
+    //             continue;
+    //         }
 
-            if (other_filter_options.is_vo_field_ref) {
-                if ((!other_filter_options.vo_field_ref) || (!other_filter_options.vo_field_ref.api_type_id) || (!other_filter_options.vo_field_ref.field_id)) {
-                    continue;
-                }
+    //         if (other_filter_options.is_vo_field_ref) {
+    //             if ((!other_filter_options.vo_field_ref) || (!other_filter_options.vo_field_ref.api_type_id) || (!other_filter_options.vo_field_ref.field_id)) {
+    //                 continue;
+    //             }
 
-                const name = 'Widget ID:' + month_page_widget.id + ' : ' + other_filter_options.vo_field_ref.api_type_id + '.' + other_filter_options.vo_field_ref.field_id;
-                if (res[name]) {
-                    continue;
-                }
-                res[name] = month_page_widget;
-            } else {
-                if (!other_filter_options.custom_filter_name) {
-                    continue;
-                }
+    //             const name = 'Widget ID:' + month_page_widget.id + ' : ' + other_filter_options.vo_field_ref.api_type_id + '.' + other_filter_options.vo_field_ref.field_id;
+    //             if (res[name]) {
+    //                 continue;
+    //             }
+    //             res[name] = month_page_widget;
+    //         } else {
+    //             if (!other_filter_options.custom_filter_name) {
+    //                 continue;
+    //             }
 
-                const name = 'Widget ID:' + month_page_widget.id + ' : ' + other_filter_options.custom_filter_name;
-                if (res[name]) {
-                    continue;
-                }
-                res[name] = month_page_widget;
-            }
-        }
+    //             const name = 'Widget ID:' + month_page_widget.id + ' : ' + other_filter_options.custom_filter_name;
+    //             if (res[name]) {
+    //                 continue;
+    //             }
+    //             res[name] = month_page_widget;
+    //         }
+    //     }
 
-        return res;
-    }
+    //     return res;
+    // }
 
-    get default_placeholder_translation(): string {
-        return this.label('DOWFilterWidget.filter_placeholder');
-    }
+    // get default_placeholder_translation(): string {
+    //     return this.label('DOWFilterWidget.filter_placeholder');
+    // }
 
-    get vo_field_ref(): VOFieldRefVO {
-        const options: MonthFilterWidgetOptionsVO = this.widget_options;
+    // get relative_to_this_filter(): MonthFilterWidgetComponent {
+    //     if (!this.widget_options.auto_select_month_relative_mode) {
+    //         return null;
+    //     }
 
-        if ((!options) || (!options.vo_field_ref)) {
-            return null;
-        }
+    //     if (!this.widget_options.is_relative_to_other_filter) {
+    //         return null;
+    //     }
 
-        return Object.assign(new VOFieldRefVO(), options.vo_field_ref);
-    }
+    //     if (!this.widget_options.relative_to_other_filter_id) {
+    //         return null;
+    //     }
 
-    get vo_field_ref_label(): string {
-        if ((!this.widget_options) || (!this.vo_field_ref)) {
-            return null;
-        }
-
-        return this.get_flat_locale_translations[this.vo_field_ref.get_translatable_name_code_text(this.page_widget.id)];
-    }
-
-    get relative_to_this_filter(): MonthFilterWidgetComponent {
-        if (!this.widget_options.auto_select_month_relative_mode) {
-            return null;
-        }
-
-        if (!this.widget_options.is_relative_to_other_filter) {
-            return null;
-        }
-
-        if (!this.widget_options.relative_to_other_filter_id) {
-            return null;
-        }
-
-        return this.get_page_widgets_components_by_pwid[this.widget_options.relative_to_other_filter_id] as MonthFilterWidgetComponent;
-    }
-
-    get is_vo_field_ref(): boolean {
-        if (!this.widget_options) {
-            return true;
-        }
-
-        return this.widget_options.is_vo_field_ref;
-    }
-
-    get custom_filter_name(): string {
-        if (!this.widget_options) {
-            return null;
-        }
-
-        return this.widget_options.custom_filter_name;
-    }
-
-    get months(): string[] {
-        return MonthFilterWidgetManager.get_available_months_from_widget_options(
-            this.widget_options
-        );
-    }
-
-    /**
-     * Can Select All
-     *  - Can select all clickable button
-     */
-    get can_select_all(): boolean {
-
-        if (!this.widget_options) {
-            return false;
-        }
-
-        return !!this.widget_options.can_select_all;
-    }
-
+    //     return this.get_page_widgets_components_by_pwid[this.widget_options.relative_to_other_filter_id] as MonthFilterWidgetComponent;
+    // }
 }

@@ -5,9 +5,9 @@ import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO'
 import FileVO from '../../../shared/modules/File/vos/FileVO';
 import ModuleGeneratePDF from '../../../shared/modules/GeneratePDF/ModuleGeneratePDF';
 import GeneratePdfParamVO from '../../../shared/modules/GeneratePDF/params/GeneratePdfParamVO';
+import { field_names } from '../../../shared/tools/ObjectHandler';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ModuleServerBase from '../ModuleServerBase';
-import { field_names } from '../../../shared/tools/ObjectHandler';
 
 export default class ModuleGeneratePDFServer extends ModuleServerBase {
 
@@ -33,11 +33,13 @@ export default class ModuleGeneratePDFServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleGeneratePDF.APINAME_generatePDF, this.generatePDF.bind(this));
     }
 
-    public async generatePDF(sous_rep: string, file_name: string, html: string, save_to_desktop: boolean, options: {} = { encoding: 'utf-8' }): Promise<string> {
+    public async generatePDF(sous_rep: string, file_name: string, html: string, options: any): Promise<string> {
         const filepathconstruct: string = GeneratePdfParamVO.reppath + GeneratePdfParamVO.filepath;
         const filepathconstructRep: string = filepathconstruct + sous_rep + '/';
         const filepathconstructFile: string = filepathconstructRep + file_name;
         const filepath_return: string = filepathconstructFile; //GeneratePdfParamVO.filepath + sous_rep + '/' + file_name;
+
+        options = options ? options : { encoding: 'utf-8' };
 
         // Création du répertoire
         if (!fs.existsSync(filepathconstruct)) {

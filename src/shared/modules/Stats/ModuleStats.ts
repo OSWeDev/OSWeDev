@@ -213,15 +213,11 @@ export default class ModuleStats extends Module {
     private initializeStatsSubCategoryVO() {
 
         const name_field = ModuleTableFieldController.create_new(StatsSubCategoryVO.API_TYPE_ID, field_names<StatsSubCategoryVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Sous-catégorie', true).index();
-        const category_id = ModuleTableFieldController.create_new(StatsSubCategoryVO.API_TYPE_ID, field_names<StatsSubCategoryVO>().category_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Catégorie', true);
-        const fields = [
-            name_field,
-            category_id,
-        ];
+        ModuleTableFieldController.create_new(StatsSubCategoryVO.API_TYPE_ID, field_names<StatsSubCategoryVO>().category_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Catégorie', true)
+            .set_many_to_one_target_moduletable_name(StatsCategoryVO.API_TYPE_ID);
 
         const table = ModuleTableController.create_new(this.name, StatsSubCategoryVO, name_field, 'Sous-catégories de stats');
         VersionedVOController.getInstance().registerModuleTable(table);
-        category_id.set_many_to_one_target_moduletable_name(StatsCategoryVO.API_TYPE_ID);
     }
 
     // private initializeStatsSubCategoryCacheLinkVO() {

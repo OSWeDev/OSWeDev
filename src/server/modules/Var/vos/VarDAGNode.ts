@@ -16,11 +16,37 @@ import VarsServerCallBackSubsController from '../../../modules/Var/VarsServerCal
 import VarsServerController from '../../../modules/Var/VarsServerController';
 import VarsClientsSubsCacheHolder from '../../../modules/Var/bgthreads/processes/VarsClientsSubsCacheHolder';
 import ModuleTableServerController from '../../DAO/ModuleTableServerController';
+import CurrentVarDAGHolder from '../CurrentVarDAGHolder';
 import VarsComputationHole from '../bgthreads/processes/VarsComputationHole';
 import VarsProcessBase from '../bgthreads/processes/VarsProcessBase';
 import UpdateIsComputableVarDAGNode from './UpdateIsComputableVarDAGNode';
 import VarDAG from './VarDAG';
 import VarDAGNodeDep from './VarDAGNodeDep';
+
+export class NodesMapForLockOrUnlock {
+    public map: {
+        [node_index: string]: Array<{
+            node: VarDAGNode,
+            lock_unlock_count: number,
+        }>
+    } = {};
+
+    public add(node: VarDAGNode) {
+        if (!this.map[node.node_name]) {
+            this.map[node.node_name] = [];
+        }
+
+        const existing = this.map[node.node_name].find((n) => n.node == node); // On vérifie le noeud par adresse mémoire directement. Des fois que l'un soit un artéfact de l'arbre et l'autre un noeud créé temporairement
+        if (existing) {
+            existing.lock_unlock_count++;
+        } else {
+            this.map[node.node_name].push({
+                node: node,
+                lock_unlock_count: 1,
+            });
+        }
+    }
+}
 
 export default class VarDAGNode extends DAGNodeBase {
 
@@ -177,7 +203,7 @@ export default class VarDAGNode extends DAGNodeBase {
      * L'usage du constructeur est prohibé, il faut utiliser la factory
      */
     private constructor(public var_dag: VarDAG, public var_data: VarDataBaseVO) {
-        super();
+        super(var_data.index);
     }
 
     get lock_current_step(): boolean {
@@ -215,15 +241,41 @@ export default class VarDAGNode extends DAGNodeBase {
         return VarsServerController.has_valid_value(this.var_data);
     }
 
-    public static unlock_nodes(nodes: VarDAGNode[]) {
-        for (const i in nodes) {
-            nodes[i].unlock();
+    /**
+     * L'index et le nombre d'unlock à faire
+     */
+    public static unlock_nodes(nodes_to_unlock: NodesMapForLockOrUnlock) {
+        for (const index in nodes_to_unlock.map) {
+            const nodes_to_unlock_count = nodes_to_unlock.map[index];
+
+            if (!nodes_to_unlock_count || !nodes_to_unlock_count.length) {
+                continue;
+            }
+
+            for (const i in nodes_to_unlock_count) {
+                const nodes_to_unlock_item = nodes_to_unlock_count[i];
+
+                nodes_to_unlock_item.node.unlock(nodes_to_unlock_item.lock_unlock_count);
+            }
         }
     }
 
-    public static lock_nodes(nodes: VarDAGNode[]) {
-        for (const i in nodes) {
-            nodes[i].lock();
+    /**
+     * L'index et le nombre de lock à faire
+     */
+    public static lock_nodes(nodes_to_lock: NodesMapForLockOrUnlock) {
+        for (const index in nodes_to_lock.map) {
+            const nodes_to_lock_count = nodes_to_lock.map[index];
+
+            if (!nodes_to_lock_count || !nodes_to_lock_count.length) {
+                continue;
+            }
+
+            for (const i in nodes_to_lock_count) {
+                const nodes_to_lock_item = nodes_to_lock_count[i];
+
+                nodes_to_lock_item.node.lock(nodes_to_lock_item.lock_unlock_count);
+            }
         }
     }
 
@@ -477,12 +529,12 @@ export default class VarDAGNode extends DAGNodeBase {
             (outgoing_deps ? ('outgoing_deps nb:' + outgoing_deps.length + '<br>') : '');
     }
 
-    public lock() {
-        this._lock_current_step++;
+    public lock(nb_locks_to_add: number = 1) {
+        this._lock_current_step += nb_locks_to_add;
     }
 
-    public unlock() {
-        this._lock_current_step--;
+    public unlock(nb_locks_to_remove: number = 1) {
+        this._lock_current_step -= nb_locks_to_remove;
         if (this._lock_current_step < 0) {
 
             try {

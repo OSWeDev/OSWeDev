@@ -56,6 +56,8 @@ export default class PerfReportGraphWidgetComponent extends VueComponentBase {
     // On crée juste une petite marge pour la zone brush
     private brushHeight: number = 50;
 
+    private filter_text: string = '';
+
     private throttle_select_perf_report = ThrottleHelper.declare_throttle_without_args(
         'PerfReportGraphWidgetComponent.throttle_select_perf_report',
         this.select_perf_report.bind(this), 200);
@@ -63,6 +65,11 @@ export default class PerfReportGraphWidgetComponent extends VueComponentBase {
     private throttle_redraw = ThrottleHelper.declare_throttle_without_args(
         'PerfReportGraphWidgetComponent.throttle_redraw',
         this.redraw.bind(this), 200);
+
+    @Watch('filter_text')
+    private on_filter_text_change() {
+        this.throttle_redraw();
+    }
 
     @Watch('selected_perf_report', { deep: true })
     private async on_change_selected_report() {
@@ -108,20 +115,36 @@ export default class PerfReportGraphWidgetComponent extends VueComponentBase {
 
         d3.select(this.$refs.d3_perf_report_graph_widget_graph).selectAll("*").remove();
 
-        // Préparation des données
-        const listeners_names = Object.keys(this.selected_perf_report.perf_datas);
-        const perfs = [];
+        /* ---------- data ---------- */
+        const perfs_raw = [];
         for (const name in this.selected_perf_report.perf_datas) {
-            const perf_data = this.selected_perf_report.perf_datas[name];
-            perfs.push({
+            const p = this.selected_perf_report.perf_datas[name];
+            perfs_raw.push({
                 perf_name: name,
-                label: perf_data.line_name,
-                description: perf_data.description,
-                calls: perf_data.calls,
-                cooldowns: perf_data.cooldowns,
-                events: perf_data.events
+                label: p.line_name,
+                description: p.description,
+                calls: p.calls,
+                cooldowns: p.cooldowns,
+                events: p.events
             });
         }
+
+        const filter = this.filter_text.trim().toLowerCase();
+        const perfs = filter
+            ? perfs_raw.filter(p => {
+                const inHeader =
+                    (p.label && p.label.toLowerCase().includes(filter)) ||
+                    (p.description && p.description.toLowerCase().includes(filter));
+                const inCalls = p.calls?.some(c => c.description?.toLowerCase().includes(filter));
+                const inCooldowns = p.cooldowns?.some(c => c.description?.toLowerCase().includes(filter));
+                const inEvents = p.events?.some(e => e.description?.toLowerCase().includes(filter));
+                return inHeader || inCalls || inCooldowns || inEvents;
+            })
+            : perfs_raw;
+
+        if (!perfs.length) return;
+
+        const listeners_names = perfs.map(p => p.perf_name);
 
         // Domaine total pour le brush
         const fullStart = this.selected_perf_report.start_date_perf_ms;
@@ -229,6 +252,9 @@ export default class PerfReportGraphWidgetComponent extends VueComponentBase {
 
         // Conteneur du contenu (rectangles, cercles...)
         const content = svg.append("g");
+        const matches = (txt?: string) => txt && filter ? txt.toLowerCase().includes(filter) : false;
+        const colorize = (highlight: boolean, base: string) => highlight ? base : '#D3D3D3';
+        const opa = (highlight: boolean) => highlight ? 1 : 0.3;
 
         // Séparateurs horizontaux
         content
@@ -257,6 +283,12 @@ export default class PerfReportGraphWidgetComponent extends VueComponentBase {
                     const end = Math.min(call.end, domainEnd);
                     if (end <= domainStart || start >= domainEnd) return;
 
+                    const highlight =
+                        !filter ||
+                        matches(call.description) ||
+                        matches(d.label) ||
+                        matches(d.description);
+
                     const start_date_formattee =
                         Dates.format_segment(Math.floor(call.start / 1000), TimeSegment.TYPE_SECOND) + "." + (call.start % 1000);
                     const end_date_formattee =
@@ -268,8 +300,11 @@ export default class PerfReportGraphWidgetComponent extends VueComponentBase {
                         .attr("y", yScale(d.perf_name)!)
                         .attr("width", xScale(end) - xScale(start))
                         .attr("height", yScale.bandwidth() / 2)
-                        .attr("fill", "#FF6F6F") // CHANGEMENT : couleur plus douce
-                        .attr("stroke", "#FF6F6F")
+
+                        .attr('fill', colorize(highlight, '#FF6F6F'))
+                        .attr('stroke', colorize(highlight, '#FF6F6F'))
+                        .attr('opacity', opa(highlight))
+
                         .on("click", async (event) => {
                             await navigator.clipboard.writeText(
                                 '<b>' + d.label + '</b><br>' +
@@ -322,6 +357,12 @@ export default class PerfReportGraphWidgetComponent extends VueComponentBase {
                     const end = Math.min(cooldown.end, domainEnd);
                     if (end <= domainStart || start >= domainEnd) return;
 
+                    const highlight =
+                        !filter ||
+                        matches(cooldown.description) ||
+                        matches(d.label) ||
+                        matches(d.description);
+
                     const start_date_formattee =
                         Dates.format_segment(Math.floor(cooldown.start / 1000), TimeSegment.TYPE_SECOND) + "." + (cooldown.start % 1000);
                     const end_date_formattee =
@@ -333,8 +374,11 @@ export default class PerfReportGraphWidgetComponent extends VueComponentBase {
                         .attr("y", yScale(d.perf_name)! + yScale.bandwidth() / 2)
                         .attr("width", xScale(end) - xScale(start))
                         .attr("height", yScale.bandwidth() / 2)
-                        .attr("fill", "#6ECF68") // CHANGEMENT : joli vert
-                        .attr("stroke", "#6ECF68")
+
+                        .attr('fill', colorize(highlight, '#6ECF68'))
+                        .attr('stroke', colorize(highlight, '#6ECF68'))
+                        .attr('opacity', opa(highlight))
+
                         .on("click", async (event) => {
                             await navigator.clipboard.writeText(
                                 '<b>' + d.label + '</b><br>' +
@@ -388,12 +432,21 @@ export default class PerfReportGraphWidgetComponent extends VueComponentBase {
                     const date_formattee =
                         Dates.format_segment(Math.floor(evt.ts / 1000), TimeSegment.TYPE_SECOND) + "." + (evt.ts % 1000);
 
+                    const highlight =
+                        !filter ||
+                        matches(evt.description) ||
+                        matches(d.label) ||
+                        matches(d.description);
+
                     content
                         .append("circle")
                         .attr("cx", xScale(evt.ts))
                         .attr("cy", yScale(d.perf_name)! + yScale.bandwidth() / 4)
                         .attr("r", 4)
-                        .attr("fill", "orange") // CHANGEMENT : cercle orange
+
+                        .attr('fill', colorize(highlight, 'orange'))
+                        .attr('opacity', opa(highlight))
+
                         .on("click", async (event) => {
                             await navigator.clipboard.writeText(
                                 '<b>' + d.label + '</b><br>' +

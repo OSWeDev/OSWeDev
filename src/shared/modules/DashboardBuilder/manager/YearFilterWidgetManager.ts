@@ -64,38 +64,6 @@ export default class YearFilterWidgetManager {
     }
 
     /**
-     * get_relative_page_widget_by_widget_options
-     *
-     * @param {YearFilterWidgetOptionsVO} [widget_options]
-     * @returns {DashboardPageWidgetVO}
-     */
-    public static async get_relative_page_widget_by_widget_options(
-        widget_options: YearFilterWidgetOptionsVO
-    ): Promise<DashboardPageWidgetVO> {
-        if (!widget_options) {
-            return null;
-        }
-
-        if (!widget_options.auto_select_year_relative_mode) {
-            return null;
-        }
-
-        if (!widget_options.is_relative_to_other_filter) {
-            return null;
-        }
-
-        if (!widget_options.relative_to_other_filter_id) {
-            return null;
-        }
-
-        const relative_page_widget: DashboardPageWidgetVO = await DashboardPageWidgetVOManager.find_page_widget(
-            widget_options.relative_to_other_filter_id
-        );
-
-        return relative_page_widget;
-    }
-
-    /**
      * get_available_years_from_widget_options
      *
      * @param {YearFilterWidgetOptionsVO} [widget_options]

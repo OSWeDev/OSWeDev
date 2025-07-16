@@ -10,6 +10,7 @@ import 'moment/locale/de';
 import 'moment/locale/en-gb';
 import 'moment/locale/es';
 import "moment/locale/fr";
+import 'moment/locale/it';
 
 import VueQuarterSelect from '@3scarecrow/vue-quarter-select';
 import { ColorPanel, ColorPicker } from 'one-colorpicker';

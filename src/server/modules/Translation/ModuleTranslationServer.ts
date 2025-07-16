@@ -4,6 +4,8 @@ import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyD
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import EventsController from '../../../shared/modules/Eventify/EventsController';
+import EventifyEventInstanceVO from '../../../shared/modules/Eventify/vos/EventifyEventInstanceVO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import GPTAssistantAPIThreadVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadVO';
 import StatsController from '../../../shared/modules/Stats/StatsController';
@@ -28,6 +30,7 @@ import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import DAOPreDeleteTriggerHook from '../DAO/triggers/DAOPreDeleteTriggerHook';
 import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
+import EventsServerController from '../Eventify/EventsServerController';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import PerfReportServerController from '../PerfReport/PerfReportServerController';
@@ -38,6 +41,8 @@ import TranslationsServerController from './TranslationsServerController';
 import AssistantTraductionCronWorker from './workers/AssistantTraduction/AssistantTraductionCronWorker';
 
 export default class ModuleTranslationServer extends ModuleServerBase {
+
+    private static clear_flat_translations_event_name: string = "ModuleTranslationServer.clear_flat_translations";
 
     private static instance: ModuleTranslationServer = null;
 
@@ -96,15 +101,22 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         const preDeleteTrigger: DAOPreDeleteTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreDeleteTriggerHook.DAO_PRE_DELETE_TRIGGER);
         const postDeleteTrigger: DAOPostDeleteTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostDeleteTriggerHook.DAO_POST_DELETE_TRIGGER);
 
-        postCreateTrigger.registerHandler(TranslatableTextVO.API_TYPE_ID, this, this.clear_flat_translations);
-        postUpdateTrigger.registerHandler(TranslatableTextVO.API_TYPE_ID, this, this.clear_flat_translations);
-        postDeleteTrigger.registerHandler(TranslatableTextVO.API_TYPE_ID, this, this.clear_flat_translations);
-        postCreateTrigger.registerHandler(TranslationVO.API_TYPE_ID, this, this.clear_flat_translations);
-        postUpdateTrigger.registerHandler(TranslationVO.API_TYPE_ID, this, this.clear_flat_translations);
-        postDeleteTrigger.registerHandler(TranslationVO.API_TYPE_ID, this, this.clear_flat_translations);
-        postCreateTrigger.registerHandler(LangVO.API_TYPE_ID, this, this.clear_flat_translations);
-        postUpdateTrigger.registerHandler(LangVO.API_TYPE_ID, this, this.clear_flat_translations);
-        postDeleteTrigger.registerHandler(LangVO.API_TYPE_ID, this, this.clear_flat_translations);
+        postCreateTrigger.registerHandler(TranslatableTextVO.API_TYPE_ID, this, this.broadcast_clear_flat_translations);
+        postUpdateTrigger.registerHandler(TranslatableTextVO.API_TYPE_ID, this, this.broadcast_clear_flat_translations);
+        postDeleteTrigger.registerHandler(TranslatableTextVO.API_TYPE_ID, this, this.broadcast_clear_flat_translations);
+        postCreateTrigger.registerHandler(TranslationVO.API_TYPE_ID, this, this.broadcast_clear_flat_translations);
+        postUpdateTrigger.registerHandler(TranslationVO.API_TYPE_ID, this, this.broadcast_clear_flat_translations);
+        postDeleteTrigger.registerHandler(TranslationVO.API_TYPE_ID, this, this.broadcast_clear_flat_translations);
+        postCreateTrigger.registerHandler(LangVO.API_TYPE_ID, this, this.broadcast_clear_flat_translations);
+        postUpdateTrigger.registerHandler(LangVO.API_TYPE_ID, this, this.broadcast_clear_flat_translations);
+        postDeleteTrigger.registerHandler(LangVO.API_TYPE_ID, this, this.broadcast_clear_flat_translations);
+
+        EventsController.on_every_event_throttle_cb(
+            ModuleTranslationServer.clear_flat_translations_event_name,
+            this.clear_flat_translations.bind(this),
+            100,
+            false
+        );
 
         preCreateTrigger.registerHandler(TranslatableTextVO.API_TYPE_ID, this, this.onPreCreateTranslatableTextVO);
         preUpdateTrigger.registerHandler(TranslatableTextVO.API_TYPE_ID, this, this.onPreUpdateTranslatableTextVO);
@@ -779,8 +791,11 @@ export default class ModuleTranslationServer extends ModuleServerBase {
             .select_vos<TranslationVO>();
     }
 
-    public async get_translation_samples(thread_vo: GPTAssistantAPIThreadVO, pattern: string): Promise<string> {
-        return await AssistantTraductionCronWorker.getInstance().get_translation_samples(thread_vo, pattern);
+    public async get_translation_samples_by_code_text(thread_vo: GPTAssistantAPIThreadVO, pattern: string): Promise<string> {
+        return await AssistantTraductionCronWorker.getInstance().get_translation_samples_by_code_text(thread_vo, pattern);
+    }
+    public async get_translation_samples_by_translated_text(thread_vo: GPTAssistantAPIThreadVO, pattern: string): Promise<string> {
+        return await AssistantTraductionCronWorker.getInstance().get_translation_samples_by_translated_text(thread_vo, pattern);
     }
 
     public async set_translation(thread_vo: GPTAssistantAPIThreadVO, traduction: string, degre_certitude: number, explication: string): Promise<string> {
@@ -850,7 +865,11 @@ export default class ModuleTranslationServer extends ModuleServerBase {
 
 
         await this.add_locale_flat_translations(translatableTexts_by_id, lang_translations, res);
-        await this.add_locale_flat_translations(translatableTexts_by_id, default_translations, res);
+
+        // pour voir les traductions manquantes dans une langue : nodeenv:dont_use_default_translations
+        if (!ConfigurationService.node_configuration.dont_use_default_translations) {
+            await this.add_locale_flat_translations(translatableTexts_by_id, default_translations, res);
+        }
 
         if (!this.flat_translations) {
             this.flat_translations = {};
@@ -1029,5 +1048,9 @@ export default class ModuleTranslationServer extends ModuleServerBase {
 
     private async clear_flat_translations(any?) {
         this.flat_translations = null;
+    }
+
+    private async broadcast_clear_flat_translations() {
+        EventsServerController.broadcast_event(EventifyEventInstanceVO.new_event(ModuleTranslationServer.clear_flat_translations_event_name));
     }
 }

@@ -48,7 +48,8 @@ export default class Patch20250507DebugFavoritFiltersLimits implements IGenerato
                     continue;
                 }
 
-                exportable_data.context_query.set_limit(0, 0);
+                exportable_data.context_query.query_limit = 0;
+                exportable_data.context_query.query_offset = 0;
             }
         }
 

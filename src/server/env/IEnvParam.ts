@@ -22,6 +22,8 @@ export default interface IEnvParam {
     server_encoding: string;
     console_log_to_file: boolean;
 
+    dont_use_default_translations?: boolean;
+
     max_varsprocessdeploydeps?: number;
     max_varsprocessloaddatas?: number;
     max_varsprocessdagcleaner?: number;
@@ -49,6 +51,9 @@ export default interface IEnvParam {
     debug_convert_varparamfields_to_vardatas?: boolean;
     debug_forks?: boolean;
     debug_vars?: boolean;
+    debug_vars_prepare_updates_in_out?: boolean;
+    debug_vars_handle_invalidators_in_out?: boolean;
+    debug_vars_processes_ordered_vos?: boolean;
     debug_vars_processes?: boolean;
     debug_vars_invalidation?: boolean;
     debug_vars_current_tree?: boolean;
@@ -84,6 +89,9 @@ export default interface IEnvParam {
     activate_module_perf_worker_messages?: boolean;
     activate_module_perf_bgthread_ping_latency?: boolean;
     activate_module_perf_bgthread_load_balancing?: boolean;
+    activate_module_perf_vars_datas_proxy?: boolean;
+    activate_module_perf_vars_tabs_subs_controller?: boolean;
+    activate_module_perf_push_data_server_controller?: boolean;
 
     debug_all_expressjs_perf?: boolean;
     debug_expressjs_request_reflexion_time?: boolean;

@@ -1,22 +1,30 @@
 import { Thread } from 'openai/resources/beta/threads/threads';
+import Throttle, { PostThrottleParam, PreThrottleParam } from '../../../shared/annotations/Throttle';
+import ContextFilterVO, { filter } from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import EventifyEventListenerConfVO from '../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import ModuleGPT from '../../../shared/modules/GPT/ModuleGPT';
 import GPTAssistantAPIAssistantVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIAssistantVO';
+import GPTAssistantAPIFunctionVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIFunctionVO';
+import GPTAssistantAPIThreadMessageContentVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageContentVO';
+import GPTAssistantAPIThreadMessageVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageVO';
 import GPTAssistantAPIThreadVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadVO';
 import OseliaPromptVO from '../../../shared/modules/Oselia/vos/OseliaPromptVO';
 import OseliaRunVO from '../../../shared/modules/Oselia/vos/OseliaRunVO';
-import ModuleParams from '../../../shared/modules/Params/ModuleParams';
-import ModuleDAOServer from '../DAO/ModuleDAOServer';
-import GPTAssistantAPIServerController from '../GPT/GPTAssistantAPIServerController';
-import OseliaServerController from './OseliaServerController';
-import TeamsAPIServerController from '../TeamsAPI/TeamsAPIServerController';
-import ContextFilterVO, { filter } from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import { field_names, reflect } from '../../../shared/tools/ObjectHandler';
-import GPTAssistantAPIFunctionVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIFunctionVO';
-import ModuleOseliaServer from './ModuleOseliaServer';
 import ConfigurationService from '../../env/ConfigurationService';
+import ModuleDAOServer from '../DAO/ModuleDAOServer';
+import ModuleFileServer from '../File/ModuleFileServer';
+import GPTAssistantAPIServerController from '../GPT/GPTAssistantAPIServerController';
+import ModuleGPTServer from '../GPT/ModuleGPTServer';
 import ParamsServerController from '../Params/ParamsServerController';
+import TeamsAPIServerController from '../TeamsAPI/TeamsAPIServerController';
+import OseliaRunBGThread from './bgthreads/OseliaRunBGThread';
+import ModuleOseliaServer from './ModuleOseliaServer';
+import OseliaServerController from './OseliaServerController';
 
 export default class OseliaRunServerController {
 
@@ -295,6 +303,14 @@ export default class OseliaRunServerController {
             default:
                 throw new Error('OseliaRunBGThread.update_oselia_run_state: Not Implemented');
         }
+
+        // // Si on est sur un state de fin de run, et qu'on doit générer un résumé audio, on le fait maintenant => mais on throttle par ce que en fait on peut avoir des messages quelques centièmes de secondes après la fin du run "officielle"
+        // if ((OseliaRunBGThread.END_STATES.indexOf(run.state) >= 0) && run.generate_voice_summary) {
+        //     setTimeout(async () => {
+        //         await OseliaRunServerController.create_voice_summary(run);
+        //     }, 1000);
+        // }
+
         await ModuleDAOServer.instance.insertOrUpdateVO_as_server(run);
     }
 
@@ -374,4 +390,88 @@ export default class OseliaRunServerController {
             throw new Error('get_initialised_prompt: ' + error.message);
         }
     }
+
+    // @Throttle({
+    //     param_type: EventifyEventListenerConfVO.PARAM_TYPE_STACK,
+    //     throttle_ms: 500,
+    //     leading: false,
+    // })
+    // private static async create_voice_summary(@PreThrottleParam pre_run: OseliaRunVO, @PostThrottleParam runs: OseliaRunVO[] = null) {
+
+    //     if (!runs) {
+    //         return;
+    //     }
+
+    //     for (const run of runs) {
+    //         let file: FileVO = null;
+
+    //         // On génère via l'api GPT
+    //         const speech_file_path = ModuleGPTServer.MESSAGE_OSELIA_RUN_SUMMARY_TTS_FILE_PATH + ModuleGPTServer.MESSAGE_OSELIA_RUN_SUMMARY_TTS_FILE_PREFIX + run.id + '_' + Dates.now_ms() + ModuleGPTServer.MESSAGE_OSELIA_RUN_SUMMARY_TTS_FILE_SUFFIX;
+
+    //         // On récupère tous les textes à résumer
+    //         const message_contents: GPTAssistantAPIThreadMessageContentVO[] = await query(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID)
+    //             .filter_by_num_eq(field_names<GPTAssistantAPIThreadMessageVO>().run_id, run.run_gpt_run_id, GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
+    //             .filter_by_num_eq(field_names<GPTAssistantAPIThreadMessageVO>().role, GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_ASSISTANT, GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
+    //             .exec_as_server()
+    //             .select_vos<GPTAssistantAPIThreadMessageContentVO>();
+
+    //         if (!message_contents || message_contents.length == 0) {
+    //             ConsoleHandler.error('OseliaRunBGThread.update_oselia_run_state: No message contents found for run: ' + run.id); // warn ?
+    //             return;
+    //         }
+
+    //         const messages: string = message_contents.map((message_content: GPTAssistantAPIThreadMessageContentVO) => {
+    //             if (message_content.content_type_text) {
+    //                 return message_content.content_type_text.value;
+    //             }
+    //             return '';
+    //         }).join('\n\n');
+    //         if (!messages) {
+    //             ConsoleHandler.error('OseliaRunBGThread.update_oselia_run_state: No messages found for run: ' + run.id); // warn ?
+    //             return;
+    //         }
+
+    //         // const instructions = "Fais un résumé adapté à une lecture audio naturelle et très synthétique des messages (c'est la réponse textuelle d'un assistant dans une discussion vocale)";
+    //         // const response = await ModuleGPTServer.openai.audio.speech.create({
+    //         //     model: "gpt-4o-mini-tts",
+    //         //     voice: "shimmer",
+    //         //     input: messages,
+    //         //     instructions,
+    //         // });
+
+    //         const instructions = "Fais un résumé très synthétique adapté à une lecture audio naturelle des messages suivants :";
+    //         const completion = await ModuleGPTServer.openai.chat.completions.create({
+    //             model: "gpt-4o-mini",
+    //             messages: [
+    //                 { role: "system", content: instructions },
+    //                 { role: "user", content: messages }
+    //             ],
+    //             temperature: 0.3
+    //         });
+
+    //         const texteResume = completion.choices[0].message.content;
+
+    //         const instructions_tts = "Lecture agréable, avenante, pro mais pas trop formelle.";
+    //         const response = await ModuleGPTServer.openai.audio.speech.create({
+    //             model: "gpt-4o-mini-tts",
+    //             voice: "shimmer",
+    //             input: texteResume,
+    //             instructions: instructions_tts,
+    //         });
+
+    //         // await response.stream_to_file(speech_file_path); // Doc GPT mais j'ai pas cette fonction :)
+    //         const buffer = Buffer.from(await response.arrayBuffer());
+    //         await ModuleFileServer.getInstance().makeSureThisFolderExists(ModuleGPTServer.MESSAGE_OSELIA_RUN_SUMMARY_TTS_FILE_PATH);
+    //         await ModuleFileServer.getInstance().writeFile(speech_file_path, buffer);
+
+    //         file = new FileVO();
+    //         file.path = speech_file_path;
+    //         file.file_access_policy_name = ModuleGPT.POLICY_BO_ACCESS;
+    //         file.is_secured = true;
+    //         await ModuleDAOServer.instance.insertOrUpdateVO_as_server(file);
+    //         run.voice_summary_id = file.id;
+
+    //         await ModuleDAOServer.instance.insertOrUpdateVO_as_server(run);
+    //     }
+    // }
 }

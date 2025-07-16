@@ -2066,13 +2066,13 @@ export default class ModuleDAOServer extends ModuleServerBase {
      * N'utilise PAS le throttle et donc l'aggrégation et les optimisations liées...
      * @param query_
      */
-    public async query(query_: string = null, values: any = null): Promise<any> {
+    public async query(query_: string = null, values: any = null, as_server: boolean = false): Promise<any> {
         if ((!/^select /i.test(query_)) && this.is_global_update_blocker()) {
             return null;
         }
 
         // On vérifie qu'on peut faire des modifs de table modules
-        if (!AccessPolicyServerController.checkAccessSync(ModuleDAO.DAO_ACCESS_QUERY)) {
+        if ((!as_server) && !AccessPolicyServerController.checkAccessSync(ModuleDAO.DAO_ACCESS_QUERY)) {
             return null;
         }
 
@@ -3074,7 +3074,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                         try {
                             const table_name = reason.message.replace('duplicate key value violates unique constraint "', '').replace('_pkey"', '');
 
-                            await ModuleDAOServer.instance.query('SELECT setval(\'ref.' + table_name + '_id_seq\'::regclass, COALESCE((SELECT MAX(id)+1 FROM ref.' + table_name + '), 1), false);');
+                            await ModuleDAOServer.instance.query('SELECT setval(\'ref.' + table_name + '_id_seq\'::regclass, COALESCE((SELECT MAX(id)+1 FROM ref.' + table_name + '), 1), false);', null, true);
 
                             if (can_retry > 0) {
                                 ConsoleHandler.error('insert_vos : duplicate key value violates unique constraint : ' + reason.message + ' : ' + reason.stack + ' : On tente de réajuster la contrainte pkey : OK : On relance l\'insertion');

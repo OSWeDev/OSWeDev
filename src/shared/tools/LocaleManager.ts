@@ -1,5 +1,3 @@
-import UserVO from '../modules/AccessPolicy/vos/UserVO';
-import { query } from '../modules/ContextFilter/vos/ContextQueryVO';
 import DefaultTranslationVO from '../modules/Translation/vos/DefaultTranslationVO';
 import LangVO from '../modules/Translation/vos/LangVO';
 import TranslatableTextVO from '../modules/Translation/vos/TranslatableTextVO';
@@ -93,7 +91,7 @@ export default class LocaleManager {
 
             // Si la traduction existe dans le store
             if (translation != null) {
-                return translation.replace(/{(\w+)}/g, (_, key) => params[key] ?? `{{${key}}}`);
+                return translation.replace(/{(\w+)}/g, (_, key) => params[key] ?? '');
             }
 
             // Si store est initialisé mais pas de traduction

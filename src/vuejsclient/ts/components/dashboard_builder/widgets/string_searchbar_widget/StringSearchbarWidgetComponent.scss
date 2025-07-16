@@ -1,0 +1,187 @@
+@import "skin-variables.scss";
+
+.string_searchbar_widget_component {
+    height: auto;
+    vertical-align: middle;
+    display: flex;
+    flex-direction: column;
+    max-height: 100%;
+
+    .loadingspinner {
+        width: max-content;
+        display: block;
+        margin: 0 auto;
+    }
+
+    .vo_field_advanced_string_filters {
+
+        flex-grow: 1;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+
+        .vo_field_advanced_string_filter {
+            margin-bottom: 1em;
+        }
+        
+        .scrollable-table-container {
+            display: block;
+            width: 100%;           // occupe toute la largeur disponible
+            max-height: 100%;      // on limite la hauteur à 60% de la hauteur de la fenêtre
+            overflow-x: auto;      // scroll horizontal si besoin
+            overflow-y: auto;      // scroll vertical si besoin
+            /* Optionnel : une bordure légère ou ombre pour délimiter */
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            
+            .table {
+                width: 100%;           // pour que les colonnes prennent tout l’espace
+                border-collapse: collapse;
+                
+                th, td {
+                    padding: 0.5rem;
+                    text-align: left;
+                    white-space: nowrap;   // pour ne pas casser le texte automatiquement
+                    font-size: 1em;
+                }
+                
+                // ligne sélectionnée en rouge clair
+                tr.selected-row {
+                    background-color: #d4edda !important;
+                }
+            }
+        }
+    }
+
+    .vo_field_ref_label {
+        font-size: 1.2em;
+        margin-bottom: 0.4em;
+        line-height: 1em;
+    }
+
+    .vo_field_ref_advanced {
+        right: 1em;
+        position: absolute;
+        top: 0.8em;
+    }
+
+    .advanced_string_filter_content {
+        display: inline-block;
+        width: 59%;
+        margin-right: 0.3em;
+
+        input {
+            width: -webkit-fill-available;
+            padding: 0.5em;
+            border: none;
+            margin-left: 1em;
+        }
+
+        &.hide_advanced_string_filter_type {
+            width: 100%;
+
+            input {
+                margin-left: 0;
+            }
+        }
+    }
+
+    .advanced_string_filter_add_filter {
+        padding: 0.4em 0.1em 0.4em 0.1em;
+        display: inline-block;
+        cursor: pointer;
+        color: dodgerblue;
+    }
+
+    .advanced_string_filter_validate_filter {
+        padding: 0.4em 0.1em 0.4em 0.1em;
+        display: inline-block;
+        cursor: pointer;
+        color: $success_color;
+    }
+
+    .advanced_string_filter_link_type {
+        padding: 0.4em 0em 0.4em 0.4em;
+        display: inline-block;
+        cursor: pointer;
+        color: dodgerblue;
+
+        .link_type {
+            position: absolute;
+            margin-top: -1.68em;
+            font-size: 0.7em;
+            color: white;
+            margin-left: 0.2em;
+        }
+    }
+
+    .advanced_string_filter_delete_filter {
+        padding: 0.4em 0.2em 0.4em 0.2em;
+        display: inline-block;
+        cursor: pointer;
+        color: $danger_color;
+    }
+
+    .multiselect__content-wrapper {
+        z-index: 0;
+    }
+
+    .advanced_string_filter_type {
+        margin-right: 0.2em;
+        width: 40%;
+        display: inline-block;
+
+        .multiselect,
+        .multiselect__input,
+        .multiselect__single,
+        .multiselect__option {
+            font-size: 0.8em;
+        }
+    }
+
+    .vo_field_ref_filter {
+        height: -webkit-fill-available;
+
+        .container_filter_opt {
+            height: 100%;
+            overflow-x: auto;
+
+            >.row {
+                margin-right: 0;
+
+                label {
+                    max-width: calc(100% - 1.4rem);
+                    vertical-align: middle;
+                }
+            }
+
+            // On enlève la hauteur du nom du champ
+            &.has_search_field {
+                height: calc(100% - 38px - 0.5em);
+            }
+
+            &.has_vo_field_ref_label {
+                height: calc(100% - 17px);
+
+                // On enlève la hauteur du input de filtre
+                &.has_search_field {
+                    height: calc(100% - 17px - 38px - 0.5em);
+                }
+            }
+        }
+    }
+
+    .text_cliquable {
+        display: inline-block;
+        // color: #555;
+        text-decoration: underline;
+        cursor: pointer;
+        font-size: 0.8em;
+    }
+
+    .inter_text {
+        display: inline-block;
+        font-size: 0.8em;
+        margin: 0em 0.2em;
+    }
+}

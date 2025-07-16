@@ -39,7 +39,11 @@ export default class I18nextInit {
                 fallbackLng: envParam.default_locale,
                 preload: 'all',
                 resources: ALL_LOCALES,
-                nsSeparator: '¤'
+                nsSeparator: '¤',
+                interpolation: {
+                    prefix: '{',
+                    suffix: '}',
+                }
             });
 
         this.i18next = i18next;

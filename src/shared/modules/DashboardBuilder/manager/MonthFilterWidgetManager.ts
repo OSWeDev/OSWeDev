@@ -67,37 +67,7 @@ export default class MonthFilterWidgetManager {
         return context_filter;
     }
 
-    /**
-     * get_relative_page_widget_by_widget_options
-     *
-     * @param {MonthFilterWidgetOptionsVO} [widget_options]
-     * @returns {DashboardPageWidgetVO}
-     */
-    public static async get_relative_page_widget_by_widget_options(
-        widget_options: MonthFilterWidgetOptionsVO
-    ): Promise<DashboardPageWidgetVO> {
-        if (!widget_options) {
-            return null;
-        }
 
-        if (!widget_options.auto_select_month_relative_mode) {
-            return null;
-        }
-
-        if (!widget_options.is_relative_to_other_filter) {
-            return null;
-        }
-
-        if (!widget_options.relative_to_other_filter_id) {
-            return null;
-        }
-
-        const relative_page_widget: DashboardPageWidgetVO = await DashboardPageWidgetVOManager.find_page_widget(
-            widget_options.relative_to_other_filter_id
-        );
-
-        return relative_page_widget;
-    }
 
     /**
      * get_available_months_from_widget_options

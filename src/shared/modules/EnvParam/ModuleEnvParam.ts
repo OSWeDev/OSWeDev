@@ -138,6 +138,8 @@ export default class ModuleEnvParam extends Module {
         // MAX_UNION_ALL_PER_QUERY ?: number;
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().max_union_all_per_query, ModuleTableFieldVO.FIELD_TYPE_int, 'Max union all per query', false);
 
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().dont_use_default_translations, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Ne pas utiliser les traductions par défaut', true, true, false);
+
         // MUTE__NO_SORT_BY_BUT_QUERY_LIMIT ?: boolean;
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().mute__no_sort_by_but_query_limit, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Mute no sort by but query limit', true);
 
@@ -216,6 +218,9 @@ export default class ModuleEnvParam extends Module {
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().activate_module_perf_worker_messages, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Activate module perf - Worker messages', true, true, false);
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().activate_module_perf_bgthread_ping_latency, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Activate module perf - Ping latency', true, true, false);
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().activate_module_perf_bgthread_load_balancing, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Activate module perf - Load balancing', true, true, false);
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().activate_module_perf_vars_datas_proxy, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Activate module perf - VarsDatasProxy', true, true, false);
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().activate_module_perf_vars_tabs_subs_controller, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Activate module perf - VarsTabsSubsController', true, true, false);
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().activate_module_perf_push_data_server_controller, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Activate module perf - PushDataServerController', true, true, false);
 
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_all_expressjs_perf, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug all ExpressJS perf', true, true, false);
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_expressjs_request_reflexion_time, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug ExpressJS request reflexion time', true, true, false);

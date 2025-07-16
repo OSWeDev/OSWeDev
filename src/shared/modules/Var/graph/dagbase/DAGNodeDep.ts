@@ -1,3 +1,4 @@
+import DAG from './DAG';
 import DAGNodeBase from './DAGNodeBase';
 
 export default class DAGNodeDep<T extends DAGNodeBase> {

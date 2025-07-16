@@ -215,7 +215,8 @@ export default class ContextQueryServerController {
         } else {
             query_res = await ModuleDAOServer.instance.query(
                 query_wrapper.query,
-                query_wrapper.params
+                query_wrapper.params,
+                true
             );
         }
 
@@ -301,7 +302,7 @@ export default class ContextQueryServerController {
         if (context_query.throttle_query_select && context_query.fields && context_query.fields.length) {
             query_res = await ThrottledQueryServerController.throttle_select_query(query_wrapper.query, query_wrapper.params, query_wrapper.fields, context_query);
         } else {
-            query_res = await ModuleDAOServer.instance.query(query_wrapper.query, query_wrapper.params);
+            query_res = await ModuleDAOServer.instance.query(query_wrapper.query, query_wrapper.params, true);
         }
 
         let c = (query_res && (query_res.length == 1) && (typeof query_res[0]['c'] != 'undefined') && (query_res[0]['c'] !== null)) ? query_res[0]['c'] : null;
@@ -335,7 +336,7 @@ export default class ContextQueryServerController {
         if (context_query.throttle_query_select) {
             query_res = await ThrottledQueryServerController.throttle_select_query(query_wrapper.query, query_wrapper.params, query_wrapper.fields, context_query);
         } else {
-            query_res = await ModuleDAOServer.instance.query(query_wrapper.query, query_wrapper.params);
+            query_res = await ModuleDAOServer.instance.query(query_wrapper.query, query_wrapper.params, true);
         }
 
         if ((!query_res) || (!query_res.length)) {
@@ -421,7 +422,7 @@ export default class ContextQueryServerController {
         if (context_query.throttle_query_select) {
             query_res = await ThrottledQueryServerController.throttle_select_query(query_wrapper.query, query_wrapper.params, query_wrapper.fields, context_query);
         } else {
-            query_res = await ModuleDAOServer.instance.query(query_wrapper.query, query_wrapper.params);
+            query_res = await ModuleDAOServer.instance.query(query_wrapper.query, query_wrapper.params, true);
         }
 
 

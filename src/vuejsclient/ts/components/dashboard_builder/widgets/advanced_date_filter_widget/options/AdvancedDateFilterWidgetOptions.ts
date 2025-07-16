@@ -1,10 +1,11 @@
+import IWidgetFilterDependancy from "../../../../../../../shared/modules/DashboardBuilder/interfaces/IWidgetFilterDependancy";
 import AdvancedDateFilterOptDescVO from "../../../../../../../shared/modules/DashboardBuilder/vos/AdvancedDateFilterOptDescVO";
 import DashboardPageWidgetVO from "../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO";
 import VOFieldRefVO from "../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO";
 import ObjectHandler from "../../../../../../../shared/tools/ObjectHandler";
 import IExportableWidgetOptions from "../../IExportableWidgetOptions";
 
-export default class AdvancedDateFilterWidgetOptions implements IExportableWidgetOptions {
+export default class AdvancedDateFilterWidgetOptions implements IExportableWidgetOptions, IWidgetFilterDependancy {
 
     public static VO_FIELD_REF_PLACEHOLDER_CODE_PREFIX: string = "AdvancedDateFilterWidgetOptions.vo_field_ref.placeholder.";
 

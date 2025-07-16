@@ -66,8 +66,8 @@ export default class FavoritesFiltersModalComponent extends VueComponentBase {
     // Favorites filters name
     private favorites_filters_name: string = null;
 
-    // Favorites filters behaviors options
-    private overwrite_active_field_filters: boolean = true;
+    // // Favorites filters behaviors options
+    // private overwrite_active_field_filters: boolean = true;
 
     private is_export_planned: boolean = false;
 
@@ -110,7 +110,11 @@ export default class FavoritesFiltersModalComponent extends VueComponentBase {
         false
     );
 
+    get editable_field_begin_export_after_ts(): SimpleDatatableFieldVO<any, any> {
+        const field = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[FavoritesFiltersExportParamsVO.API_TYPE_ID][field_names<FavoritesFiltersExportParamsVO>().begin_export_after_ts];
 
+        return SimpleDatatableFieldVO.createNew(field.field_name).setModuleTable(ModuleTableController.module_tables_by_vo_type[FavoritesFiltersExportParamsVO.API_TYPE_ID]);
+    }
 
     /**
      * Get Frequency Granularity Options
@@ -348,11 +352,12 @@ export default class FavoritesFiltersModalComponent extends VueComponentBase {
      * @return {void}
      */
     private mounted(): void {
+        const self = this;
         this.$nextTick(async () => {
-            if (!this.modal_initialized) {
-                this.modal_initialized = true;
+            if (!self.modal_initialized) {
+                self.modal_initialized = true;
                 $("#favorites_filters_modal_component").on("hidden.bs.modal", () => {
-                    this.is_modal_open = false;
+                    self.is_modal_open = false;
                 });
             }
         });
@@ -370,7 +375,7 @@ export default class FavoritesFiltersModalComponent extends VueComponentBase {
         this.favorites_filters_name = favorites_filters.name;
 
         // Favorites filters behaviors options
-        this.overwrite_active_field_filters = favorites_filters.options?.overwrite_active_field_filters ?? true;
+        // this.overwrite_active_field_filters = favorites_filters.options?.overwrite_active_field_filters ?? true;
         this.is_field_filters_fixed_dates = favorites_filters.options?.is_field_filters_fixed_dates ?? true;
 
         // Dates page_widgets (month, year, etc.) where we can update the custom configs
@@ -471,7 +476,15 @@ export default class FavoritesFiltersModalComponent extends VueComponentBase {
                     monthfilter_options?.hide_filter ||
                     yearfilter_options?.hide_filter
                 ) {
-                    continue;
+
+                    // Cas particulier des filtres qui dépendent d'un autre, la dep ne marche pas côté serveur pour le moment, il faut donc paramétrer la date côté client
+                    if (
+                        (!(monthfilter_options.is_relative_to_other_filter && monthfilter_options.relative_to_other_filter_id)) &&
+                        (!(yearfilter_options.is_relative_to_other_filter && yearfilter_options.relative_to_other_filter_id))
+                    ) {
+
+                        continue;
+                    }
                 }
 
                 // Set the dates default config to custumize
@@ -536,7 +549,7 @@ export default class FavoritesFiltersModalComponent extends VueComponentBase {
         }
 
         const options: IFavoritesFiltersOptions = {
-            overwrite_active_field_filters: this.overwrite_active_field_filters,
+            // overwrite_active_field_filters: this.overwrite_active_field_filters,
             is_field_filters_fixed_dates: this.is_field_filters_fixed_dates,
             custom_dates_widgets_options_by_field_id,
         };
@@ -707,8 +720,13 @@ export default class FavoritesFiltersModalComponent extends VueComponentBase {
         this.is_export_planned = false;
         this.selected_export_frequency_granularity = { label: FavoritesFiltersExportFrequencyVO.GRANULARITY_LABELS[FavoritesFiltersExportFrequencyVO.GRANULARITY_DAY], value: FavoritesFiltersExportFrequencyVO.GRANULARITY_DAY };
 
-        if (this.favorites_filters && this.favorites_filters.export_params && this.favorites_filters.export_params.export_to_user_id_ranges) {
-            this.favorites_filters.export_params.export_to_user_id_ranges = [RangeHandler.create_single_elt_NumRange(VueAppController.getInstance().data_user.id, NumSegment.TYPE_INT)];
+        if (this.favorites_filters && this.favorites_filters.export_params) {
+
+            this.favorites_filters.export_params.begin_export_after_ts = null;
+
+            if (this.favorites_filters.export_params.export_to_user_id_ranges) {
+                this.favorites_filters.export_params.export_to_user_id_ranges = [RangeHandler.create_single_elt_NumRange(VueAppController.getInstance().data_user.id, NumSegment.TYPE_INT)];
+            }
         }
 
         this.export_frequency.day_in_month = 1;
@@ -849,14 +867,14 @@ export default class FavoritesFiltersModalComponent extends VueComponentBase {
         }
     }
 
-    /**
-     * Handle Toggle Is Export Planned
-     *
-     * @returns {void}
-     */
-    private toggle_overwrite_active_field_filters(): void {
-        this.overwrite_active_field_filters = !this.overwrite_active_field_filters;
-    }
+    // /**
+    //  * Handle Toggle Is Export Planned
+    //  *
+    //  * @returns {void}
+    //  */
+    // private toggle_overwrite_active_field_filters(): void {
+    //     this.overwrite_active_field_filters = !this.overwrite_active_field_filters;
+    // }
 
     /**
      * toggle_is_field_filters_fixed_dates
@@ -1050,5 +1068,7 @@ export default class FavoritesFiltersModalComponent extends VueComponentBase {
     }
 
     private on_edit_export_to_user_id_ranges() {
+    }
+    private on_edit_begin_export_after_ts() {
     }
 }

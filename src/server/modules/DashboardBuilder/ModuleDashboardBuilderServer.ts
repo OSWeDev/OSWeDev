@@ -21,7 +21,7 @@ import ModulesManagerServer from '../ModulesManagerServer';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import DashboardBuilderCronWorkersHandler from './DashboardBuilderCronWorkersHandler';
 import DashboardCycleChecker from './DashboardCycleChecker';
-import FavoritesFiltersVOService from './service/FavoritesFiltersVOService';
+import FavoritesFiltersServerController from './favorite_filters/FavoritesFiltersServerController';
 
 export default class ModuleDashboardBuilderServer extends ModuleServerBase {
 
@@ -73,7 +73,6 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Heure préférée'
         }, 'dashboard_viewer.favorites_filters.export_frequency_prefered_time.___LABEL___'));
-
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Jour'
@@ -193,6 +192,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'fr-fr': 'Seconde'
         }, 'VarChoroplethChartWidgetOptionsComponent.dimension_custom_filter_segment_types.5.___LABEL___'));
 
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Commencer les exports à partir du'
+        }, 'dashboard_viewer.favorites_filters.begin_export_after_ts.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Graphique de var - Radar'
@@ -2808,6 +2811,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'field_value_filter_widget_component.placeholder_advanced_string_filter.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Tooltip" },
+            'field_value_filter_widget_component.tooltip.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': "Liste des champs pour la recherche multiple" },
             'field_value_filter_widget_component.vo_field_ref_multiple.___LABEL___'
         ));
@@ -3653,6 +3660,19 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'field_value_filter_widget_component.auto_select_date.is_relative_to_other_filter.tooltip.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Afficher les résultats sous forme de liste (ou de tableau)" },
+            'field_value_filter_widget_component.is_res_mode_list.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Liste" },
+            'field_value_filter_widget_component.mode_list.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Tableau" },
+            'field_value_filter_widget_component.mode_tab.___LABEL___'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': "Utiliser cette table pour la comptage des valeurs dans les filtres (si activé)" },
             'table_widget_options_component.use_for_count.___LABEL___'
         ));
@@ -3938,7 +3958,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
      * @return {Promise<void>}
      */
     public async start_export_favorites_filters_datatable(): Promise<void> {
-        FavoritesFiltersVOService.getInstance().export_all_favorites_filters_datatable();
+        FavoritesFiltersServerController.export_all_favorites_filters_datatable();
     }
 
     // istanbul ignore next: cannot test registerAccessPolicies
@@ -3991,7 +4011,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             return;
         }
 
-        const query_res = await ModuleDAOServer.instance.query('SELECT max(weight) as max_weight from ' + ModuleTableController.module_tables_by_vo_type[DashboardVO.API_TYPE_ID].full_name);
+        const query_res = await ModuleDAOServer.instance.query('SELECT max(weight) as max_weight from ' + ModuleTableController.module_tables_by_vo_type[DashboardVO.API_TYPE_ID].full_name, null, true);
         let max_weight = (query_res && (query_res.length == 1) && (typeof query_res[0]['max_weight'] != 'undefined') && (query_res[0]['max_weight'] !== null)) ? query_res[0]['max_weight'] : null;
         max_weight = max_weight ? parseInt(max_weight.toString()) : null;
         if (!max_weight) {
@@ -4018,7 +4038,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             return;
         }
 
-        const query_res = await ModuleDAOServer.instance.query('SELECT max(weight) as max_weight from ' + ModuleTableController.module_tables_by_vo_type[DashboardPageWidgetVO.API_TYPE_ID].full_name);
+        const query_res = await ModuleDAOServer.instance.query('SELECT max(weight) as max_weight from ' + ModuleTableController.module_tables_by_vo_type[DashboardPageWidgetVO.API_TYPE_ID].full_name, null, true);
         let max_weight = (query_res && (query_res.length == 1) && (typeof query_res[0]['max_weight'] != 'undefined') && (query_res[0]['max_weight'] !== null)) ? query_res[0]['max_weight'] : null;
         max_weight = max_weight ? parseInt(max_weight.toString()) : null;
         if (!max_weight) {
@@ -4034,7 +4054,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             return;
         }
 
-        const query_res = await ModuleDAOServer.instance.query('SELECT max(i) as max_i from ' + ModuleTableController.module_tables_by_vo_type[DashboardPageWidgetVO.API_TYPE_ID].full_name);
+        const query_res = await ModuleDAOServer.instance.query('SELECT max(i) as max_i from ' + ModuleTableController.module_tables_by_vo_type[DashboardPageWidgetVO.API_TYPE_ID].full_name, null, true);
         let max_i = (query_res && (query_res.length == 1) && (typeof query_res[0]['max_i'] != 'undefined') && (query_res[0]['max_i'] !== null)) ? query_res[0]['max_i'] : null;
         max_i = max_i ? parseInt(max_i.toString()) : null;
         if (!max_i) {

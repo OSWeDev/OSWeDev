@@ -20,8 +20,8 @@ export default class GeneratePDFClientController {
      * @param save_to_desktop Forcer la sauvegarde sur l'ordinateur du client
      * @param options Options du PDF : default { encoding: 'utf-8' }
      */
-    public async generatePDF(sous_rep: string, file_name: string, html: string, save_to_desktop: boolean, options?: {}): Promise<string> {
-        const res = await ModuleGeneratePDF.getInstance().generatePDF(sous_rep, file_name, html, save_to_desktop, options);
+    public async generatePDF(sous_rep: string, file_name: string, html: string, save_to_desktop: boolean, options: any): Promise<string> {
+        const res = await ModuleGeneratePDF.getInstance().generatePDF(sous_rep, file_name, html, options);
 
         if (save_to_desktop) {
             this.saveToDisk(res, file_name);

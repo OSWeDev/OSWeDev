@@ -158,11 +158,11 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
                 timeSegments_in += "," + timeSegment.index;
             }
         }
-        await ModuleDAOServer.instance.query('DELETE FROM ' + moduletable.full_name + ' t where ' + date_field_name + ' in (' + timeSegments_in + ');');
+        await ModuleDAOServer.instance.query('DELETE FROM ' + moduletable.full_name + ' t where ' + date_field_name + ' in (' + timeSegments_in + ');', null, true);
     }
 
     public async clearDataSegment(moduletable: ModuleTableVO, timeSegment: TimeSegment, date_field_name: string = 'data_dateindex'): Promise<void> {
-        await ModuleDAOServer.instance.query('DELETE FROM ' + moduletable.full_name + ' t where ' + date_field_name + ' = $1;', [timeSegment.index]);
+        await ModuleDAOServer.instance.query('DELETE FROM ' + moduletable.full_name + ' t where ' + date_field_name + ' = $1;', [timeSegment.index], true);
     }
 
     public async getDataRenderingLogs(): Promise<DataRenderingLogVO[]> {

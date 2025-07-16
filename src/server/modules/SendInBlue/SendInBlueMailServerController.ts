@@ -280,7 +280,11 @@ export default class SendInBlueMailServerController {
         }
 
         // On cheche le user correspondant à l'email (sinon on ne peut pas savoir s'il est optin ou optout)
-        const user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_text_eq(field_names<UserVO>().email, email).exec_as_server().select_vo<UserVO>();
+        const user: UserVO = await query(UserVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<UserVO>().email, email)
+            .filter_is_false(field_names<UserVO>().blocked) // On ne prend que les utilisateurs pas bloqués
+            .exec_as_server()
+            .select_vo<UserVO>();
         if (!user) {
             // Par défaut on est en optout donc si on trouve pas l'utilisateur, il va recevoir le mail et ne peut se désinscrire
             return true;

@@ -21,7 +21,7 @@ import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import StackContext from '../../StackContext';
 import ThrottleExecAsServerRunsOnBgThread from '../../annotations/ThrottleExecAsServerRunsOnBgThread';
 import ConfigurationService from '../../env/ConfigurationService';
-import VarDAGNode from '../../modules/Var/vos/VarDAGNode';
+import VarDAGNode, { NodesMapForLockOrUnlock } from '../../modules/Var/vos/VarDAGNode';
 import { RunsOnBgThread } from '../BGThread/annotations/RunsOnBGThread';
 import DAOServerController from '../DAO/DAOServerController';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
@@ -245,7 +245,7 @@ export default class VarsDatasVoUpdateHandler {
             await promise_pipeline.push(async () => {
                 const moduleTable = ModuleTableController.module_tables_by_vo_type[api_type_id];
                 const request = "DELETE FROM " + moduleTable.full_name + " WHERE _bdd_only_index in ('" + indexes.join("','") + "');";
-                await ModuleDAOServer.instance.query(request);
+                await ModuleDAOServer.instance.query(request, null, true);
             });
         }
 
@@ -749,7 +749,10 @@ export default class VarsDatasVoUpdateHandler {
         if (!invalidators_array || !invalidators_array.length) {
             return;
         }
-        ConsoleHandler.log('VarsDatasVoUpdateHandler.handle_invalidators:IN:' + invalidators_array.length);
+
+        if (ConfigurationService.node_configuration.debug_vars_handle_invalidators_in_out) {
+            ConsoleHandler.log('VarsDatasVoUpdateHandler.handle_invalidators:IN:' + invalidators_array.length);
+        }
 
         // On fait l'union et on regroupe par conf d'invalidation
         const invalidators_by_varconf_id: { [invalidation_conf_key: string]: VarDataInvalidatorVO[] } = this.union_invalidators(invalidators_array);
@@ -803,12 +806,12 @@ export default class VarsDatasVoUpdateHandler {
 
             const moduleTable = ModuleTableController.module_tables_by_vo_type[api_type_id];
             const request = '(' + conditions.join(') OR (') + ')';
-            await promise_pipeline.push(async () => ModuleDAOServer.instance.query("DELETE FROM " + moduleTable.full_name + " WHERE " + request + ";"));
+            await promise_pipeline.push(async () => ModuleDAOServer.instance.query("DELETE FROM " + moduleTable.full_name + " WHERE " + request + ";", null, true));
         }
 
         await promise_pipeline.end();
 
-        const nodes_to_unlock: VarDAGNode[] = [];
+        const nodes_to_unlock: NodesMapForLockOrUnlock = new NodesMapForLockOrUnlock();
         const all_vardagnode_promises = [];
 
         // On réinsère les vars pixel never delete qui ont été invalidées en db
@@ -817,7 +820,8 @@ export default class VarsDatasVoUpdateHandler {
                 const invalidated_pixel_never_delete = invalidated_pixels_never_delete[i];
 
                 all_vardagnode_promises.push((async () => {
-                    nodes_to_unlock.push(await VarDAGNode.getInstance(CurrentVarDAGHolder.current_vardag, VarDataBaseVO.from_index(invalidated_pixel_never_delete.index), true/*, true*/));
+                    const n = await VarDAGNode.getInstance(CurrentVarDAGHolder.current_vardag, VarDataBaseVO.from_index(invalidated_pixel_never_delete.index), true/*, true*/);
+                    nodes_to_unlock.add(n);
                 })());
             }
         }
@@ -877,7 +881,8 @@ export default class VarsDatasVoUpdateHandler {
             }
             // Attention : bien forcer de recharger de la base puisque la version qu'on a ici est issue d'un cache local, pas de la base à date
             all_vardagnode_promises.push((async () => {
-                nodes_to_unlock.push(await VarDAGNode.getInstance(CurrentVarDAGHolder.current_vardag, VarDataBaseVO.from_index(index), false/*, true*/));
+                const n = await VarDAGNode.getInstance(CurrentVarDAGHolder.current_vardag, VarDataBaseVO.from_index(index), false/*, true*/);
+                nodes_to_unlock.add(n);
             })());
         }
 
@@ -885,7 +890,9 @@ export default class VarsDatasVoUpdateHandler {
 
         VarDAGNode.unlock_nodes(nodes_to_unlock);
 
-        ConsoleHandler.log('VarsDatasVoUpdateHandler.handle_invalidators:OUT');
+        if (ConfigurationService.node_configuration.debug_vars_handle_invalidators_in_out) {
+            ConsoleHandler.log('VarsDatasVoUpdateHandler.handle_invalidators:OUT');
+        }
     }
 
     /**
@@ -1093,7 +1100,9 @@ export default class VarsDatasVoUpdateHandler {
     ) {
 
         if (ordered_vos_cud && ordered_vos_cud.length) {
-            ConsoleHandler.log('VarsDatasVoUpdateHandler:prepare_updates:IN :ordered_vos_cud length:' + ordered_vos_cud.length);
+            if (ConfigurationService.node_configuration.debug_vars_prepare_updates_in_out) {
+                ConsoleHandler.log('VarsDatasVoUpdateHandler:prepare_updates:IN :ordered_vos_cud length:' + ordered_vos_cud.length);
+            }
         } else {
             return;
         }
@@ -1138,7 +1147,9 @@ export default class VarsDatasVoUpdateHandler {
             }
         }
 
-        ConsoleHandler.log('VarsDatasVoUpdateHandler:prepare_updates:OUT:ordered_vos_cud length:' + ordered_vos_cud.length + ':vo_ids_by_api_type_id_for_log:' + JSON.stringify(vo_ids_by_api_type_id_for_log));
+        if (ConfigurationService.node_configuration.debug_vars_prepare_updates_in_out) {
+            ConsoleHandler.log('VarsDatasVoUpdateHandler:prepare_updates:OUT:ordered_vos_cud length:' + ordered_vos_cud.length + ':vo_ids_by_api_type_id_for_log:' + JSON.stringify(vo_ids_by_api_type_id_for_log));
+        }
     }
 
     // @ThrottleExecAsServerRunsOnBgThread(

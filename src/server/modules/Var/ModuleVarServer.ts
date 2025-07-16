@@ -47,7 +47,7 @@ import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
 import StackContext from '../../StackContext';
 import ConfigurationService from '../../env/ConfigurationService';
 import VarDAG from '../../modules/Var/vos/VarDAG';
-import VarDAGNode from '../../modules/Var/vos/VarDAGNode';
+import VarDAGNode, { NodesMapForLockOrUnlock } from '../../modules/Var/vos/VarDAGNode';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
 import { RunsOnBgThread } from '../BGThread/annotations/RunsOnBGThread';
@@ -274,6 +274,8 @@ export default class ModuleVarServer extends ModuleServerBase {
     public async configure() {
 
         PerfReportServerController.register_perf_module(VarDAGNode.PERF_MODULE_NAME);
+        PerfReportServerController.register_perf_module(VarsDatasProxy.PERF_MODULE_NAME);
+        PerfReportServerController.register_perf_module(VarsTabsSubsController.PERF_MODULE_NAME);
 
         await this.init_auto_vars_confs();
 
@@ -906,7 +908,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         for (const api_type_id of VarsInitController.registered_vars_datas_api_type_ids) {
 
             const moduletable = ModuleTableController.module_tables_by_vo_type[api_type_id];
-            promises.push(ModuleDAOServer.instance.query('DELETE from ' + moduletable.full_name + ' where value_type = ' + VarDataBaseVO.VALUE_TYPE_COMPUTED + ';'));
+            promises.push(ModuleDAOServer.instance.query('DELETE from ' + moduletable.full_name + ' where value_type = ' + VarDataBaseVO.VALUE_TYPE_COMPUTED + ';', null, true));
         }
         await all_promises(promises); // Attention Promise[] ne maintient pas le stackcontext a priori de façon systématique, contrairement au PromisePipeline. Ce n'est pas un contexte client donc OSEF ici
 
@@ -1249,7 +1251,8 @@ export default class ModuleVarServer extends ModuleServerBase {
                 return null;
             }
 
-            const nodes_to_unlock: VarDAGNode[] = [node];
+            const nodes_to_unlock: NodesMapForLockOrUnlock = new NodesMapForLockOrUnlock();
+            nodes_to_unlock.add(node);
 
             await VarsDeployDepsHandler.load_caches_and_imports_on_var_to_deploy(
                 node,
@@ -1813,7 +1816,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         subs.push(...Object.keys(VarsClientsSubsCacheHolder.clients_subs_indexes_cache));
 
         const all_vardagnode_promises: Array<Promise<any>> = [];
-        const nodes_to_unlock: VarDAGNode[] = [];
+        const nodes_to_unlock: NodesMapForLockOrUnlock = new NodesMapForLockOrUnlock();
         for (const j in subs) {
 
             const index = subs[j];
@@ -1824,7 +1827,8 @@ export default class ModuleVarServer extends ModuleServerBase {
 
             // on vient de supprimer => ok mais les imports ???
             all_vardagnode_promises.push((async () => {
-                nodes_to_unlock.push(await VarDAGNode.getInstance(CurrentVarDAGHolder.current_vardag, VarDataBaseVO.from_index(index), false));
+                const n = await VarDAGNode.getInstance(CurrentVarDAGHolder.current_vardag, VarDataBaseVO.from_index(index), false);
+                nodes_to_unlock.add(n);
             })());
         }
 

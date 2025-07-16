@@ -1,12 +1,13 @@
 import ObjectHandler from "../../../tools/ObjectHandler";
 import ContextFilterVO from "../../ContextFilter/vos/ContextFilterVO";
+import IWidgetFilterDependancy from "../interfaces/IWidgetFilterDependancy";
 import DashboardPageWidgetVO from "./DashboardPageWidgetVO";
 import VOFieldRefVO from "./VOFieldRefVO";
 
 /**
  * YearFilterWidgetOptionsVO
  */
-export default class YearFilterWidgetOptionsVO {
+export default class YearFilterWidgetOptionsVO implements IWidgetFilterDependancy {
 
     public static VO_FIELD_REF_PLACEHOLDER_CODE_PREFIX: string = "YearFilterWidgetOptions.vo_field_ref.placeholder.";
 

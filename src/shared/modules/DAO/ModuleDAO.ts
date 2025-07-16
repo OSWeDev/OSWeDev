@@ -14,6 +14,7 @@ import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import ModuleTableVO from '../DAO/vos/ModuleTableVO';
 import IMatroid from '../Matroid/interfaces/IMatroid';
 import Module from '../Module';
+import ModuleVO from '../ModuleVO';
 import ModuleTableController from './ModuleTableController';
 import APIDAOApiTypeAndMatroidsParamsVO, { APIDAOApiTypeAndMatroidsParamsVOStatic } from './vos/APIDAOApiTypeAndMatroidsParamsVO';
 import APIDAONamedParamVO, { APIDAONamedParamVOStatic } from './vos/APIDAONamedParamVO';
@@ -356,6 +357,7 @@ export default class ModuleDAO extends Module {
     }
 
     public initialize() {
+        this.init_ModuleVO();
         this.init_CustomComputedFieldInitVO();
         this.init_CRUDFieldRemoverConfVO();
         this.init_ModuleTableVO();
@@ -437,6 +439,16 @@ export default class ModuleDAO extends Module {
         ModuleTableFieldController.create_new(CustomComputedFieldInitVO.API_TYPE_ID, field_names<CustomComputedFieldInitVO>().next_limit, ModuleTableFieldVO.FIELD_TYPE_int, 'Limite du prochain traitement', true, true, 100);
         ModuleTableFieldController.create_new(CustomComputedFieldInitVO.API_TYPE_ID, field_names<CustomComputedFieldInitVO>().state, ModuleTableFieldVO.FIELD_TYPE_int, 'Etat du traitement', true, true, CustomComputedFieldInitVO.STATE_TODO).setEnumValues(CustomComputedFieldInitVO.STATE_LABELS);
         ModuleTableFieldController.create_new(CustomComputedFieldInitVO.API_TYPE_ID, field_names<CustomComputedFieldInitVO>().message, ModuleTableFieldVO.FIELD_TYPE_string, 'Message', false);
+    }
+
+    private init_ModuleVO() {
+        // Il faut quand même qu'on register une moduleTable pour le admin.modules
+        const label_field = ModuleTableFieldController.create_new(ModuleVO.API_TYPE_ID, field_names<ModuleVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true).unique();
+        ModuleTableFieldController.create_new(ModuleVO.API_TYPE_ID, field_names<ModuleVO>().actif, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Actif', true);
+
+        ModuleTableController.create_new(this.name, ModuleVO, label_field, 'Modules')
+            .set_description('Les modules disponibles / activés pour cette instance d\'OSWEDEV')
+            .set_bdd_ref('admin', 'modules');
     }
 
     private init_ModuleTableFieldVO() {
