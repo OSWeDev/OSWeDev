@@ -549,9 +549,6 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
     }
 
     private async check_default_width_vs_viewport(viewport_page_widget: DashboardViewportPageWidgetVO) {
-        if (!!viewport_page_widget.w) {
-            return;
-        }
 
         const widget = await query(DashboardWidgetVO.API_TYPE_ID)
             .filter_by_id(viewport_page_widget.page_widget_id, DashboardPageWidgetVO.API_TYPE_ID)
@@ -572,15 +569,48 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             return;
         }
 
-        viewport_page_widget.w = (widget.default_width > viewport.nb_columns) ? viewport.nb_columns : widget.default_width;
+        if (!!viewport_page_widget.w) {
+            viewport_page_widget.w = (viewport_page_widget.w > viewport.nb_columns) ? viewport.nb_columns : viewport_page_widget.w;
+        } else {
+            viewport_page_widget.w = (widget.default_width > viewport.nb_columns) ? viewport.nb_columns : widget.default_width;
+        }
 
         return;
     }
 
 
     private async check_DashboardViewportPageWidgetVO_i(viewport_page_widget: DashboardViewportPageWidgetVO) {
+
+        // TODO FIXME est-ce qu'on se débarrasse pas juste du i au profit du id ?
+
         if (!!viewport_page_widget.i) {
-            return;
+
+            const this_viewport_page_widget_dashboard_page = await query(DashboardPageVO.API_TYPE_ID)
+                .filter_by_id(viewport_page_widget.page_widget_id, DashboardPageWidgetVO.API_TYPE_ID)
+                .exec_as_server()
+                .select_vo<DashboardPageVO>();
+
+            if (!this_viewport_page_widget_dashboard_page?.dashboard_id) {
+                ConsoleHandler.error(`Impossible de vérifier la position i du DashboardViewportPageWidgetVO ${viewport_page_widget.id} car le DashboardPageWidgetVO ${viewport_page_widget.page_widget_id} n'existe pas ou n'a pas de dashboard associé.`);
+                return;
+            }
+
+            // Si on a un i, on doit juste vérifier qu'il est unique au viewport/dashboard
+            const existing = await query(DashboardViewportPageWidgetVO.API_TYPE_ID)
+                .filter_by_num_not_eq(field_names<DashboardViewportPageWidgetVO>().id, viewport_page_widget.id)
+
+                .filter_by_num_eq(field_names<DashboardViewportPageWidgetVO>().i, viewport_page_widget.i)
+                .filter_by_num_eq(field_names<DashboardViewportPageWidgetVO>().viewport_id, viewport_page_widget.viewport_id)
+                .filter_by_num_eq(field_names<DashboardPageVO>().dashboard_id, this_viewport_page_widget_dashboard_page?.dashboard_id).using(DashboardPageWidgetVO.API_TYPE_ID) // pour le lien avec le dashboard
+
+                .exec_as_server()
+                .select_vo<DashboardViewportPageWidgetVO>();
+
+            if (!existing) {
+                return;
+            }
+
+            // sinon on doit lui en trouver un nouveau
         }
 
         const query_res = await ModuleDAOServer.instance.query('SELECT max(i) as max_i from ' + ModuleTableController.module_tables_by_vo_type[DashboardViewportPageWidgetVO.API_TYPE_ID].full_name, null, true);
@@ -676,7 +706,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             const viewport_page_widget: DashboardViewportPageWidgetVO = new DashboardViewportPageWidgetVO();
             viewport_page_widget.page_widget_id = page_widget.id;
             viewport_page_widget.viewport_id = viewport.id;
-            viewport_page_widget.activated = false; // On active pas par défaut sur le nouveau widget
+            viewport_page_widget.activated = false; // On active pas par défaut le nouveau widget sur les autres viewports (le viewport de la création du widget sera passé actif côté client par le DBB)
 
             new_items.push(viewport_page_widget);
         }

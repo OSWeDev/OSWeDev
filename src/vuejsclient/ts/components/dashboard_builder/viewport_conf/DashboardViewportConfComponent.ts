@@ -11,6 +11,8 @@ import './DashboardViewportConfComponent.scss';
 import DashboardSelectedViewportConfComponent from './selected_viewport_conf/DashboardSelectedViewportConfComponent';
 import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../page/DashboardPageStore';
 import DashboardBuilderVueController from '../DashboardBuilderVueController';
+import DashboardPageVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
+import DashboardPageWidgetVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 
 @Component({
     template: require('./DashboardViewportConfComponent.pug'),
@@ -31,6 +33,14 @@ export default class DashboardViewportConfComponent extends VueComponentBase imp
 
     get get_dashboard(): DashboardVO {
         return this.vuexGet(reflect<this>().get_dashboard);
+    }
+
+    get get_dashboard_page(): DashboardPageVO {
+        return this.vuexGet(reflect<this>().get_dashboard_page);
+    }
+
+    get get_selected_widget(): DashboardPageWidgetVO {
+        return this.vuexGet(reflect<this>().get_selected_widget);
     }
 
     // Accès dynamiques Vuex

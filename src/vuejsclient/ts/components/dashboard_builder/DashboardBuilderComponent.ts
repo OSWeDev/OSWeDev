@@ -145,6 +145,10 @@ export default class DashboardBuilderComponent extends VueComponentBase implemen
         return this.vuexGet(reflect<this>().has_navigation_history);
     }
 
+    get get_dashboard_valid_viewports(): DashboardViewportVO[] {
+        return this.vuexGet(reflect<this>().get_dashboard_valid_viewports);
+    }
+
     get get_current_dbb_conf(): DBBConfVO {
         return this.vuexGet(reflect<this>().get_current_dbb_conf);
     }

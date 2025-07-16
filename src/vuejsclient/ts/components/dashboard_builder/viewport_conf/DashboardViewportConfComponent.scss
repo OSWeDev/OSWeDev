@@ -11,15 +11,16 @@
             bottom: 0;
             display: flex;
             justify-content: center;
-            align-items: center;
             background-color: rgba(255, 255, 255, 0.6);
             opacity: 0;
             cursor: pointer;
             transition: opacity 0.3s ease;
             pointer-events: none;
+            padding: 11em;
+            z-index: 999;
 
             i.fa-solid.fa-pen-to-square {
-                font-size: 2rem;
+                font-size: 10rem;
                 color: #333;
             }
         }

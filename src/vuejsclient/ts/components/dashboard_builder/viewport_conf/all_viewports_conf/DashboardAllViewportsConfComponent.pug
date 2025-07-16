@@ -6,7 +6,7 @@
                     i.fa-duotone.fa-check-circle(v-if='activated_viewports_by_id[viewport.id]')
                     i.fa-duotone.fa-ban(v-else)
                 
-                .select_viewport(@click='set_dashboard_current_viewport(viewport)')
+                .select_viewport(@click='set_dashboard_current_viewport(viewport)' :disabled='!activated_viewports_by_id[viewport.id]')
                     i.fa-duotone(:class="viewport.id == get_dashboard_current_viewport?.id ? 'fa-eye' : 'fa-eye-slash'")
 
                 .name.ml-2.flex-grow-1

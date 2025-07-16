@@ -8,7 +8,12 @@
             .db_previsualization_wrapper(@click='on_click_previsualization')
                 DashboardViewerComponent(
                     :dashboard_id='get_dashboard.id'
-                    :viewport_id='get_dashboard_current_viewport.id'
+                    :key="'Dashboard_Previsualization__' + get_dashboard_current_viewport.id + '__' + get_dashboard.id"
+                    :force_max_width='true'
+                    
+                    :viewport='get_dashboard_current_viewport'
+                    :dashboard_page='get_dashboard_page'
+                    :selected_widget='get_selected_widget'
                 )
                 .edit_overlay
                     i.fa-solid.fa-pen-to-square

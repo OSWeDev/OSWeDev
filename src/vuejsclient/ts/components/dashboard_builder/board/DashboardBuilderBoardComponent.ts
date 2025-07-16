@@ -2,7 +2,6 @@ import Component from 'vue-class-component';
 import { GridItem, GridLayout } from "vue-grid-layout";
 import { Inject, Prop } from 'vue-property-decorator';
 import { filter } from '../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
-import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../../../shared/modules/ContextFilter/vos/SortByVO';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import DashboardVOManager from '../../../../../shared/modules/DashboardBuilder/manager/DashboardVOManager';
@@ -38,18 +37,21 @@ import DashboardBuilderBoardItemComponent from './item/DashboardBuilderBoardItem
 })
 export default class DashboardBuilderBoardComponent extends VueComponentBase implements IDashboardPageConsumer {
 
-    public static GridLayout_TOTAL_HEIGHT: number = 720;
-    public static GridLayout_TOTAL_ROWS: number = 72;
-    public static GridLayout_ELT_HEIGHT: number = DashboardBuilderBoardComponent.GridLayout_TOTAL_HEIGHT / DashboardBuilderBoardComponent.GridLayout_TOTAL_ROWS;
+    // public static GridLayout_TOTAL_HEIGHT: number = 720;
+    // public static GridLayout_TOTAL_ROWS: number = 72;
+    // public static GridLayout_ELT_HEIGHT: number = DashboardBuilderBoardComponent.GridLayout_TOTAL_HEIGHT / DashboardBuilderBoardComponent.GridLayout_TOTAL_ROWS;
 
-    public static GridLayout_TOTAL_WIDTH: number = 1280;
-    public static GridLayout_TOTAL_COLUMNS: number = 128;
-    public static GridLayout_ELT_WIDTH: number = DashboardBuilderBoardComponent.GridLayout_TOTAL_WIDTH / DashboardBuilderBoardComponent.GridLayout_TOTAL_COLUMNS;
+    // public static GridLayout_TOTAL_WIDTH: number = 1280;
+    // public static GridLayout_TOTAL_COLUMNS: number = 12;
+    // public static GridLayout_ELT_WIDTH: number = DashboardBuilderBoardComponent.GridLayout_TOTAL_WIDTH / DashboardBuilderBoardComponent.GridLayout_TOTAL_COLUMNS;
 
     @Inject('storeNamespace') readonly storeNamespace!: string;
 
     @Prop({ default: true })
     public editable: boolean;
+
+    @Prop({ default: true })
+    public force_max_width: boolean;
 
     @SyncVOs(DashboardViewportPageWidgetVO.API_TYPE_ID, {
         debug: true,
@@ -155,13 +157,17 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase imp
         debug: true,
 
         sync_to_store_namespace: (self) => self.storeNamespace,
+
+        simple_sorts_by_on_api_type_id: [
+            new SortByVO(DashboardViewportVO.API_TYPE_ID, field_names<DashboardViewportVO>().screen_min_width, false),
+        ]
     })
     public viewports: DashboardViewportVO[] = null;
 
 
-    public elt_height: number = DashboardBuilderBoardComponent.GridLayout_ELT_HEIGHT;
-    public col_num: number = DashboardBuilderBoardComponent.GridLayout_TOTAL_COLUMNS;
-    public max_rows: number = DashboardBuilderBoardComponent.GridLayout_TOTAL_ROWS;
+    // public elt_height: number = DashboardBuilderBoardComponent.GridLayout_ELT_HEIGHT;
+    // public col_num: number = DashboardBuilderBoardComponent.GridLayout_TOTAL_COLUMNS;
+    // public max_rows: number = DashboardBuilderBoardComponent.GridLayout_TOTAL_ROWS;
 
     public item_key: { [item_id: number]: number } = {};
 
@@ -172,6 +178,34 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase imp
     public is_filtres_deplie: boolean = false;
 
     public dragged = null;
+
+    get grid_breakpoints(): { [breakpoint: string]: number } {
+
+        if (!ObjectHandler.hasAtLeastOneAttribute(this.get_dashboard_valid_viewports)) {
+            return null;
+        }
+
+        const breakpoints: { [breakpoint: string]: number } = {};
+        for (const viewport of this.get_dashboard_valid_viewports) {
+            breakpoints[viewport.name] = viewport.screen_min_width;
+        }
+
+        return breakpoints;
+    }
+
+    get grid_cols(): { [breakpoint: string]: number } {
+
+        if (!ObjectHandler.hasAtLeastOneAttribute(this.get_dashboard_valid_viewports)) {
+            return null;
+        }
+
+        const cols: { [breakpoint: string]: number } = {};
+        for (const viewport of this.get_dashboard_valid_viewports) {
+            cols[viewport.name] = viewport.nb_columns;
+        }
+
+        return cols;
+    }
 
     get selected_page_page_widgets_by_id(): { [id: number]: DashboardPageWidgetVO } {
         const selected_widgets: { [id: number]: DashboardPageWidgetVO } = {};
@@ -237,6 +271,38 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase imp
         return this.vuexGet(reflect<this>().get_dashboard);
     }
 
+    get style_gridlayout(): string {
+        let res: string = '';
+
+        if (this.force_max_width && this.get_dashboard_current_viewport) {
+
+            // On récupère le viewport précédent (du plus grand au plus petit) pour avoir le min_width qu'on va mettre en max
+            let previous_viewport: DashboardViewportVO = null;
+
+            for (const i in this.viewports) {
+                const viewport: DashboardViewportVO = this.viewports[i];
+
+                if (viewport.id != this.get_dashboard_current_viewport.id) {
+                    continue;
+                }
+
+                if (i == '0') {
+                    break;
+                }
+
+                previous_viewport = this.viewports[(parseInt(i) - 1)];
+
+                break;
+            }
+
+            if (previous_viewport) {
+                res += 'max-width: ' + (previous_viewport.screen_min_width - 1) + 'px; border-left: 2px solid #ccc; border-right: 2px solid #ccc; border-radius: 8px; margin-left: auto; margin-right: auto;';
+            }
+        }
+
+        return res;
+    }
+
     get get_dashboard_pages(): DashboardPageVO[] {
         return this.vuexGet(reflect<this>().get_dashboard_pages);
     }
@@ -244,6 +310,14 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase imp
     get get_widgets_by_id(): { [id: number]: DashboardWidgetVO } {
         return this.vuexGet(reflect<this>().get_widgets_by_id);
     }
+
+    // get nb_columns(): number {
+    //     if (!this.get_dashboard_current_viewport) {
+    //         return 0;
+    //     }
+
+    //     return this.get_dashboard_current_viewport.nb_columns;
+    // }
 
     @SafeWatch(reflect<DashboardBuilderBoardComponent>().get_dashboard, { immediate: true })
     public async on_change_dashboard() {
@@ -382,6 +456,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase imp
             return;
         }
         const widget = this.dashboard_viewport_page_widgets.find((w) => w.i == i);
+        // const widget = this.dashboard_viewport_page_widgets.find((w) => w.id == i);
 
         if (!widget) {
             ConsoleHandler.error("resizedEvent:on ne retrouve pas le widget");
@@ -405,6 +480,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase imp
             return;
         }
         const widget = this.dashboard_viewport_page_widgets.find((w) => w.i == i);
+        // const widget = this.dashboard_viewport_page_widgets.find((w) => w.id == i);
 
         if (!widget) {
             ConsoleHandler.error("movedEvent:on ne retrouve pas le widget");
@@ -451,4 +527,21 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase imp
         this.vuexAct(reflect<this>().set_page_history, page_history);
     }
 
+    public breakpoint_changed_event(breakpoint: string): void {
+        // On change le viewport courant en fonction du breakpoint
+        if (!this.get_dashboard_valid_viewports || this.get_dashboard_valid_viewports.length <= 0) {
+            return;
+        }
+
+        const viewport = this.get_dashboard_valid_viewports.find((v) => v.name == breakpoint);
+
+        if (!viewport) {
+            ConsoleHandler.error(`Aucun viewport trouvé pour le breakpoint ${breakpoint}`);
+            return;
+        }
+
+        if (viewport.id != this.get_dashboard_current_viewport?.id) {
+            this.set_dashboard_current_viewport(viewport);
+        }
+    }
 }

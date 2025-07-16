@@ -160,6 +160,8 @@ export default class InlineTranslatableText extends VueComponentBase {
     }
 
     @SafeWatch(reflect<InlineTranslatableText>().translation, { immediate: true, deep: true })
+    @SafeWatch(reflect<InlineTranslatableText>().code_text)
+    @SafeWatch(reflect<InlineTranslatableText>().default_translation)
     public async onchange_translation() {
 
         if (this.text != (this.translation ? this.translation.translated : this.default_translation || this.code_text)) {

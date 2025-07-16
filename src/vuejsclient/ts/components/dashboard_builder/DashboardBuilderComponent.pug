@@ -74,7 +74,7 @@
                         @input="set_dashboard_current_viewport($event)"
 
                         :placeholder="label('dashboard_builder.select_viewport')"
-                        :options="get_viewports"
+                        :options="get_dashboard_valid_viewports"
                         :custom-label="viewport_label"
                         :allow-empty="false",
 

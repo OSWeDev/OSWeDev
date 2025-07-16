@@ -6,23 +6,29 @@
         ref='Dashboardcopywidgetcomponent'
     )
 
-    template(v-if='get_dashboard_page')
+    template(v-if='get_dashboard_page && grid_breakpoints && grid_cols')
 
         //- (@click="(event) => select_widget_and_stop(event, null)")
         .grid_wrapper(:class="{ filter_plie: (get_dashboard_page.group_filters && !is_filtres_deplie) }")
             Gridlayout(
                 :layout="dashboard_viewport_page_widgets"
-                :row-height="elt_height"
+                :row-height="10"
                 :auto-size="true"
                 :is-draggable="draggable"
                 :is-resizable="resizable"
-                :responsive="true"
                 :vertical-compact="false"
                 :prevent-collision="true"
                 :use-css-transforms="true"
                 :margin="[10, 10]"
-                :key="'Gridlayout__' + get_dashboard_page.id"
+                :style="style_gridlayout"
+                :key="'Gridlayout__' + get_dashboard_page.id"  
+                :breakpoints='grid_breakpoints'
+                :cols='grid_cols'
+                :responsive="true"
+                @breakpoint-changed="breakpoint_changed_event"
             )
+                //- :responsive="true"
+                //- :col-num="nb_columns"
 
                 template(v-if="get_dashboard_page.group_filters")
                     .filters-bloc.mt-3

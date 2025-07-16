@@ -1,7 +1,6 @@
 import Component from 'vue-class-component';
 import { Prop, Provide } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
-import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../../../shared/modules/ContextFilter/vos/SortByVO';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import DashboardPageVOManager from '../../../../../shared/modules/DashboardBuilder/manager/DashboardPageVOManager';
@@ -36,7 +35,16 @@ export default class DashboardViewerComponent extends VueComponentBase implement
     public dashboard_id: number;
 
     @Prop({ default: null })
-    public viewport_id: number; // The viewport id to display if forced
+    public viewport: DashboardViewportVO; // The viewport to display if forced
+
+    @Prop({ default: null })
+    public dashboard_page: DashboardPageVO; // The dashboard page to display if forced
+
+    @Prop({ default: null })
+    public selected_widget: DashboardPageWidgetVO; // The selected widget if forced
+
+    @Prop({ default: false })
+    public force_max_width: boolean; // If true, the dashboard will be displayed in max_width with borders to show the viewport
 
     @SyncVO(DashboardVO.API_TYPE_ID, {
         debug: true,
@@ -103,20 +111,34 @@ export default class DashboardViewerComponent extends VueComponentBase implement
         return this.vuexGet(reflect<this>().get_viewports);
     }
 
-    @SafeWatch(reflect<DashboardViewerComponent>().viewport_id, { immediate: true })
-    public async on_change_viewport_id() {
+    @SafeWatch(reflect<DashboardViewerComponent>().dashboard_page, { immediate: true })
+    public async onchange_dashboard_page() {
 
-        if (!this.viewport_id) {
+        if (!this.dashboard_page) {
             return;
         }
 
-        const viewport = await query(DashboardViewportVO.API_TYPE_ID)
-            .filter_by_id(this.viewport_id)
-            .select_vo<DashboardViewportVO>();
+        this.select_page(this.dashboard_page);
+    }
 
-        if (viewport) {
-            this.set_dashboard_current_viewport(viewport);
+    @SafeWatch(reflect<DashboardViewerComponent>().viewport, { immediate: true })
+    public async on_change_viewport() {
+
+        if (!this.viewport) {
+            return;
         }
+
+        this.set_dashboard_current_viewport(this.viewport);
+    }
+
+    @SafeWatch(reflect<DashboardViewerComponent>().selected_widget, { immediate: true })
+    public async on_change_selected_widget() {
+
+        if (!this.selected_widget) {
+            return;
+        }
+
+        this.set_selected_widget(this.selected_widget);
     }
 
     @SafeWatch(reflect<DashboardViewerComponent>().dashboard_id, { immediate: true })
