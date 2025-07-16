@@ -1,7 +1,9 @@
 import { Component, Prop } from "vue-property-decorator";
+import Throttle from "../../../../shared/annotations/Throttle";
 import { filter } from "../../../../shared/modules/ContextFilter/vos/ContextFilterVO";
 import { query } from "../../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 import ModuleDAO from "../../../../shared/modules/DAO/ModuleDAO";
+import EventifyEventListenerConfVO from "../../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO";
 import LangVO from "../../../../shared/modules/Translation/vos/LangVO";
 import TranslatableTextVO from "../../../../shared/modules/Translation/vos/TranslatableTextVO";
 import TranslationVO from "../../../../shared/modules/Translation/vos/TranslationVO";
@@ -9,11 +11,13 @@ import { field_names, reflect } from "../../../../shared/tools/ObjectHandler";
 import VueAppController from "../../../VueAppController";
 import { SafeWatch } from "../../tools/annotations/SafeWatch";
 import { SyncVO } from "../../tools/annotations/SyncVO";
+import { SyncVOs } from "../../tools/annotations/SyncVOs";
 import LangSelectorComponent from "../lang_selector/LangSelectorComponent";
 import VueComponentBase from "../VueComponentBase";
 import './InlineTranslatableText.scss';
 import TranslatableTextController from "./TranslatableTextController";
 import { ModuleTranslatableTextGetter } from './TranslatableTextStore';
+import ThreadHandler from "../../../../shared/tools/ThreadHandler";
 
 @Component({
     template: require('./InlineTranslatableText.pug'),
@@ -86,7 +90,7 @@ export default class InlineTranslatableText extends VueComponentBase {
     })
     public translatable_text: TranslatableTextVO = null;
 
-    @SyncVO(TranslationVO.API_TYPE_ID, {
+    @SyncVOs(TranslationVO.API_TYPE_ID, {
         watch_fields: [
             reflect<InlineTranslatableText>().translatable_text,
             reflect<InlineTranslatableText>().lang,
@@ -110,12 +114,21 @@ export default class InlineTranslatableText extends VueComponentBase {
             ];
         },
     })
-    public translation: TranslationVO = null;
+    public translations: TranslationVO[] = null; // TODO FIXME on voudrait être sur un translation directement mais ça pose un pb de conf du syncvo qui est pas prêt pour ça pour le moment
 
     public text: string = null;
     public semaphore: boolean = true;
 
     public code_lang: string = VueAppController.getInstance().data_user_lang ? VueAppController.getInstance().data_user_lang.code_lang : null;
+
+    get translation(): TranslationVO {
+        if (!this.translations || this.translations.length == 0) {
+            return null;
+        }
+
+        // Il ne devrait y en avoir qu'une
+        return this.translations[0];
+    }
 
     /**
      * Version très simple du remplacement de params qui marchent pour un param à fields de type string ou qui accepte toString
@@ -162,6 +175,10 @@ export default class InlineTranslatableText extends VueComponentBase {
     @SafeWatch(reflect<InlineTranslatableText>().translation, { immediate: true, deep: true })
     @SafeWatch(reflect<InlineTranslatableText>().code_text)
     @SafeWatch(reflect<InlineTranslatableText>().default_translation)
+    @Throttle({
+        param_type: EventifyEventListenerConfVO.PARAM_TYPE_NONE,
+        throttle_ms: 10,
+    })
     public async onchange_translation() {
 
         if (this.text != (this.translation ? this.translation.translated : this.default_translation || this.code_text)) {

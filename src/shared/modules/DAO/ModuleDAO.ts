@@ -92,7 +92,11 @@ export default class ModuleDAO extends Module {
      * Insère les vos, et met l'id retourné par la bdd dans le vo et le retourne également en InsertOrDeleteQueryResult
      */
     public insert_vos: (vos: IDistantVOBase[]) => Promise<InsertOrDeleteQueryResult[]> = APIControllerWrapper.sah_optimizer(this.name, reflect<ModuleDAO>().insert_vos);
-    public insertOrUpdateVO: (vo: IDistantVOBase) => Promise<InsertOrDeleteQueryResult> = APIControllerWrapper.sah_optimizer(this.name, reflect<ModuleDAO>().insertOrUpdateVO);
+    public insertOrUpdateVO: (vo: IDistantVOBase) => Promise<InsertOrDeleteQueryResult> = APIControllerWrapper.sah_optimizer(this.name, reflect<ModuleDAO>().insertOrUpdateVO, null, null, null, (res: InsertOrDeleteQueryResult, vo: IDistantVOBase) => {
+        if (res && res.id && vo && (vo.id !== res.id)) {
+            vo.id = res.id;
+        }
+    });
     public getNamedVoByName: <T extends INamedVO>(API_TYPE_ID: string, vo_name: string) => Promise<T> = APIControllerWrapper.sah_optimizer(this.name, reflect<ModuleDAO>().getNamedVoByName);
     public getColSumFilterByMatroid: <T extends IDistantVOBase, U extends IMatroid>(API_TYPE_ID: string, matroids: U[], fields_ids_mapper?: { [matroid_field_id: string]: string }) => Promise<number> = APIControllerWrapper.sah_optimizer(
         this.name,

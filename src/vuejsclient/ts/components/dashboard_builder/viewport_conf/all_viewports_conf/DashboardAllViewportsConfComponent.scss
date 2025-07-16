@@ -1,4 +1,9 @@
 .DashboardAllViewportsConfComponent {
+
+    padding: 1em;
+    box-shadow: 2px 2px 4px #CCC;
+    border-radius: 4px;
+
     .viewport_conf_wrapper {
         display: flex;
         align-items: center;

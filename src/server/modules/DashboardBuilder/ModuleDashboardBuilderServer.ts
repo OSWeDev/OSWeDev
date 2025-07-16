@@ -32,6 +32,7 @@ import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOPostCreateTriggerHook from '../DAO/triggers/DAOPostCreateTriggerHook';
 import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
+import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
@@ -72,6 +73,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         preCTrigger.registerHandler(DashboardViewportPageWidgetVO.API_TYPE_ID, this, this.onprec_DashboardViewportPageWidgetVO);
 
         preCTrigger.registerHandler(DashboardVO.API_TYPE_ID, this, this.onpreC_DashboardVO);
+
+        const preUTrigger: DAOPreUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
+        preUTrigger.registerHandler(DashboardViewportPageWidgetVO.API_TYPE_ID, this, this.onpreu_check_viewport_page_widget_is_not_intersecting_other_widgets);
+
 
         const postUTrigger: DAOPostUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
         postUTrigger.registerHandler(DashboardGraphVORefVO.API_TYPE_ID, this, this.onUDashboardGraphVORefVO);
@@ -581,8 +586,6 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
 
     private async check_DashboardViewportPageWidgetVO_i(viewport_page_widget: DashboardViewportPageWidgetVO) {
 
-        // TODO FIXME est-ce qu'on se débarrasse pas juste du i au profit du id ?
-
         if (!!viewport_page_widget.i) {
 
             const this_viewport_page_widget_dashboard_page = await query(DashboardPageVO.API_TYPE_ID)
@@ -624,8 +627,97 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         return;
     }
 
+    private async onpreu_check_viewport_page_widget_is_not_intersecting_other_widgets(vo_update_handler: DAOUpdateVOHolder<DashboardViewportPageWidgetVO>): Promise<boolean> {
+        await this.check_viewport_page_widget_is_not_intersecting_other_widgets(vo_update_handler.post_update_vo);
+
+        return true;
+    }
+
+    private async check_viewport_page_widget_is_not_intersecting_other_widgets(viewport_page_widget: DashboardViewportPageWidgetVO) {
+        if (!viewport_page_widget) {
+            return;
+        }
+
+        // Si le widget est pas activé, il ne chevauche rien
+        if (!viewport_page_widget.activated) {
+            return;
+        }
+
+        const page_widget = await query(DashboardPageWidgetVO.API_TYPE_ID)
+            .filter_by_id(viewport_page_widget.page_widget_id)
+            .exec_as_server()
+            .select_vo<DashboardPageWidgetVO>();
+
+        if (!page_widget?.page_id) {
+            ConsoleHandler.error(`Impossible de vérifier l'intersection du DashboardViewportPageWidgetVO ${viewport_page_widget.id} car le DashboardPageWidgetVO ${viewport_page_widget.page_widget_id} n'existe pas ou n'a pas de page associée.`);
+            return;
+        }
+
+        // on charge les autres widgets de la page
+        const other_widgets: DashboardViewportPageWidgetVO[] = await query(DashboardViewportPageWidgetVO.API_TYPE_ID)
+            .filter_by_num_not_eq(field_names<DashboardViewportPageWidgetVO>().id, viewport_page_widget.id) // on exclut le widget en cours
+            .filter_by_num_eq(field_names<DashboardViewportPageWidgetVO>().viewport_id, viewport_page_widget.viewport_id) // on filtre par le viewport
+            .filter_by_num_eq(field_names<DashboardPageWidgetVO>().page_id, page_widget.page_id, DashboardPageWidgetVO.API_TYPE_ID) // on filtre par la page du widget
+            .exec_as_server()
+            .select_vos<DashboardViewportPageWidgetVO>();
+
+        if (!other_widgets || other_widgets.length === 0) {
+            // Pas d'autres widgets, on est tranquille
+            return;
+        }
+
+        // On vérifie si le widget en cours chevauche un autre widget
+        for (const other_widget of other_widgets) {
+            if (!other_widget || !other_widget.activated) {
+                continue; // on ignore les widgets désactivés
+            }
+
+            // On vérifie si les positions se chevauchent
+            const is_overlapping = this.isOverlapping(viewport_page_widget, other_widget);
+            if (is_overlapping) {
+                // Si on overlap, on doit charger le max y pour ce viewport page widget
+                const query_res = await ModuleDAOServer.instance.query(
+                    'SELECT max(vpw.y + vpw.h) as max_y from ' + ModuleTableController.module_tables_by_vo_type[DashboardViewportPageWidgetVO.API_TYPE_ID].full_name + ' vpw ' +
+                    ' join ' + ModuleTableController.module_tables_by_vo_type[DashboardPageWidgetVO.API_TYPE_ID].full_name + ' pw on vpw.page_widget_id = pw.id ' +
+                    ' where vpw.id != ' + viewport_page_widget.id + ' and pw.page_id = ' + page_widget?.page_id + ' and vpw.activated is true and vpw.viewport_id = ' + viewport_page_widget.viewport_id, // le max de y+h des widgets de cette page, dans ce viewport, parmis les widgets activés (hors widget en cours de vérification)
+                    null, true);
+                let max_y = (query_res && (query_res.length == 1) && (typeof query_res[0]['max_y'] != 'undefined') && (query_res[0]['max_y'] !== null)) ? query_res[0]['max_y'] : null;
+                max_y = max_y ? parseInt(max_y.toString()) : null;
+                if (!max_y) {
+                    max_y = 0;
+                }
+                viewport_page_widget.y = max_y;
+
+                return;
+            }
+        }
+    }
+
+    private isOverlapping(widget1: DashboardViewportPageWidgetVO, widget2: DashboardViewportPageWidgetVO): boolean {
+        if (!widget1 || !widget2) {
+            return false; // Si l'un des widgets est invalide, pas de chevauchement
+        }
+
+        // Vérification des coordonnées
+        const x1 = widget1.x;
+        const y1 = widget1.y;
+        const x2 = x1 + widget1.w; // x + largeur
+        const y2 = y1 + widget1.h; // y + hauteur
+
+        const x3 = widget2.x;
+        const y3 = widget2.y;
+        const x4 = x3 + widget2.w; // x + largeur
+        const y4 = y3 + widget2.h; // y + hauteur
+
+        // Vérification de l'overlap
+        return !(x1 >= x4 || x3 >= x2 || y1 >= y4 || y3 >= y2);
+    }
+
     private async check_DashboardViewportPageWidgetVO_y(viewport_page_widget: DashboardViewportPageWidgetVO) {
         if (!!viewport_page_widget.y) {
+
+            // On doit vérifier que ça empiète pas sur un autre widget
+            await this.check_viewport_page_widget_is_not_intersecting_other_widgets(viewport_page_widget);
             return;
         }
 
@@ -641,7 +733,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         const query_res = await ModuleDAOServer.instance.query(
             'SELECT max(vpw.y + vpw.h) as max_y from ' + ModuleTableController.module_tables_by_vo_type[DashboardViewportPageWidgetVO.API_TYPE_ID].full_name + ' vpw ' +
             ' join ' + ModuleTableController.module_tables_by_vo_type[DashboardPageWidgetVO.API_TYPE_ID].full_name + ' pw on vpw.page_widget_id = pw.id ' +
-            ' where pw.page_id = ' + this_page_widget?.page_id + ' and vpw.viewport_id = ' + viewport_page_widget.viewport_id, // le max de y+h des widgets de cette page, dans ce viewport
+            ' where vpw.id != ' + viewport_page_widget.id + ' and pw.page_id = ' + this_page_widget?.page_id + ' and vpw.activated is true and vpw.viewport_id = ' + viewport_page_widget.viewport_id, // le max de y+h des widgets de cette page, dans ce viewport, parmis les widgets activés (hors widget en cours de vérification)
             null, true);
         let max_y = (query_res && (query_res.length == 1) && (typeof query_res[0]['max_y'] != 'undefined') && (query_res[0]['max_y'] !== null)) ? query_res[0]['max_y'] : null;
         max_y = max_y ? parseInt(max_y.toString()) : null;

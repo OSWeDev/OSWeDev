@@ -1,6 +1,11 @@
 .DashboardViewportConfComponent {
 
     .db_previsualization_wrapper {
+
+        padding: 1em;
+        box-shadow: 2px 2px 4px #CCC;
+        border-radius: 4px;
+
         position: relative;
 
         .edit_overlay {

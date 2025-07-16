@@ -1,3 +1,4 @@
+import "vue-snotify/styles/material.scss";
 import Component from 'vue-class-component';
 import VueAppController from '../../../VueAppController';
 import OnPageTranslation from '../OnPageTranslation/component/OnPageTranslation';

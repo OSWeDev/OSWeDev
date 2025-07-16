@@ -1,4 +1,10 @@
 .DashboardSelectedViewportConfComponent {
+
+    margin-top: 1em;
+    padding: 1em;
+    box-shadow: 2px 2px 4px #CCC;
+    border-radius: 4px;
+
     .page_widget_wrapper {
         display: flex;
         align-items: center;
@@ -9,11 +15,12 @@
 
         &:hover {
             background-color: rgba(0, 0, 0, 0.05);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         &.selected {
-            background-color: rgba(0, 0, 0, 0.1);
-            font-weight: bold;
+            background-color: rgba(0, 123, 255, 0.1);
+            box-shadow: inset 3px 0 0 #007bff;
         }
 
         .page_widget {
@@ -56,6 +63,12 @@
                 cursor: pointer;
 
                 //     color: #3498db; // bleu éditer
+            }
+
+            i {
+                border-radius: 4px;
+                padding: 0.4em;
+                font-size: 1.2em;
             }
         }
 

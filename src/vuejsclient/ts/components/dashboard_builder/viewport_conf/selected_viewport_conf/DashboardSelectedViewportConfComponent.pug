@@ -1,11 +1,14 @@
 .DashboardSelectedViewportConfComponent
     template(v-for='page_widget in get_page_widgets')
         template(v-if='!!viewport_page_widgets_by_page_widget_id[page_widget.id]')
-            .page_widget_wrapper(@mouseover='select_widget(page_widget)' :class='{"selected": get_selected_widget?.id == page_widget.id}')
+            .page_widget_wrapper(:class='{"selected": get_selected_widget?.id == page_widget.id}')
                 .page_widget
                     .is_viewport_activated(@click='switch_page_widget_activation(viewport_page_widgets_by_page_widget_id[page_widget.id])' :class='{ "activated": viewport_page_widgets_by_page_widget_id[page_widget.id]?.activated }')
                         i.fa-duotone.fa-check-circle(v-if='viewport_page_widgets_by_page_widget_id[page_widget.id]?.activated')
                         i.fa-duotone.fa-ban(v-else)
+
+                    .select_widget(@click='select_widget(page_widget)')
+                        i.fa-duotone(:class="get_selected_widget?.id == page_widget.id ? 'fa-eye' : 'fa-eye-slash'")
 
                     .name.display_inline_block
                         Inlinetranslatabletext(:code_text="page_widget.widget_name" :is_editable="can_edit")

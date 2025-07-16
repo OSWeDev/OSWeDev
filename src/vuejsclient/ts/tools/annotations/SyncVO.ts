@@ -1,3 +1,4 @@
+import Vue from 'vue';
 import Throttle from '../../../../shared/annotations/Throttle';
 import { filter } from '../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import EventifyEventListenerConfVO from '../../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO';
@@ -21,8 +22,7 @@ interface VueWithSyncVO extends Vue {
 interface SyncVOParameters<T extends VueWithSyncVO, V extends IDistantVOBase> {
     watch_fields?: string[];
 
-    id_factory?: (vm: T) => number | V | Promise<number | V>;
-    filters_factory?: (vm: T) => any | null;
+    id_factory: (vm: T) => number | V | Promise<number | V>;
 
     deep_watch?: boolean;
     throttle_ms?: number;
@@ -45,37 +45,14 @@ export function SyncVO<T extends VueWithSyncVO, V extends IDistantVOBase>(
         target.created = async function () {
             if (originalCreated) await originalCreated.call(this);
 
-            if (!params.id_factory && params.filters_factory) {
-                const filters = params.filters_factory(this);
-
-                if (filters != null) {
-                    await DataSynchroController.register_vo_updates_on_list(
-                        this,
-                        api_type_id,
-                        propertyKey,
-                        filters,
-                        null,
-                        null,
-                        (list: V[]) => {
-                            if (list.length > 1) {
-                                ConsoleHandler.error(`SyncVO: Multiple results returned for ${propertyKey}`);
-                                return;
-                            }
-                            this[propertyKey] = list[0] || null;
-                        },
-                    );
-                }
-
-                return;
-            }
-
             const vo_or_id = await params.id_factory(this);
             const vo = vo_or_id ? (typeof vo_or_id === 'number' ? null : vo_or_id) : null;
             const vo_id = vo_or_id ? (vo ? vo.id : vo_or_id as number) : null;
 
             if (vo_id != null) {
                 if (vo && vo.id) {
-                    this[propertyKey] = vo;
+                    Vue.set(this, propertyKey, vo);
+                    ConsoleHandler.debug(`SyncVO: Registered updates for ${propertyKey} with id:${vo_id}. Current value: ${JSON.stringify(vo)}`);
                 }
 
                 await DataSynchroController.register_single_vo_updates(
@@ -98,45 +75,6 @@ export function SyncVO<T extends VueWithSyncVO, V extends IDistantVOBase>(
             if (originalBeforeDestroy) await originalBeforeDestroy.call(this);
             await this.unregister_all_vo_event_callbacks();
         };
-
-        if (params.watch_fields.length && params.filters_factory) {
-            const watcherMethodName = `__syncVOFilterWatcher_${propertyKey}`;
-
-            Object.defineProperty(target, watcherMethodName, {
-                value: Throttle({ throttle_ms: (params.throttle_ms || 100), param_type: EventifyEventListenerConfVO.PARAM_TYPE_NONE })(target, watcherMethodName, {
-                    value: async function () {
-                        const filters = params.filters_factory(target);
-
-                        if (filters != null) {
-
-                            await DataSynchroController.register_vo_updates_on_list(
-                                this,
-                                api_type_id,
-                                propertyKey,
-                                filters,
-                                null,
-                                null,
-                                (list: V[]) => {
-                                    if (list.length > 1) {
-                                        ConsoleHandler.error(`SyncVO: Multiple results returned for ${propertyKey}`);
-                                        return;
-                                    }
-                                    this[propertyKey] = list[0] || null;
-                                },
-                            );
-                        }
-                    },
-                }).value,
-            });
-
-            params.watch_fields.forEach((field) => {
-                SafeWatch(field, { deep: params.deep_watch || false })(
-                    target,
-                    watcherMethodName,
-                    Object.getOwnPropertyDescriptor(target, watcherMethodName),
-                );
-            });
-        }
 
         if (params.sync_to_store_namespace) {
             const updateStore = function (vm: T) {
@@ -220,7 +158,8 @@ export function SyncVO<T extends VueWithSyncVO, V extends IDistantVOBase>(
                         if (vo_id != null) {
 
                             if (vo && vo.id) {
-                                this[propertyKey] = vo;
+                                Vue.set(this, propertyKey, vo);
+                                ConsoleHandler.debug(`SyncVO: Registered updates for ${propertyKey} with id:${vo_id}. Current value: ${JSON.stringify(vo)}`);
                             }
 
                             if (params.debug) {
@@ -252,30 +191,6 @@ export function SyncVO<T extends VueWithSyncVO, V extends IDistantVOBase>(
             });
         } else {
 
-            if (!params.id_factory && params.filters_factory) {
-                const filters = params.filters_factory(target);
-
-                if (filters != null) {
-                    DataSynchroController.register_vo_updates_on_list(
-                        this,
-                        api_type_id,
-                        propertyKey,
-                        filters,
-                        null,
-                        null,
-                        (list: V[]) => {
-                            if (list.length > 1) {
-                                ConsoleHandler.error(`SyncVO: Multiple results returned for ${propertyKey}`);
-                                return;
-                            }
-                            this[propertyKey] = list[0] || null;
-                        },
-                    );
-                }
-
-                return;
-            }
-
             const id_fact_res = params.id_factory(target);
 
             const use_vo_or_id = (vo_or_id) => {
@@ -293,7 +208,8 @@ export function SyncVO<T extends VueWithSyncVO, V extends IDistantVOBase>(
                 if (vo_id != null) {
 
                     if (vo && vo.id) {
-                        target[propertyKey] = vo;
+                        Vue.set(target, propertyKey, vo);
+                        ConsoleHandler.debug(`SyncVO: Registered updates for ${propertyKey} with id:${vo_id}. Current value: ${JSON.stringify(vo)}`);
                     }
 
                     if (params.debug) {

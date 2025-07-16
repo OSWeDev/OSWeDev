@@ -11,7 +11,7 @@
         //- (@click="(event) => select_widget_and_stop(event, null)")
         .grid_wrapper(:class="{ filter_plie: (get_dashboard_page.group_filters && !is_filtres_deplie) }")
             Gridlayout(
-                :layout="dashboard_viewport_page_widgets"
+                :layout="activated_dashboard_viewport_page_widgets"
                 :row-height="10"
                 :auto-size="true"
                 :is-draggable="draggable"
@@ -42,19 +42,19 @@
                                     i.fa-solid.fa-chevron-down
 
                         .row.body-filters-bloc(v-show="is_filtres_deplie")
-                            template(v-for="item in dashboard_viewport_page_widgets")
+                            template(v-for="item in activated_dashboard_viewport_page_widgets")
                                 template(v-if='!item.hide')
                                     template(v-if='get_widgets_by_id[selected_page_page_widgets_by_id[item.page_widget_id]?.widget_id]?.is_filter')
                                         include ./grid_item.pug
 
                     .datatable-bloc
-                        template(v-for="item in dashboard_viewport_page_widgets")
+                        template(v-for="item in activated_dashboard_viewport_page_widgets")
                             template(v-if='!item.hide')
                                 template(v-if='!get_widgets_by_id[selected_page_page_widgets_by_id[item.page_widget_id]?.widget_id]?.is_filter')
                                     include ./grid_item.pug
 
                 template(v-else)
-                    template(v-for="item in dashboard_viewport_page_widgets")
+                    template(v-for="item in activated_dashboard_viewport_page_widgets")
                         template(v-if='!item.hide')
                             include ./grid_item.pug
 

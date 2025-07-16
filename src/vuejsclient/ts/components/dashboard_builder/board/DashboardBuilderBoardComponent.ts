@@ -179,6 +179,37 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase imp
 
     public dragged = null;
 
+    get activated_dashboard_viewport_page_widgets(): DashboardViewportPageWidgetVO[] {
+        if (!this.dashboard_viewport_page_widgets || this.dashboard_viewport_page_widgets.length <= 0) {
+            return [];
+        }
+
+        const res: DashboardViewportPageWidgetVO[] = [];
+
+        for (const viewport_page_widget of this.dashboard_viewport_page_widgets) {
+            const page_widget = this.get_selected_page_page_widgets_by_id[viewport_page_widget.page_widget_id];
+            if (!page_widget) {
+                continue;
+            }
+
+            if (page_widget.page_id != this.get_dashboard_page?.id) {
+                continue; // On ne garde que les widgets de la page actuelle
+            }
+
+            if (!viewport_page_widget.activated) {
+                continue; // On ne garde que les widgets activés
+            }
+
+            res.push(viewport_page_widget);
+        }
+
+        return res;
+    }
+
+    get get_selected_page_page_widgets_by_id(): { [id: number]: DashboardPageWidgetVO } {
+        return this.vuexGet(reflect<this>().get_selected_page_page_widgets_by_id);
+    }
+
     get grid_breakpoints(): { [breakpoint: string]: number } {
 
         if (!ObjectHandler.hasAtLeastOneAttribute(this.get_dashboard_valid_viewports)) {
@@ -528,6 +559,12 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase imp
     }
 
     public breakpoint_changed_event(breakpoint: string): void {
+
+        // Si on est en édition ou en force_max_width on doit pas réagir à cet event
+        if (this.editable || this.force_max_width) {
+            return;
+        }
+
         // On change le viewport courant en fonction du breakpoint
         if (!this.get_dashboard_valid_viewports || this.get_dashboard_valid_viewports.length <= 0) {
             return;
