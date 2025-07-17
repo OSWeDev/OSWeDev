@@ -1,8 +1,10 @@
 import IDistantVOBase from "../../../../shared/modules/IDistantVOBase";
 import INamedVO from "../../../interfaces/INamedVO";
 import IWeightedItem from "../../../tools/interfaces/IWeightedItem";
+import NumRange from "../../DataRender/vos/NumRange";
 import DefaultTranslationVO from "../../Translation/vos/DefaultTranslationVO";
 import DashboardBuilderController from "../DashboardBuilderController";
+import DashboardWidgetTagVO from "./DashboardWidgetTagVO";
 
 
 /**
@@ -64,6 +66,8 @@ export default class DashboardWidgetVO implements IDistantVOBase, IWeightedItem,
     public label: string;
 
     public weight: number;
+
+    public tags_id_ranges: NumRange[];
 
     public widget_component: string;
     public options_component: string;

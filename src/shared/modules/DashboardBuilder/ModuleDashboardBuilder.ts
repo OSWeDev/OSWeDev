@@ -37,6 +37,7 @@ import DashboardPageWidgetVO from './vos/DashboardPageWidgetVO';
 import DashboardVO from './vos/DashboardVO';
 import DashboardViewportPageWidgetVO from './vos/DashboardViewportPageWidgetVO';
 import DashboardViewportVO from './vos/DashboardViewportVO';
+import DashboardWidgetTagVO from './vos/DashboardWidgetTagVO';
 import DashboardWidgetVO from './vos/DashboardWidgetVO';
 import FavoritesFiltersExportFrequencyVO from './vos/FavoritesFiltersExportFrequencyVO';
 import FavoritesFiltersExportParamsVO from './vos/FavoritesFiltersExportParamsVO';
@@ -130,6 +131,8 @@ export default class ModuleDashboardBuilder extends Module {
 
         this.init_DashboardViewportVO();
         const db_table = this.init_DashboardVO();
+
+        this.initialize_DashboardWidgetTagVO();
 
         const db_page = this.init_DashboardPageVO(db_table);
         this.init_shared_filters_vo();
@@ -294,6 +297,9 @@ export default class ModuleDashboardBuilder extends Module {
         const name = ModuleTableFieldController.create_new(DashboardWidgetVO.API_TYPE_ID, field_names<DashboardWidgetVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true).unique();
 
         ModuleTableFieldController.create_new(DashboardWidgetVO.API_TYPE_ID, field_names<DashboardWidgetVO>().label, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Label', true).unique();
+
+        ModuleTableFieldController.create_new(DashboardWidgetVO.API_TYPE_ID, field_names<DashboardWidgetVO>().tags_id_ranges, ModuleTableFieldVO.FIELD_TYPE_refrange_array, 'Tags', false)
+            .set_many_to_one_target_moduletable_name(DashboardWidgetTagVO.API_TYPE_ID);
 
         ModuleTableFieldController.create_new(DashboardWidgetVO.API_TYPE_ID, field_names<DashboardWidgetVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true, true, 0);
         ModuleTableFieldController.create_new(DashboardWidgetVO.API_TYPE_ID, field_names<DashboardWidgetVO>().widget_component, ModuleTableFieldVO.FIELD_TYPE_string, 'Composant - Widget', true);
@@ -812,6 +818,22 @@ export default class ModuleDashboardBuilder extends Module {
 
         ModuleTableController.create_new(this.name, SimpleDatatableFieldVO, null, "SimpleDatatableFieldVO");
     }
+
+    private initialize_DashboardWidgetTagVO() {
+        const label = ModuleTableFieldController.create_new(DashboardWidgetTagVO.API_TYPE_ID, field_names<DashboardWidgetTagVO>().name, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Nom', true, false);
+
+        ModuleTableFieldController.create_new(DashboardWidgetTagVO.API_TYPE_ID, field_names<DashboardWidgetTagVO>().description, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Description', false);
+        ModuleTableFieldController.create_new(DashboardWidgetTagVO.API_TYPE_ID, field_names<DashboardWidgetTagVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true, false, 0);
+        ModuleTableFieldController.create_new(DashboardWidgetTagVO.API_TYPE_ID, field_names<DashboardWidgetTagVO>().icon_classname, ModuleTableFieldVO.FIELD_TYPE_string, 'Classe de l\'icone', false);
+
+        ModuleTableController.create_new(
+            this.name,
+            DashboardWidgetTagVO,
+            label,
+            "Tags de widgets",
+        );
+    }
+
 
     private initialize_VarDatatableFieldVO() {
         const var_id = ModuleTableFieldController.create_new(VarDatatableFieldVO.API_TYPE_ID, field_names<VarDatatableFieldVO<any, any>>().var_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, "Variable");

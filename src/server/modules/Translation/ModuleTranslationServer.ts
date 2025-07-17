@@ -23,6 +23,7 @@ import { all_promises } from '../../../shared/tools/PromiseTools';
 import ConfigurationService from '../../env/ConfigurationService';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
+import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOPostCreateTriggerHook from '../DAO/triggers/DAOPostCreateTriggerHook';
 import DAOPostDeleteTriggerHook from '../DAO/triggers/DAOPostDeleteTriggerHook';
 import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
@@ -800,6 +801,44 @@ export default class ModuleTranslationServer extends ModuleServerBase {
 
     public async set_translation(thread_vo: GPTAssistantAPIThreadVO, traduction: string, degre_certitude: number, explication: string): Promise<string> {
         return await AssistantTraductionCronWorker.getInstance().set_translation(thread_vo, traduction, degre_certitude, explication);
+    }
+
+    public async set_translation_if_not_exists(code_text: string, code_lang: string, default_translation: string): Promise<void> {
+
+        let translation: TranslationVO = await query(TranslationVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<TranslatableTextVO>().code_text, code_text, TranslatableTextVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<LangVO>().code_lang, code_lang, LangVO.API_TYPE_ID)
+            .exec_as_server()
+            .select_vo<TranslationVO>();
+
+        if (translation) {
+            return;
+        }
+
+        const translatableText: TranslatableTextVO = await query(TranslatableTextVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<TranslatableTextVO>().code_text, code_text)
+            .exec_as_server()
+            .select_vo<TranslatableTextVO>();
+
+        if (!translatableText) {
+            // Si le texte n'existe pas, on le crée
+            const translatableTextVO: TranslatableTextVO = new TranslatableTextVO();
+            translatableTextVO.code_text = code_text;
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(translatableTextVO);
+        }
+
+        const lang: LangVO = await this.getLang(code_lang);
+
+        if (!lang) {
+            // Si la langue n'existe pas, on ne la crée pas
+            throw new Error(`Langue ${code_lang} non trouvée. Impossible de créer une traduction sans langue.`);
+        }
+
+        translation = new TranslationVO();
+        translation.text_id = translatableText.id;
+        translation.lang_id = lang.id;
+        translation.translated = default_translation;
+        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(translation);
     }
 
     public async getTranslation(lang_id: number, text_id: number): Promise<TranslationVO> {

@@ -14,22 +14,85 @@
             }
         }
 
-        .widget {
-            width: 3em;
-            height: 2.5em;
-            vertical-align: middle;
-            text-align: center;
-            padding: .5em;
-            margin: 0.1em;
-            background: #999;
-            font-size: 2em;
-            display: inline-block;
-            cursor: pointer;
-            color: white;
-            box-shadow: 1px 1px 1px black;
+        // Les tags qui permettent de filtrer les widgets : des pills, sélectionnables/désélectionnables au clic
+        .widget_tags {
 
-            .fa-stack {
-                font-size: 0.6em;
+            display: flex;
+            flex-wrap: wrap;
+            margin-bottom: 1em;
+            margin-top: 0.5em;
+
+            .widget_tag {
+                padding: 0.2em 0.5em;
+                margin: 0.1em;
+                background: #ddd;
+                border-radius: 0.3em;
+                cursor: pointer;
+                user-select: none;
+
+                &.selected {
+                    background: #007BFF;
+                    color: white;
+                }
+
+                &:hover {
+                    background: #ccc;
+                }
+            }
+        }
+
+        .widgets {
+            /**
+                    .widgets template(v-for="(widget_, widget_i) in tagged_widgets" :key="widget_.id") //- .widget(@click="add_widget_to_page(widget_)" v-tooltip.top="label('dashboards.widgets.icons_tooltips.' + widget_.name)")
+                        //-     template(v-if='widget_.icon_html')
+                        //-         .widget_icone(v-html="widget_.icon_html")
+                        //-     template(v-else)
+                        //-         .widget_icone(:is="widget_.icon_component" :widget='widget_')
+                        //- Refonte, on veut afficher un bloc pour chaque widget avec le icon_component ou icon_html, en dessous le nom du widget (label)
+                    
+                        .widget(@click="add_widget_to_page(widget_)") .widget_icon template(v-if='widget_.icon_html') .widget_icon_html(v-html="widget_.icon_html") template(v-else) .widget_icon_component(:is="widget_.icon_component" :widget='widget_') .widget_name {
+                                {
+                                widget_.label ? t(widget_.label): null
+                            }
+                        }
+                        */
+
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            margin-top: 0.5em;
+            margin-bottom: 0.5em;
+            padding: 0.5em;
+            background: white;
+            border: solid 1px #ddd;
+            border-radius: 0.3em;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+            .widget {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                width: 100px;
+                margin: 0.5em;
+                padding: 0.5em;
+                cursor: pointer;
+                text-align: center;
+
+                &:hover {
+                    background-color: #f0f0f0;
+                }
+
+                .widget_icon {
+                    width: 50px;
+                    height: 50px;
+                    margin-bottom: 0.5em;
+                }
+
+                .widget_name {
+                    font-size: 0.9em;
+                    color: #333;
+                }
             }
         }
 

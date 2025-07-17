@@ -534,7 +534,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
     }
 
     private async check_default_height(viewport_page_widget: DashboardViewportPageWidgetVO) {
-        if (!!viewport_page_widget.w) {
+        if (viewport_page_widget.h != null) {
             return;
         }
 
@@ -574,7 +574,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             return;
         }
 
-        if (!!viewport_page_widget.w) {
+        if (viewport_page_widget.w != null) {
             viewport_page_widget.w = (viewport_page_widget.w > viewport.nb_columns) ? viewport.nb_columns : viewport_page_widget.w;
         } else {
             viewport_page_widget.w = (widget.default_width > viewport.nb_columns) ? viewport.nb_columns : widget.default_width;
@@ -586,7 +586,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
 
     private async check_DashboardViewportPageWidgetVO_i(viewport_page_widget: DashboardViewportPageWidgetVO) {
 
-        if (!!viewport_page_widget.i) {
+        if (viewport_page_widget.i != null) {
 
             const this_viewport_page_widget_dashboard_page = await query(DashboardPageVO.API_TYPE_ID)
                 .filter_by_id(viewport_page_widget.page_widget_id, DashboardPageWidgetVO.API_TYPE_ID)
@@ -604,7 +604,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
 
                 .filter_by_num_eq(field_names<DashboardViewportPageWidgetVO>().i, viewport_page_widget.i)
                 .filter_by_num_eq(field_names<DashboardViewportPageWidgetVO>().viewport_id, viewport_page_widget.viewport_id)
-                .filter_by_num_eq(field_names<DashboardPageVO>().dashboard_id, this_viewport_page_widget_dashboard_page?.dashboard_id).using(DashboardPageWidgetVO.API_TYPE_ID) // pour le lien avec le dashboard
+                .filter_by_num_eq(field_names<DashboardPageVO>().dashboard_id, this_viewport_page_widget_dashboard_page?.dashboard_id, DashboardPageVO.API_TYPE_ID).using(DashboardPageWidgetVO.API_TYPE_ID) // pour le lien avec le dashboard
 
                 .exec_as_server()
                 .select_vo<DashboardViewportPageWidgetVO>();
@@ -679,7 +679,9 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
                 const query_res = await ModuleDAOServer.instance.query(
                     'SELECT max(vpw.y + vpw.h) as max_y from ' + ModuleTableController.module_tables_by_vo_type[DashboardViewportPageWidgetVO.API_TYPE_ID].full_name + ' vpw ' +
                     ' join ' + ModuleTableController.module_tables_by_vo_type[DashboardPageWidgetVO.API_TYPE_ID].full_name + ' pw on vpw.page_widget_id = pw.id ' +
-                    ' where vpw.id != ' + viewport_page_widget.id + ' and pw.page_id = ' + page_widget?.page_id + ' and vpw.activated is true and vpw.viewport_id = ' + viewport_page_widget.viewport_id, // le max de y+h des widgets de cette page, dans ce viewport, parmis les widgets activés (hors widget en cours de vérification)
+                    ' where ' +
+                    (viewport_page_widget.id ? 'vpw.id != ' + viewport_page_widget.id + ' and ' : '') +
+                    'pw.page_id = ' + page_widget?.page_id + ' and vpw.activated is true and vpw.viewport_id = ' + viewport_page_widget.viewport_id, // le max de y+h des widgets de cette page, dans ce viewport, parmis les widgets activés (hors widget en cours de vérification)
                     null, true);
                 let max_y = (query_res && (query_res.length == 1) && (typeof query_res[0]['max_y'] != 'undefined') && (query_res[0]['max_y'] !== null)) ? query_res[0]['max_y'] : null;
                 max_y = max_y ? parseInt(max_y.toString()) : null;
@@ -714,18 +716,18 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
     }
 
     private async check_DashboardViewportPageWidgetVO_y(viewport_page_widget: DashboardViewportPageWidgetVO) {
-        if (!!viewport_page_widget.y) {
+        if (viewport_page_widget.y != null) {
 
             // On doit vérifier que ça empiète pas sur un autre widget
             await this.check_viewport_page_widget_is_not_intersecting_other_widgets(viewport_page_widget);
             return;
         }
 
-        const this_page_widget = await query(DashboardPageWidgetVO.API_TYPE_ID)
+        const page_widget = await query(DashboardPageWidgetVO.API_TYPE_ID)
             .filter_by_id(viewport_page_widget.page_widget_id)
             .exec_as_server()
             .select_vo<DashboardPageWidgetVO>();
-        if (!this_page_widget?.page_id) {
+        if (!page_widget?.page_id) {
             ConsoleHandler.error(`Impossible de vérifier la position Y du DashboardViewportPageWidgetVO ${viewport_page_widget.id} car le DashboardPageWidgetVO ${viewport_page_widget.page_widget_id} n'existe pas ou n'a pas de page associée.`);
             return;
         }
@@ -733,7 +735,9 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         const query_res = await ModuleDAOServer.instance.query(
             'SELECT max(vpw.y + vpw.h) as max_y from ' + ModuleTableController.module_tables_by_vo_type[DashboardViewportPageWidgetVO.API_TYPE_ID].full_name + ' vpw ' +
             ' join ' + ModuleTableController.module_tables_by_vo_type[DashboardPageWidgetVO.API_TYPE_ID].full_name + ' pw on vpw.page_widget_id = pw.id ' +
-            ' where vpw.id != ' + viewport_page_widget.id + ' and pw.page_id = ' + this_page_widget?.page_id + ' and vpw.activated is true and vpw.viewport_id = ' + viewport_page_widget.viewport_id, // le max de y+h des widgets de cette page, dans ce viewport, parmis les widgets activés (hors widget en cours de vérification)
+            ' where ' +
+            (viewport_page_widget.id ? 'vpw.id != ' + viewport_page_widget.id + ' and ' : '') +
+            'pw.page_id = ' + page_widget?.page_id + ' and vpw.activated is true and vpw.viewport_id = ' + viewport_page_widget.viewport_id, // le max de y+h des widgets de cette page, dans ce viewport, parmis les widgets activés (hors widget en cours de vérification)
             null, true);
         let max_y = (query_res && (query_res.length == 1) && (typeof query_res[0]['max_y'] != 'undefined') && (query_res[0]['max_y'] !== null)) ? query_res[0]['max_y'] : null;
         max_y = max_y ? parseInt(max_y.toString()) : null;

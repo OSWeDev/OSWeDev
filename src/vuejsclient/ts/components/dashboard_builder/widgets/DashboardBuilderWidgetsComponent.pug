@@ -4,13 +4,35 @@
             //- .hide_show_switch 
             .title {{ label('dashboard_builder_widgets.title') }}
 
+        .widget_tags 
+            template(v-for="(tag, tag_i) in dashboard_widget_tags")
+                .widget_tag(@click="switch_select_widget_tag(tag)" :class="{ selected: tag.id == selected_widget_tag?.id }")
+                    //- icon_classname on utilise ce champs du tag pour préfixer une icone
+                    template(v-if="tag.icon_classname")
+                        .widget_tag_icon_classname
+                            i(:class="tag.icon_classname + ' fa-fw'")
+                    .widget_tag_name {{ tag.name }}
+
+
         .widgets 
-            template(v-for="(widget_, widget_i) in get_all_widgets")
-                .widget(@click="add_widget_to_page(widget_)" v-tooltip.top="label('dashboards.widgets.icons_tooltips.' + widget_.name)")
-                    template(v-if='widget_.icon_html')
-                        .widget_icone(v-html="widget_.icon_html")
-                    template(v-else)
-                        .widget_icone(:is="widget_.icon_component" :widget='widget_')
+            template(v-for="(widget_, widget_i) in tagged_widgets" :key="widget_.id")
+
+                //- .widget(@click="add_widget_to_page(widget_)" v-tooltip.top="label('dashboards.widgets.icons_tooltips.' + widget_.name)")
+                //-     template(v-if='widget_.icon_html')
+                //-         .widget_icone(v-html="widget_.icon_html")
+                //-     template(v-else)
+                //-         .widget_icone(:is="widget_.icon_component" :widget='widget_')
+                //- Refonte, on veut afficher un bloc pour chaque widget avec le icon_component ou icon_html, en dessous le nom du widget (label)
+                //- Au clic droit sur le widget, on veut ouvrir la modale de crud pour modifier le widget
+
+                .widget(@click="add_widget_to_page(widget_)" @contextmenu.prevent="onWidgetRightClick(widget_, $event)")
+                    .widget_icon
+                        template(v-if='widget_.icon_html')
+                            .widget_icon_html(v-html="widget_.icon_html")
+                        template(v-else)
+                            .widget_icon_component(:is="widget_.icon_component" :widget='widget_')
+
+                    .widget_name {{ widget_.label ? t(widget_.label) : null }}
 
         .widget_options_wrapper
             template(v-if="!get_selected_widget")

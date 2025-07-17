@@ -5,7 +5,8 @@
                 DashboardAllViewportsConfComponent
                 DashboardSelectedViewportConfComponent
         .col-md-8(v-if='get_dashboard_current_viewport')
-            .db_previsualization_wrapper(@click='on_click_previsualization')
+            //- .db_previsualization_wrapper(@click='on_click_previsualization')
+            .db_previsualization_wrapper
                 DashboardViewerComponent(
                     :dashboard_id='get_dashboard.id'
                     :key="'Dashboard_Previsualization__' + get_dashboard_current_viewport.id + '__' + get_dashboard.id"
@@ -15,5 +16,5 @@
                     :dashboard_page='get_dashboard_page'
                     :selected_widget='get_selected_widget'
                 )
-                .edit_overlay
-                    i.fa-solid.fa-pen-to-square
+                //- .edit_overlay
+                //-     i.fa-solid.fa-pen-to-square

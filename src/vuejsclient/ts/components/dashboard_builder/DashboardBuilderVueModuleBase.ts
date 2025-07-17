@@ -170,13 +170,14 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         PerfReportGraph.options_component = 'Perfreportgraphwidgetoptionscomponent';
         PerfReportGraph.weight = 50;
         PerfReportGraph.default_background = '#f5f5f5';
-        PerfReportGraph.icon_component = 'Perfreportgraphwidgeticoncomponent';
+        PerfReportGraph.icon_html = `
+        <i class='fa-lg fa-fw fa-duotone fa-chart-scatter-bubble' aria-hidden='true'></i>
+        `;
 
         await WidgetOptionsVOManager.register_widget_type(PerfReportGraph, null, null);
 
         Vue.component('Perfreportgraphwidgetcomponent', () => import('./widgets/perf_report_graph_widget/PerfReportGraphWidgetComponent'));
         Vue.component('Perfreportgraphwidgetoptionscomponent', () => import('./widgets/perf_report_graph_widget/options/PerfReportGraphWidgetOptionsComponent'));
-        Vue.component('Perfreportgraphwidgeticoncomponent', () => import('./widgets/perf_report_graph_widget/icon/PerfReportGraphWidgetIconComponent'));
     }
 
 
@@ -190,13 +191,14 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         BulkOps.options_component = 'Bulkopswidgetoptionscomponent';
         BulkOps.weight = 40;
         BulkOps.default_background = '#f5f5f5';
-        BulkOps.icon_component = 'Bulkopswidgeticoncomponent';
+        BulkOps.icon_html = `
+        <i class='fa-lg fa-fw fa fa-cogs' aria-hidden='true'></i>
+        `;
 
         await WidgetOptionsVOManager.register_widget_type(BulkOps, () => new BulkOpsWidgetOptions(null, 10), BulkOpsWidgetOptions.get_selected_fields);
 
         Vue.component('Bulkopswidgetcomponent', () => import('./widgets/bulkops_widget/BulkOpsWidgetComponent'));
         Vue.component('Bulkopswidgetoptionscomponent', () => import('./widgets/bulkops_widget/options/BulkOpsWidgetOptionsComponent'));
-        Vue.component('Bulkopswidgeticoncomponent', () => import('./widgets/bulkops_widget/icon/BulkOpsWidgetIconComponent'));
     }
 
     private async initializeWidget_Checklist() {
@@ -209,13 +211,14 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         Checklist.options_component = 'Checklistwidgetoptionscomponent';
         Checklist.weight = 30;
         Checklist.default_background = '#f5f5f5';
-        Checklist.icon_component = 'Checklistwidgeticoncomponent';
+        Checklist.icon_html = `
+        <i class='.fa-lg.fa-fw.fa.fa-check-circle"></i>
+        `;
 
         await WidgetOptionsVOManager.register_widget_type(Checklist, () => new ChecklistWidgetOptions(10, null, false, true, true, true), ChecklistWidgetOptions.get_selected_fields);
 
         Vue.component('Checklistwidgetcomponent', () => import('./widgets/checklist_widget/ChecklistWidgetComponent'));
         Vue.component('Checklistwidgetoptionscomponent', () => import('./widgets/checklist_widget/options/ChecklistWidgetOptionsComponent'));
-        Vue.component('Checklistwidgeticoncomponent', () => import('./widgets/checklist_widget/icon/ChecklistWidgetIconComponent'));
     }
 
     private async initializeWidget_Supervision() {
@@ -228,13 +231,14 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         supervision.options_component = 'Supervisionwidgetoptionscomponent';
         supervision.weight = 31;
         supervision.default_background = '#f5f5f5';
-        supervision.icon_component = 'Supervisionwidgeticoncomponent';
+        supervision.icon_html = `
+        <i class='fa-lg fa-fw fa fa-duotone fa-list-check' aria-hidden='true'></i>
+        `;
 
         await WidgetOptionsVOManager.register_widget_type(supervision, () => new SupervisionWidgetOptions(100, [], true, true, 30, true), SupervisionWidgetOptions.get_selected_fields);
 
         Vue.component('Supervisionwidgetcomponent', () => import('./widgets/supervision_widget/SupervisionWidgetComponent'));
         Vue.component('Supervisionwidgetoptionscomponent', () => import('./widgets/supervision_widget/options/SupervisionWidgetOptionsComponent'));
-        Vue.component('Supervisionwidgeticoncomponent', () => import('./widgets/supervision_widget/icon/SupervisionWidgetIconComponent'));
     }
 
     private async initializeWidget_SupervisionType() {
@@ -247,13 +251,14 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         supervision_type.options_component = 'Supervisiontypewidgetoptionscomponent';
         supervision_type.weight = 32;
         supervision_type.default_background = '#f5f5f5';
-        supervision_type.icon_component = 'Supervisiontypewidgeticoncomponent';
+        supervision_type.icon_html = `
+        <i class='fa-lg fa-fw fa-duotone fa-tasks' aria-hidden='true'></i>
+        `;
 
         await WidgetOptionsVOManager.register_widget_type(supervision_type, () => new SupervisionTypeWidgetOptions([]), SupervisionTypeWidgetOptions.get_selected_fields);
 
         Vue.component('Supervisiontypewidgetcomponent', () => import('./widgets/supervision_type_widget/SupervisionTypeWidgetComponent'));
         Vue.component('Supervisiontypewidgetoptionscomponent', () => import('./widgets/supervision_type_widget/options/SupervisionTypeWidgetOptionsComponent'));
-        Vue.component('Supervisiontypewidgeticoncomponent', () => import('./widgets/supervision_type_widget/icon/SupervisionTypeWidgetIconComponent'));
     }
 
     private async initializeWidget_DataTable() {
@@ -266,7 +271,12 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         Table.options_component = 'Tablewidgetoptionscomponent';
         Table.weight = 21;
         Table.default_background = '#f5f5f5';
-        Table.icon_component = 'Tablewidgeticoncomponent';
+        Table.icon_html = `
+        <div class='fa-stack fa-lg fa-fw' aria-hidden='true'>
+            <i class='fa-solid fa-table fa-stack-2x'></i>
+            <i class='fa-solid fa-pencil-square fa-stack-1x' style="position: absolute; left: 0px; bottom: 0px; width: auto; height: auto; color: dodgerblue; background: white; padding: 1px 3px; margin: 0; line-height: 1.1em;"></i>
+        </div>
+        `;
 
         await WidgetOptionsVOManager.register_widget_type(Table, () => new TableWidgetOptionsVO(
             null, true, 100, null, false, true, false, true, true, true, true, true, true, true, true, false, null, false, 5, false,
@@ -275,7 +285,6 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         Vue.component('Tablewidgetcomponent', () => import('./widgets/table_widget/TableWidgetComponent'));
         Vue.component('Tablewidgetoptionscomponent', () => import('./widgets/table_widget/options/TableWidgetOptionsComponent'));
-        Vue.component('Tablewidgeticoncomponent', () => import('./widgets/table_widget/icon/TableWidgetIconComponent'));
     }
 
     private async initializeWidget_OseliaThread() {
@@ -288,13 +297,14 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         widget.options_component = 'Oseliathreadwidgetoptionscomponent';
         widget.weight = 99;
         widget.default_background = '#f5f5f5';
-        widget.icon_component = 'Oseliathreadwidgeticoncomponent';
+        widget.icon_html = `
+        <i class='fa-duotone fa-comments'></i>
+        `;
 
         await WidgetOptionsVOManager.register_widget_type(widget, () => new OseliaThreadWidgetOptions(), OseliaThreadWidgetOptions.get_selected_fields);
 
         Vue.component('Oseliathreadwidgetcomponent', () => import('./widgets/oselia_thread_widget/OseliaThreadWidgetComponent'));
         Vue.component('Oseliathreadwidgetoptionscomponent', () => import('./widgets/oselia_thread_widget/options/OseliaThreadWidgetOptionsComponent'));
-        Vue.component('Oseliathreadwidgeticoncomponent', () => import('./widgets/oselia_thread_widget/icon/OseliaThreadWidgetIconComponent'));
     }
 
 
@@ -308,7 +318,9 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         fieldValueFilter.options_component = 'Fieldvaluefilterwidgetoptionscomponent';
         fieldValueFilter.weight = 0;
         fieldValueFilter.default_background = '#f5f5f5';
-        fieldValueFilter.icon_component = 'Fieldvaluefilterwidgeticoncomponent';
+        fieldValueFilter.icon_html = `
+        <i class='fa-lg fa-fw fa fa-filter' aria-hidden='true'></i>
+        `;
         fieldValueFilter.is_filter = true;
 
         await WidgetOptionsVOManager.register_widget_type(fieldValueFilter, () => new FieldValueFilterWidgetOptionsVO(
@@ -317,7 +329,6 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         Vue.component('Fieldvaluefilterwidgetcomponent', () => import('./widgets/field_value_filter_widget/FieldValueFilterWidgetComponent'));
         Vue.component('Fieldvaluefilterwidgetoptionscomponent', () => import('./widgets/field_value_filter_widget/options/FieldValueFilterWidgetOptionsComponent'));
-        Vue.component('Fieldvaluefilterwidgeticoncomponent', () => import('./widgets/field_value_filter_widget/icon/FieldValueFilterWidgetIconComponent'));
     }
 
     private async initializeWidget_DOWFilter() {
@@ -330,13 +341,15 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         DOWFilter.options_component = 'Dowfilterwidgetoptionscomponent';
         DOWFilter.weight = 1;
         DOWFilter.default_background = '#f5f5f5';
-        DOWFilter.icon_component = 'Dowfilterwidgeticoncomponent';
+        DOWFilter.icon_html = `
+        <i class='fa-lg fa-fw fa-regular fa-calendar' aria-hidden='true'></i>
+        <div class='ts_overlay' style="float: left; margin-top: -1.9em; width: -webkit-fill-available; text-align: center; font-size: 0.4em;">7</div>
+        `;
 
         await WidgetOptionsVOManager.register_widget_type(DOWFilter, () => new DOWFilterWidgetOptions(true, null, null), DOWFilterWidgetOptions.get_selected_fields);
 
         Vue.component('Dowfilterwidgetcomponent', () => import('./widgets/dow_filter_widget/DOWFilterWidgetComponent'));
         Vue.component('Dowfilterwidgetoptionscomponent', () => import('./widgets/dow_filter_widget/options/DOWFilterWidgetOptionsComponent'));
-        Vue.component('Dowfilterwidgeticoncomponent', () => import('./widgets/dow_filter_widget/icon/DOWFilterWidgetIconComponent'));
     }
 
     private async initializeWidget_MonthFilter() {
@@ -349,13 +362,15 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         MonthFilter.options_component = 'Monthfilterwidgetoptionscomponent';
         MonthFilter.weight = 2;
         MonthFilter.default_background = '#f5f5f5';
-        MonthFilter.icon_component = 'Monthfilterwidgeticoncomponent';
+        MonthFilter.icon_html = `
+        <i class='fa-lg fa-fw fa-regular fa-calendar' aria-hidden='true'></i>
+        <div class='ts_overlay' style="float: left; margin-top: -1.9em; width: -webkit-fill-available; text-align: center; font-size: 0.4em;">31</div>
+        `;
 
         await WidgetOptionsVOManager.register_widget_type(MonthFilter, () => new MonthFilterWidgetOptions(true, null, null, false, 1, 12, false, false, null, null, false, null, false), MonthFilterWidgetOptions.get_selected_fields);
 
         Vue.component('Monthfilterwidgetcomponent', () => import('./widgets/month_filter_widget/MonthFilterWidgetComponent'));
         Vue.component('Monthfilterwidgetoptionscomponent', () => import('./widgets/month_filter_widget/options/MonthFilterWidgetOptionsComponent'));
-        Vue.component('Monthfilterwidgeticoncomponent', () => import('./widgets/month_filter_widget/icon/MonthFilterWidgetIconComponent'));
     }
 
 
@@ -369,7 +384,10 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         AdvancedDateFilter.options_component = 'Advanceddatefilterwidgetoptionscomponent';
         AdvancedDateFilter.weight = 4;
         AdvancedDateFilter.default_background = '#f5f5f5';
-        AdvancedDateFilter.icon_component = 'Advanceddatefilterwidgeticoncomponent';
+        AdvancedDateFilter.icon_html = `
+        <i class='fa-lg fa-fw fa-regular fa-calendar' aria-hidden='true'></i>
+        <div class='ts_overlay' style="float: left; margin-top: -1.9em; width: -webkit-fill-available; text-align: center; font-size: 0.4em;">X</div>
+        `;
 
         await WidgetOptionsVOManager.register_widget_type(
             AdvancedDateFilter,
@@ -379,7 +397,6 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         Vue.component('Advanceddatefilterwidgetcomponent', () => import('./widgets/advanced_date_filter_widget/AdvancedDateFilterWidgetComponent'));
         Vue.component('Advanceddatefilterwidgetoptionscomponent', () => import('./widgets/advanced_date_filter_widget/options/AdvancedDateFilterWidgetOptionsComponent'));
-        Vue.component('Advanceddatefilterwidgeticoncomponent', () => import('./widgets/advanced_date_filter_widget/icon/AdvancedDateFilterWidgetIconComponent'));
     }
 
     private async initializeWidget_CurrentUserFilter() {
@@ -392,7 +409,12 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         CurrentUserFilter.options_component = 'Currentuserfilterwidgetoptionscomponent';
         CurrentUserFilter.weight = 19;
         CurrentUserFilter.default_background = '#f5f5f5';
-        CurrentUserFilter.icon_component = 'Currentuserfilterwidgeticoncomponent';
+        CurrentUserFilter.icon_html = `
+        <div class='fa-stack fa-lg fa-fw' aria-hidden='true'>
+            <i class='fa-solid fa-user fa-stack-2x'></i>
+            <i class='fa-solid fa-bullseye fa-stack-1x'></i>
+        </div>
+        `;
         CurrentUserFilter.is_filter = true;
 
         await WidgetOptionsVOManager.register_widget_type(
@@ -403,7 +425,6 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         Vue.component('Currentuserfilterwidgetcomponent', () => import('./widgets/current_user_filter_widget/CurrentUserFilterWidgetComponent'));
         Vue.component('Currentuserfilterwidgetoptionscomponent', () => import('./widgets/current_user_filter_widget/options/CurrentUserFilterWidgetOptionsComponent'));
-        Vue.component('Currentuserfilterwidgeticoncomponent', () => import('./widgets/current_user_filter_widget/icon/CurrentUserFilterWidgetIconComponent'));
     }
 
     private async initializeWidget_VarPieChart() {
@@ -416,13 +437,14 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         VarPieChart.options_component = 'Varpiechartwidgetoptionscomponent';
         VarPieChart.weight = 15;
         VarPieChart.default_background = '#f5f5f5';
-        VarPieChart.icon_component = 'Varpiechartwidgeticoncomponent';
+        VarPieChart.icon_html = `
+        <i class='fa-lg fa-fw fa-duotone fa-chart-pie' aria-hidden='true'></i>
+        `;
 
         await WidgetOptionsVOManager.register_widget_type(VarPieChart, () => VarPieChartWidgetOptionsVO.createDefault(), VarPieChartWidgetOptionsVO.get_selected_fields);
 
         Vue.component('Varpiechartwidgetcomponent', () => import('./widgets/var_pie_chart_widget/VarPieChartWidgetComponent'));
         Vue.component('Varpiechartwidgetoptionscomponent', () => import('./widgets/var_pie_chart_widget/options/VarPieChartWidgetOptionsComponent'));
-        Vue.component('Varpiechartwidgeticoncomponent', () => import('./widgets/var_pie_chart_widget/icon/VarPieChartWidgetIconComponent'));
     }
 
     private async initializeWidget_VarChoroplethChart() {
@@ -435,13 +457,14 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         VarChoroplethChart.options_component = 'Varchoroplethchartwidgetoptionscomponent';
         VarChoroplethChart.weight = 15;
         VarChoroplethChart.default_background = '#f5f5f5';
-        VarChoroplethChart.icon_component = 'Varchoroplethchartwidgeticoncomponent';
+        VarChoroplethChart.icon_html = `
+        <i class='fa-lg fa-fw fa-duotone fa-map-location-dot' aria-hidden='true'></i>
+        `;
 
         await WidgetOptionsVOManager.register_widget_type(VarChoroplethChart, () => VarChoroplethChartWidgetOptions.createDefault(), VarChoroplethChartWidgetOptions.get_selected_fields);
 
         Vue.component('Varchoroplethchartwidgetcomponent', () => import('./widgets/var_choropleth_chart_widget/VarChoroplethChartWidgetComponent'));
         Vue.component('Varchoroplethchartwidgetoptionscomponent', () => import('./widgets/var_choropleth_chart_widget/options/VarChoroplethChartWidgetOptionsComponent'));
-        Vue.component('Varchoroplethchartwidgeticoncomponent', () => import('./widgets/var_choropleth_chart_widget/icon/VarChoroplethChartWidgetIconComponent'));
     }
 
     private async initializeWidget_VarRadarChart() {
@@ -454,13 +477,14 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         VarRadarChart.options_component = 'Varradarchartwidgetoptionscomponent';
         VarRadarChart.weight = 15;
         VarRadarChart.default_background = '#f5f5f5';
-        VarRadarChart.icon_component = 'Varradarchartwidgeticoncomponent';
+        VarRadarChart.icon_html = `
+        <i class='fa-lg fa-fw fa-duotone fa-chart-radar' aria-hidden='true'></i>
+        `;
 
         await WidgetOptionsVOManager.register_widget_type(VarRadarChart, () => VarRadarChartWidgetOptionsVO.createDefault(), VarRadarChartWidgetOptionsVO.get_selected_fields);
 
         Vue.component('Varradarchartwidgetcomponent', () => import('./widgets/var_radar_chart_widget/VarRadarChartWidgetComponent'));
         Vue.component('Varradarchartwidgetoptionscomponent', () => import('./widgets/var_radar_chart_widget/options/VarRadarChartWidgetOptionsComponent'));
-        Vue.component('Varradarchartwidgeticoncomponent', () => import('./widgets/var_radar_chart_widget/icon/VarRadarChartWidgetIconComponent'));
     }
 
     private async initializeWidget_VarMixedChart() {
@@ -473,13 +497,14 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         VarMixedChart.options_component = 'Varmixedchartswidgetoptionscomponent';
         VarMixedChart.weight = 15;
         VarMixedChart.default_background = '#f5f5f5';
-        VarMixedChart.icon_component = 'Varmixedchartswidgeticoncomponent';
+        VarMixedChart.icon_html = `
+        <i class='fa-lg fa-fw fa-duotone fa-chart-mixed' aria-hidden='true'></i>
+        `;
 
         await WidgetOptionsVOManager.register_widget_type(VarMixedChart, () => VarMixedChartWidgetOptionsVO.createDefault(), VarMixedChartWidgetOptionsVO.get_selected_fields);
 
         Vue.component('Varmixedchartswidgetcomponent', () => import('./widgets/var_mixed_charts_widget/VarMixedChartsWidgetComponent'));
         Vue.component('Varmixedchartswidgetoptionscomponent', () => import('./widgets/var_mixed_charts_widget/options/VarMixedChartsWidgetOptionsComponent'));
-        Vue.component('Varmixedchartswidgeticoncomponent', () => import('./widgets/var_mixed_charts_widget/icon/VarMixedChartsWidgetIconComponent'));
     }
 
     private async initializeWidget_YearFilter() {
@@ -492,13 +517,15 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         YearFilter.options_component = 'Yearfilterwidgetoptionscomponent';
         YearFilter.weight = 3;
         YearFilter.default_background = '#f5f5f5';
-        YearFilter.icon_component = 'Yearfilterwidgeticoncomponent';
+        YearFilter.icon_html = `
+        <i class='fa-lg fa-fw fa-regular fa-calendar' aria-hidden='true'></i>
+        <div class='ts_overlay' style="float: left; margin-top: -1.9em; width: -webkit-fill-available; text-align: center; font-size: 0.4em;">365</div>
+        `;
 
         await WidgetOptionsVOManager.register_widget_type(YearFilter, () => new YearFilterWidgetOptionsVO(true, null, null, true, -2, 2, true, true, 0, 0, false, null, false), YearFilterWidgetOptionsVO.get_selected_fields);
 
         Vue.component('Yearfilterwidgetcomponent', () => import('./widgets/year_filter_widget/YearFilterWidgetComponent'));
         Vue.component('Yearfilterwidgetoptionscomponent', () => import('./widgets/year_filter_widget/options/YearFilterWidgetOptionsComponent'));
-        Vue.component('Yearfilterwidgeticoncomponent', () => import('./widgets/year_filter_widget/icon/YearFilterWidgetIconComponent'));
     }
 
     private async initializeWidget_ValidationFilters() {
@@ -511,7 +538,12 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         ValidationFilters.options_component = 'Validationfilterswidgetoptionscomponent';
         ValidationFilters.weight = 3;
         ValidationFilters.default_background = '#f5f5f5';
-        ValidationFilters.icon_component = 'Validationfilterswidgeticoncomponent';
+        ValidationFilters.icon_html = `
+        <div class='fa-stack fa-lg fa-fw' aria-hidden='true'>
+            <i class='fa-solid fa-filter fa-stack-2x'></i>
+            <i class='fa-solid fa-check fa-stack-1x'></i>
+        </div>
+        `;
         ValidationFilters.is_validation_filters = true;
         ValidationFilters.is_filter = true;
 
@@ -519,7 +551,6 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         Vue.component('Validationfilterswidgetcomponent', () => import('./widgets/validation_filters_widget/ValidationFiltersWidgetComponent'));
         Vue.component('Validationfilterswidgetoptionscomponent', () => import('./widgets/validation_filters_widget/options/ValidationFiltersWidgetOptionsComponent'));
-        Vue.component('Validationfilterswidgeticoncomponent', () => import('./widgets/validation_filters_widget/icon/ValidationFiltersWidgetIconComponent'));
     }
 
     private async initializeWidget_SaveFavoritesFilters() {
@@ -532,7 +563,12 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         SaveFavoritesFilters.options_component = 'Favoritesfilterswidgetoptionscomponent';
         SaveFavoritesFilters.weight = 3;
         SaveFavoritesFilters.default_background = '#f5f5f5';
-        SaveFavoritesFilters.icon_component = 'Savefavoritesfilterswidgeticoncomponent';
+        SaveFavoritesFilters.icon_html = `
+        <div class='fa-stack fa-lg fa-fw' aria-hidden='true'>
+            <i class='fa-solid fa-filter fa-stack-2x'></i>
+            <i class='fa-solid fa-save fa-stack-1x'></i>
+        </div>
+        `;
 
         await WidgetOptionsVOManager.register_widget_type(
             SaveFavoritesFilters,
@@ -547,7 +583,6 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         Vue.component('Savefavoritesfilterswidgetcomponent', () => import('./widgets/favorites_filters_widget/save_favorites_filters_widget/SaveFavoritesFiltersWidgetComponent'));
         Vue.component('Favoritesfilterswidgetoptionscomponent', () => import('./widgets/favorites_filters_widget/options/FavoritesFiltersWidgetOptionsComponent'));
-        Vue.component('Savefavoritesfilterswidgeticoncomponent', () => import('./widgets/favorites_filters_widget/save_favorites_filters_widget/icon/SaveFavoritesFiltersWidgetIconComponent'));
     }
 
     private async initializeWidget_ShowFavoritesFilters() {
@@ -560,7 +595,12 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         ShowFavoritesFilters.options_component = 'Favoritesfilterswidgetoptionscomponent';
         ShowFavoritesFilters.weight = 3;
         ShowFavoritesFilters.default_background = '#f5f5f5';
-        ShowFavoritesFilters.icon_component = 'Showfavoritesfilterswidgeticoncomponent';
+        ShowFavoritesFilters.icon_html = `
+        <div class='fa-stack fa-lg fa-fw' aria-hidden='true'>
+            <i class='fa-solid fa-filter fa-stack-2x'></i>
+            <i class='fa-solid fa-eye fa-stack-1x'></i>
+        </div>
+        `;
 
         await WidgetOptionsVOManager.register_widget_type(
             ShowFavoritesFilters,
@@ -575,7 +615,6 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         Vue.component('Showfavoritesfilterswidgetcomponent', () => import('./widgets/favorites_filters_widget/show_favorites_filters_widget/ShowFavoritesFiltersWidgetComponent'));
         Vue.component('Favoritesfilterswidgetoptionscomponent', () => import('./widgets/favorites_filters_widget/options/FavoritesFiltersWidgetOptionsComponent'));
-        Vue.component('Showfavoritesfilterswidgeticoncomponent', () => import('./widgets/favorites_filters_widget/show_favorites_filters_widget/icon/ShowFavoritesFiltersWidgetIconComponent'));
     }
 
     private async initializeWidget_ResetFilters() {
@@ -588,14 +627,18 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         ResetFilters.options_component = 'Resetfilterswidgetoptionscomponent';
         ResetFilters.weight = 3;
         ResetFilters.default_background = '#f5f5f5';
-        ResetFilters.icon_component = 'Resetfilterswidgeticoncomponent';
+        ResetFilters.icon_html = `
+        <div class='fa-stack fa-lg fa-fw' aria-hidden='true'>
+            <i class='fa-solid fa-filter fa-stack-2x'></i>
+            <i class='fa-solid fa-redo fa-stack-1x'></i>
+        </div>
+        `;
         ResetFilters.is_filter = true;
 
         await WidgetOptionsVOManager.register_widget_type(ResetFilters, null, null);
 
         Vue.component('Resetfilterswidgetcomponent', () => import('./widgets/reset_filters_widget/ResetFiltersWidgetComponent'));
         Vue.component('Resetfilterswidgetoptionscomponent', () => import('./widgets/reset_filters_widget/options/ResetFiltersWidgetOptionsComponent'));
-        Vue.component('Resetfilterswidgeticoncomponent', () => import('./widgets/reset_filters_widget/icon/ResetFiltersWidgetIconComponent'));
     }
 
     private async initializeWidget_BlocText() {
@@ -608,14 +651,17 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         BlocText.options_component = 'BlocTextwidgetoptionscomponent';
         BlocText.weight = 3;
         BlocText.default_background = '#f5f5f5';
-        BlocText.icon_component = 'BlocTextwidgeticoncomponent';
+        BlocText.icon_html = `
+        <div class='fa-stack fa-lg fa-fw' aria-hidden='true'>
+            <i class='fa-solid fa-text'></i>
+        </div>
+        `;
         BlocText.is_filter = true;
 
         await WidgetOptionsVOManager.register_widget_type(BlocText, null, null);
 
         Vue.component('BlocTextwidgetcomponent', () => import('./widgets/bloc_text_widget/BlocTextWidgetComponent'));
         Vue.component('BlocTextwidgetoptionscomponent', () => import('./widgets/bloc_text_widget/options/BlocTextWidgetOptionsComponent'));
-        Vue.component('BlocTextwidgeticoncomponent', () => import('./widgets/bloc_text_widget/icon/BlocTextWidgetIconComponent'));
     }
     private async initializeWidget_SuiviCompetences() {
         const SuiviCompetences = new DashboardWidgetVO();
@@ -627,7 +673,11 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         SuiviCompetences.options_component = 'SuiviCompetenceswidgetoptionscomponent';
         SuiviCompetences.weight = 3;
         SuiviCompetences.default_background = '#f5f5f5';
-        SuiviCompetences.icon_component = 'SuiviCompetenceswidgeticoncomponent';
+        SuiviCompetences.icon_html = `
+        <div class='fa-stack fa-lg fa-fw' aria-hidden='true'>
+            <i class='fa-solid fa-memo-circle-check'></i>
+        </div>
+        `;
         SuiviCompetences.is_filter = true;
 
         await WidgetOptionsVOManager.register_widget_type(
@@ -638,7 +688,6 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         Vue.component('SuiviCompetenceswidgetcomponent', () => import('./widgets/suivi_competences_widget/SuiviCompetencesWidgetComponent'));
         Vue.component('SuiviCompetenceswidgetoptionscomponent', () => import('./widgets/suivi_competences_widget/options/SuiviCompetencesWidgetOptionsComponent'));
-        Vue.component('SuiviCompetenceswidgeticoncomponent', () => import('./widgets/suivi_competences_widget/icon/SuiviCompetencesWidgetIconComponent'));
     }
 
     private async initializeWidget_Var() {
@@ -651,13 +700,14 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         var_widget.options_component = 'Varwidgetoptionscomponent';
         var_widget.weight = 10;
         var_widget.default_background = '#f5f5f5';
-        var_widget.icon_component = 'Varwidgeticoncomponent';
+        var_widget.icon_html = `
+        <i class='fa-lg fa-fw fa fa-bullseye' aria-hidden='true'></i>
+        `;
 
         await WidgetOptionsVOManager.register_widget_type(var_widget, () => new VarWidgetOptions(null, null, null, null, null, null, null), VarWidgetOptions.get_selected_fields);
 
         Vue.component('Varwidgetcomponent', () => import('./widgets/var_widget/VarWidgetComponent'));
         Vue.component('Varwidgetoptionscomponent', () => import('./widgets/var_widget/options/VarWidgetOptionsComponent'));
-        Vue.component('Varwidgeticoncomponent', () => import('./widgets/var_widget/icon/VarWidgetIconComponent'));
     }
 
     private async initializeWidget_PageSwitch() {
@@ -670,13 +720,17 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         pageswitch_widget.options_component = 'Pageswitchwidgetoptionscomponent';
         pageswitch_widget.weight = 5;
         pageswitch_widget.default_background = '#f5f5f5';
-        pageswitch_widget.icon_component = 'Pageswitchwidgeticoncomponent';
+        pageswitch_widget.icon_html = `
+        <div class='fa-stack fa-lg fa-fw' aria-hidden='true'>
+            <i class='fa-solid fa-file fa-stack-2x'></i>
+            <i class='fa-solid fa-external-link-square fa-stack-1x'></i>
+        </div>
+        `;
 
         await WidgetOptionsVOManager.register_widget_type(pageswitch_widget, () => new PageSwitchWidgetOptions(null), () => null);
 
         Vue.component('Pageswitchwidgetcomponent', () => import('./widgets/page_switch_widget/PageSwitchWidgetComponent'));
         Vue.component('Pageswitchwidgetoptionscomponent', () => import('./widgets/page_switch_widget/options/PageSwitchWidgetOptionsComponent'));
-        Vue.component('Pageswitchwidgeticoncomponent', () => import('./widgets/page_switch_widget/icon/PageSwitchWidgetIconComponent'));
     }
 
     private async initializeWidget_OseliaRunGraphWidget() {
@@ -689,13 +743,14 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         OseliaRunGraphWidget.options_component = 'Oseliarungraphwidgetoptionscomponent';
         OseliaRunGraphWidget.weight = 2;
         OseliaRunGraphWidget.default_background = '#f5f5f5';
-        OseliaRunGraphWidget.icon_component = 'Oseliarungraphwidgeticoncomponent';
+        OseliaRunGraphWidget.icon_html = `
+        <i class='fa-lg fa-fw fa fa-chart-diagram' aria-hidden='true'></i>
+        `;
 
         await WidgetOptionsVOManager.register_widget_type(OseliaRunGraphWidget, () => new OseliaRunGraphWidgetComponent(), () => null);
 
         Vue.component('Oseliarungraphwidgetcomponent', () => import('./widgets/oselia_run_graph_widget/OseliaRunGraphWidgetComponent'));
         Vue.component('Oseliarungraphwidgetoptionscomponent', () => import('./widgets/oselia_run_graph_widget/options/OseliaRunGraphWidgetOptionsComponent'));
-        Vue.component('Oseliarungraphwidgeticoncomponent', () => import('./widgets/oselia_run_graph_widget/icon/OseliaRunGraphWidgetIconComponent'));
     }
 
     private async initializeWidget_CMSBlocText() {
@@ -739,7 +794,6 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         Vue.component('CMSBlocTextwidgetcomponent', () => import('./widgets/cms_bloc_text_widget/CMSBlocTextWidgetComponent'));
         Vue.component('CMSBlocTextwidgetoptionscomponent', () => import('./widgets/cms_bloc_text_widget/options/CMSBlocTextWidgetOptionsComponent'));
-        Vue.component('CMSBlocTextwidgeticoncomponent', () => import('./widgets/cms_bloc_text_widget/icon/CMSBlocTextWidgetIconComponent'));
     }
 
     private async initializeWidget_CMSImage() {
@@ -771,7 +825,6 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         Vue.component('CMSImagewidgetcomponent', () => import('./widgets/cms_image_widget/CMSImageWidgetComponent'));
         Vue.component('CMSImagewidgetoptionscomponent', () => import('./widgets/cms_image_widget/options/CMSImageWidgetOptionsComponent'));
-        Vue.component('CMSImagewidgeticoncomponent', () => import('./widgets/cms_image_widget/icon/CMSImageWidgetIconComponent'));
     }
 
     private async initializeWidget_CMSLinkButton() {
@@ -809,7 +862,6 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         Vue.component('CMSLinkButtonwidgetcomponent', () => import('./widgets/cms_link_button_widget/CMSLinkButtonWidgetComponent'));
         Vue.component('CMSLinkButtonwidgetoptionscomponent', () => import('./widgets/cms_link_button_widget/options/CMSLinkButtonWidgetOptionsComponent'));
-        Vue.component('CMSLinkButtonwidgeticoncomponent', () => import('./widgets/cms_link_button_widget/icon/CMSLinkButtonWidgetIconComponent'));
     }
 
     private async initializeWidget_CMSBooleanButton() {
@@ -822,14 +874,17 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         CMSBooleanButton.options_component = 'CMSBooleanButtonwidgetoptionscomponent';
         CMSBooleanButton.weight = 3;
         CMSBooleanButton.default_background = '#f5f5f5';
-        CMSBooleanButton.icon_component = 'CMSBooleanButtonwidgeticoncomponent';
+        CMSBooleanButton.icon_html = `
+        <div class='fa-stack fa-lg fa-fw' aria-hidden='true'>
+            <i class='fa-solid fa-toggle-on'></i>
+        </div>
+        `;
         CMSBooleanButton.is_filter = false;
 
         await WidgetOptionsVOManager.register_widget_type(CMSBooleanButton, null, null);
 
         Vue.component('CMSBooleanButtonwidgetcomponent', () => import('./widgets/cms_boolean_button_widget/CMSBooleanButtonWidgetComponent'));
         Vue.component('CMSBooleanButtonwidgetoptionscomponent', () => import('./widgets/cms_boolean_button_widget/options/CMSBooleanButtonWidgetOptionsComponent'));
-        Vue.component('CMSBooleanButtonwidgeticoncomponent', () => import('./widgets/cms_boolean_button_widget/icon/CMSBooleanButtonWidgetIconComponent'));
     }
 
     private async initializeWidget_CMSLikeButton() {
@@ -842,14 +897,17 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         CMSLikeButton.options_component = 'CMSLikeButtonwidgetoptionscomponent';
         CMSLikeButton.weight = 3;
         CMSLikeButton.default_background = '#f5f5f5';
-        CMSLikeButton.icon_component = 'CMSLikeButtonwidgeticoncomponent';
+        CMSLikeButton.icon_html = `
+        <div class='fa-stack fa-lg fa-fw' aria-hidden='true'>
+            <i class='fa-solid fa-heart-circle'></i>
+        </div>
+        `;
         CMSLikeButton.is_filter = false;
 
         await WidgetOptionsVOManager.register_widget_type(CMSLikeButton, null, null);
 
         Vue.component('CMSLikeButtonwidgetcomponent', () => import('./widgets/cms_like_button_widget/CMSLikeButtonWidgetComponent'));
         Vue.component('CMSLikeButtonwidgetoptionscomponent', () => import('./widgets/cms_like_button_widget/options/CMSLikeButtonWidgetOptionsComponent'));
-        Vue.component('CMSLikeButtonwidgeticoncomponent', () => import('./widgets/cms_like_button_widget/icon/CMSLikeButtonWidgetIconComponent'));
     }
 
     private async initializeWidget_CMSPrintParam() {
@@ -862,14 +920,18 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         CMSPrintParam.options_component = 'CMSPrintParamwidgetoptionscomponent';
         CMSPrintParam.weight = 3;
         CMSPrintParam.default_background = '#f5f5f5';
-        CMSPrintParam.icon_component = 'CMSPrintParamwidgeticoncomponent';
+        CMSPrintParam.icon_html = `
+        <div class='fa-stack fa-lg fa-fw' aria-hidden='true'>
+            <i class='fa-solid fa-file fa-stack-2x'></i>
+            <i class='fa-solid fa-cogs fa-stack-1x'></i>
+        </div>
+        `;
         CMSPrintParam.is_filter = false;
 
         await WidgetOptionsVOManager.register_widget_type(CMSPrintParam, null, null);
 
         Vue.component('CMSPrintParamwidgetcomponent', () => import('./widgets/cms_print_param_widget/CMSPrintParamWidgetComponent'));
         Vue.component('CMSPrintParamwidgetoptionscomponent', () => import('./widgets/cms_print_param_widget/options/CMSPrintParamWidgetOptionsComponent'));
-        Vue.component('CMSPrintParamwidgeticoncomponent', () => import('./widgets/cms_print_param_widget/icon/CMSPrintParamWidgetIconComponent'));
     }
 
     private async initializeWidget_CMSVisionneusePdf() {
@@ -898,7 +960,6 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         Vue.component('CMSVisionneusePdfwidgetcomponent', () => import('./widgets/cms_visionneuse_pdf/CMSVisionneusePdfWidgetComponent'));
         Vue.component('CMSVisionneusePdfwidgetoptionscomponent', () => import('./widgets/cms_visionneuse_pdf/options/CMSVisionneusePdfWidgetOptionsComponent'));
-        Vue.component('CMSVisionneusePdfwidgeticoncomponent', () => import('./widgets/cms_visionneuse_pdf/icon/CMSVisionneusePdfWidgetIconComponent'));
     }
 
     private async initializeWidget_CMSCrudButtons() {
@@ -998,7 +1059,6 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         Vue.component('CMSVisionneusePdfwidgetcomponent', () => import('./widgets/cms_visionneuse_pdf/CMSVisionneusePdfWidgetComponent'));
         Vue.component('CMSVisionneusePdfwidgetoptionscomponent', () => import('./widgets/cms_visionneuse_pdf/options/CMSVisionneusePdfWidgetOptionsComponent'));
-        Vue.component('CMSVisionneusePdfwidgeticoncomponent', () => import('./widgets/cms_visionneuse_pdf/icon/CMSVisionneusePdfWidgetIconComponent'));
     }
 
     private async initializeWidget_TemplateConsultation_LinkButton() {
@@ -1036,7 +1096,6 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         Vue.component('CMSLinkButtonwidgetcomponent', () => import('./widgets/cms_link_button_widget/CMSLinkButtonWidgetComponent'));
         Vue.component('CMSLinkButtonwidgetoptionscomponent', () => import('./widgets/cms_link_button_widget/options/CMSLinkButtonWidgetOptionsComponent'));
-        Vue.component('CMSLinkButtonwidgeticoncomponent', () => import('./widgets/cms_link_button_widget/icon/CMSLinkButtonWidgetIconComponent'));
     }
 
     private async initializeWidget_TemplateConsultation_Image() {
@@ -1068,7 +1127,6 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         Vue.component('CMSImagewidgetcomponent', () => import('./widgets/cms_image_widget/CMSImageWidgetComponent'));
         Vue.component('CMSImagewidgetoptionscomponent', () => import('./widgets/cms_image_widget/options/CMSImageWidgetOptionsComponent'));
-        Vue.component('CMSImagewidgeticoncomponent', () => import('./widgets/cms_image_widget/icon/CMSImageWidgetIconComponent'));
     }
 
     private async initializeWidget_TemplateConsultation_BlocText() {
@@ -1112,7 +1170,6 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         Vue.component('CMSBlocTextwidgetcomponent', () => import('./widgets/cms_bloc_text_widget/CMSBlocTextWidgetComponent'));
         Vue.component('CMSBlocTextwidgetoptionscomponent', () => import('./widgets/cms_bloc_text_widget/options/CMSBlocTextWidgetOptionsComponent'));
-        Vue.component('CMSBlocTextwidgeticoncomponent', () => import('./widgets/cms_bloc_text_widget/icon/CMSBlocTextWidgetIconComponent'));
     }
 
 }

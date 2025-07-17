@@ -105,6 +105,10 @@ export default class DashboardSelectedViewportConfComponent extends VueComponent
             return;
         }
 
+        if (!this.viewport_page_widgets_by_page_widget_id[page_widget.id]?.activated) {
+            return;
+        }
+
         // On sélectionne le widget
         this.set_selected_widget(page_widget);
     }

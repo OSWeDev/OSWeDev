@@ -43,6 +43,7 @@ import DashboardSharedFiltersComponent from './shared_filters/DashboardSharedFil
 import DashboardViewportConfComponent from './viewport_conf/DashboardViewportConfComponent';
 import DashboardBuilderWidgetsComponent from './widgets/DashboardBuilderWidgetsComponent';
 import DashboardBuilderVueController from './DashboardBuilderVueController';
+import DashboardRightsComponent from './rights/DashboardRightsComponent';
 
 @Component({
     template: require('./DashboardBuilderComponent.pug'),
@@ -56,6 +57,7 @@ import DashboardBuilderVueController from './DashboardBuilderVueController';
         Moduletablescomponent: ModuleTablesComponent,
         Cruddblinkcomponent: CrudDBLinkComponent,
         DashboardViewportConfComponent: DashboardViewportConfComponent,
+        DashboardRightsComponent: DashboardRightsComponent,
     },
 })
 export default class DashboardBuilderComponent extends VueComponentBase implements IDashboardPageConsumer {

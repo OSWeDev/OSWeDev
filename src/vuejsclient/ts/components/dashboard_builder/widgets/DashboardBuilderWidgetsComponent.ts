@@ -14,6 +14,13 @@ import { field_names, reflect } from '../../../../../shared/tools/ObjectHandler'
 import VueComponentBase from '../../VueComponentBase';
 import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../page/DashboardPageStore';
 import './DashboardBuilderWidgetsComponent.scss';
+import { SyncVOs } from '../../../tools/annotations/SyncVOs';
+import DashboardWidgetTagVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetTagVO';
+import RangeHandler from '../../../../../shared/tools/RangeHandler';
+import { ModuleModalsAndBasicPageComponentsHolderGetter } from '../../modals_and_basic_page_components_holder/ModalsAndBasicPageComponentsHolderStore';
+import CRUDUpdateModalComponent from './table_widget/crud_modals/update/CRUDUpdateModalComponent';
+import { ModuleDAOAction } from '../../dao/store/DaoStore';
+import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 
 @Component({
     template: require('./DashboardBuilderWidgetsComponent.pug'),
@@ -22,6 +29,17 @@ import './DashboardBuilderWidgetsComponent.scss';
 })
 export default class DashboardBuilderWidgetsComponent extends VueComponentBase implements IDashboardPageConsumer {
     @Inject('storeNamespace') readonly storeNamespace!: string;
+
+    @ModuleModalsAndBasicPageComponentsHolderGetter
+    public get_Crudupdatemodalcomponent: CRUDUpdateModalComponent;
+
+    @ModuleDAOAction
+    public storeDatas: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void;
+
+    @SyncVOs(DashboardWidgetTagVO.API_TYPE_ID)
+    public dashboard_widget_tags: DashboardWidgetTagVO[] = [];
+
+    public selected_widget_tag: DashboardWidgetTagVO = null;
 
     get get_dashboard_page(): DashboardPageVO {
         return this.vuexGet(reflect<this>().get_dashboard_page);
@@ -61,6 +79,33 @@ export default class DashboardBuilderWidgetsComponent extends VueComponentBase i
         return this.get_widgets_by_id[this.get_selected_widget.widget_id];
     }
 
+    get tagged_widgets(): DashboardWidgetVO[] {
+        if (!this.selected_widget_tag) {
+            return this.get_all_widgets;
+        }
+
+        return this.get_all_widgets.filter(widget => {
+            if (!widget.tags_id_ranges || widget.tags_id_ranges.length === 0) {
+                return false;
+            }
+            return RangeHandler.elt_intersects_any_range(this.selected_widget_tag.id, widget.tags_id_ranges);
+        });
+    }
+
+    //- Au clic droit sur le .widget(data-widget-id), on veut ouvrir la modale de crud pour modifier le widget
+    public onWidgetRightClick(widget: DashboardWidgetVO, event: MouseEvent) {
+        event.preventDefault();
+        this.edit_widget(widget);
+    }
+
+    public async edit_widget(widget: DashboardWidgetVO) {
+        await this.get_Crudupdatemodalcomponent.open_modal(
+            widget,
+            this.storeDatas,
+            null,
+        );
+    }
+
     // Accès dynamiques Vuex
     public vuexGet<K extends keyof IDashboardGetters>(getter: K): IDashboardGetters[K] {
         return this.$store.getters[`${this.storeNamespace}/${String(getter)}`];
@@ -76,7 +121,15 @@ export default class DashboardBuilderWidgetsComponent extends VueComponentBase i
         this.vuexAct(reflect<this>().set_selected_widget, page_widget);
     }
 
-    private async add_widget_to_page(widget: DashboardWidgetVO) {
+    public switch_select_widget_tag(tag: DashboardWidgetTagVO) {
+        if (this.selected_widget_tag && this.selected_widget_tag.id === tag.id) {
+            this.selected_widget_tag = null;
+        } else {
+            this.selected_widget_tag = tag;
+        }
+    }
+
+    public async add_widget_to_page(widget: DashboardWidgetVO) {
 
         if (!this.get_dashboard_page) {
             return null;
@@ -157,7 +210,7 @@ export default class DashboardBuilderWidgetsComponent extends VueComponentBase i
 
     }
 
-    private close_widget_options() {
+    public close_widget_options() {
         this.set_selected_widget(null);
     }
 }

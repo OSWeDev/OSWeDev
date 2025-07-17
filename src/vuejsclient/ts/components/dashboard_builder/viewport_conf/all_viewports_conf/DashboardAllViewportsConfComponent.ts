@@ -89,6 +89,11 @@ export default class DashboardAllViewportsConfComponent extends VueComponentBase
     }
 
     public set_dashboard_current_viewport(dashboard_current_viewport: DashboardViewportVO) {
+
+        if (!this.activated_viewports_by_id[dashboard_current_viewport.id]) {
+            return;
+        }
+
         return this.vuexAct(reflect<this>().set_dashboard_current_viewport, dashboard_current_viewport);
     }
 
