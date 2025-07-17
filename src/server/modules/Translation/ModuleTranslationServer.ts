@@ -815,16 +815,16 @@ export default class ModuleTranslationServer extends ModuleServerBase {
             return;
         }
 
-        const translatableText: TranslatableTextVO = await query(TranslatableTextVO.API_TYPE_ID)
+        let translatableText: TranslatableTextVO = await query(TranslatableTextVO.API_TYPE_ID)
             .filter_by_text_eq(field_names<TranslatableTextVO>().code_text, code_text)
             .exec_as_server()
             .select_vo<TranslatableTextVO>();
 
         if (!translatableText) {
             // Si le texte n'existe pas, on le crée
-            const translatableTextVO: TranslatableTextVO = new TranslatableTextVO();
-            translatableTextVO.code_text = code_text;
-            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(translatableTextVO);
+            translatableText = new TranslatableTextVO();
+            translatableText.code_text = code_text;
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(translatableText);
         }
 
         const lang: LangVO = await this.getLang(code_lang);
