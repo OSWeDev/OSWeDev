@@ -134,7 +134,9 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_get_screen_track, this.get_screen_track.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_create_thread, this.create_thread.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_replay_function_call, this.replay_function_call.bind(this));
-
+        APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_get_cache_value, this.get_cache_value.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_set_cache_value, this.set_cache_value.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_update_vo_field, this.update_vo_field.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_notify_thread_loaded, this.notify_thread_loaded.bind(this));
         APIControllerWrapper.register_server_api_handler(this.name, reflect<ModuleOselia>().instantiate_oselia_run_from_event, this.instantiate_oselia_run_from_event.bind(this));
     }
@@ -1428,6 +1430,52 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         await ModuleDAOServer.instance.insertOrUpdateVO_as_server(cache);
 
         return 'OK';
+    }
+
+    public async update_vo_field(vo: string, field_name: string, value: string): Promise<string> {
+
+        if (!vo || !field_name) {
+            ConsoleHandler.error('update_vo_field:Invalid parameters');
+            return 'ERREUR: Paramètres invalides';
+        }
+        let vo_object: IDistantVOBase = null;
+        let value_object: any = null;
+        let field: ModuleTableFieldVO = null;
+        try {
+            vo_object = JSON.parse(vo); // Validate JSON format
+            value_object = JSON.parse(value); // Validate JSON format
+            field = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[vo_object._type][field_name];
+            if (!vo_object || !value_object || !field) {
+                ConsoleHandler.error('update_vo_field:Invalid JSON format for vo or value or field');
+                return 'ERREUR: Format JSON invalide pour le VO ou la valeur ou le champ';
+            }
+        } catch (error) {
+            ConsoleHandler.error('update_vo_field:Error parsing JSON: ' + error);
+            return 'ERREUR: Erreur de parsing JSON: ' + error;
+        }
+
+        if (!vo_object || !value_object || !field) {
+            ConsoleHandler.error('update_vo_field:vo or value or field is not an object');
+            return 'ERREUR: Le VO ou la valeur ou le champ n\'est pas un objet';
+        }
+
+        if (!vo_object[field_name]) {
+            ConsoleHandler.error('update_vo_field:Field not found in VO: ' + field_name);
+            return 'ERREUR: Champ non trouvé dans le VO: ' + field_name;
+        }
+        if (typeof value_object.value === 'undefined') {
+            ConsoleHandler.error('update_vo_field:Value object does not have a "value" property');
+            return 'ERREUR: L\'objet de valeur n\'a pas de propriété "value"';
+        }
+
+        vo_object[field_name] = value_object ? value_object.value : null;
+        await query(vo_object._type)
+            .filter_by_id(vo_object.id)
+            .exec_as_server()
+            .update_vos(vo_object);
+        vo = JSON.stringify(vo_object);
+        ConsoleHandler.log('update_vo_field:Field updated successfully: ' + field_name + ' New value: ' + value);
+        return vo;
     }
 
     public async add_function_to_assistant(assistant: GPTAssistantAPIAssistantVO, module_name: string, function_name: string) {

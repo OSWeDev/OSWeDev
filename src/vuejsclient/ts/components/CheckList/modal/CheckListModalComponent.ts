@@ -19,6 +19,10 @@ import ModuleGPT from '../../../../../shared/modules/GPT/ModuleGPT';
 import OseliaRealtimeController from '../../dashboard_builder/widgets/oselia_thread_widget/OseliaRealtimeController';
 import { Data } from 'vue';
 import { reflect } from '../../../../../shared/tools/ObjectHandler';
+import GPTRealtimeAPISessionVO from '../../../../../shared/modules/GPT/vos/GPTRealtimeAPISessionVO';
+import ModuleOselia from '../../../../../shared/modules/Oselia/ModuleOselia';
+import OseliaRunTemplateVO from '../../../../../shared/modules/Oselia/vos/OseliaRunTemplateVO';
+import ModuleProgramPlanBase from '../../../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
 
 @Component({
     template: require('./CheckListModalComponent.pug')
@@ -57,7 +61,6 @@ export default class CheckListModalComponent extends VueComponentBase {
     private has_next_step: boolean = false;
     private state_steps: { [step_name: string]: number } = {};
     private debounced_update_state_step = debounce(this.update_state_step.bind(this), 100);
-
     private valid_fields: { [field_name: string]: boolean } = {};
     private is_last_checklist_item: boolean = false;
     private checkpoint_description: string = null;
@@ -118,7 +121,13 @@ export default class CheckListModalComponent extends VueComponentBase {
 
         // Mapping checklist_item and editable fields
         if (this.oselia_opened) {
-            OseliaRealtimeController.getInstance().connect_to_realtime(null, this.checklist_item);
+            const prompt_for_realtime = "Nous sommes en train d'éditer un objet de checklist, voici ses informations :\n\n" +
+                "Nom de l'objet : " + this.checklist_item.name + "\n" +
+                "ID de l'objet : " + this.checklist_item.id + "\n" +
+                "Explication : " + this.checklist_item.explaination + "\n" +
+                "Id de la checklist lié : " + this.checklist_item.checklist_id;
+            const cache_key = this.checklist_item._type + '_' + this.checklist_item.id;
+            OseliaRealtimeController.getInstance().connect_to_realtime(ModuleProgramPlanBase.getInstance().getAssistantName('PRIME'), prompt_for_realtime, { [cache_key]: this.checklist_item });
         } else {
             OseliaRealtimeController.getInstance().disconnect_to_realtime();
         }

@@ -53,14 +53,16 @@ import ICheckListItem from '../../../shared/modules/CheckList/interfaces/ICheckL
 import DatatableField from '../../../shared/modules/DAO/vos/datatable/DatatableField';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import GPTAssistantAPIAssistantFunctionVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIAssistantFunctionVO';
+import ModuleOseliaServer from '../Oselia/ModuleOseliaServer';
+import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
+import ModuleTableController from '../../../shared/modules/DAO/ModuleTableController';
+import OseliaRunTemplateServerController from '../Oselia/OseliaRunTemplateServerController';
 /** Structure interne d'une conversation */
 interface ConversationContext {
     openaiSocket: WebSocket;
     clients: Set<WebSocket>;
     buffered: any[];
-    cr_vo?: IPlanRDVCR;
-    prime_object?: ICheckListItem;
-    cr_field_titles?: string[];
+    vo?: unknown;
     current_user: UserVO;
     current_thread_id: string;
 }
@@ -1148,25 +1150,31 @@ export default class GPTAssistantAPIServerController {
     }
 
     public static async postupdate_rdv_cr_vo_handle_pipe(vo: DAOUpdateVOHolder<any>) {
-        const convCtx = GPTAssistantAPIServerController.conversations.forEach(async (ctx) => {
-            if (ctx.cr_vo && ctx.cr_vo.id == vo.post_update_vo.id) {
-                ctx.cr_vo = vo.post_update_vo;
-                ctx.cr_field_titles = await ModuleProgramPlanBase.getInstance().getRDVCRType(vo.post_update_vo.rdv_id);
-                ctx.openaiSocket.send(JSON.stringify({
-                    type: 'conversation.item.create',
-                    item: {
-                        type: 'message',
-                        role: "system",
-                        "content": [
-                            {
-                                "type": "input_text",
-                                "text": "Le compte rendu vient d'être modifié par l'utilisateur"
-                            }
-                        ]
-                    },
-                }));
-            }
-        });
+        // const convCtx = GPTAssistantAPIServerController.conversations.forEach(async (ctx) => {
+        //     if (!ctx || !ctx.openaiSocket || !ctx.vo) {
+        //         return;
+        //     }
+
+        //     if (ctx.vo) {
+        //         if ((ctx.vo as IPlanRDVCR)?.id && vo.post_update_vo.id === (ctx.vo as IPlanRDVCR).id) {
+        //             ctx.cr_vo = vo.post_update_vo;
+        //             ctx.cr_field_titles = await ModuleProgramPlanBase.getInstance().getRDVCRType(vo.post_update_vo.rdv_id);
+        //             ctx.openaiSocket.send(JSON.stringify({
+        //                 type: 'conversation.item.create',
+        //                 item: {
+        //                     type: 'message',
+        //                     role: "system",
+        //                     content: [
+        //                         {
+        //                             type: "input_text",
+        //                             text: "Le compte rendu vient d'être modifié par l'utilisateur"
+        //                         }
+        //                     ]
+        //                 },
+        //             }));
+        //         }
+        //     }
+        // });
     }
 
     /**
@@ -1180,10 +1188,13 @@ export default class GPTAssistantAPIServerController {
         session_id: string,
         conversation_id: string,
         thread_id: string,
-        user_id: number): Promise<void> {
+        user_id: number,
+        oselia_run_template?: OseliaRunTemplateVO,
+        initial_cache_key?: string
+    ): Promise<void> {
         try {
             let session: GPTRealtimeAPISessionVO = null;
-            if (!session_id || !conversation_id || !thread_id || !user_id) {
+            if (!conversation_id || !thread_id || !user_id) {
                 ConsoleHandler.error('GPTAssistantAPIServerController.connect_to_realtime_voice: Invalid parameters');
                 return;
             }
@@ -1193,8 +1204,23 @@ export default class GPTAssistantAPIServerController {
                     .filter_by_id(parseInt(session_id))
                     .exec_as_server()
                     .select_vo<GPTRealtimeAPISessionVO>();
+            } else {
+                const current_user = await query(UserVO.API_TYPE_ID).filter_by_id(user_id).set_limit(1).select_vo<UserVO>();
+                session = new GPTRealtimeAPISessionVO();
+                session.name = "Session " + Dates.now() + " - " + current_user.name;
+                session.modalities = ['text', 'audio'];
+                session.output_audio_format = 'pcm16';
+                session.input_audio_transcription_model = 'whisper-1';
+                session.input_audio_format = 'pcm16';
+                session.turn_detection_type = 'server_vad';
+                session.turn_detection_threshold = 0.5;
+                session.turn_detection_silence_duration_ms = 400;
+                session.turn_detection_prefix_padding_ms = 150;
+                session.voice = 'shimmer';
+                session.tool_choice = 'auto';
+                session.id = (await ModuleDAO.getInstance().insertOrUpdateVO(session)).id;
             }
-            await this.create_realtime_session(session, conversation_id, thread_id, user_id);
+            await this.create_realtime_session(session, conversation_id, thread_id, user_id, oselia_run_template, initial_cache_key);
         } catch(error) {
             ConsoleHandler.error('GPTAssistantAPIServerController.connect_to_realtime_voice: ' + error);
         }
@@ -1205,55 +1231,100 @@ export default class GPTAssistantAPIServerController {
      * Initialise (si besoin) le serveur WebSocket local **et** la socket OpenAI pour la conversation.
      * @param conversationId identifiant logique de la conversation – un seul par socket OpenAI
      */
-    private static async create_realtime_session(session: GPTRealtimeAPISessionVO, conversationId: string, thread_id: string, user_id: number): Promise<void> {
-
+    private static async create_realtime_session(
+        session: GPTRealtimeAPISessionVO,
+        conversationId: string,
+        thread_id: string,
+        user_id: number,
+        oselia_run_template?: OseliaRunTemplateVO,
+        initial_cache_key?: string
+    ): Promise<void> {
         try {
             if (!session) {
                 ConsoleHandler.error('GPTAssistantAPIServerController.create_realtime_session: Invalid session');
                 return;
             }
 
-            // Récupération de l'assistant lié à la session
+            // Récupération du thread et de l'assistant
+            const thread_vo = await query(GPTAssistantAPIThreadVO.API_TYPE_ID)
+                .filter_by_num_eq(field_names<GPTAssistantAPIThreadVO>().id, parseInt(thread_id))
+                .exec_as_server()
+                .select_vo<GPTAssistantAPIThreadVO>();
+            if (!thread_vo) {
+                ConsoleHandler.error('GPTAssistantAPIServerController.create_realtime_session: thread not found for id: ' + thread_id);
+                return;
+            }
+            if (!oselia_run_template) {
+                ConsoleHandler.error('GPTAssistantAPIServerController.create_realtime_session: oselia_run_template not found');
+                throw new Error('GPTAssistantAPIServerController.create_realtime_session: oselia_run_template not found');
+            }
             const assistant = await query(GPTAssistantAPIAssistantVO.API_TYPE_ID)
-                .filter_by_num_eq(field_names<GPTAssistantAPIAssistantVO>().id, session.assistant_id)
+                .filter_by_num_eq(field_names<GPTAssistantAPIAssistantVO>().id, thread_vo.current_default_assistant_id)
                 .exec_as_server()
                 .select_vo<GPTAssistantAPIAssistantVO>();
 
-            // Récupération des fonctions Assistant via assistant_id
-            const assistant_functions = await query(GPTAssistantAPIAssistantFunctionVO.API_TYPE_ID)
-                .filter_by_num_eq(field_names<GPTAssistantAPIAssistantFunctionVO>().assistant_id, session.assistant_id)
+            if (!assistant) {
+                ConsoleHandler.error('GPTAssistantAPIServerController.create_realtime_session: assistant not found');
+                throw new Error('GPTAssistantAPIServerController.create_realtime_session: assistant not found');
+            }
+            const user = await query(UserVO.API_TYPE_ID)
+                .filter_by_id(user_id)
                 .exec_as_server()
-                .select_vos<GPTAssistantAPIAssistantFunctionVO>();
+                .select_vo<UserVO>();
+            if (!user) {
+                ConsoleHandler.error('GPTAssistantAPIServerController.create_realtime_session: user not found for id: ' + user_id);
+                throw new Error('GPTAssistantAPIServerController.create_realtime_session: user not found for id: ' + user_id);
+            }
+            // Récupération des fonctions et paramètres
+            const { availableFunctions, availableFunctionsParameters } =
+                await GPTAssistantAPIServerController.get_availableFunctions_and_availableFunctionsParameters(
+                    assistant,
+                    user_id,
+                    thread_vo.gpt_thread_id
+                );
+            const availableFunctionsParametersByParamName = {};
+            for (const i in availableFunctionsParameters) {
+                availableFunctionsParametersByParamName[i] = {};
+                for (const param of availableFunctionsParameters[i]) {
+                    availableFunctionsParametersByParamName[i][param.gpt_funcparam_name] = param;
+                }
+            }
 
-            // Récupération des paramètres des fonctions Assistant
-            const functionParams = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
-                .filter_by_num_in(field_names<GPTAssistantAPIFunctionParamVO>().function_id,
-                    query(GPTAssistantAPIAssistantFunctionVO.API_TYPE_ID)
-                        .filter_by_num_eq(field_names<GPTAssistantAPIAssistantFunctionVO>().assistant_id, session.assistant_id)
-                        .field(field_names<GPTAssistantAPIAssistantFunctionVO>().function_id))
-                .exec_as_server()
-                .select_vos<GPTAssistantAPIFunctionParamVO>();
+            // Création du run Osélia pour la session realtime
+            const initial_cache_values = await ModuleOseliaServer.getInstance().get_cache_value(thread_vo, initial_cache_key);
+            const session_run = await OseliaRunTemplateServerController.create_run_from_template(
+                oselia_run_template,
+                null,
+                { [initial_cache_key]: initial_cache_values },
+                null,
+                thread_vo,
+                user,
+                null,
+                null,
+                null,
+                false
+            );
+            session_run.run_type = OseliaRunVO.RUN_TYPE_REALTIME;
+            session_run.state = OseliaRunVO.STATE_RUNNING;
+            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(session_run);
 
-            const params_by_function_id = functionParams.reduce((acc, param) => {
-                (acc[param.function_id] ||= []).push(param);
-                return acc;
-            }, {} as Record<number, GPTAssistantAPIFunctionParamVO[]>);
-
-            // Conversion en tools pour OpenAI
-            const tools = assistant_functions.map(f => ({
+            // Préparation des tools pour OpenAI
+            const functions: GPTAssistantAPIFunctionVO[] = Object.values(availableFunctions);
+            const params_by_function_id = availableFunctionsParameters;
+            const tools = functions.map(f => ({
                 type: 'function',
-                name: f.function_id.toString(),
-                description: '', // adapter selon besoin, si dispo dans GPTAssistantAPIFunctionVO
+                name: f.gpt_function_name,
+                description: f.gpt_function_description,
                 parameters: {
                     type: 'object',
-                    properties: (params_by_function_id[f.function_id] || []).reduce((acc, param) => {
+                    properties: (params_by_function_id[f.id] || []).reduce((acc, param) => {
                         acc[param.gpt_funcparam_name] = {
                             type: GPTAssistantAPIFunctionParamVO.TYPE_TO_OPENAI[param.type],
                             description: param.gpt_funcparam_description,
                         };
                         return acc;
-                    }, {} as Record<string, { type: string; description: string }>),
-                    required: (params_by_function_id[f.function_id] || []).filter(p => p.required).map(p => p.gpt_funcparam_name),
+                    }, {}),
+                    required: (params_by_function_id[f.id] || []).filter(p => p.required).map(p => p.gpt_funcparam_name),
                 },
             }));
 
@@ -1274,6 +1345,8 @@ export default class GPTAssistantAPIServerController {
                 }
                 // —> Connexion d’un client navigateur / app
                 this.wss.on('connection', (clientSocket: WebSocket) => {
+                    session_run.state = OseliaRunVO.STATE_RUNNING;
+                    ModuleDAOServer.instance.insertOrUpdateVO_as_server(session_run);
                     let joinedConversationId: string | null = null;
 
                     /**
@@ -1293,7 +1366,7 @@ export default class GPTAssistantAPIServerController {
                                 joinedConversationId = msg.conversation_id;
                                 const convCtx = GPTAssistantAPIServerController.conversations.get(joinedConversationId);
                                 if (!convCtx) {
-                                    ConsoleHandler.error(`Conversation inconnue : ${joinedConversationId}`);
+                                    ConsoleHandler.error(`GPTAssistantAPIServerController.create_realtime_session: Conversation inconnue : ${joinedConversationId}`);
                                     clientSocket.close();
                                     return;
                                 }
@@ -1314,17 +1387,7 @@ export default class GPTAssistantAPIServerController {
                             // — Après handshake : relais texte → OpenAI
                             if (joinedConversationId) {
                                 const convCtx = GPTAssistantAPIServerController.conversations.get(joinedConversationId)!;
-                                if (msg.type === 'cr_data') {
-                                    if (msg.cr_vo) {
-                                        convCtx.cr_vo = msg.cr_vo;
-                                        convCtx.cr_field_titles = await ModuleProgramPlanBase.getInstance()
-                                            .getRDVCRType(msg.cr_vo.rdv_id);
-                                    }
-                                } else if (msg.type === 'prime_object') {
-                                    if (msg.prime_object) {
-                                        convCtx.prime_object = msg.prime_object;
-                                    }
-                                } else if (convCtx.openaiSocket.readyState === WebSocket.OPEN) {
+                                if (convCtx.openaiSocket.readyState === WebSocket.OPEN) {
                                     convCtx.openaiSocket.send(str);
                                 }
                             }
@@ -1387,6 +1450,7 @@ export default class GPTAssistantAPIServerController {
                 buffered: [],
                 current_user,
                 current_thread_id: thread_id,
+                vo: undefined,
             } as const;
             this.conversations.set(conversationId, convCtx);
 
@@ -1504,11 +1568,10 @@ export default class GPTAssistantAPIServerController {
 
                 // 4) — APPels de fonctions ------------------------------------------------
                 if (msg?.type === 'response.output_item.done' && msg.item?.type === 'function_call') {
-                    // ---------------------------------------------------------------------------
-                    // Récupération sûre des arguments de l’appel de fonction
-                    // ---------------------------------------------------------------------------
-                    const { name: fnName, arguments: rawArgs, call_id: callId, id: itemId } = msg.item;
 
+                    const { name: fnName, arguments: rawArgs, call_id: callId, id: itemId } = msg.item;
+                    session_run.state = OseliaRunVO.STATE_TODO;
+                    await ModuleDAOServer.instance.insertOrUpdateVO_as_server(session_run);
                     /**
                      * Parse JSON de façon robuste :
                      * - si `rawArgs` est déjà un objet → on le renvoie tel quel ;
@@ -1526,7 +1589,7 @@ export default class GPTAssistantAPIServerController {
                                 return JSON.parse(rawArgs);
                             } catch (e) {
                                 ConsoleHandler.error(
-                                    `Impossible de parser les arguments de la fonction «${fnName}» : ${rawArgs}`,
+                                    `GPTAssistantAPIServerController.create_realtime_session: Impossible de parser les arguments de la fonction «${fnName}» : ${rawArgs}`,
                                     e
                                 );
                                 return {};            // on continue sans planter
@@ -1541,112 +1604,139 @@ export default class GPTAssistantAPIServerController {
                     let output: unknown = null;
                     const confidence_error_msg = "Confiance trop faible dans la demande, pose les questions qu'il te manquerait pour être sûr.";
                     try {
-                        switch (fnName) {
-                            case 'edit_cr_word': {
-                                if(args.confidence && args.confidence < 100) {
-                                    output = { error: confidence_error_msg };
-                                    break;
-                                }
-                                output = await ModuleGPT.getInstance().edit_cr_word(
-                                    args.new_content,
-                                    args.section,
-                                    convCtx.cr_vo,
-                                    convCtx.cr_field_titles,
-                                );
-                                break;
-                            }
-                            case 'get_cr_field_titles': {
-                                if(args.confidence && args.confidence < 100) {
-                                    output = { error: confidence_error_msg };
-                                    break;
-                                }
-                                output = convCtx.cr_field_titles ?? [];
-                                break;
-                            }
-                            case 'get_current_cr_field': {
-                                if(args.confidence && args.confidence < 100) {
-                                    output = { error: confidence_error_msg };
-                                    break;
-                                }
-                                const cr_titles = convCtx.cr_field_titles ? convCtx.cr_field_titles.map(str => str.trim()).filter(str => str.length > 0) : [];
-                                const idx = cr_titles?.indexOf(args.section) ?? -1;
-                                output = idx >= 0 ? (convCtx.cr_vo as any)?.html_contents[idx] : null;
-                                break;
-                            }
-                            case 'get_current_user_name': {
-                                if(args.confidence && args.confidence < 100) {
-                                    output = { error: confidence_error_msg };
-                                    break;
-                                }
-                                output = convCtx.current_user?.name ?? null;
-                                break;
-                            }
-                            case 'get_current_consultant': {
-                                if(args.confidence && args.confidence < 100) {
-                                    output = { error: confidence_error_msg };
-                                    break;
-                                }
-                                const name = convCtx.cr_vo ? await ModuleProgramPlanBase.getInstance().getCurrentConsultant(convCtx.cr_vo): null;
-                                output = name;
-                                break;
-                            }
-                            case 'get_all_consultants': {
-                                if(args.confidence && args.confidence < 100) {
-                                    output = { error: confidence_error_msg };
-                                    break;
-                                }
-                                const consultants_names = await ModuleProgramPlanBase.getInstance()
-                                    .getAllConsultantsName();
-                                output = consultants_names;
-                                break;
-                            }
-                            case 'set_current_consultant': {
-                                if(args.confidence && args.confidence < 100) {
-                                    output = { error: confidence_error_msg };
-                                    break;
-                                }
-                                const list_of_consultants = await ModuleProgramPlanBase.getInstance()
-                                    .getAllConsultantsName();
-                                if (args.consultant_name && !list_of_consultants.includes(args.consultant_name)) {
-                                    output = { error: `Le consultant ${args.consultant_name} n'existe pas dans la liste des consultants. Il faut strictement un consultant existant de cette liste.` };
-                                    break;
-                                }
-                                output = await ModuleProgramPlanBase.getInstance()
-                                    .setConsultantName(
-                                        convCtx.cr_vo,
-                                        args.consultant_name
-                                    );
-                                break;
-                            }
-                            case 'set_first_etape': {
+                        const function_vo = availableFunctions[fnName];
+                        if (!function_vo) {
+                            output = { error: `Fonction inconnue : ${fnName}` };
+                        } else {
+                            // 4. Instancie un OseliaRunFunctionCallVO vierge (pour traçabilité)
+                            const oselia_run_function_call_vo = new OseliaRunFunctionCallVO();
 
-                                output = await ModuleProgramPlanBase.getInstance()
-                                    .setFirstEtape(convCtx.prime_object);
-                                break;
-                            }
-                            case 'set_second_etape': {
-
-                                output = await ModuleProgramPlanBase.getInstance()
-                                    .setSecondEtape(convCtx.prime_object);
-                                break;
-                            }
-                            case 'set_third_etape': {
-
-                                output = await ModuleProgramPlanBase.getInstance()
-                                    .setThirdEtape(convCtx.prime_object);
-                                break;
-                            }
-                            case 'set_fourth_etape': {
-
-                                output = await ModuleProgramPlanBase.getInstance()
-                                    .setFourthEtape(convCtx.prime_object);
-                                break;
-                            }
-                            default:
-                                output = { error: `Fonction inconnue : ${fnName}` };
+                            // 5. Appelle la fonction via ta logique
+                            output = await GPTAssistantAPIServerController.do_function_call(
+                                session_run, // récupéré dans ta session
+                                null, // ou le run_vo si tu veux tracker le run aussi
+                                thread_vo,
+                                null, // referrer (à récupérer si besoin)
+                                function_vo,
+                                oselia_run_function_call_vo,
+                                fnName,
+                                JSON.stringify(args),
+                                availableFunctionsParameters,
+                                availableFunctionsParametersByParamName,
+                                {} // referrer_external_api_by_name
+                            );
                         }
+
+                        // try {
+                        //     switch (fnName) {
+                        //         case 'edit_cr_word': {
+                        //             if(args.confidence && args.confidence < 100) {
+                        //                 output = { error: confidence_error_msg };
+                        //                 break;
+                        //             }
+                        //             output = await ModuleGPT.getInstance().edit_cr_word(
+                        //                 args.new_content,
+                        //                 args.section,
+                        //                 convCtx.cr_vo,
+                        //                 convCtx.cr_field_titles,
+                        //             );
+                        //             break;
+                        //         }
+                        //         case 'get_cr_field_titles': {
+                        //             if(args.confidence && args.confidence < 100) {
+                        //                 output = { error: confidence_error_msg };
+                        //                 break;
+                        //             }
+                        //             output = convCtx.cr_field_titles ?? [];
+                        //             break;
+                        //         }
+                        //         case 'get_current_cr_field': {
+                        //             if(args.confidence && args.confidence < 100) {
+                        //                 output = { error: confidence_error_msg };
+                        //                 break;
+                        //             }
+                        //             const cr_titles = convCtx.cr_field_titles ? convCtx.cr_field_titles.map(str => str.trim()).filter(str => str.length > 0) : [];
+                        //             const idx = cr_titles?.indexOf(args.section) ?? -1;
+                        //             output = idx >= 0 ? (convCtx.cr_vo as any)?.html_contents[idx] : null;
+                        //             break;
+                        //         }
+                        //         case 'get_current_user_name': {
+                        //             if(args.confidence && args.confidence < 100) {
+                        //                 output = { error: confidence_error_msg };
+                        //                 break;
+                        //             }
+                        //             output = convCtx.current_user?.name ?? null;
+                        //             break;
+                        //         }
+                        //         case 'get_current_consultant': {
+                        //             if(args.confidence && args.confidence < 100) {
+                        //                 output = { error: confidence_error_msg };
+                        //                 break;
+                        //             }
+                        //             const name = convCtx.cr_vo ? await ModuleProgramPlanBase.getInstance().getCurrentConsultant(convCtx.cr_vo): null;
+                        //             output = name;
+                        //             break;
+                        //         }
+                        //         case 'get_all_consultants': {
+                        //             if(args.confidence && args.confidence < 100) {
+                        //                 output = { error: confidence_error_msg };
+                        //                 break;
+                        //             }
+                        //             const consultants_names = await ModuleProgramPlanBase.getInstance()
+                        //                 .getAllConsultantsName();
+                        //             output = consultants_names;
+                        //             break;
+                        //         }
+                        //         case 'set_current_consultant': {
+                        //             if(args.confidence && args.confidence < 100) {
+                        //                 output = { error: confidence_error_msg };
+                        //                 break;
+                        //             }
+                        //             const list_of_consultants = await ModuleProgramPlanBase.getInstance()
+                        //                 .getAllConsultantsName();
+                        //             if (args.consultant_name && !list_of_consultants.includes(args.consultant_name)) {
+                        //                 output = { error: `Le consultant ${args.consultant_name} n'existe pas dans la liste des consultants. Il faut strictement un consultant existant de cette liste.` };
+                        //                 break;
+                        //             }
+                        //             output = await ModuleProgramPlanBase.getInstance()
+                        //                 .setConsultantName(
+                        //                     convCtx.cr_vo,
+                        //                     args.consultant_name
+                        //                 );
+                        //             break;
+                        //         }
+                        //         case 'set_first_etape': {
+
+                        //             output = await ModuleProgramPlanBase.getInstance()
+                        //                 .setFirstEtape(convCtx.prime_object);
+                        //             break;
+                        //         }
+                        //         case 'set_second_etape': {
+
+                        //             output = await ModuleProgramPlanBase.getInstance()
+                        //                 .setSecondEtape(convCtx.prime_object);
+                        //             break;
+                        //         }
+                        //         case 'set_third_etape': {
+
+                        //             output = await ModuleProgramPlanBase.getInstance()
+                        //                 .setThirdEtape(convCtx.prime_object);
+                        //             break;
+                        //         }
+                        //         case 'set_fourth_etape': {
+
+                    //             output = await ModuleProgramPlanBase.getInstance()
+                    //                 .setFourthEtape(convCtx.prime_object);
+                    //             break;
+                    //         }
+                    //         default:
+                    //             output = { error: `Fonction inconnue : ${fnName}` };
+                    //     }
                     } catch (err) {
-                        ConsoleHandler.error(err);
+                        ConsoleHandler.error(`GPTAssistantAPIServerController.create_realtime_session: ${err}`);
+                        session_run.state = OseliaRunVO.STATE_ERROR;
+                        session_run.error_msg = String(err);
+                        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(session_run);
                         output = { error: String(err) };
                     }
 
@@ -1696,11 +1786,14 @@ export default class GPTAssistantAPIServerController {
             });
 
             openaiSocket.on('error', (err) => {
-                ConsoleHandler.error(`OpenAI socket error [${conversationId}] : ${err}`);
+                ConsoleHandler.error(`GPTAssistantAPIServerController.create_realtime_session: OpenAI socket error [${conversationId}] : ${err}`);
+                session_run.state = OseliaRunVO.STATE_ERROR;
+                session_run.error_msg = String(err);
+                ModuleDAOServer.instance.insertOrUpdateVO_as_server(session_run);
                 openaiSocket.close();
             });
         } catch (error) {
-            ConsoleHandler.error('create_realtime_session : ' + error);
+            ConsoleHandler.error(`GPTAssistantAPIServerController.create_realtime_session: ${error}`);
         }
     }
 

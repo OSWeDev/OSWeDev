@@ -18,6 +18,8 @@ import ICheckListItem from '../../../../../../shared/modules/CheckList/interface
 import DatatableField from '../../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import { ModuleOseliaGetter } from './OseliaStore';
 import VueComponentBase from '../../../VueComponentBase';
+import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
+import OseliaRunTemplateVO from '../../../../../../shared/modules/Oselia/vos/OseliaRunTemplateVO';
 
 export default class OseliaRealtimeController extends VueComponentBase {
     private static instance: OseliaRealtimeController = null;
@@ -35,13 +37,15 @@ export default class OseliaRealtimeController extends VueComponentBase {
     private is_connected_to_realtime = false;
     private connection_ready = false;
     private realtime_is_recording = false;
-
+    private oselia_run_template: OseliaRunTemplateVO | null = null;
     private incomingAudioChunks: Uint8Array[] = [];
+    private map_cache_vo: { [cache_key: string]: IDistantVOBase | null } | null = null;
 
     private call_thread: GPTAssistantAPIThreadVO | null = null;
-    private cr_vo: IPlanRDVCR | null = null;
-    private in_cr_context: boolean = false;
-    private in_prime_context: boolean = false;
+    // private cr_vo: IPlanRDVCR | null = null;
+    // private in_cr_context: boolean = false;
+    // private in_prime_context: boolean = false;
+    // private prime_object: ICheckListItem = null;
     private audioCtx: AudioContext = new AudioContext({ sampleRate: 44_100  });
     private currentSrc: AudioBufferSourceNode | null = null;
     private currentItemId: string|null = null;
@@ -50,8 +54,8 @@ export default class OseliaRealtimeController extends VueComponentBase {
     private session_id: number | null = null;
     /**  Garantit qu’une seule opération (connect ou disconnect) s’exécute à la fois. */
     private ready: Promise<void> = Promise.resolve();
-
-    private prime_object: ICheckListItem = null;
+    private source: string = null;
+    private vo: IDistantVOBase | null = null;
 
     public static getInstance() {
         if (!OseliaRealtimeController.instance) {
@@ -72,42 +76,60 @@ export default class OseliaRealtimeController extends VueComponentBase {
     }
 
 
-    public async connect_to_realtime(cr_vo?: IPlanRDVCR,prime_object?:ICheckListItem): Promise<void> {
-        return this.lock(() => this._connect_impl(cr_vo, prime_object));
+    public async connect_to_realtime(oselia_run_template_name: string, prompt?: string, map_cache_vo?: {[cache_key: string] : IDistantVOBase | null}): Promise<void> {
+        return this.lock(() => this._connect_impl(oselia_run_template_name, prompt, map_cache_vo));
     }
 
     /**  Implémentation interne : connexion */
-    private async _connect_impl(cr_vo?: IPlanRDVCR,prime_object?:ICheckListItem): Promise<void> {
+    private async _connect_impl(oselia_run_template_name:string, prompt?:string, map_cache_vo?: {[cache_key: string] : IDistantVOBase | null}): Promise<void> {
 
         /* 0)  Si déjà connecté → rien à faire */
-        if (this.is_connected_to_realtime && !cr_vo && !prime_object) return;
+        if (this.is_connected_to_realtime && !map_cache_vo) return;
 
         /* 1)  S’il y avait une connexion en cours, on la coupe proprement */
         if (this.is_connected_to_realtime) {
             await this._disconnect_impl();              // garanti non réentrant grâce à lock()
         }
 
-        /* 2)  Mémorise le contexte CR */
-        this.in_cr_context = !!cr_vo;
-        this.cr_vo = cr_vo ?? null;
-        this.prime_object = prime_object ?? null;
-        this.in_prime_context = !!this.prime_object;
+        this.map_cache_vo = map_cache_vo;
 
+        /* 2)  On récupère le template de run */
+        this.oselia_run_template = await query(OseliaRunTemplateVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<OseliaRunTemplateVO>().name, oselia_run_template_name)
+            .select_vo<OseliaRunTemplateVO>();
+
+        if (!this.oselia_run_template) {
+            throw new Error(`Le template de run "${oselia_run_template_name}" n'existe pas.`);
+        }
+        /* 3) On donne le prompt s'il existe au template */
+        this.oselia_run_template.initial_content_text = prompt || '';
         /* 3)  (re)crée un thread si besoin */
         if (!this.call_thread) {
             const thread_id = await ModuleOselia.getInstance().create_thread();
-            if (!thread_id) throw new Error('Impossible de créer le thread');
+            if (!thread_id) throw new Error('OseliaRealtimeController : Impossible de créer le thread');
             this.call_thread = await query(GPTAssistantAPIThreadVO.API_TYPE_ID)
                 .filter_by_id(thread_id)
                 .select_vo<GPTAssistantAPIThreadVO>();
-            /*  + config assistant… */
+            if (!this.call_thread) throw new Error('OseliaRealtimeController : Impossible de récupérer le thread');
+
+            /* 4) On donne au thread l'assistant */
+            if (this.oselia_run_template.assistant_id) {
+                this.call_thread.current_oselia_assistant_id = this.oselia_run_template.assistant_id;
+                this.call_thread.current_default_assistant_id = this.oselia_run_template.assistant_id;
+            }
+            await ModuleDAO.getInstance().insertOrUpdateVO(this.call_thread);
         }
 
-        /* 4)  Drapeaux */
+        /* 5) On met le vo dans le cache du thread */
+        if (map_cache_vo && this.call_thread) {
+            await ModuleOselia.getInstance().set_cache_value(this.call_thread, Object.keys(map_cache_vo)[0], JSON.stringify(Object.values(map_cache_vo)[0]), this.call_thread.id);
+        }
+
+        /* 6)  Drapeaux */
         this.connecting = true;
         this.connection_ready = false;
 
-        /* 5)  Connecte au serveur + initialise VAD/micro */
+        /* 7)  Connecte au serveur + initialise VAD/micro */
         await this.connect_to_server(this.call_thread.gpt_thread_id);
 
         await this.initRecorder();          // démarre la capture micro
@@ -166,48 +188,20 @@ export default class OseliaRealtimeController extends VueComponentBase {
         return next;
     }
 
-    private async startVAD(call_thread?: GPTAssistantAPIThreadVO) {
-        if (this.realtime_is_recording) return; // déjà en cours
-
-        if (!this.is_connected_to_realtime) {
-            await this.connect_to_server(call_thread?.gpt_thread_id);
-        }
-        if (this.in_cr_context) {
-            if (this.cr_vo) {
-                // await this.send_function_to_realtime();
-                await this.send_cr_to_realtime();
-            }
-        }
-        await this.initRecorder();
-    }
-
-    private async stop_realtime() {
-        await this.stopRecorder();
-        await this.close_realtime();
-    }
-
     private async connect_to_server(gpt_thread_id: string | null) {
         if (this.is_connected_to_realtime) return;
         try {
             if (this.session_overload_object) {
                 this.session_id = this.session_overload_object.id;
-            } else {
-                if (this.in_cr_context) {
-                    this.session_id = (await query(GPTRealtimeAPISessionVO.API_TYPE_ID)
-                        .filter_by_text_eq(field_names<GPTRealtimeAPISessionVO>().name, ModuleOselia.OSELIA_REALTIME_CR_SESSION_NAME)
-                        .select_vo<GPTRealtimeAPISessionVO>()).id;
-                }
-                if( this.in_prime_context ) {
-                    this.session_id = (await query(GPTRealtimeAPISessionVO.API_TYPE_ID)
-                        .filter_by_text_eq(field_names<GPTRealtimeAPISessionVO>().name, ModuleOselia.OSELIA_REALTIME_PRIME_SESSION_NAME)
-                        .select_vo<GPTRealtimeAPISessionVO>()).id;
-                }
             }
+
             await ModuleGPT.getInstance().connect_to_realtime_voice(
-                String(this.session_id),
+                this.session_id ? String(this.session_id) : null,
                 gpt_thread_id,
                 String(this.call_thread.id),
-                VueAppController.getInstance().data_user.id
+                VueAppController.getInstance().data_user.id,
+                this.oselia_run_template,
+                Object.keys(this.map_cache_vo)[0]
             );
 
             const { protocol, hostname, port } = window.location;
@@ -222,16 +216,6 @@ export default class OseliaRealtimeController extends VueComponentBase {
                 ConsoleHandler.log('WS Opened');
                 this.connecting = false;
                 this.socket!.send(JSON.stringify({ conversation_id: gpt_thread_id }));
-
-                // ⬇ ICI : envoie les données après handshake
-                setTimeout(() => {
-                    if (this.in_cr_context && this.cr_vo) {
-                        this.send_cr_to_realtime();
-                    }
-                    if (this.in_prime_context && this.prime_object) {
-                        this.send_prime_object_to_realtime();
-                    }
-                }, 50);
             };
             this.socket.onmessage = this.handleSocketMessage.bind(this);
             this.socket.onclose = () => {
@@ -247,7 +231,7 @@ export default class OseliaRealtimeController extends VueComponentBase {
             this.call_thread!.realtime_activated = true;
             await ModuleDAO.getInstance().insertOrUpdateVO(this.call_thread);
         } catch (err) {
-            ConsoleHandler.error('Erreur connexion websocket: ' + err);
+            ConsoleHandler.error('OseliaRealtimeController : Erreur connexion websocket: ' + err);
             this.connecting = false;
             this.close_realtime.bind(this);
         }
@@ -336,7 +320,7 @@ export default class OseliaRealtimeController extends VueComponentBase {
 
             this.realtime_is_recording = true;
         } catch (err) {
-            ConsoleHandler.error('Erreur accès micro: ' + err);
+            ConsoleHandler.error('OseliaRealtimeController : Erreur accès micro: ' + err);
             await this.close_realtime();
         }
     }
@@ -375,17 +359,6 @@ export default class OseliaRealtimeController extends VueComponentBase {
             out[i] = Math.round(s < 0 ? s * 0x8000 : s * 0x7fff);
         }
         return out;
-    }
-
-    private concatUint8Arrays(chunks: Uint8Array[]): Uint8Array {
-        const total = chunks.reduce((s, a) => s + a.length, 0);
-        const res = new Uint8Array(total);
-        let off = 0;
-        for (const c of chunks) {
-            res.set(c, off);
-            off += c.length;
-        }
-        return res;
     }
 
     private base64ToUint8(b64: string): Uint8Array {
@@ -437,31 +410,5 @@ export default class OseliaRealtimeController extends VueComponentBase {
             this.currentSrc = null;
         }
         this.isPlaying = false;
-    }
-
-    private emitReady(state: boolean) {
-        EventsController.emit_event(EventifyEventInstanceVO.new_event(ModuleOselia.EVENT_OSELIA_REALTIME_READY, state));
-    }
-
-    private async send_cr_to_realtime(){
-        if (this.socket?.readyState === WebSocket.OPEN) {
-            this.socket.send(JSON.stringify({
-                type: "cr_data",
-                cr_vo: this.cr_vo,
-            }));
-        }
-    }
-
-    private async send_prime_object_to_realtime() {
-        if (this.socket?.readyState === WebSocket.OPEN) {
-
-            this.socket.send(JSON.stringify({
-                type: "prime_object",
-                prime_object: this.prime_object,
-            }));
-        }
-    }
-
-    private async mounted() {
     }
 }

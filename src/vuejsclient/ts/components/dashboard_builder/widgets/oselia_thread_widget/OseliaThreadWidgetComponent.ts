@@ -61,6 +61,7 @@ import OseliaRealtimeController from "./OseliaRealtimeController";
 import GPTAssistantAPIAssistantFunctionVO from "../../../../../../shared/modules/GPT/vos/GPTAssistantAPIAssistantFunctionVO";
 import GPTAssistantAPIFunctionParamVO from "../../../../../../shared/modules/GPT/vos/GPTAssistantAPIFunctionParamVO";
 import { Console } from "console";
+import OseliaRunTemplateVO from "../../../../../../shared/modules/Oselia/vos/OseliaRunTemplateVO";
 
 @Component({
     template: require('./OseliaThreadWidgetComponent.pug'),
@@ -389,22 +390,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
                 used_assistant = this.currently_selected_assistant ? this.currently_selected_assistant : this.assistant;
             }
 
-            if (!this.realtime_session) {
-                if (!used_assistant) {
-                    ConsoleHandler.error("No assistant selected for the realtime session.");
-                    return;
-                }
-
-                this.realtime_session = new GPTRealtimeAPISessionVO();
-                this.realtime_session.name = used_assistant.nom;
-                this.realtime_session.created_at = Dates.now();
-                this.realtime_session.assistant_id = used_assistant.id;
-
-                this.realtime_session.id = (await ModuleDAO.getInstance().insertOrUpdateVO(this.realtime_session)).id;
-            }
-
-            controller.session_overload_object = this.realtime_session;
-            await controller.connect_to_realtime();
+            await controller.connect_to_realtime(OseliaRunTemplateVO.NEW_SESSION_OSELIA_RUN_TEMPLATE);
         } else {
         // On ne peut pas utiliser le realtime
             controller.disconnect_to_realtime();

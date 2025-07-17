@@ -1,5 +1,24 @@
 @import 'skin-variables.scss';
 
+#rdv_modal_cr .crsandnew .cr button {
+    background: #eee;
+    border-radius: 4px;
+    padding: 4px 6px;
+    cursor: pointer;
+    color: #333;
+    border: none;
+    font-size: 14px;
+    transition: background .2s;
+
+    &:hover {
+        background: #ddd;
+    }
+
+    i {
+        margin-right: 0;
+    }
+}
+
 #rdv_modal_cr {
 
     .cr_title {

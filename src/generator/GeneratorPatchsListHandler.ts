@@ -87,6 +87,7 @@ import Patch20250512AddOseliaFunction_OSELIA_get_langs from './patchs/postmodule
 import Patch20250512AddOseliaRunTemplate_AskAssistant from './patchs/postmodules/Patch20250512AddOseliaRunTemplate_AskAssistant';
 import Patch20250512AddOseliaRunTemplate_NewDatasForSupervisor from './patchs/postmodules/Patch20250512AddOseliaRunTemplate_NewDatasForSupervisor';
 import Patch20250512OSELIA_ActivateFunction_getLangs_OnAssistant_SuperviseurTraduction from './patchs/postmodules/Patch20250512OSELIA_ActivateFunction_getLangs_OnAssistant_SuperviseurTraduction';
+import Patch20250716AddOseliaRunTemplate_SessionRealtime from './patchs/postmodules/Patch20250716AddOseliaRunTemplate_SessionRealtime';
 import Patch20122024TruncateLogsUpdated from './patchs/premodules/Patch20122024TruncateLogsUpdated';
 import Patch20210803ChangeDIHDateType from './patchs/premodules/Patch20210803ChangeDIHDateType';
 import Patch20210914ClearDashboardWidgets from './patchs/premodules/Patch20210914ClearDashboardWidgets';
@@ -132,6 +133,7 @@ import Patch20250228DeleteDuplicateGraphVO from './patchs/premodules/Patch202502
 import Patch20250304DropArchivesConfVO from './patchs/premodules/Patch20250304TruncateArchivesConfVO';
 import Patch20250507InitLastOseliaRunID from './patchs/premodules/Patch20250507InitLastOseliaRunID';
 import Patch20250507OseliaRunTemplateNames from './patchs/premodules/Patch20250507OseliaRunTemplateNames';
+import Patch20250717AddFunctionToGPT from './patchs/postmodules/Patch20250717AddFunctionToGPT';
 
 export default class GeneratorPatchsListHandler {
 
@@ -290,5 +292,7 @@ export default class GeneratorPatchsListHandler {
 
         Patch20250512AddOseliaFunction_OSELIA_get_langs.getInstance(),
         Patch20250512OSELIA_ActivateFunction_getLangs_OnAssistant_SuperviseurTraduction.getInstance(),
+        Patch20250716AddOseliaRunTemplate_SessionRealtime.getInstance(),
+        Patch20250717AddFunctionToGPT.getInstance(),
     ];
 }

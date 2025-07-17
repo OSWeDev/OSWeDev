@@ -13,7 +13,7 @@ export default class OseliaRunVO implements IDistantVOBase, IVersionedVO {
     public static RUN_TYPE_ASSISTANT: number = 0;
     public static RUN_TYPE_FOREACH_IN_SEPARATED_THREADS: number = 1;
     public static RUN_TYPE_AGENT: number = 2;
-
+    public static RUN_TYPE_REALTIME: number = 3;
     public static STATE_LABELS: string[] = [
         "OseliaRunVO.STATE_TODO",
         "OseliaRunVO.STATE_SPLITTING",
@@ -87,6 +87,11 @@ export default class OseliaRunVO implements IDistantVOBase, IVersionedVO {
      * L'assistant qui devra prendre en charge ce run
      */
     public assistant_id: number;
+
+    /**
+     *  L'id de la session GPT Realtime API associée à ce run
+     */
+    public gpt_realtime_session_id: number;
 
     /**
      * L'assistant par défaut pour les discussions Oselia sur ce thread si on crée un nouveau thread

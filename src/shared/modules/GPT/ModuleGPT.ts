@@ -48,17 +48,15 @@ import GPTAssistantAPIVectorStoreVO from './vos/GPTAssistantAPIVectorStoreVO';
 import GPTCompletionAPIConversationVO from './vos/GPTCompletionAPIConversationVO';
 import GPTCompletionAPIMessageVO from './vos/GPTCompletionAPIMessageVO';
 import GPTRealtimeAPISessionVO from './vos/GPTRealtimeAPISessionVO';
-import IPlanRDVCR from '../ProgramPlan/interfaces/IPlanRDVCR';
-import APIGPTEditCRWord, { APIGPTEditCRWordStatic } from './api/APIGPTEditCRWord';
 import APIGPTInsertComprehendedText from './api/APIGPTInsertComprehendedText';
+import IDistantVOBase from '../IDistantVOBase';
+import OseliaRunTemplateVO from '../Oselia/vos/OseliaRunTemplateVO';
 
 export default class ModuleGPT extends Module {
 
     public static MODULE_NAME: string = 'GPT';
 
     public static PARAM_NAME_MODEL_ID: string = 'PARAM_NAME_MODEL_ID';
-    public static ASSISTANT_REALTIME_NAME: string = 'assistant_realtime';
-
     /**
      * @deprecated use Assistants instead => cheaper / faster / better control. Will be removed soon
      */
@@ -113,7 +111,6 @@ export default class ModuleGPT extends Module {
 
     public summerize: (thread_id: number) => Promise<FileVO> = APIControllerWrapper.sah_optimizer<NumberParamVO, FileVO>(this.name, reflect<this>().summerize);
     public insert_comprehended_text : (target_thread_id: string, comprehension: string, user_id: number) => Promise<void> = APIControllerWrapper.sah_optimizer<APIGPTInsertComprehendedText, void>(this.name, reflect<this>().insert_comprehended_text);
-    public edit_cr_word: (new_content: string, section: string, cr_vo: IPlanRDVCR, cr_field_titles: string[]) => Promise<unknown> = APIControllerWrapper.sah_optimizer<APIGPTEditCRWord, unknown>(this.name, reflect<this>().edit_cr_word);
     /**
      * Demander un run d'un assistant suite à un nouveau message
      * @param session_id null pour une nouvelle session, id de la session au sens de l'API GPT
@@ -126,6 +123,8 @@ export default class ModuleGPT extends Module {
         conversation_id: string,
         thread_id: string,
         user_id: number,
+        oselia_run_template?: OseliaRunTemplateVO,
+        initial_cache_key?: string
     ) => void = APIControllerWrapper.sah_optimizer<APIRealtimeVoiceConnectParam, void>(this.name, reflect<this>().connect_to_realtime_voice);
 
     /**
@@ -187,14 +186,6 @@ export default class ModuleGPT extends Module {
             reflect<this>().summerize,
             [FileVO.API_TYPE_ID],
             NumberParamVOStatic,
-        ));
-
-        APIControllerWrapper.registerApi(PostAPIDefinition.new<APIGPTEditCRWord, void>(
-            ModuleGPT.POLICY_USE_OSELIA_REALTIME,
-            this.name,
-            reflect<this>().edit_cr_word,
-            null,
-            APIGPTEditCRWordStatic,
         ));
 
         APIControllerWrapper.registerApi(PostAPIDefinition.new<APIGPTInsertComprehendedText, void>(
@@ -831,10 +822,6 @@ export default class ModuleGPT extends Module {
     }
 
     private initializeGPTRealtimeAPISessionVO() {
-
-        ModuleTableFieldController.create_new(GPTRealtimeAPISessionVO.API_TYPE_ID, field_names<GPTRealtimeAPISessionVO>().assistant_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Assistant', true)
-            .set_many_to_one_target_moduletable_name(GPTAssistantAPIAssistantVO.API_TYPE_ID);
-
         ModuleTableFieldController.create_new(GPTRealtimeAPISessionVO.API_TYPE_ID, field_names<GPTRealtimeAPISessionVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
         ModuleTableFieldController.create_new(GPTRealtimeAPISessionVO.API_TYPE_ID, field_names<GPTRealtimeAPISessionVO>().input_audio_format, ModuleTableFieldVO.FIELD_TYPE_string, 'Format de l\'entrée audio', false, true, 'pcm16');
         ModuleTableFieldController.create_new(GPTRealtimeAPISessionVO.API_TYPE_ID, field_names<GPTRealtimeAPISessionVO>().input_audio_transcription_model, ModuleTableFieldVO.FIELD_TYPE_string, 'Modèle de transcription de l\'entrée audio', false, true, 'whisper-1');

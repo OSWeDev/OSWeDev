@@ -12,7 +12,6 @@ import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import ContextFilterVOHandler from '../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import SortByVO from '../../../shared/modules/ContextFilter/vos/SortByVO';
 import ManualTasksController from '../../../shared/modules/Cron/ManualTasksController';
 import IUserData from '../../../shared/modules/DAO/interface/IUserData';
 import ModuleTableVO from '../../../shared/modules/DAO/vos/ModuleTableVO';
@@ -267,7 +266,6 @@ export default class ModuleGPTServer extends ModuleServerBase {
         APIControllerWrapper.register_server_api_handler(ModuleGPT.getInstance().name, reflect<ModuleGPT>().get_tts_file, this.get_tts_file.bind(this));
         APIControllerWrapper.register_server_api_handler(ModuleGPT.getInstance().name, reflect<ModuleGPT>().transcribe_file, this.transcribe_file.bind(this));
         APIControllerWrapper.register_server_api_handler(ModuleGPT.getInstance().name, reflect<ModuleGPT>().summerize, this.summerize.bind(this));
-        APIControllerWrapper.register_server_api_handler(ModuleGPT.getInstance().name, reflect<ModuleGPT>().edit_cr_word, this.edit_cr_word.bind(this));
         APIControllerWrapper.register_server_api_handler(ModuleGPT.getInstance().name, reflect<ModuleGPT>().insert_comprehended_text, this.insert_comprehended_text.bind(this));
         APIControllerWrapper.register_server_api_handler(ModuleGPT.getInstance().name, reflect<ModuleGPT>().connect_to_realtime_voice, this.connect_to_realtime_voice.bind(this));
 
@@ -395,8 +393,10 @@ export default class ModuleGPTServer extends ModuleServerBase {
         conversation_id: string,
         thread_id: string,
         user_id: number,
+        oselia_run_template: OseliaRunTemplateVO | null = null,
+        initial_cache_key: string | null = null,
     ): Promise<void> {
-        return await GPTAssistantAPIServerController.connect_to_realtime_voice(session_id, conversation_id, thread_id, user_id);
+        return await GPTAssistantAPIServerController.connect_to_realtime_voice(session_id, conversation_id, thread_id, user_id, oselia_run_template, initial_cache_key);
     }
 
     public async assistant_function_get_vo_type_description_controller(
@@ -1213,28 +1213,6 @@ export default class ModuleGPTServer extends ModuleServerBase {
         await ModuleDAOServer.instance.insertOrUpdateVO_as_server(asking_message_vo);
     }
 
-    /**
-     * Met à jour une section spécifique avec un nouveau contenu HTML.
-     *
-     * @param new_content - Nouveau contenu HTML à insérer (peut inclure listes, gras, etc.).
-     * @param section - Nom de la section à modifier.
-     * @param cr_vo - Instance de IPlanRDVCR représentant le CR à modifier.
-     * @param cr_field_titles - Titres des champs du CR pour identifier la section.
-     * @return Promise<unknown> - Résultat de l'opération d'édition.
-     */
-    private async edit_cr_word(new_content: string, section: string, cr_vo: IPlanRDVCR,cr_field_titles: string[]): Promise<unknown> {
-        if (!ModuleProgramPlanBase.getInstance().rdv_cr_type_id) {
-            ConsoleHandler.error('edit_cr_word: No RDV CR type ID configured');
-            return;
-        }
-
-        return await ModuleProgramPlanBase.getInstance().editCRSectionContent(
-            new_content,
-            section,
-            cr_vo,
-            cr_field_titles,
-        );
-    }
 
     private async postcreate_ThreadMessageVO_handle_pipe(msg: GPTAssistantAPIThreadMessageVO) {
 

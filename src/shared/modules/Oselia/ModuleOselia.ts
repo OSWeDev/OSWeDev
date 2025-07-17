@@ -22,6 +22,7 @@ import GPTAssistantAPIAssistantVO from '../GPT/vos/GPTAssistantAPIAssistantVO';
 import GPTAssistantAPIFunctionVO from '../GPT/vos/GPTAssistantAPIFunctionVO';
 import GPTAssistantAPIRunVO from '../GPT/vos/GPTAssistantAPIRunVO';
 import GPTAssistantAPIThreadVO from '../GPT/vos/GPTAssistantAPIThreadVO';
+import GPTRealtimeAPISessionVO from '../GPT/vos/GPTRealtimeAPISessionVO';
 import Module from '../Module';
 import DefaultTranslationVO from '../Translation/vos/DefaultTranslationVO';
 import LangVO from '../Translation/vos/LangVO';
@@ -48,7 +49,10 @@ import OseliaUserReferrerOTTVO from './vos/OseliaUserReferrerOTTVO';
 import OseliaUserReferrerVO from './vos/OseliaUserReferrerVO';
 import OseliaVisionPriceVO from './vos/OseliaVisionPriceVO';
 import OpenOseliaDBParamVO, { OpenOseliaDBParamVOStatic } from './vos/apis/OpenOseliaDBParamVO';
+import OseliaGetCacheParamVO, { OseliaGetCacheParamVOStatic } from './vos/apis/OseliaGetCacheParamVO';
 import OseliaScreenshotParamVO, { OseliaScreenshotParamVOStatic } from './vos/apis/OseliaScreenshotParamVO';
+import OseliaSetCacheParamVO, { OseliaSetCacheParamVOStatic } from './vos/apis/OseliaSetCacheParamVO';
+import OseliaUpdateVOFieldParamVO, { OseliaUpdateVOFieldParamVOStatic } from './vos/apis/OseliaUpdateVOFieldParamVO';
 import RequestOseliaUserConnectionParamVO, { RequestOseliaUserConnectionParamVOStatic } from './vos/apis/RequestOseliaUserConnectionParamVO';
 export default class ModuleOselia extends Module {
 
@@ -60,14 +64,11 @@ export default class ModuleOselia extends Module {
     public static OSELIA_DB_ID_PARAM_NAME: string = 'ModuleOselia.oselia_db_id';
     public static OSELIA_EXPORT_DASHBOARD_ID_PARAM_NAME: string = 'ModuleOselia.oselia_export_dashboard_id';
     public static OSELIA_THREAD_DASHBOARD_ID_PARAM_NAME: string = 'ModuleOselia.oselia_thread_dashboard_id';
-    public static OSELIA_REALTIME_CR_SESSION_NAME: string = 'Editeur de Compte Rendu';
-    public static OSELIA_REALTIME_PRIME_SESSION_NAME: string = 'Bonus Editor';
     /**
      * Définition des noms des rôles de thread
      */
     public static ROLE_OWNER = ModuleOselia.ROLE_UID_PREFIX + 'owner';
     public static ROLE_USER = ModuleOselia.ROLE_UID_PREFIX + 'user';
-
     /**
      * Droit d'accès aux discussions sur le front
      */
@@ -90,7 +91,10 @@ export default class ModuleOselia extends Module {
     public static APINAME_get_screen_track: string = "oselia__get_screen_track";
     public static APINAME_account_waiting_link_status: string = "oselia__account_waiting_link_status";
     public static APINAME_send_join_request: string = "oselia__send_join_request";
+    public static APINAME_update_vo_field: string = "oselia__update_vo_field";
     public static APINAME_create_thread: string = "oselia__create_thread";
+    public static APINAME_set_cache_value: string = "oselia__set_cache_value";
+    public static APINAME_get_cache_value: string = "oselia__get_cache_value";
 
     public static APINAME_replay_function_call: string = "oselia__replay_function_call";
     public static APINAME_notify_thread_loaded: string = "oselia__notify_thread_loaded";
@@ -116,8 +120,11 @@ export default class ModuleOselia extends Module {
     public refuse_link: (referrer_user_ott: string) => Promise<void> = APIControllerWrapper.sah(ModuleOselia.APINAME_refuse_link);
     public set_screen_track: (track: MediaStreamTrack) => Promise<void> = APIControllerWrapper.sah(ModuleOselia.APINAME_set_screen_track);
     public get_screen_track: () => Promise<MediaStreamTrack | null> = APIControllerWrapper.sah(ModuleOselia.APINAME_get_screen_track);
+    public set_cache_value: (thread_vo: GPTAssistantAPIThreadVO, key: string, value: string, thread_id: number) => Promise<void> = APIControllerWrapper.sah(ModuleOselia.APINAME_set_cache_value);
+    public get_cache_value: (thread_vo: GPTAssistantAPIThreadVO, key: string) => Promise<string | null> = APIControllerWrapper.sah(ModuleOselia.APINAME_get_cache_value);
     public account_waiting_link_status: (referrer_user_ott: string) => Promise<'validated' | 'waiting' | 'none'> = APIControllerWrapper.sah(ModuleOselia.APINAME_account_waiting_link_status);
     public send_join_request: (asking_user_id: number, thread_id: number) => Promise<'accepted' | 'denied' | 'timed out'> = APIControllerWrapper.sah(ModuleOselia.APINAME_send_join_request);
+    public update_vo_field: (vo_type_id: string, vo_id: number, field_name: string, value: any) => Promise<void> = APIControllerWrapper.sah(ModuleOselia.APINAME_update_vo_field);
 
     public instantiate_oselia_run_from_event: (event: EventifyEventInstanceVO, listener: EventifyEventListenerInstanceVO) => Promise<void> =
         APIControllerWrapper.sah_optimizer(this.name, reflect<ModuleOselia>().replay_function_call);
@@ -333,7 +340,8 @@ export default class ModuleOselia extends Module {
 
         ModuleTableController.create_new(this.name, OseliaRunVO, label, 'Oselia - Run');
         VersionedVOController.getInstance().registerModuleTable(ModuleTableController.module_tables_by_vo_type[OseliaRunVO.API_TYPE_ID]);
-
+        ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().gpt_realtime_session_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Session lié', false)
+            .set_many_to_one_target_moduletable_name(GPTRealtimeAPISessionVO.API_TYPE_ID);
         // On ajoute le lien vers OseliaRunVO dans le ThreadGPT
         ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().last_oselia_run_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Dernier run Osélia', false)
             .set_many_to_one_target_moduletable_name(OseliaRunVO.API_TYPE_ID);
@@ -393,7 +401,18 @@ export default class ModuleOselia extends Module {
             ModuleOselia.APINAME_get_screen_track,
             null
         ));
-
+        APIControllerWrapper.registerApi(new PostAPIDefinition<OseliaSetCacheParamVO, void>(
+            ModuleOselia.POLICY_BO_ACCESS,
+            ModuleOselia.APINAME_set_cache_value,
+            null,
+            OseliaSetCacheParamVOStatic
+        ));
+        APIControllerWrapper.registerApi(new GetAPIDefinition<OseliaGetCacheParamVO, string | null>(
+            null,
+            ModuleOselia.APINAME_get_cache_value,
+            null,
+            OseliaGetCacheParamVOStatic
+        ));
         APIControllerWrapper.registerApi(PostAPIDefinition.new<DefaultParamTranslatorVO<[EventifyEventInstanceVO, EventifyEventListenerInstanceVO]>, void>(
             ModuleOselia.POLICY_BO_ACCESS,
             this.name,
@@ -423,6 +442,12 @@ export default class ModuleOselia extends Module {
             UserParamStatic
         ));
 
+        APIControllerWrapper.registerApi(new PostAPIDefinition<OseliaUpdateVOFieldParamVO, string>(
+            null,
+            ModuleOselia.APINAME_update_vo_field,
+            null,
+            OseliaUpdateVOFieldParamVOStatic
+        ));
         APIControllerWrapper.registerApi(new PostAPIDefinition<void, number>(
             null,
             ModuleOselia.APINAME_create_thread,

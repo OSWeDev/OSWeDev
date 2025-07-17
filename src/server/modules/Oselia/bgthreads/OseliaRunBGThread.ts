@@ -483,6 +483,10 @@ export default class OseliaRunBGThread implements IBGThread {
 
             case OseliaRunVO.RUN_TYPE_AGENT:
                 return;
+            case OseliaRunVO.RUN_TYPE_REALTIME:
+                await OseliaRunServerController.update_oselia_run_state(run, OseliaRunVO.STATE_RUNNING);
+                // Ici, ne pas appeler run_run, juste attendre que le realtime fasse les appels de fonction via WebSocket
+                break;
             case OseliaRunVO.RUN_TYPE_ASSISTANT:
             default:
                 await OseliaRunServerController.update_oselia_run_state(run, OseliaRunVO.STATE_RUNNING);

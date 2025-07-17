@@ -1,5 +1,6 @@
 
 import IDistantVOBase from '../../IDistantVOBase';
+import ModuleOselia from '../../Oselia/ModuleOselia';
 import GPTAssistantAPIErrorVO from './GPTAssistantAPIErrorVO';
 
 export default class GPTRealtimeAPISessionVO implements IDistantVOBase {
@@ -13,8 +14,6 @@ export default class GPTRealtimeAPISessionVO implements IDistantVOBase {
     public name: string;
     // Timestamp for when the token expires. Currently, all tokens expire after one minute.
     public client_secret_expires_at: string;
-
-    public assistant_id: number;
 
     // Ephemeral key usable in client environments to authenticate connections to the Realtime API. Use this in client-side environments rather than a standard API token, which should only be used server-side.
     public client_secret_value: string;

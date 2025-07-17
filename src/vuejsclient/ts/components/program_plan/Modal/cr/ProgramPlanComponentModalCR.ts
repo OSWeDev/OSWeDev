@@ -31,6 +31,8 @@ import EnvHandler from '../../../../../../shared/tools/EnvHandler';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleGPT from '../../../../../../shared/modules/GPT/ModuleGPT';
 import OseliaController from '../../../../../../shared/modules/Oselia/OseliaController';
+import GPTRealtimeAPISessionVO from '../../../../../../shared/modules/GPT/vos/GPTRealtimeAPISessionVO';
+import OseliaRunTemplateVO from '../../../../../../shared/modules/Oselia/vos/OseliaRunTemplateVO';
 const debounce = require('lodash/debounce');
 
 @Component({
@@ -112,6 +114,8 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
     private debounced_update_cr_action = debounce(this.update_cr_action, 1000);
     private POLICY_CAN_USE_REALTIME: boolean = false;
     private in_edit_inline: boolean = false;
+    private revertToPreviousVersionBool: boolean = false;
+    private revertToNextVersionBool: boolean = false;
 
     get custom_cr_create_component() {
         return this.program_plan_controller.customCRCreateComponent;
@@ -311,7 +315,12 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
             return;
         }
         if (this.oselia_opened) {
-            OseliaRealtimeController.getInstance().connect_to_realtime(this.selected_rdv_cr);
+            const prompt_for_realtime = "Nous sommes en train d'éditer un CR, voici ses informations :\n\n" +
+                "Fichier lié : " + (this.selected_rdv_cr ? this.selected_rdv_cr.cr_file_id : '') + "\n" +
+                "ID du CR : " + (this.selected_rdv_cr ? this.selected_rdv_cr.id : '') + "\n" +
+                "Id du RDV lié : " + (this.selected_rdv_cr ? this.selected_rdv_cr.rdv_id : '');
+            const cache_key = this.selected_rdv_cr ? this.selected_rdv_cr._type + '_' + this.selected_rdv_cr.id : '';
+            OseliaRealtimeController.getInstance().connect_to_realtime(ModuleProgramPlanBase.getInstance().getAssistantName('CR'), prompt_for_realtime, { [cache_key]: this.selected_rdv_cr });
         } else {
             OseliaRealtimeController.getInstance().disconnect_to_realtime();
         }
@@ -472,6 +481,12 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
         this.in_edit_inline = edit_inline;
     }
 
+    private togglePrevious() {
+        this.revertToPreviousVersionBool = !this.revertToPreviousVersionBool;
+    }
+    private toggleNext() {
+        this.revertToNextVersionBool = !this.revertToNextVersionBool;
+    }
     private async update_cr_action(cr: IPlanRDVCR, autosave: boolean) {
         this.$snotify.async(this.label('programplan.update_cr.start'), () => new Promise(async (resolve, reject) => {
             try {
