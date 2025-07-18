@@ -32,6 +32,7 @@ import InlineTranslatableText from '../InlineTranslatableText/InlineTranslatable
 import VueComponentBase from '../VueComponentBase';
 import ModuleTablesComponent from '../module_tables/ModuleTablesComponent';
 import './DashboardBuilderComponent.scss';
+import DashboardBuilderVueController from './DashboardBuilderVueController';
 import DashboardHistoryController from './DashboardHistoryController';
 import DashboardBuilderBoardComponent from './board/DashboardBuilderBoardComponent';
 import CrudDBLinkComponent from './crud_db_link/CrudDBLinkComponent';
@@ -42,8 +43,8 @@ import DashboardPageStore, { IDashboardGetters, IDashboardPageActionsMethods, ID
 import DashboardSharedFiltersComponent from './shared_filters/DashboardSharedFiltersComponent';
 import DashboardViewportConfComponent from './viewport_conf/DashboardViewportConfComponent';
 import DashboardBuilderWidgetsComponent from './widgets/DashboardBuilderWidgetsComponent';
-import DashboardBuilderVueController from './DashboardBuilderVueController';
-import DashboardRightsComponent from './rights/DashboardRightsComponent';
+import { filter } from '../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import RangeHandler from '../../../../shared/tools/RangeHandler';
 
 @Component({
     template: require('./DashboardBuilderComponent.pug'),
@@ -57,7 +58,7 @@ import DashboardRightsComponent from './rights/DashboardRightsComponent';
         Moduletablescomponent: ModuleTablesComponent,
         Cruddblinkcomponent: CrudDBLinkComponent,
         DashboardViewportConfComponent: DashboardViewportConfComponent,
-        DashboardRightsComponent: DashboardRightsComponent,
+        // DashboardRightsComponent: DashboardRightsComponent,
     },
 })
 export default class DashboardBuilderComponent extends VueComponentBase implements IDashboardPageConsumer {
@@ -82,14 +83,62 @@ export default class DashboardBuilderComponent extends VueComponentBase implemen
     @Provide('storeNamespace')
     public readonly storeNamespace = `dashboardStore_${DashboardPageStore.__UID++}`;
 
-    @SyncVOs(DashboardVO.API_TYPE_ID, { debug: true })
+    @SyncVOs(DashboardVO.API_TYPE_ID, {
+        debug: true,
+
+        watch_fields: [
+            reflect<DashboardBuilderComponent>().selected_dbb_conf,
+            reflect<DashboardBuilderComponent>().dbb_confs,
+        ],
+
+        filters_factory: (self) => {
+
+            if (!self.selected_dbb_conf) {
+
+                // Si on a pas de conf sélectionnée, on charge les dbs de toutes les confs auxquelles on a accès
+                if (!self.dbb_confs || self.dbb_confs.length === 0) {
+                    // Si on a pas accès à des confs, on a pas accès aux dashboards
+                    return null;
+                }
+
+                // On filtre les dbs par conf
+                return [
+                    filter(DashboardVO.API_TYPE_ID, field_names<DashboardVO>().dbb_conf_id).by_num_x_ranges(RangeHandler.get_ids_ranges_from_vos(self.dbb_confs)),
+                ];
+            }
+
+            return [
+                filter(DashboardVO.API_TYPE_ID, field_names<DashboardVO>().dbb_conf_id).by_num_eq(self.selected_dbb_conf.id),
+            ];
+        },
+    })
     public dashboards: DashboardVO[] = []; // All the dashboards available in the system, used to select a dashboard to edit
 
     @SyncVO(DashboardVO.API_TYPE_ID, {
         debug: true,
 
-        watch_fields: [reflect<DashboardBuilderComponent>().dashboard_id],
-        id_factory: (self) => self.dashboard_id,
+        watch_fields: [
+            reflect<DashboardBuilderComponent>().dashboard_id,
+            reflect<DashboardBuilderComponent>().dashboards,
+        ],
+        id_factory: (self) => {
+
+            // On doit checker que le dashboard_id est dans les dashboards
+            if (!self.dashboards || self.dashboards.length === 0) {
+                return null;
+            }
+
+            if (!self.dashboard_id) {
+                // Si on n'a pas de dashboard_id, on prend le premier dashboard disponible
+                return self.dashboards[0].id;
+            }
+
+            if (self.dashboards.some((db) => db.id === self.dashboard_id)) {
+                return self.dashboard_id;
+            }
+
+            return self.dashboards[0].id; // Si le dashboard_id n'est pas dans les dashboards, on prend le premier dashboard disponible
+        },
         sync_to_store_namespace: (self) => self.storeNamespace,
     })
     public dashboard: DashboardVO = null; // The current dashboard
@@ -132,6 +181,7 @@ export default class DashboardBuilderComponent extends VueComponentBase implemen
     public can_use_clipboard: boolean = false;
 
     public export_vos_to_json_conf: ExportVOsToJSONConfVO = null;
+    public selected_dbb_conf: DBBConfVO = null; // The current DBB configuration selected by the user, used to filter the available DBs
 
     public all_tables_by_table_name: { [table_name: string]: ModuleTableVO } = {};
 
@@ -330,6 +380,16 @@ export default class DashboardBuilderComponent extends VueComponentBase implemen
         }
     }
 
+    @SafeWatch(reflect<DashboardBuilderComponent>().get_current_dbb_conf)
+    public async onchange_get_current_dbb_conf(): Promise<void> {
+
+        if (this.selected_dbb_conf && this.selected_dbb_conf.is_main_admin_conf) {
+            // Si on est dans la conf admin, on n'a pas besoin de changer la conf sélectionnée
+            return;
+        }
+        this.selected_dbb_conf = this.get_current_dbb_conf;
+    }
+
     @SafeWatch(reflect<DashboardBuilderComponent>().get_page_widgets)
     public async onchange_on_pages_page_widgets() {
         if (this.get_page_widgets?.length > 0) {
@@ -479,6 +539,18 @@ export default class DashboardBuilderComponent extends VueComponentBase implemen
         }
 
         return dashboard.id + ' | ' + this.t(dashboard.title);
+    }
+
+    public dbb_conf_label(dbb_conf: DBBConfVO): string {
+        if ((dbb_conf == null) || (typeof dbb_conf == 'undefined')) {
+            return '';
+        }
+
+        return dbb_conf.id + ' | ' + this.t(dbb_conf.name);
+    }
+
+    public on_dbb_conf_selection(dbb_conf: DBBConfVO): void {
+        this.selected_dbb_conf = dbb_conf;
     }
 
     public async paste_dashboard(import_on_vo: DashboardVO = null) {

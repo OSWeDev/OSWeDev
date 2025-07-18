@@ -280,8 +280,25 @@ export default class Patch20250717UpdateWidgetsIconHTML implements IGeneratorWor
 
                 case DashboardWidgetVO.WIDGET_NAME_checklist:
                     widget.icon_html = `
-        <i class='.fa-lg.fa-fw.fa.fa-check-circle"></i>
+        <i class='fa-lg fa-fw fa fa-check-circle"></i>
         `;
+                    break;
+
+                case DashboardWidgetVO.WIDGET_NAME_perfreportgraph:
+                    widget.icon_html = `
+        <i class='fa-lg fa-fw fa-duotone fa-solid fa-chart-gantt'></i>
+        `;
+                    break;
+
+                case DashboardWidgetVO.WIDGET_NAME_supervision_type:
+                    widget.icon_html = `
+        <i class='fa-lg fa-fw fa-duotone fa-filters'></i>
+        `;
+                    break;
+
+                case 'varlinechart':
+                    // Bah en fait on le supprime celui là par ce que je vois pas la ref ....
+                    await ModuleDAOServer.getInstance().deleteVOs_as_server([widget]);
                     break;
 
                 default:

@@ -2,6 +2,7 @@
 
 import { IDatabase } from 'pg-promise';
 import ConfigurationService from '../../../server/env/ConfigurationService';
+import ModuleDAOServer from '../../../server/modules/DAO/ModuleDAOServer';
 import ModuleTranslationServer from '../../../server/modules/Translation/ModuleTranslationServer';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import DashboardWidgetVO from '../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
@@ -295,6 +296,35 @@ export default class Patch20250717AddWidgetsNames implements IGeneratorWorker {
                         ConfigurationService.node_configuration.default_locale,
                         'Fil Osélia',
                     );
+                    break;
+
+                case DashboardWidgetVO.WIDGET_NAME_perfreportgraph:
+                    await ModuleTranslationServer.getInstance().set_translation_if_not_exists(
+                        widget.label,
+                        ConfigurationService.node_configuration.default_locale,
+                        'Graphique de rapport de performance',
+                    );
+                    break;
+
+                case DashboardWidgetVO.WIDGET_NAME_checklist:
+                    await ModuleTranslationServer.getInstance().set_translation_if_not_exists(
+                        widget.label,
+                        ConfigurationService.node_configuration.default_locale,
+                        'CheckList',
+                    );
+                    break;
+
+                case DashboardWidgetVO.WIDGET_NAME_supervision_type:
+                    await ModuleTranslationServer.getInstance().set_translation_if_not_exists(
+                        widget.label,
+                        ConfigurationService.node_configuration.default_locale,
+                        'Supervision par type',
+                    );
+                    break;
+
+                case 'varlinechart':
+                    // Bah en fait on le supprime celui là par ce que je vois pas la ref ....
+                    await ModuleDAOServer.getInstance().deleteVOs_as_server([widget]);
                     break;
 
                 default:

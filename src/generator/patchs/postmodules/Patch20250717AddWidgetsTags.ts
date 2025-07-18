@@ -153,6 +153,8 @@ export default class Patch20250717AddWidgetsTags implements IGeneratorWorker {
                 case DashboardWidgetVO.WIDGET_NAME_bulkops:
                 case DashboardWidgetVO.WIDGET_NAME_supervision:
                 case DashboardWidgetVO.WIDGET_NAME_suivicompetences:
+                case DashboardWidgetVO.WIDGET_NAME_checklist:
+                case DashboardWidgetVO.WIDGET_NAME_supervision_type:
                     tags.push(tag_table);
                     break;
 
@@ -192,14 +194,15 @@ export default class Patch20250717AddWidgetsTags implements IGeneratorWorker {
                     break;
 
                 case DashboardWidgetVO.WIDGET_NAME_crudbuttons:
-                    // ????
-                    break;
-
-
+                case DashboardWidgetVO.WIDGET_NAME_perfreportgraph:
                 case DashboardWidgetVO.WIDGET_NAME_pageswitch:
                     // ????
                     break;
 
+                case 'varlinechart':
+                    // Bah en fait on le supprime celui là par ce que je vois pas la ref ....
+                    await ModuleDAOServer.getInstance().deleteVOs_as_server([widget]);
+                    break;
 
                 default:
                     ConsoleHandler.error('Patch20250717AddWidgetsTags:work:widget:name:Unknown:' + widget.name);

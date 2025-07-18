@@ -10,6 +10,42 @@
         //-         i.fa-duotone.fa-exclamation-triangle.fa-fw.icon_error(aria-hidden="true")
         //-         | {{ label('dashboard_builder.loading_failed') }}
     template(v-else)
+        .row
+            .col-sm-12
+                .dbb_conf_selector_wrapper
+                    .row
+                        .col-sm-2
+                            .dbb_conf_title {{ label('dashboard_builder.dbb_conf_selector.title') }}
+                        .col-sm-10
+                            .dbb_conf_selector
+                                multiselect(
+                                    :preselect-first="false"
+                                    :multiple="false"
+
+                                    :value="selected_dbb_conf"
+                                    @input="on_dbb_conf_selection"
+
+                                    :placeholder="label('dashboard_builder.dbb_conf_selector.placeholder')"
+                                    :options="dbb_confs"
+                                    :custom-label="dbb_conf_label"
+                                    :allow-empty="false",
+
+                                    autocomplete="off"
+
+                                    :searchable="true"
+                                    :internal-search="true"
+
+                                    track-by="id"
+
+                                    :id="'dbb_conf_selector'"
+
+                                    :select-label='label("multiselect.selectLabel")'
+                                    :select-group-label='label("multiselect.selectGroupLabel")'
+                                    :selected-label='label("multiselect.selectedLabel")'
+                                    :deselect-label='label("multiselect.deselectLabel")'
+                                    :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                                )
+
         .row 
             .col-sm-12
                 .header 
@@ -222,6 +258,6 @@
             .col-sm-12.shared_filters_wrapper 
                 Dashboardsharedfilterscomponent
 
-        .row(v-if='get_selected_onglet == onglet_rights')
-            .col-sm-12.shared_filters_wrapper 
-                DashboardRightsComponent
+        //- .row(v-if='get_selected_onglet == onglet_rights')
+        //-     .col-sm-12.shared_filters_wrapper 
+        //-         DashboardRightsComponent

@@ -3,6 +3,63 @@
 .dashboard_builder {
     margin-bottom: 500px;
 
+    .dbb_conf_selector_wrapper {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+
+        .dbb_conf_title {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #495057;
+            display: flex;
+            align-items: center;
+            height: 2.5rem;
+        }
+
+        .dbb_conf_selector {
+            .multiselect {
+                min-height: 2.5rem;
+                border: 1px solid #ced4da;
+                border-radius: 0.375rem;
+                transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+
+                &:hover {
+                    border-color: #80bdff;
+                }
+
+                &:focus-within {
+                    border-color: #80bdff;
+                    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+                }
+
+                .multiselect__tags {
+                    border: none;
+                    background: white;
+                    min-height: 2.3rem;
+                }
+
+                .multiselect__single {
+                    color: #495057;
+                    font-weight: 500;
+                    padding-left: 0.5rem;
+                }
+
+                .multiselect__placeholder {
+                    color: #6c757d;
+                    padding-left: 0.5rem;
+                }
+
+                .multiselect__select {
+                    height: 2.3rem;
+                }
+            }
+        }
+    }
+
 
     .dash_board_title_wrapper .inline_translatable_text .multiselect {
         padding: .4em;
