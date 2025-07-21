@@ -18,6 +18,24 @@ export default class ModuleDashboardBuilderDefaultTranslationsHolder {
         }, 'StatVO.AGGREGATOR_MAX'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Aucun type de données n\'est compatible avec la construction de templates de données, ou la configuration actuelle du Dashboard Builder ne vous le permet pas.'
+        }, 'crud_db_link.no_api_type_is_available.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Vous devez avoir sélectionné une configuration de Dashboard Builder pour créer un nouveau dashboard.'
+        }, 'DashboardBuilderComponent.create_new_dashboard.no_dbb_conf_selected.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Configuration du Dashboard Builder'
+        }, 'dashboard_builder.dbb_conf_selector.title.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Sélectionner une configuration du Dashboard Builder'
+        }, 'dashboard_builder.dbb_conf_selector.placeholder.___LABEL___'));
+
+
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Titre'
         }, 'field_value_filter_widget_component.titre_code_text.___LABEL___'));
 

@@ -1,6 +1,5 @@
 import Vue from 'vue';
 import { ActionContext, ActionTree, GetterTree } from "vuex";
-import ModuleAccessPolicy from '../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ContextFilterVO from "../../../../../shared/modules/ContextFilter/vos/ContextFilterVO";
 import DashboardGraphVORefVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardGraphVORefVO';
 import DashboardPageVO from "../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO";
@@ -15,7 +14,6 @@ import SharedFiltersVO from '../../../../../shared/modules/DashboardBuilder/vos/
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import ObjectHandler from '../../../../../shared/tools/ObjectHandler';
 import RangeHandler from '../../../../../shared/tools/RangeHandler';
-import VueAppController from '../../../../VueAppController';
 import IStoreModule from "../../../store/IStoreModule";
 import { store_mutations_names } from '../../../store/StoreModuleBase';
 import VueComponentBase from "../../VueComponentBase";
@@ -140,37 +138,6 @@ const getters = {
         }
 
         return state.dbb_confs.find((dbb_conf) => dbb_conf.id == state.dashboard.dbb_conf_id) || null;
-    },
-
-    get_user_valid_dbb_confs(state: IDashboardPageState): DBBConfVO[] {
-        const res: DBBConfVO[] = [];
-
-        if (!state.dbb_confs || state.dbb_confs.length <= 0) {
-            return res;
-        }
-
-        if (!VueAppController.getInstance().data_user_roles || VueAppController.getInstance().data_user_roles.length <= 0) {
-            // No user roles, no valid DBB confs
-            return res;
-        }
-
-        const user_role_id_ranges = RangeHandler.get_ids_ranges_from_vos(VueAppController.getInstance().data_user_roles);
-
-        // Si le user a le rôle admin : on pousse toutes les confs
-        if (VueAppController.getInstance().data_user_roles.some((role) => role.translatable_name == ModuleAccessPolicy.ROLE_ADMIN)) {
-            return state.dbb_confs;
-        }
-
-        for (const i in state.dbb_confs) {
-            const dbb_conf = state.dbb_confs[i];
-
-            if (dbb_conf.role_id_ranges && RangeHandler.any_range_intersects_any_range(user_role_id_ranges, dbb_conf.role_id_ranges)) {
-                // If the user has at least one role that intersects with the DBB conf role_id_ranges
-                res.push(dbb_conf);
-            }
-        }
-
-        return res;
     },
 
     get_shared_filters_map(state: IDashboardPageState): SharedFiltersVO[] {
@@ -423,305 +390,301 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
     public getters: GetterTree<IDashboardPageState, DashboardPageContext>;
     public mutations = {
 
-        set_current_dbb_conf(state: IDashboardPageState, dbb_conf: DBBConfVO) {
+        set_selected_onglet(state: IDashboardPageState, selected_onglet: string) {
+            if (state.selected_onglet === selected_onglet) {
+                return;
+            }
 
+            state.selected_onglet = selected_onglet;
+        },
 
-            set_selected_onglet(state: IDashboardPageState, selected_onglet: string) {
-                if (state.selected_onglet === selected_onglet) {
-                    return;
+        set_crud_vo(state: IDashboardPageState, crud_vo: IDistantVOBase) {
+            if (state.crud_vo === crud_vo) {
+                return;
+            }
+
+            state.crud_vo = crud_vo;
+        },
+
+        set_dbb_confs(state: IDashboardPageState, dbb_confs: DBBConfVO[]) {
+            if (state.dbb_confs === dbb_confs) {
+                return;
+            }
+
+            state.dbb_confs = dbb_confs;
+        },
+
+        set_dashboard_page(state: IDashboardPageState, dashboard_page: DashboardPageVO) {
+            if (state.dashboard_page?.id == dashboard_page?.id) {
+                return;
+            }
+
+            state.dashboard_page = dashboard_page;
+        },
+
+        set_dashboard_id(state: IDashboardPageState, dashboard_id: number) {
+            if (state.dashboard_id === dashboard_id) {
+                return;
+            }
+
+            state.dashboard_id = dashboard_id;
+        },
+
+        set_viewports(state: IDashboardPageState, viewports: DashboardViewportVO[]) {
+            if (state.viewports === viewports) {
+                return;
+            }
+
+            state.viewports = viewports;
+        },
+        set_dashboard_current_viewport(state: IDashboardPageState, dashboard_current_viewport: DashboardViewportVO) {
+            if (state.dashboard_current_viewport?.id == dashboard_current_viewport?.id) {
+                return;
+            }
+
+            state.dashboard_current_viewport = dashboard_current_viewport;
+        },
+        set_dashboard_viewport_page_widgets(state: IDashboardPageState, dashboard_viewport_page_widgets: DashboardViewportPageWidgetVO[]) {
+            if (state.dashboard_viewport_page_widgets === dashboard_viewport_page_widgets) {
+                return;
+            }
+
+            state.dashboard_viewport_page_widgets = dashboard_viewport_page_widgets;
+        },
+
+        set_all_widgets(state: IDashboardPageState, all_widgets: DashboardWidgetVO[]) {
+            if (state.all_widgets === all_widgets) {
+                return;
+            }
+
+            state.all_widgets = all_widgets;
+        },
+
+        set_dashboard_pages(state: IDashboardPageState, dashboard_pages: DashboardPageVO[]) {
+            if (state.dashboard_pages === dashboard_pages) {
+                return;
+            }
+
+            state.dashboard_pages = dashboard_pages;
+        },
+
+        set_selected_page_page_widgets(state: IDashboardPageState, selected_page_page_widgets: DashboardPageWidgetVO[]) {
+            if (state.selected_page_page_widgets === selected_page_page_widgets) {
+                return;
+            }
+
+            state.selected_page_page_widgets = selected_page_page_widgets;
+        },
+
+        set_db_graph_vo_refs(state: IDashboardPageState, db_graph_vo_refs: DashboardGraphVORefVO[]) {
+            if (state.db_graph_vo_refs === db_graph_vo_refs) {
+                return;
+            }
+
+            state.db_graph_vo_refs = db_graph_vo_refs;
+        },
+
+        set_dashboard(state: IDashboardPageState, dashboard: DashboardVO) {
+            if (state.dashboard?.id == dashboard?.id) {
+                return;
+            }
+
+            state.dashboard = dashboard;
+        },
+
+        set_callback_for_set_selected_widget(state: IDashboardPageState, callback_for_set_selected_widget: (page_widget: DashboardPageWidgetVO) => void) {
+            if (state.callback_for_set_selected_widget === callback_for_set_selected_widget) {
+                return;
+            }
+
+            state.callback_for_set_selected_widget = callback_for_set_selected_widget;
+        },
+
+        set_selected_widget(state: IDashboardPageState, selected_widget: DashboardPageWidgetVO) {
+            if (state.selected_widget?.id == selected_widget?.id) {
+                return;
+            }
+
+            state.selected_widget = selected_widget;
+
+            if (!state.callback_for_set_selected_widget) {
+                return;
+            }
+
+            state.callback_for_set_selected_widget(selected_widget);
+        },
+
+        set_page_widgets_components_by_pwid(state: IDashboardPageState, page_widgets_components_by_pwid: { [pwid: number]: VueComponentBase }) {
+            state.page_widgets_components_by_pwid = page_widgets_components_by_pwid;
+        },
+        remove_page_widgets_components_by_pwid(state: IDashboardPageState, pwid: number) {
+            delete state.page_widgets_components_by_pwid[pwid];
+        },
+        set_page_widget_component_by_pwid(state: IDashboardPageState, param: { pwid: number, page_widget_component: VueComponentBase }) {
+            Vue.set(state.page_widgets_components_by_pwid, param.pwid, param.page_widget_component);
+        },
+
+        set_widgets_invisibility(state: IDashboardPageState, widgets_invisibility: { [w_id: number]: boolean }) {
+            state.widgets_invisibility = widgets_invisibility;
+        },
+
+        set_widget_invisibility(state: IDashboardPageState, w_id: number) {
+            Vue.set(state.widgets_invisibility, w_id, true);
+        },
+        set_widget_visibility(state: IDashboardPageState, w_id: number) {
+            Vue.set(state.widgets_invisibility, w_id, false);
+        },
+
+        set_custom_filters(state: IDashboardPageState, custom_filters: string[]) {
+            state.custom_filters = custom_filters;
+        },
+
+        set_active_api_type_ids(state: IDashboardPageState, active_api_type_ids: string[]) {
+            state.active_api_type_ids = active_api_type_ids;
+        },
+
+        set_query_api_type_ids(state: IDashboardPageState, query_api_type_ids: string[]) {
+            state.query_api_type_ids = query_api_type_ids;
+        },
+
+        set_page_history(state: IDashboardPageState, page_history: DashboardPageVO[]) {
+            state.page_history = page_history;
+        },
+
+        add_page_history(state: IDashboardPageState, page_history: DashboardPageVO) {
+            state.page_history.push(page_history);
+        },
+
+        pop_page_history(state: IDashboardPageState, fk) {
+            state.page_history.pop();
+        },
+
+        set_Dashboardcopywidgetcomponent(state: IDashboardPageState, Dashboardcopywidgetcomponent: DashboardCopyWidgetComponent) {
+            state.Dashboardcopywidgetcomponent = Dashboardcopywidgetcomponent;
+        },
+
+        set_active_field_filters(state: IDashboardPageState, active_field_filters: FieldFiltersVO) {
+            state.active_field_filters = active_field_filters;
+        },
+
+        set_active_field_filter(state: IDashboardPageState, param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) {
+            if (!param.vo_type || !param.field_id) {
+                return;
+            }
+
+            if (!state.active_field_filters[param.vo_type]) {
+                Vue.set(state.active_field_filters, param.vo_type, {
+                    [param.field_id]: param.active_field_filter
+                });
+                return;
+            }
+
+            if (ObjectHandler.are_equal(state.active_field_filters[param.vo_type][param.field_id], param.active_field_filter)) {
+                return;
+            }
+
+            Vue.set(state.active_field_filters[param.vo_type], param.field_id, param.active_field_filter);
+        },
+
+        remove_active_field_filter(state: IDashboardPageState, params: { vo_type: string, field_id: string }) {
+
+            if (!state.active_field_filters[params.vo_type]) {
+                return;
+            }
+
+            Vue.set(state.active_field_filters[params.vo_type], params.field_id, null);
+        },
+
+        clear_active_field_filters(state: IDashboardPageState, empty) {
+
+            state.active_field_filters = {};
+        },
+
+        set_page_widgets(state: IDashboardPageState, page_widgets: DashboardPageWidgetVO[]) {
+            state.page_widgets = page_widgets;
+        },
+
+        set_dashboard_navigation_history(
+            state: IDashboardPageState,
+            dashboard_navigation_history: { current_dashboard_id: number, previous_dashboard_id: number }
+        ) {
+            state.dashboard_navigation_history = dashboard_navigation_history;
+        },
+
+        set_shared_filters_map(state: IDashboardPageState, shared_filters_map: SharedFiltersVO[]) {
+            state.shared_filters_map = shared_filters_map;
+        },
+
+        add_shared_filters_to_map(state: IDashboardPageState, shared_filters_map: SharedFiltersVO[]) {
+            let _shared_filters_map = state.shared_filters_map;
+
+            if (_shared_filters_map?.length > 0) {
+                _shared_filters_map = _shared_filters_map.concat(shared_filters_map);
+            } else {
+                _shared_filters_map = shared_filters_map;
+            }
+
+            // Add shared filters to map
+            // Remove duplicates
+            state.shared_filters_map = _shared_filters_map.reduce((accumulator, shared_filter) => {
+                if (!accumulator.find((sf) => sf.id == shared_filter.id)) {
+                    accumulator.push(shared_filter);
                 }
 
-                state.selected_onglet = selected_onglet;
-            },
+                return accumulator;
+            }, []);
+        },
+    };
 
-            set_crud_vo(state: IDashboardPageState, crud_vo: IDistantVOBase) {
-                if (state.crud_vo === crud_vo) {
-                    return;
-                }
+    public actions: ActionTree<IDashboardPageState, DashboardPageContext>;
+    public namespaced: boolean = true;
 
-                state.crud_vo = crud_vo;
-            },
+    public constructor() {
+        this.module_name = "DashboardPageStore";
 
-            set_dbb_confs(state: IDashboardPageState, dbb_confs: DBBConfVO[]) {
-                if (state.dbb_confs === dbb_confs) {
-                    return;
-                }
 
-                state.dbb_confs = dbb_confs;
-            },
-
-            set_dashboard_page(state: IDashboardPageState, dashboard_page: DashboardPageVO) {
-                if (state.dashboard_page?.id == dashboard_page?.id) {
-                    return;
-                }
-
-                state.dashboard_page = dashboard_page;
-            },
-
-            set_dashboard_id(state: IDashboardPageState, dashboard_id: number) {
-                if (state.dashboard_id === dashboard_id) {
-                    return;
-                }
-
-                state.dashboard_id = dashboard_id;
-            },
-
-            set_viewports(state: IDashboardPageState, viewports: DashboardViewportVO[]) {
-                if (state.viewports === viewports) {
-                    return;
-                }
-
-                state.viewports = viewports;
-            },
-            set_dashboard_current_viewport(state: IDashboardPageState, dashboard_current_viewport: DashboardViewportVO) {
-                if (state.dashboard_current_viewport?.id == dashboard_current_viewport?.id) {
-                    return;
-                }
-
-                state.dashboard_current_viewport = dashboard_current_viewport;
-            },
-            set_dashboard_viewport_page_widgets(state: IDashboardPageState, dashboard_viewport_page_widgets: DashboardViewportPageWidgetVO[]) {
-                if (state.dashboard_viewport_page_widgets === dashboard_viewport_page_widgets) {
-                    return;
-                }
-
-                state.dashboard_viewport_page_widgets = dashboard_viewport_page_widgets;
-            },
-
-            set_all_widgets(state: IDashboardPageState, all_widgets: DashboardWidgetVO[]) {
-                if (state.all_widgets === all_widgets) {
-                    return;
-                }
-
-                state.all_widgets = all_widgets;
-            },
-
-            set_dashboard_pages(state: IDashboardPageState, dashboard_pages: DashboardPageVO[]) {
-                if (state.dashboard_pages === dashboard_pages) {
-                    return;
-                }
-
-                state.dashboard_pages = dashboard_pages;
-            },
-
-            set_selected_page_page_widgets(state: IDashboardPageState, selected_page_page_widgets: DashboardPageWidgetVO[]) {
-                if (state.selected_page_page_widgets === selected_page_page_widgets) {
-                    return;
-                }
-
-                state.selected_page_page_widgets = selected_page_page_widgets;
-            },
-
-            set_db_graph_vo_refs(state: IDashboardPageState, db_graph_vo_refs: DashboardGraphVORefVO[]) {
-                if (state.db_graph_vo_refs === db_graph_vo_refs) {
-                    return;
-                }
-
-                state.db_graph_vo_refs = db_graph_vo_refs;
-            },
-
-            set_dashboard(state: IDashboardPageState, dashboard: DashboardVO) {
-                if (state.dashboard?.id == dashboard?.id) {
-                    return;
-                }
-
-                state.dashboard = dashboard;
-            },
-
-            set_callback_for_set_selected_widget(state: IDashboardPageState, callback_for_set_selected_widget: (page_widget: DashboardPageWidgetVO) => void) {
-                if (state.callback_for_set_selected_widget === callback_for_set_selected_widget) {
-                    return;
-                }
-
-                state.callback_for_set_selected_widget = callback_for_set_selected_widget;
-            },
-
-            set_selected_widget(state: IDashboardPageState, selected_widget: DashboardPageWidgetVO) {
-                if (state.selected_widget?.id == selected_widget?.id) {
-                    return;
-                }
-
-                state.selected_widget = selected_widget;
-
-                if (!state.callback_for_set_selected_widget) {
-                    return;
-                }
-
-                state.callback_for_set_selected_widget(selected_widget);
-            },
-
-            set_page_widgets_components_by_pwid(state: IDashboardPageState, page_widgets_components_by_pwid: { [pwid: number]: VueComponentBase }) {
-                state.page_widgets_components_by_pwid = page_widgets_components_by_pwid;
-            },
-            remove_page_widgets_components_by_pwid(state: IDashboardPageState, pwid: number) {
-                delete state.page_widgets_components_by_pwid[pwid];
-            },
-            set_page_widget_component_by_pwid(state: IDashboardPageState, param: { pwid: number, page_widget_component: VueComponentBase }) {
-                Vue.set(state.page_widgets_components_by_pwid, param.pwid, param.page_widget_component);
-            },
-
-            set_widgets_invisibility(state: IDashboardPageState, widgets_invisibility: { [w_id: number]: boolean }) {
-                state.widgets_invisibility = widgets_invisibility;
-            },
-
-            set_widget_invisibility(state: IDashboardPageState, w_id: number) {
-                Vue.set(state.widgets_invisibility, w_id, true);
-            },
-            set_widget_visibility(state: IDashboardPageState, w_id: number) {
-                Vue.set(state.widgets_invisibility, w_id, false);
-            },
-
-            set_custom_filters(state: IDashboardPageState, custom_filters: string[]) {
-                state.custom_filters = custom_filters;
-            },
-
-            set_active_api_type_ids(state: IDashboardPageState, active_api_type_ids: string[]) {
-                state.active_api_type_ids = active_api_type_ids;
-            },
-
-            set_query_api_type_ids(state: IDashboardPageState, query_api_type_ids: string[]) {
-                state.query_api_type_ids = query_api_type_ids;
-            },
-
-            set_page_history(state: IDashboardPageState, page_history: DashboardPageVO[]) {
-                state.page_history = page_history;
-            },
-
-            add_page_history(state: IDashboardPageState, page_history: DashboardPageVO) {
-                state.page_history.push(page_history);
-            },
-
-            pop_page_history(state: IDashboardPageState, fk) {
-                state.page_history.pop();
-            },
-
-            set_Dashboardcopywidgetcomponent(state: IDashboardPageState, Dashboardcopywidgetcomponent: DashboardCopyWidgetComponent) {
-                state.Dashboardcopywidgetcomponent = Dashboardcopywidgetcomponent;
-            },
-
-            set_active_field_filters(state: IDashboardPageState, active_field_filters: FieldFiltersVO) {
-                state.active_field_filters = active_field_filters;
-            },
-
-            set_active_field_filter(state: IDashboardPageState, param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) {
-                if (!param.vo_type || !param.field_id) {
-                    return;
-                }
-
-                if (!state.active_field_filters[param.vo_type]) {
-                    Vue.set(state.active_field_filters, param.vo_type, {
-                        [param.field_id]: param.active_field_filter
-                    });
-                    return;
-                }
-
-                if (ObjectHandler.are_equal(state.active_field_filters[param.vo_type][param.field_id], param.active_field_filter)) {
-                    return;
-                }
-
-                Vue.set(state.active_field_filters[param.vo_type], param.field_id, param.active_field_filter);
-            },
-
-            remove_active_field_filter(state: IDashboardPageState, params: { vo_type: string, field_id: string }) {
-
-                if (!state.active_field_filters[params.vo_type]) {
-                    return;
-                }
-
-                Vue.set(state.active_field_filters[params.vo_type], params.field_id, null);
-            },
-
-            clear_active_field_filters(state: IDashboardPageState, empty) {
-
-                state.active_field_filters = {};
-            },
-
-            set_page_widgets(state: IDashboardPageState, page_widgets: DashboardPageWidgetVO[]) {
-                state.page_widgets = page_widgets;
-            },
-
-            set_dashboard_navigation_history(
-                state: IDashboardPageState,
-                dashboard_navigation_history: { current_dashboard_id: number, previous_dashboard_id: number }
-            ) {
-                state.dashboard_navigation_history = dashboard_navigation_history;
-            },
-
-            set_shared_filters_map(state: IDashboardPageState, shared_filters_map: SharedFiltersVO[]) {
-                state.shared_filters_map = shared_filters_map;
-            },
-
-            add_shared_filters_to_map(state: IDashboardPageState, shared_filters_map: SharedFiltersVO[]) {
-                let _shared_filters_map = state.shared_filters_map;
-
-                if (_shared_filters_map?.length > 0) {
-                    _shared_filters_map = _shared_filters_map.concat(shared_filters_map);
-                } else {
-                    _shared_filters_map = shared_filters_map;
-                }
-
-                // Add shared filters to map
-                // Remove duplicates
-                state.shared_filters_map = _shared_filters_map.reduce((accumulator, shared_filter) => {
-                    if (!accumulator.find((sf) => sf.id == shared_filter.id)) {
-                        accumulator.push(shared_filter);
-                    }
-
-                    return accumulator;
-                }, []);
-            },
+        this.state = {
+            selected_onglet: DashboardBuilderVueController.DBB_ONGLET_TABLE, // Dans un DBB, permet de switcher d'onglet
+            crud_vo: null, // VO used for CRUD operations (read, create, update) in the dashboard / used by template widgets
+            dashboard_page: null, // Current dashboard page
+            dashboard_id: null, // Dashboard id of the current dashboard
+            selected_page_page_widgets: [], // DashboardPageWidgetVO[] - Page widgets of the currently selected page
+            dashboard: null,
+            selected_widget: null,
+            page_widgets: [],
+            page_widgets_components_by_pwid: {},
+            active_field_filters: {},
+            Checklistitemmodalcomponent: null,
+            Supervisionitemmodal: null,
+            Favoritesfiltersmodalcomponent: null,
+            Sharedfiltersmodalcomponent: null,
+            Crudupdatemodalcomponent: null,
+            Crudcreatemodalcomponent: null,
+            Dashboardcopywidgetcomponent: null,
+            dashboard_navigation_history: { current_dashboard_id: null, previous_dashboard_id: null },
+            page_history: [],
+            custom_filters: [],
+            active_api_type_ids: [],
+            query_api_type_ids: [],
+            shared_filters_map: [],
+            widgets_invisibility: {},
+            dashboard_api_type_ids: [],
+            discarded_field_paths: {},
+            db_graph_vo_refs: [], // DashboardGraphVORefVO[]
+            dashboard_pages: [], // DashboardPageVO[]
+            callback_for_set_selected_widget: null, // (page_widget: DashboardPageWidgetVO) => void
+            all_widgets: [], // DashboardWidgetVO[]
+            viewports: [], // DashboardViewportVO[]
+            dashboard_current_viewport: null, // DashboardViewportVO
+            dashboard_valid_viewports: [], // DashboardViewportVO[]
+            dashboard_viewport_page_widgets: [], // DashboardViewportPageWidgetVO[]
+            dbb_confs: [], // DBBConfVO[]
         };
 
-        public actions: ActionTree<IDashboardPageState, DashboardPageContext>;
-        public namespaced: boolean = true;
 
-        public constructor() {
-            this.module_name = "DashboardPageStore";
+        this.getters = getters;
 
-
-            this.state = {
-                selected_onglet: DashboardBuilderVueController.DBB_ONGLET_TABLE, // Dans un DBB, permet de switcher d'onglet
-                crud_vo: null, // VO used for CRUD operations (read, create, update) in the dashboard / used by template widgets
-                dashboard_page: null, // Current dashboard page
-                dashboard_id: null, // Dashboard id of the current dashboard
-                selected_page_page_widgets: [], // DashboardPageWidgetVO[] - Page widgets of the currently selected page
-                dashboard: null,
-                selected_widget: null,
-                page_widgets: [],
-                page_widgets_components_by_pwid: {},
-                active_field_filters: {},
-                Checklistitemmodalcomponent: null,
-                Supervisionitemmodal: null,
-                Favoritesfiltersmodalcomponent: null,
-                Sharedfiltersmodalcomponent: null,
-                Crudupdatemodalcomponent: null,
-                Crudcreatemodalcomponent: null,
-                Dashboardcopywidgetcomponent: null,
-                dashboard_navigation_history: { current_dashboard_id: null, previous_dashboard_id: null },
-                page_history: [],
-                custom_filters: [],
-                active_api_type_ids: [],
-                query_api_type_ids: [],
-                shared_filters_map: [],
-                widgets_invisibility: {},
-                dashboard_api_type_ids: [],
-                discarded_field_paths: {},
-                db_graph_vo_refs: [], // DashboardGraphVORefVO[]
-                dashboard_pages: [], // DashboardPageVO[]
-                callback_for_set_selected_widget: null, // (page_widget: DashboardPageWidgetVO) => void
-                all_widgets: [], // DashboardWidgetVO[]
-                viewports: [], // DashboardViewportVO[]
-                dashboard_current_viewport: null, // DashboardViewportVO
-                dashboard_valid_viewports: [], // DashboardViewportVO[]
-                dashboard_viewport_page_widgets: [], // DashboardViewportPageWidgetVO[]
-                dbb_confs: [], // DBBConfVO[]
-                user_valid_dbb_confs: [], // DBBConfVO[]
-            };
-
-
-            this.getters = getters;
-
-            this.actions = actions;
-        }
+        this.actions = actions;
     }
-    const storeInstance = new DashboardPageStore();
+}
+const storeInstance = new DashboardPageStore();

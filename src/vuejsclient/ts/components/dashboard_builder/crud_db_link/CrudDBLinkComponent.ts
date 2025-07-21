@@ -1,5 +1,5 @@
 import Component from 'vue-class-component';
-import { Inject, Watch } from 'vue-property-decorator';
+import { Inject } from 'vue-property-decorator';
 import Throttle from '../../../../../shared/annotations/Throttle';
 import ModuleAccessPolicy from '../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
@@ -9,9 +9,12 @@ import ModuleTableVO from '../../../../../shared/modules/DAO/vos/ModuleTableVO';
 import ModuleDashboardBuilder from '../../../../../shared/modules/DashboardBuilder/ModuleDashboardBuilder';
 import CRUDDBLinkVO from '../../../../../shared/modules/DashboardBuilder/vos/crud/CRUDDBLinkVO';
 import DashboardVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
+import DBBConfVO from '../../../../../shared/modules/DashboardBuilder/vos/DBBConfVO';
 import EventifyEventListenerConfVO from '../../../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO';
 import ObjectHandler, { field_names, reflect } from '../../../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../../../shared/tools/PromiseTools';
+import { SafeWatch } from '../../../tools/annotations/SafeWatch';
+import { TestAccess } from '../../../tools/annotations/TestAccess';
 import ModuleTablesClientController from '../../module_tables/ModuleTablesClientController';
 import VueComponentBase from '../../VueComponentBase';
 import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../page/DashboardPageStore';
@@ -25,6 +28,17 @@ import './CrudDBLinkComponent.scss';
 export default class CrudDBLinkComponent extends VueComponentBase implements IDashboardPageConsumer {
     @Inject('storeNamespace') readonly storeNamespace!: string;
 
+    @TestAccess(ModuleDashboardBuilder.POLICY_DBB_CAN_UPDATE_CRUD_TYPE)
+    public POLICY_DBB_CAN_UPDATE_CRUD_TYPE: boolean = false;
+    @TestAccess(ModuleDashboardBuilder.POLICY_DBB_CAN_UPDATE_OPTION_FORMULAIRE)
+    public POLICY_DBB_CAN_UPDATE_OPTION_FORMULAIRE: boolean = false;
+    @TestAccess(ModuleDashboardBuilder.POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_CREATE)
+    public POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_CREATE: boolean = false;
+    @TestAccess(ModuleDashboardBuilder.POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_READ)
+    public POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_READ: boolean = false;
+    @TestAccess(ModuleDashboardBuilder.POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_UPDATE)
+    public POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_UPDATE: boolean = false;
+
     public selected_vo_type: string = null;
 
     public vo_type_options: string[] = [];
@@ -34,12 +48,6 @@ export default class CrudDBLinkComponent extends VueComponentBase implements IDa
     public option_template_read: boolean = false;
     public option_template_update: boolean = false;
 
-    private POLICY_DBB_CAN_UPDATE_CRUD_TYPE: boolean = false;
-    private POLICY_DBB_CAN_UPDATE_OPTION_FORMULAIRE: boolean = false;
-    private POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_CREATE: boolean = false;
-    private POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_READ: boolean = false;
-    private POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_UPDATE: boolean = false;
-
     get get_dashboard(): DashboardVO {
         return this.vuexGet(reflect<CrudDBLinkComponent>().get_dashboard);
     }
@@ -48,7 +56,51 @@ export default class CrudDBLinkComponent extends VueComponentBase implements IDa
         return this.vuexGet(reflect<this>().get_active_api_type_ids);
     }
 
-    @Watch(reflect<CrudDBLinkComponent>().get_dashboard, { immediate: true })
+    get get_current_dbb_conf(): DBBConfVO {
+        return this.vuexGet(reflect<CrudDBLinkComponent>().get_current_dbb_conf);
+    }
+
+    get get_can_update_crud_type(): boolean {
+        return this.POLICY_DBB_CAN_UPDATE_CRUD_TYPE && this.get_current_dbb_conf && this.get_current_dbb_conf.has_access_to_templating_options;
+    }
+
+    get get_can_update_option_formulaire(): boolean {
+        return this.POLICY_DBB_CAN_UPDATE_OPTION_FORMULAIRE && this.get_current_dbb_conf && this.get_current_dbb_conf.has_access_to_templating_options;
+    }
+
+    get get_can_update_is_template_create(): boolean {
+        return this.POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_CREATE && this.get_current_dbb_conf && this.get_current_dbb_conf.has_access_to_templating_options && this.get_current_dbb_conf.has_access_to_create_or_update_crud_templating_option;
+    }
+
+    get get_can_update_is_template_read(): boolean {
+        return this.POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_READ && this.get_current_dbb_conf && this.get_current_dbb_conf.has_access_to_templating_options && this.get_current_dbb_conf.has_access_to_create_or_update_crud_templating_option;
+    }
+
+    get get_can_update_is_template_update(): boolean {
+        return this.POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_UPDATE && this.get_current_dbb_conf && this.get_current_dbb_conf.has_access_to_create_or_update_crud_templating_option;
+    }
+
+    @SafeWatch(reflect<CrudDBLinkComponent>().get_current_dbb_conf, { immediate: true, deep: true })
+    private async onchange_current_dbb_conf() {
+        if (this.get_current_dbb_conf) {
+
+            let tables = null;
+            if (this.get_current_dbb_conf.valid_moduletable_id_ranges && this.get_current_dbb_conf.valid_moduletable_id_ranges.length > 0) {
+                tables = await query(ModuleTableVO.API_TYPE_ID)
+                    .filter_by_ids(this.get_current_dbb_conf.valid_moduletable_id_ranges)
+                    .select_vos<ModuleTableVO>();
+            } else {
+                tables = await query(ModuleTableVO.API_TYPE_ID)
+                    .select_vos<ModuleTableVO>();
+            }
+
+            this.vo_type_options = tables.map((mt: ModuleTableVO) => mt.vo_type);
+        } else {
+            this.vo_type_options = null;
+        }
+    }
+
+    @SafeWatch(reflect<CrudDBLinkComponent>().get_dashboard, { immediate: true })
     private async onchange_dashboard() {
         if (this.get_dashboard) {
 
@@ -110,7 +162,7 @@ export default class CrudDBLinkComponent extends VueComponentBase implements IDa
         }
     }
 
-    @Watch(reflect<CrudDBLinkComponent>().selected_vo_type)
+    @SafeWatch(reflect<CrudDBLinkComponent>().selected_vo_type)
     private async onchange_selected_vo_type() {
         if (!!this.selected_vo_type) {
             // Si la table est déjà liée au DB, osef, sinon on doit l'ajouter
@@ -150,9 +202,9 @@ export default class CrudDBLinkComponent extends VueComponentBase implements IDa
 
     public async created() {
         await all_promises([
-            (async () => {
-                this.vo_type_options = await ModuleDashboardBuilder.getInstance().get_all_valid_api_type_ids();
-            })(),
+            // (async () => {
+            //     this.vo_type_options = await ModuleDashboardBuilder.getInstance().get_all_valid_api_type_ids();
+            // })(),
             (async () => {
                 this.POLICY_DBB_CAN_UPDATE_CRUD_TYPE = await ModuleAccessPolicy.getInstance().testAccess(ModuleDashboardBuilder.POLICY_DBB_CAN_UPDATE_CRUD_TYPE);
             })(),

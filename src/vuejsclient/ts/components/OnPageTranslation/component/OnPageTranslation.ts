@@ -19,7 +19,6 @@ import EditablePageTranslationItem from '../vos/EditablePageTranslationItem';
 import OnPageTranslationItem from '../vos/OnPageTranslationItem';
 import './OnPageTranslation.scss';
 import ObjectHandler, { field_names } from '../../../../../shared/tools/ObjectHandler';
-import VOsTypesManager from '../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ModuleGPT from '../../../../../shared/modules/GPT/ModuleGPT';
 import GPTCompletionAPIMessageVO from '../../../../../shared/modules/GPT/vos/GPTCompletionAPIMessageVO';
 import GPTCompletionAPIConversationVO from '../../../../../shared/modules/GPT/vos/GPTCompletionAPIConversationVO';

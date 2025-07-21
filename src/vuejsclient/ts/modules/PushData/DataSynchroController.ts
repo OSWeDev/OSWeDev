@@ -232,7 +232,7 @@ export default class DataSynchroController {
                             ' for field_id ' + simple_filter_on_api_type_id.field_name + ' of field_type ' + field_type);
                     }
 
-                    // On ajoute la gestion du param_numeric_array, dans le cas d'un intersect (TYPE_NUMERIC_EQUALS_ANY)
+                    // On ajoute la gestion du param_numeric_array, dans le cas d'un num_has (TYPE_NUMERIC_EQUALS_ANY)
                     if ((simple_filter_on_api_type_id.filter_type == ContextFilterVO.TYPE_NUMERIC_EQUALS_ANY) &&
                         (simple_filter_on_api_type_id.param_numeric_array != null)) {
                         if (!Array.isArray(simple_filter_on_api_type_id.param_numeric_array)) {

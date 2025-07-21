@@ -96,6 +96,7 @@ export default class ModuleDAO extends Module {
         if (res && res.id && vo && (vo.id !== res.id)) {
             vo.id = res.id;
         }
+        return res;
     });
     public getNamedVoByName: <T extends INamedVO>(API_TYPE_ID: string, vo_name: string) => Promise<T> = APIControllerWrapper.sah_optimizer(this.name, reflect<ModuleDAO>().getNamedVoByName);
     public getColSumFilterByMatroid: <T extends IDistantVOBase, U extends IMatroid>(API_TYPE_ID: string, matroids: U[], fields_ids_mapper?: { [matroid_field_id: string]: string }) => Promise<number> = APIControllerWrapper.sah_optimizer(

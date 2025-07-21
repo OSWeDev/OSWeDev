@@ -1,5 +1,6 @@
 import Component from 'vue-class-component';
 import { Prop, Provide } from 'vue-property-decorator';
+import { filter } from '../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import ModuleTableController from '../../../../shared/modules/DAO/ModuleTableController';
@@ -43,8 +44,6 @@ import DashboardPageStore, { IDashboardGetters, IDashboardPageActionsMethods, ID
 import DashboardSharedFiltersComponent from './shared_filters/DashboardSharedFiltersComponent';
 import DashboardViewportConfComponent from './viewport_conf/DashboardViewportConfComponent';
 import DashboardBuilderWidgetsComponent from './widgets/DashboardBuilderWidgetsComponent';
-import { filter } from '../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
-import RangeHandler from '../../../../shared/tools/RangeHandler';
 
 @Component({
     template: require('./DashboardBuilderComponent.pug'),
@@ -103,7 +102,7 @@ export default class DashboardBuilderComponent extends VueComponentBase implemen
 
                 // On filtre les dbs par conf
                 return [
-                    filter(DashboardVO.API_TYPE_ID, field_names<DashboardVO>().dbb_conf_id).by_num_x_ranges(RangeHandler.get_ids_ranges_from_vos(self.dbb_confs)),
+                    filter(DashboardVO.API_TYPE_ID, field_names<DashboardVO>().dbb_conf_id).by_num_has(self.dbb_confs.map((dbb_conf) => dbb_conf.id)),
                 ];
             }
 
@@ -352,6 +351,15 @@ export default class DashboardBuilderComponent extends VueComponentBase implemen
         return this.vuexGet(reflect<this>().get_widgets_by_id);
     }
 
+    get selected_db_is_in_dbs(): boolean {
+
+        if (!this.dashboard || !this.dashboards || this.dashboards.length === 0) {
+            return false;
+        }
+
+        return this.dashboards.some((db) => db.id === this.dashboard.id);
+    }
+
     @SafeWatch(reflect<DashboardBuilderComponent>().get_dashboard_page)
     public onchange_page() {
         this.set_selected_widget(null);
@@ -383,8 +391,8 @@ export default class DashboardBuilderComponent extends VueComponentBase implemen
     @SafeWatch(reflect<DashboardBuilderComponent>().get_current_dbb_conf)
     public async onchange_get_current_dbb_conf(): Promise<void> {
 
-        if (this.selected_dbb_conf && this.selected_dbb_conf.is_main_admin_conf) {
-            // Si on est dans la conf admin, on n'a pas besoin de changer la conf sélectionnée
+        if (this.selected_dbb_conf) {
+            // Si on a une conf sélectionnée, on peut pas en changer par un changement de DB. Si on est en admin on veut rester en admin, si on est en CMS on voit que des DBs CMS
             return;
         }
         this.selected_dbb_conf = this.get_current_dbb_conf;
@@ -828,8 +836,15 @@ export default class DashboardBuilderComponent extends VueComponentBase implemen
     }
 
     public async create_new_dashboard() {
+
+        if (!this.selected_dbb_conf) {
+            this.snotify.error(this.label('DashboardBuilderComponent.create_new_dashboard.no_dbb_conf_selected'));
+            return;
+        }
+
         const new_db = new (ModuleTableController.vo_constructor_by_vo_type[DashboardVO.API_TYPE_ID])() as DashboardVO; // On passe par le moduletablecontroller comme ça on a les inits par défaut des champs aussi
 
+        new_db.dbb_conf_id = this.selected_dbb_conf.id;
         await ModuleDAO.instance.insertOrUpdateVO(new_db);
 
         if (!new_db.id) {

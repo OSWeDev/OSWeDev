@@ -53,11 +53,11 @@
                         .col-sm-2
                             .title {{ label('dashboard_builder.title') }}
 
-                        .col-sm-4.dash_board_title_wrapper
+                        .col-sm-4.dash_board_title_wrapper(v-if='selected_db_is_in_dbs')
                             .name
                                 Inlinetranslatabletext(:code_text="dashboard.title" :is_editable="true")
 
-                        .col-sm-4(v-if='POLICY_DBB_CAN_SWITCH_DB')
+                        .col-sm-4(v-if='POLICY_DBB_CAN_SWITCH_DB && dashboards && dashboards.length > 0')
                             .selector
                                 multiselect(
                                     :preselect-first="false"
@@ -88,18 +88,18 @@
                                 )
 
                         .col-sm-2
-                            .btn-success.copy_dashboard(v-if="can_use_clipboard && POLICY_DBB_CAN_EXPORT_IMPORT_JSON && dashboard && dashboard.id")
+                            .btn-success.copy_dashboard(v-if="can_use_clipboard && POLICY_DBB_CAN_EXPORT_IMPORT_JSON && selected_db_is_in_dbs")
                                 i.fa-duotone.fa-download.fa-fw.btn_icon(aria-hidden="true" @click="copy_dashboard" v-tooltip='label("dashboard_builder.copy_dashboard")')
-                            .btn-warning.replace_dashboard(v-if="can_use_clipboard && POLICY_DBB_CAN_EXPORT_IMPORT_JSON && dashboard && dashboard.id")
+                            .btn-warning.replace_dashboard(v-if="can_use_clipboard && POLICY_DBB_CAN_EXPORT_IMPORT_JSON && selected_db_is_in_dbs")
                                 i.fa-duotone.fa-upload.fa-fw.btn_icon(aria-hidden="true" @click="paste_dashboard(dashboard)" v-tooltip='label("dashboard_builder.replace_dashboard")')
-                            .btn-danger.delete_dashboard(v-if='POLICY_DBB_CAN_DELETE_DB && dashboard && dashboard.id')
+                            .btn-danger.delete_dashboard(v-if='POLICY_DBB_CAN_DELETE_DB && selected_db_is_in_dbs')
                                 i.fa-duotone.fa-trash.fa-fw.btn_icon(aria-hidden="true" @click="confirm_delete_dashboard" v-tooltip='label("dashboard_builder.delete_dashboard")')
                             .btn-primary.create_dashboard(v-if='POLICY_DBB_CAN_CREATE_NEW_DB')
                                 i.fa-duotone.fa-plus.fa-fw.btn_icon(aria-hidden="true" @click="create_new_dashboard" v-tooltip='label("dashboard_builder.create_dashboard")')
                             .btn-primary.create_dashboard_from(v-if="can_use_clipboard && POLICY_DBB_CAN_EXPORT_IMPORT_JSON")
                                 i.fa-duotone.fa-upload.fa-fw.btn_icon(aria-hidden="true" @click="paste_dashboard(null)" v-tooltip='label("dashboard_builder.create_dashboard_from")')
 
-        .row
+        .row(v-if='selected_db_is_in_dbs')
             .col-sm-12
                 .viewport_selector
                     multiselect(
@@ -128,7 +128,7 @@
                         :deselect-group-label='label("multiselect.deselectGroupLabel")'
                     )
 
-        .row 
+        .row(v-if='selected_db_is_in_dbs')
             .col-sm-12
                 template(v-if='!get_dashboard_pages')
                     .is_loading
@@ -153,8 +153,8 @@
                             .step.menu_conf(@click='set_selected_onglet(onglet_menus)' :class="{'selected' : get_selected_onglet == onglet_menus}") {{ label('dashboard_builder.menu_conf') }}
                         .col-sm-2(v-if='validite_onglets[onglet_shared_filters]')
                             .step.shared_filters(@click='set_selected_onglet(onglet_shared_filters)' :class="{'selected' : get_selected_onglet == onglet_shared_filters}") {{ label('dashboard_builder.shared_filters') }}
-                        .col-sm-2(v-if='validite_onglets[onglet_rights]')
-                            .step.shared_filters(@click='set_selected_onglet(onglet_rights)' :class="{'selected' : get_selected_onglet == onglet_rights}") {{ label('dashboard_builder.rights') }}
+                        //- .col-sm-2(v-if='validite_onglets[onglet_rights]')
+                        //-     .step.shared_filters(@click='set_selected_onglet(onglet_rights)' :class="{'selected' : get_selected_onglet == onglet_rights}") {{ label('dashboard_builder.rights') }}
 
                     .pages(v-show='get_selected_onglet == onglet_widgets || get_selected_onglet == onglet_viewport')
                         template(v-if='has_navigation_history')
@@ -212,7 +212,7 @@
                         .btn-primary.create_dashboard_page(v-if='POLICY_DBB_CAN_EDIT_PAGES')
                             i.fa-duotone.fa-plus.fa-fw.btn_icon(aria-hidden="true" @click="create_dashboard_page" v-tooltip.top='label("dashboard_builder.pages.tooltip_create_dashboard_page")')
 
-        .row(v-if='get_selected_onglet == onglet_table')
+        .row(v-if='(get_selected_onglet == onglet_table) && selected_db_is_in_dbs')
             
             .col-sm-3.crud_db_link_wrapper
                 Cruddblinkcomponent
@@ -226,13 +226,13 @@
                     :dashboard_id='dashboard_id'
                 )
 
-        .row(v-if='get_selected_onglet == onglet_viewport')
+        .row(v-if='(get_selected_onglet == onglet_viewport) && selected_db_is_in_dbs')
             .col-sm-12.builder_wrapper
                 DashboardViewportConfComponent(
                     ref='DashboardViewportConfComponent'
                 )
 
-        .fields_wrapper(v-if='get_selected_onglet == "onglet_widgets"' :class='{"collapsed":collapsed_fields_wrapper}')
+        .fields_wrapper(v-if='(get_selected_onglet == "onglet_widgets") && selected_db_is_in_dbs' :class='{"collapsed":collapsed_fields_wrapper}')
 
             .collapse_fields_wrapper(@click='reverse_collapse_fields_wrapper' :class='{"collapsed":collapsed_fields_wrapper}')
                 i.fa-duotone.fa-square-caret-right.fa-fw(aria-hidden="true" v-if='!collapsed_fields_wrapper')
@@ -243,18 +243,18 @@
                 Droppablevofieldscomponent(:dashboard='dashboard')
 
         //- On est en v-show pour charger toujours le Dashboardbuilderboardcomponent et toutes les synchros de données que ce composant initie
-        .row(v-show='get_selected_onglet == onglet_widgets')
+        .row(v-show='(get_selected_onglet == onglet_widgets) && selected_db_is_in_dbs')
             .col-sm-12.builder_wrapper
                 Dashboardbuilderboardcomponent(
                     ref='Dashboardbuilderboardcomponent'
                 )
                
 
-        .row(v-if='get_selected_onglet == onglet_menus')
+        .row(v-if='(get_selected_onglet == onglet_menus) && selected_db_is_in_dbs')
             .col-sm-12.menu_conf_wrapper 
                 Dashboardmenuconfcomponent
 
-        .row(v-if='get_selected_onglet == onglet_shared_filters')
+        .row(v-if='(get_selected_onglet == onglet_shared_filters) && selected_db_is_in_dbs')
             .col-sm-12.shared_filters_wrapper 
                 Dashboardsharedfilterscomponent
 

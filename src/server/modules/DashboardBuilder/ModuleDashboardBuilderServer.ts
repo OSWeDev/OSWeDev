@@ -4,10 +4,16 @@ import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/Access
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
-import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import UserRoleVO from '../../../shared/modules/AccessPolicy/vos/UserRoleVO';
+import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
+import ContextFilterVOHandler from '../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
+import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import DAOController from '../../../shared/modules/DAO/DAOController';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import ModuleTableController from '../../../shared/modules/DAO/ModuleTableController';
+import IUserData from '../../../shared/modules/DAO/interface/IUserData';
+import ModuleTableVO from '../../../shared/modules/DAO/vos/ModuleTableVO';
 import ModuleDashboardBuilder from '../../../shared/modules/DashboardBuilder/ModuleDashboardBuilder';
 import DBBConfVO from '../../../shared/modules/DashboardBuilder/vos/DBBConfVO';
 import DashboardGraphVORefVO from '../../../shared/modules/DashboardBuilder/vos/DashboardGraphVORefVO';
@@ -26,8 +32,10 @@ import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import { field_names, reflect } from '../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../shared/tools/RangeHandler';
+import StackContext from '../../StackContext';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
+import DAOServerController from '../DAO/DAOServerController';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOPostCreateTriggerHook from '../DAO/triggers/DAOPostCreateTriggerHook';
 import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
@@ -88,6 +96,13 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         postCreateTrigger.registerHandler(DashboardPageWidgetVO.API_TYPE_ID, this, this.postCreate_DashboardPageWidgetVO);
 
         postCreateTrigger.registerHandler(DashboardVO.API_TYPE_ID, this, this.postCreate_DashboardVO);
+
+
+        ModuleDAOServer.getInstance().registerContextAccessHook(
+            DBBConfVO.API_TYPE_ID,
+            this,
+            this.filter_valid_dbb_confs_by_user_roles,
+        );
     }
 
     // istanbul ignore next: cannot test registerServerApiHandlers
@@ -915,5 +930,17 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         translation.text_id = translation_code.id;
         translation.translated = "Dashboard [" + dashboard.id + "]";
         await ModuleDAOServer.instance.insertOrUpdateVO_as_server(translation);
+    }
+
+    private async filter_valid_dbb_confs_by_user_roles(moduletable: ModuleTableVO, uid: number, user: UserVO, user_data: IUserData, user_roles: RoleVO[]): Promise<ContextQueryVO> {
+
+        if (!uid) {
+            return ContextFilterVOHandler.get_empty_res_context_hook_query(moduletable.vo_type);
+        }
+
+        return query(DBBConfVO.API_TYPE_ID)
+            .field(field_names<DBBConfVO>().id)
+            .filter_by_num_x_ranges(field_names<DBBConfVO>().role_id_ranges, RangeHandler.get_ids_ranges_from_vos(user_roles))
+            .exec_as_server();
     }
 }
