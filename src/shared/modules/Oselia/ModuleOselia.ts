@@ -124,7 +124,7 @@ export default class ModuleOselia extends Module {
     public get_cache_value: (thread_vo: GPTAssistantAPIThreadVO, key: string) => Promise<string | null> = APIControllerWrapper.sah(ModuleOselia.APINAME_get_cache_value);
     public account_waiting_link_status: (referrer_user_ott: string) => Promise<'validated' | 'waiting' | 'none'> = APIControllerWrapper.sah(ModuleOselia.APINAME_account_waiting_link_status);
     public send_join_request: (asking_user_id: number, thread_id: number) => Promise<'accepted' | 'denied' | 'timed out'> = APIControllerWrapper.sah(ModuleOselia.APINAME_send_join_request);
-    public update_vo_field: (vo_type_id: string, vo_id: number, field_name: string, value: any) => Promise<void> = APIControllerWrapper.sah(ModuleOselia.APINAME_update_vo_field);
+    public update_vo_field: (thread_vo: GPTAssistantAPIThreadVO, field_name: string, value: string, vo: string) => Promise<void> = APIControllerWrapper.sah(ModuleOselia.APINAME_update_vo_field);
 
     public instantiate_oselia_run_from_event: (event: EventifyEventInstanceVO, listener: EventifyEventListenerInstanceVO) => Promise<void> =
         APIControllerWrapper.sah_optimizer(this.name, reflect<ModuleOselia>().replay_function_call);

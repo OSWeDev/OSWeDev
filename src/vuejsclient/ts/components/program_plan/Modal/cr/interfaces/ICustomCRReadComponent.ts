@@ -1,7 +1,8 @@
 import IPlanRDVCR from '../../../../../../../shared/modules/ProgramPlan/interfaces/IPlanRDVCR';
 import IPlanRDV from '../../../../../../../shared/modules/ProgramPlan/interfaces/IPlanRDV';
+import ICRVersioningComponent from './ICRVersioningComponent';
 
-export default interface ICustomCRReadComponent {
+export default interface ICustomCRReadComponent extends ICRVersioningComponent {
     /**
      * PROP
      */

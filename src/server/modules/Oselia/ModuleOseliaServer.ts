@@ -1432,20 +1432,19 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         return 'OK';
     }
 
-    public async update_vo_field(vo: string, field_name: string, value: string): Promise<string> {
-
+    public async update_vo_field(thread_vo: GPTAssistantAPIThreadVO,  field_name: string, value: string, vo: string): Promise<string> {
         if (!vo || !field_name) {
             ConsoleHandler.error('update_vo_field:Invalid parameters');
             return 'ERREUR: Paramètres invalides';
         }
         let vo_object: IDistantVOBase = null;
-        let value_object: any = null;
+        // let value_object: any = null;
         let field: ModuleTableFieldVO = null;
         try {
             vo_object = JSON.parse(vo); // Validate JSON format
-            value_object = JSON.parse(value); // Validate JSON format
+            // value_object = JSON.parse(value); // Validate JSON format
             field = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[vo_object._type][field_name];
-            if (!vo_object || !value_object || !field) {
+            if (!vo_object || !field) {
                 ConsoleHandler.error('update_vo_field:Invalid JSON format for vo or value or field');
                 return 'ERREUR: Format JSON invalide pour le VO ou la valeur ou le champ';
             }
@@ -1454,7 +1453,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
             return 'ERREUR: Erreur de parsing JSON: ' + error;
         }
 
-        if (!vo_object || !value_object || !field) {
+        if (!vo_object || !value || !field) {
             ConsoleHandler.error('update_vo_field:vo or value or field is not an object');
             return 'ERREUR: Le VO ou la valeur ou le champ n\'est pas un objet';
         }
@@ -1463,12 +1462,12 @@ export default class ModuleOseliaServer extends ModuleServerBase {
             ConsoleHandler.error('update_vo_field:Field not found in VO: ' + field_name);
             return 'ERREUR: Champ non trouvé dans le VO: ' + field_name;
         }
-        if (typeof value_object.value === 'undefined') {
-            ConsoleHandler.error('update_vo_field:Value object does not have a "value" property');
-            return 'ERREUR: L\'objet de valeur n\'a pas de propriété "value"';
-        }
+        // if (typeof value_object.value === 'undefined') {
+        //     ConsoleHandler.error('update_vo_field:Value object does not have a "value" property');
+        //     return 'ERREUR: L\'objet de valeur n\'a pas de propriété "value"';
+        // }
 
-        vo_object[field_name] = value_object ? value_object.value : null;
+        vo_object[field_name] = value ? value : null;
         await query(vo_object._type)
             .filter_by_id(vo_object.id)
             .exec_as_server()

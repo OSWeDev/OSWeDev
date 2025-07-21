@@ -1289,13 +1289,15 @@ export default class GPTAssistantAPIServerController {
                     availableFunctionsParametersByParamName[i][param.gpt_funcparam_name] = param;
                 }
             }
-
+            let initial_cache_values = null;
             // Création du run Osélia pour la session realtime
-            const initial_cache_values = await ModuleOseliaServer.getInstance().get_cache_value(thread_vo, initial_cache_key);
+            if(initial_cache_key) {
+                initial_cache_values = await ModuleOseliaServer.getInstance().get_cache_value(thread_vo, initial_cache_key);
+            }
             const session_run = await OseliaRunTemplateServerController.create_run_from_template(
                 oselia_run_template,
                 null,
-                { [initial_cache_key]: initial_cache_values },
+                initial_cache_values ? { [initial_cache_key]: initial_cache_values } : null,
                 null,
                 thread_vo,
                 user,
@@ -1513,6 +1515,21 @@ export default class GPTAssistantAPIServerController {
 
             openaiSocket.once('open', () => {
                 openaiSocket.send(JSON.stringify(sessionUpdate));
+                if(initial_cache_key && initial_cache_values) {
+                    openaiSocket.send(JSON.stringify({
+                        type: 'conversation.item.create',
+                        item: {
+                            type: 'message',
+                            role: "system",
+                            content: [
+                                {
+                                    type: "input_text",
+                                    text: `Cache key available: ${initial_cache_key}. Use this key when calling cache functions.`
+                                }
+                            ]
+                        },
+                    }));
+                }
             });
 
             // ——————————————————————————————————————————

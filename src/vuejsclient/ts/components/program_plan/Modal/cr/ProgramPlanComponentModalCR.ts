@@ -302,8 +302,16 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
         return (res && res.length) ? res : null;
     }
 
+    get can_revert_to_previous(): boolean {
+        return !!(this.edited_cr || this.in_edit_inline);
+    }
+
+    get can_revert_to_next(): boolean {
+        return !!(this.edited_cr || this.in_edit_inline);
+    }
+
     get oselia_blocked(): boolean {
-        if(OseliaController.can_use_realtime_on_current_page) {
+        if (OseliaController.can_use_realtime_on_current_page) {
             return EnvHandler.block_oselia_on_cr;
         }
         return true;
@@ -347,7 +355,31 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
         );
         EventsController.register_event_listener(get_oselia_realtime_close);
         this.POLICY_CAN_USE_REALTIME = await ModuleAccessPolicy.getInstance().testAccess(ModuleGPT.POLICY_USE_OSELIA_REALTIME_IN_CR);
+
+        // Ajouter les raccourcis clavier pour le versionnement
+        document.addEventListener('keydown', this.handleKeyboardShortcuts);
     }
+
+    private async beforeDestroy() {
+        // Nettoyer les raccourcis clavier
+        document.removeEventListener('keydown', this.handleKeyboardShortcuts);
+    }
+
+    private handleKeyboardShortcuts = (event: KeyboardEvent) => {
+        // Actif si on est en mode édition (edited_cr existe) ou en edit inline
+        if (!this.edited_cr && !this.in_edit_inline) return;
+
+        // Ctrl+Z pour version précédente
+        if (event.ctrlKey && event.key === 'z' && !event.shiftKey) {
+            event.preventDefault();
+            this.togglePrevious();
+        }
+        // Ctrl+Y ou Ctrl+Shift+Z pour version suivante
+        else if ((event.ctrlKey && event.key === 'y') || (event.ctrlKey && event.shiftKey && event.key === 'Z')) {
+            event.preventDefault();
+            this.toggleNext();
+        }
+    };
 
     private switchOpenOselia() {
         this.oselia_opened = !this.oselia_opened;
