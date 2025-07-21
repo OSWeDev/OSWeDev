@@ -154,6 +154,7 @@ import Patch20250709AddSerialForTranslatableDefaultValues from './patchs/premodu
 import Patch20250717AddWidgetsTags from './patchs/postmodules/Patch20250717AddWidgetsTags';
 import Patch20250717AddWidgetsNames from './patchs/postmodules/Patch20250717AddWidgetsDefaultNames';
 import Patch20250717UpdateWidgetsIconHTML from './patchs/postmodules/Patch20250717UpdateWidgetsIconHTML';
+import Patch20250721UpdateWidgetsIconHTML from './patchs/postmodules/Patch20250721UpdateWidgetsIconHTML';
 
 export default class GeneratorPatchsListHandler {
 
@@ -344,5 +345,6 @@ export default class GeneratorPatchsListHandler {
         Patch20250717AddWidgetsTags.getInstance(),
         Patch20250717AddWidgetsNames.getInstance(),
         Patch20250717UpdateWidgetsIconHTML.getInstance(),
+        Patch20250721UpdateWidgetsIconHTML.getInstance(),
     ];
 }

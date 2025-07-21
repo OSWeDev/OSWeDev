@@ -18,6 +18,36 @@ export default class ModuleDashboardBuilderDefaultTranslationsHolder {
         }, 'StatVO.AGGREGATOR_MAX'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Type de template'
+        }, 'crud_db_link.switch_type_template.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Choisir le type de template'
+        }, 'crud_db_link.switch_type_template.placeholder.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Type de saisie'
+        }, 'crud_db_link.switch_type_saisie.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Choisir le type de saisie'
+        }, 'crud_db_link.switch_type_saisie.placeholder.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Création'
+        }, 'dashboard_builder.module_table_crud_template_saisie_mode_create'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Modification'
+        }, 'dashboard_builder.module_table_crud_template_saisie_mode_update'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Création et modification'
+        }, 'dashboard_builder.module_table_crud_template_saisie_mode_create_update'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Consultation'
+        }, 'dashboard_builder.module_table_crud_template_type_consultation'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Saisie'
+        }, 'dashboard_builder.module_table_crud_template_type_create_update'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Aucun type de données n\'est compatible avec la construction de templates de données, ou la configuration actuelle du Dashboard Builder ne vous le permet pas.'
         }, 'crud_db_link.no_api_type_is_available.___LABEL___'));
 

@@ -160,6 +160,63 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         ]);
     }
 
+    //     -- ===================================================
+    //     --PATCH UNIFORMISATION ICONES WIDGETS DASHBOARD
+    // --Date: 21 juillet 2025
+    // --Objectif: Standardiser le HTML, les classes et la structure des icônes.
+    // -- ===================================================
+
+    //     --Catégorie: Filtres(Bleu)
+    // UPDATE ref.module_dashboardbuilder_dashboard_widget SET icon_html = '<div class="fa-stack fa-fw"><i class="fa-solid fa-filter fa-stack-2x"></i></div>' WHERE name = 'fieldvaluefilter';
+    // UPDATE ref.module_dashboardbuilder_dashboard_widget SET icon_html = '<div class="fa-stack fa-fw"><i class="fa-solid fa-filter fa-stack-2x"></i><i class="fa-solid fa-check fa-stack-1x icon_overlay_icon" style="color: black; margin-left: 0px; margin-top: 0px; text-shadow: 1px 1px white;"></i></div>' WHERE name = 'validationfilters';
+    // UPDATE ref.module_dashboardbuilder_dashboard_widget SET icon_html = '<div class="fa-stack fa-fw"><i class="fa-solid fa-filter fa-stack-2x"></i><i class="fa-solid fa-trash fa-stack-1x icon_overlay_icon" style="color: black; margin-left: 0px; margin-top: 0px; text-shadow: 1px 1px white;"></i></div>' WHERE name = 'resetfilters';
+    // UPDATE ref.module_dashboardbuilder_dashboard_widget SET icon_html = '<div class="fa-stack fa-fw"><i class="fa-solid fa-filter fa-stack-2x"></i><i class="fa-solid fa-floppy-disk fa-stack-1x icon_overlay_icon" style="color: black; margin-left: 0px; margin-top: 0px; text-shadow: 1px 1px white;"></i></div>' WHERE name = 'savefavoritesfilters';
+    // UPDATE ref.module_dashboardbuilder_dashboard_widget SET icon_html = '<div class="fa-stack fa-fw"><i class="fa-solid fa-filter fa-stack-2x"></i><i class="fa-solid fa-eye fa-stack-1x icon_overlay_icon" style="color: black; margin-left: 0px; margin-top: 0px; text-shadow: 1px 1px white;"></i></div>' WHERE name = 'showfavoritesfilters';
+    // UPDATE ref.module_dashboardbuilder_dashboard_widget SET icon_html = '<div class="fa-stack fa-fw"><i class="fa-solid fa-bullseye fa-stack-2x"></i></div>' WHERE name = 'var';
+    // UPDATE ref.module_dashboardbuilder_dashboard_widget SET icon_html = '<div class="fa-stack fa-fw"><i class="fa-regular fa-calendar fa-stack-2x"></i><strong class="fa-stack-1x icon_text_overlay" style="color: black; margin-left: 0px; margin-top: 0px; text-shadow: 1px 1px white; margin-top:4px">7</strong></div>' WHERE name = 'dowfilter';
+    // UPDATE ref.module_dashboardbuilder_dashboard_widget SET icon_html = '<div class="fa-stack fa-fw"><i class="fa-regular fa-calendar fa-stack-2x"></i><strong class="fa-stack-1x icon_text_overlay" style="color: black; margin-left: 0px; margin-top: 0px; text-shadow: 1px 1px white; margin-top:4px">31</strong></div>' WHERE name = 'monthfilter';
+    // UPDATE ref.module_dashboardbuilder_dashboard_widget SET icon_html = '<div class="fa-stack fa-fw"><i class="fa-regular fa-calendar fa-stack-2x"></i><strong class="fa-stack-1x icon_text_overlay" style="color: black; margin-left: 0px; margin-top: 0px; text-shadow: 1px 1px white; margin-top:4px">365</strong></div>' WHERE name = 'yearfilter';
+    // UPDATE ref.module_dashboardbuilder_dashboard_widget SET icon_html = '<div class="fa-stack fa-fw"><i class="fa-regular fa-calendar fa-stack-2x"></i><strong class="fa-stack-1x icon_text_overlay" style="color: black; margin-left: 0px; margin-top: 0px; text-shadow: 1px 1px white; margin-top:4px">X</strong></div>' WHERE name = 'advanceddatefilter';
+    // UPDATE ref.module_dashboardbuilder_dashboard_widget SET icon_html = '<div class="fa-stack fa-fw"><i class="fa-solid fa-user fa-stack-2x"></i><i class="fa-solid fa-bullseye fa-stack-1x icon_overlay_icon" style="color: black; margin-left: 0px; margin-top: 0px; text-shadow: 1px 1px white;"></i></div>' WHERE name = 'currentuserfilter';
+    // UPDATE ref.module_dashboardbuilder_dashboard_widget SET icon_html = '<div class="fa-stack fa-fw"><i class="fa-solid fa-user fa-stack-2x"></i><i class="fa-solid fa-filter fa-stack-1x icon_overlay_icon--br" style="color: black; margin-left: 0px; margin-top: 0px; text-shadow: 1px 1px white;"></i></div>' WHERE name = 'currentuserfilteredfacrs';
+
+    // --Catégorie: Données & Tableaux(Bleu)
+    // UPDATE ref.module_dashboardbuilder_dashboard_widget SET icon_html = '<div class="fa-stack fa-fw"><i class="fa-solid fa-table fa-stack-2x"></i><i class="fa-solid fa-pencil fa-stack-1x icon_overlay_icon--bl" style="color: black; margin-left: 0px; margin-top: 0px; text-shadow: 1px 1px white;"></i></div>' WHERE name = 'datatable';
+    // UPDATE ref.module_dashboardbuilder_dashboard_widget SET icon_html = '<div class="fa-stack fa-fw"><i class="fa-solid fa-file fa-stack-2x"></i><i class="fa-solid fa-arrow-right-from-bracket fa-stack-1x icon_overlay_icon" style="color: black; margin-left: 0px; margin-top: 0px; text-shadow: 1px 1px white;"></i></div>' WHERE name = 'pageswitch';
+    // UPDATE ref.module_dashboardbuilder_dashboard_widget SET icon_html = '<div class="fa-stack fa-fw"><i class="fa-solid fa-database fa-stack-2x"></i><i class="fa-solid fa-pen fa-stack-1x icon_overlay_icon--tr" style="color: black; margin-left:10px; margin-top: -10px"></i><i class="fa-solid fa-trash fa-stack-1x icon_overlay_icon--br" style="color: #dc3545; margin-left:10px; margin-top: 10px"></i></div>' WHERE  name = 'crudbuttons';
+
+    // --Catégorie: Graphiques(Vert)
+    // UPDATE ref.module_dashboardbuilder_dashboard_widget SET icon_html = '<div class="fa-stack fa-fw"><i class="fa-solid fa-chart-pie fa-stack-2x"></i></div>' WHERE name = 'varpiechart';
+    // UPDATE ref.module_dashboardbuilder_dashboard_widget SET icon_html = '<div class="fa-stack fa-fw"><i class="fa-solid fa-chart-bar fa-stack-2x"></i></div>' WHERE name = 'varmixedcharts';
+    // UPDATE ref.module_dashboardbuilder_dashboard_widget SET icon_html = '<div class="fa-stack fa-fw"><i class="fa-solid fa-chart-radar fa-stack-2x"></i></div>' WHERE name = 'varradarchart';
+    // UPDATE ref.module_dashboardbuilder_dashboard_widget SET icon_html = '<div class="fa-stack fa-fw"><i class="fa-solid fa-map-location-dot fa-stack-2x"></i></div>' WHERE name = 'varchoroplethchart';
+    // UPDATE ref.module_dashboardbuilder_dashboard_widget SET icon_html = '<div class="fa-stack fa-fw"><i class="fa-solid fa-chart-line fa-stack-2x"></i><i class="fa-solid fa-clock fa-stack-1x icon_overlay_icon--br" style="color: black; margin-left: 0px; margin-top: 0px; text-shadow: 1px 1px white;"></i></div>' WHERE name = 'perfreportgraph';
+
+    // --Catégorie: Outils & Opérations(Gris)
+    // UPDATE ref.module_dashboardbuilder_dashboard_widget SET icon_html = '<div class="fa-stack fa-fw"><i class="fa-solid fa-check-circle fa-stack-2x"></i></div>' WHERE name = 'checklist';
+    // UPDATE ref.module_dashboardbuilder_dashboard_widget SET icon_html = '<div class="fa-stack fa-fw"><i class="fa-solid fa-cogs fa-stack-2x"></i></div>' WHERE name = 'bulkops';
+    // UPDATE ref.module_dashboardbuilder_dashboard_widget SET icon_html = '<div class="fa-stack fa-fw"><i class="fa-solid fa-list-check fa-stack-2x"></i></div>' WHERE name = 'supervision';
+    // UPDATE ref.module_dashboardbuilder_dashboard_widget SET icon_html = '<div class="fa-stack fa-fw"><i class="fa-solid fa-list-check fa-stack-2x"></i><i class="fa-solid fa-tag fa-stack-1x icon_overlay_icon--tr" style="color: black; margin-left: 0px; margin-top: 0px; text-shadow: 1px 1px white;"></i></div>' WHERE name = 'supervision_type';
+    // UPDATE ref.module_dashboardbuilder_dashboard_widget SET icon_html = '<div class="fa-stack fa-fw"><i class="fa-solid fa-comments fa-stack-2x"></i></div>' WHERE name = 'oseliathread';
+    // UPDATE ref.module_dashboardbuilder_dashboard_widget SET icon_html = '<div class="fa-stack fa-fw"><i class="fa-solid fa-tasks fa-stack-2x"></i></div>' WHERE name = 'SuiviCompetences';
+    // UPDATE ref.module_dashboardbuilder_dashboard_widget SET icon_html = '<div class="fa-stack fa-fw"><i class="fa-solid fa-project-diagram fa-stack-2x"></i></div>' WHERE name = 'oseliarungraphwidget';
+
+    // --Catégorie: CMS(Orange)
+    // UPDATE ref.module_dashboardbuilder_dashboard_widget SET icon_html = '<div class="fa-stack fa-fw"><i class="fa-solid fa-font fa-stack-2x"></i></div>' WHERE name IN('BlocText', 'cmsbloctext');
+    // UPDATE ref.module_dashboardbuilder_dashboard_widget SET icon_html = '<div class="fa-stack fa-fw"><i class="fa-solid fa-image fa-stack-2x"></i></div>' WHERE name = 'cmsimage';
+    // UPDATE ref.module_dashboardbuilder_dashboard_widget SET icon_html = '<div class="fa-stack fa-fw"><i class="fa-solid fa-print fa-stack-2x"></i><i class="fa-solid fa-cog fa-stack-1x icon_overlay_icon" style="color: black; margin-left: 0px; margin-top: 0px; text-shadow: 1px 1px white;"></i></div>' WHERE name = 'cmsprintparam';
+    // UPDATE ref.module_dashboardbuilder_dashboard_widget SET icon_html = '<div class="fa-stack fa-fw"><i class="fa-solid fa-link fa-stack-2x"></i></div>' WHERE name = 'cmslinkbutton';
+    // UPDATE ref.module_dashboardbuilder_dashboard_widget SET icon_html = '<div class="fa-stack fa-fw"><i class="fa-solid fa-heart fa-stack-2x"></i></div>' WHERE name = 'cmslikebutton';
+    // UPDATE ref.module_dashboardbuilder_dashboard_widget SET icon_html = '<div class="fa-stack fa-fw"><i class="fa-solid fa-toggle-on fa-stack-2x"></i></div>' WHERE name = 'cmsbooleanbutton';
+    // UPDATE ref.module_dashboardbuilder_dashboard_widget SET icon_html = '<div class="fa-stack fa-fw"><i class="fa-solid fa-file-pdf fa-stack-2x"></i></div>' WHERE name = 'cmsvisionneusepdf';
+
+    // --Catégorie: Template(Violet)
+    // UPDATE ref.module_dashboardbuilder_dashboard_widget SET icon_html = '<div class="fa-stack fa-fw"><i class="fa-solid fa-link fa-stack-2x"></i></div>' WHERE name = 'templateconsultation_linkbutton';
+    // UPDATE ref.module_dashboardbuilder_dashboard_widget SET icon_html = '<div class="fa-stack fa-fw"><i class="fa-solid fa-database fa-stack-2x"></i><i class="fa-solid fa-pen fa-stack-1x icon_overlay_icon--tr" style="color: black; margin-left:10px; margin-top: -10px"></i><i class="fa-solid fa-trash fa-stack-1x icon_overlay_icon--br" style="color: #dc3545; margin-left:10px; margin-top: 10px"></i></div>' WHERE name = 'templateconsultation_crudbuttons';
+    // UPDATE ref.module_dashboardbuilder_dashboard_widget SET icon_html = '<div class="fa-stack fa-fw"><i class="fa-solid fa-file-pdf fa-stack-2x"></i></div>' WHERE name = 'templateconsultation_visionneusepdf';
+    // UPDATE ref.module_dashboardbuilder_dashboard_widget SET icon_html = '<div class="fa-stack fa-fw"><i class="fa-solid fa-image fa-stack-2x"></i></div>' WHERE name = 'templateconsultation_image';
+    // UPDATE ref.module_dashboardbuilder_dashboard_widget SET icon_html = '<div class="fa-stack fa-fw"><i class="fa-solid fa-font fa-stack-2x"></i></div>' WHERE name = 'templateconsultation_bloctext';
+
     private async initializeWidget_PerfReportGraph() {
         const PerfReportGraph = new DashboardWidgetVO();
 
@@ -170,9 +227,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         PerfReportGraph.options_component = 'Perfreportgraphwidgetoptionscomponent';
         PerfReportGraph.weight = 50;
         PerfReportGraph.default_background = '#f5f5f5';
-        PerfReportGraph.icon_html = `
-        <i class='fa-lg fa-fw fa-duotone fa-chart-scatter-bubble' aria-hidden='true'></i>
-        `;
+        PerfReportGraph.icon_html = `<div class="fa-stack fa-fw"><i class="fa-solid fa-chart-line fa-stack-2x"></i><i class="fa-solid fa-clock fa-stack-1x icon_overlay_icon--br" style="color: black; margin-left: 0px; margin-top: 0px; text-shadow: 1px 1px white;"></i></div>`;
 
         await WidgetOptionsVOManager.register_widget_type(PerfReportGraph, null, null);
 
@@ -191,9 +246,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         BulkOps.options_component = 'Bulkopswidgetoptionscomponent';
         BulkOps.weight = 40;
         BulkOps.default_background = '#f5f5f5';
-        BulkOps.icon_html = `
-        <i class='fa-lg fa-fw fa fa-cogs' aria-hidden='true'></i>
-        `;
+        BulkOps.icon_html = `<div class="fa-stack fa-fw"><i class="fa-solid fa-cogs fa-stack-2x"></i></div>`;
 
         await WidgetOptionsVOManager.register_widget_type(BulkOps, () => new BulkOpsWidgetOptions(null, 10), BulkOpsWidgetOptions.get_selected_fields);
 
@@ -211,9 +264,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         Checklist.options_component = 'Checklistwidgetoptionscomponent';
         Checklist.weight = 30;
         Checklist.default_background = '#f5f5f5';
-        Checklist.icon_html = `
-        <i class='.fa-lg.fa-fw.fa.fa-check-circle"></i>
-        `;
+        Checklist.icon_html = `<div class="fa-stack fa-fw"><i class="fa-solid fa-check-circle fa-stack-2x"></i></div>`;
 
         await WidgetOptionsVOManager.register_widget_type(Checklist, () => new ChecklistWidgetOptions(10, null, false, true, true, true), ChecklistWidgetOptions.get_selected_fields);
 
@@ -231,9 +282,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         supervision.options_component = 'Supervisionwidgetoptionscomponent';
         supervision.weight = 31;
         supervision.default_background = '#f5f5f5';
-        supervision.icon_html = `
-        <i class='fa-lg fa-fw fa fa-duotone fa-list-check' aria-hidden='true'></i>
-        `;
+        supervision.icon_html = `<div class="fa-stack fa-fw"><i class="fa-solid fa-list-check fa-stack-2x"></i></div>`;
 
         await WidgetOptionsVOManager.register_widget_type(supervision, () => new SupervisionWidgetOptions(100, [], true, true, 30, true), SupervisionWidgetOptions.get_selected_fields);
 
@@ -251,9 +300,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         supervision_type.options_component = 'Supervisiontypewidgetoptionscomponent';
         supervision_type.weight = 32;
         supervision_type.default_background = '#f5f5f5';
-        supervision_type.icon_html = `
-        <i class='fa-lg fa-fw fa-duotone fa-tasks' aria-hidden='true'></i>
-        `;
+        supervision_type.icon_html = `<div class="fa-stack fa-fw"><i class="fa-solid fa-list-check fa-stack-2x"></i><i class="fa-solid fa-tag fa-stack-1x icon_overlay_icon--tr" style="color: black; margin-left: 0px; margin-top: 0px; text-shadow: 1px 1px white;"></i></div>`;
 
         await WidgetOptionsVOManager.register_widget_type(supervision_type, () => new SupervisionTypeWidgetOptions([]), SupervisionTypeWidgetOptions.get_selected_fields);
 
@@ -271,12 +318,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         Table.options_component = 'Tablewidgetoptionscomponent';
         Table.weight = 21;
         Table.default_background = '#f5f5f5';
-        Table.icon_html = `
-        <div class='fa-stack fa-lg fa-fw' aria-hidden='true'>
-            <i class='fa-solid fa-table fa-stack-2x'></i>
-            <i class='fa-solid fa-pencil-square fa-stack-1x' style="position: absolute; left: 0px; bottom: 0px; width: auto; height: auto; color: dodgerblue; background: white; padding: 1px 3px; margin: 0; line-height: 1.1em;"></i>
-        </div>
-        `;
+        Table.icon_html = `<div class="fa-stack fa-fw"><i class="fa-solid fa-table fa-stack-2x"></i><i class="fa-solid fa-pencil fa-stack-1x icon_overlay_icon--bl" style="color: black; margin-left: 0px; margin-top: 0px; text-shadow: 1px 1px white;"></i></div>`;
 
         await WidgetOptionsVOManager.register_widget_type(Table, () => new TableWidgetOptionsVO(
             null, true, 100, null, false, true, false, true, true, true, true, true, true, true, true, false, null, false, 5, false,
@@ -297,9 +339,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         widget.options_component = 'Oseliathreadwidgetoptionscomponent';
         widget.weight = 99;
         widget.default_background = '#f5f5f5';
-        widget.icon_html = `
-        <i class='fa-duotone fa-comments'></i>
-        `;
+        widget.icon_html = `<div class="fa-stack fa-fw"><i class="fa-solid fa-comments fa-stack-2x"></i></div>`;
 
         await WidgetOptionsVOManager.register_widget_type(widget, () => new OseliaThreadWidgetOptions(), OseliaThreadWidgetOptions.get_selected_fields);
 
@@ -318,9 +358,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         fieldValueFilter.options_component = 'Fieldvaluefilterwidgetoptionscomponent';
         fieldValueFilter.weight = 0;
         fieldValueFilter.default_background = '#f5f5f5';
-        fieldValueFilter.icon_html = `
-        <i class='fa-lg fa-fw fa fa-filter' aria-hidden='true'></i>
-        `;
+        fieldValueFilter.icon_html = `<div class="fa-stack fa-fw"><i class="fa-solid fa-filter fa-stack-2x"></i></div>`;
         fieldValueFilter.is_filter = true;
 
         await WidgetOptionsVOManager.register_widget_type(fieldValueFilter, () => new FieldValueFilterWidgetOptionsVO(
@@ -341,10 +379,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         DOWFilter.options_component = 'Dowfilterwidgetoptionscomponent';
         DOWFilter.weight = 1;
         DOWFilter.default_background = '#f5f5f5';
-        DOWFilter.icon_html = `
-        <i class='fa-lg fa-fw fa-regular fa-calendar' aria-hidden='true'></i>
-        <div class='ts_overlay' style="float: left; margin-top: -1.9em; width: -webkit-fill-available; text-align: center; font-size: 0.4em;">7</div>
-        `;
+        DOWFilter.icon_html = `<div class="fa-stack fa-fw"><i class="fa-regular fa-calendar fa-stack-2x"></i><strong class="fa-stack-1x icon_text_overlay" style="color: black; margin-left: 0px; margin-top: 0px; text-shadow: 1px 1px white; margin-top:4px">7</strong></div>`;
 
         await WidgetOptionsVOManager.register_widget_type(DOWFilter, () => new DOWFilterWidgetOptions(true, null, null), DOWFilterWidgetOptions.get_selected_fields);
 
@@ -362,10 +397,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         MonthFilter.options_component = 'Monthfilterwidgetoptionscomponent';
         MonthFilter.weight = 2;
         MonthFilter.default_background = '#f5f5f5';
-        MonthFilter.icon_html = `
-        <i class='fa-lg fa-fw fa-regular fa-calendar' aria-hidden='true'></i>
-        <div class='ts_overlay' style="float: left; margin-top: -1.9em; width: -webkit-fill-available; text-align: center; font-size: 0.4em;">31</div>
-        `;
+        MonthFilter.icon_html = `<div class="fa-stack fa-fw"><i class="fa-regular fa-calendar fa-stack-2x"></i><strong class="fa-stack-1x icon_text_overlay" style="color: black; margin-left: 0px; margin-top: 0px; text-shadow: 1px 1px white; margin-top:4px">31</strong></div>`;
 
         await WidgetOptionsVOManager.register_widget_type(MonthFilter, () => new MonthFilterWidgetOptions(true, null, null, false, 1, 12, false, false, null, null, false, null, false), MonthFilterWidgetOptions.get_selected_fields);
 
@@ -384,10 +416,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         AdvancedDateFilter.options_component = 'Advanceddatefilterwidgetoptionscomponent';
         AdvancedDateFilter.weight = 4;
         AdvancedDateFilter.default_background = '#f5f5f5';
-        AdvancedDateFilter.icon_html = `
-        <i class='fa-lg fa-fw fa-regular fa-calendar' aria-hidden='true'></i>
-        <div class='ts_overlay' style="float: left; margin-top: -1.9em; width: -webkit-fill-available; text-align: center; font-size: 0.4em;">X</div>
-        `;
+        AdvancedDateFilter.icon_html = `<div class="fa-stack fa-fw"><i class="fa-regular fa-calendar fa-stack-2x"></i><strong class="fa-stack-1x icon_text_overlay" style="color: black; margin-left: 0px; margin-top: 0px; text-shadow: 1px 1px white; margin-top:4px">X</strong></div>`;
 
         await WidgetOptionsVOManager.register_widget_type(
             AdvancedDateFilter,
@@ -409,12 +438,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         CurrentUserFilter.options_component = 'Currentuserfilterwidgetoptionscomponent';
         CurrentUserFilter.weight = 19;
         CurrentUserFilter.default_background = '#f5f5f5';
-        CurrentUserFilter.icon_html = `
-        <div class='fa-stack fa-lg fa-fw' aria-hidden='true'>
-            <i class='fa-solid fa-user fa-stack-2x'></i>
-            <i class='fa-solid fa-bullseye fa-stack-1x'></i>
-        </div>
-        `;
+        CurrentUserFilter.icon_html = `<div class="fa-stack fa-fw"><i class="fa-solid fa-user fa-stack-2x"></i><i class="fa-solid fa-bullseye fa-stack-1x icon_overlay_icon" style="color: black; margin-left: 0px; margin-top: 0px; text-shadow: 1px 1px white;"></i></div>`;
         CurrentUserFilter.is_filter = true;
 
         await WidgetOptionsVOManager.register_widget_type(
@@ -437,9 +461,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         VarPieChart.options_component = 'Varpiechartwidgetoptionscomponent';
         VarPieChart.weight = 15;
         VarPieChart.default_background = '#f5f5f5';
-        VarPieChart.icon_html = `
-        <i class='fa-lg fa-fw fa-duotone fa-chart-pie' aria-hidden='true'></i>
-        `;
+        VarPieChart.icon_html = `<div class="fa-stack fa-fw"><i class="fa-solid fa-chart-pie fa-stack-2x"></i></div>`;
 
         await WidgetOptionsVOManager.register_widget_type(VarPieChart, () => VarPieChartWidgetOptionsVO.createDefault(), VarPieChartWidgetOptionsVO.get_selected_fields);
 
@@ -457,9 +479,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         VarChoroplethChart.options_component = 'Varchoroplethchartwidgetoptionscomponent';
         VarChoroplethChart.weight = 15;
         VarChoroplethChart.default_background = '#f5f5f5';
-        VarChoroplethChart.icon_html = `
-        <i class='fa-lg fa-fw fa-duotone fa-map-location-dot' aria-hidden='true'></i>
-        `;
+        VarChoroplethChart.icon_html = `<div class="fa-stack fa-fw"><i class="fa-solid fa-map-location-dot fa-stack-2x"></i></div>`;
 
         await WidgetOptionsVOManager.register_widget_type(VarChoroplethChart, () => VarChoroplethChartWidgetOptions.createDefault(), VarChoroplethChartWidgetOptions.get_selected_fields);
 
@@ -477,9 +497,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         VarRadarChart.options_component = 'Varradarchartwidgetoptionscomponent';
         VarRadarChart.weight = 15;
         VarRadarChart.default_background = '#f5f5f5';
-        VarRadarChart.icon_html = `
-        <i class='fa-lg fa-fw fa-duotone fa-chart-radar' aria-hidden='true'></i>
-        `;
+        VarRadarChart.icon_html = `<div class="fa-stack fa-fw"><i class="fa-solid fa-chart-radar fa-stack-2x"></i></div>`;
 
         await WidgetOptionsVOManager.register_widget_type(VarRadarChart, () => VarRadarChartWidgetOptionsVO.createDefault(), VarRadarChartWidgetOptionsVO.get_selected_fields);
 
@@ -497,9 +515,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         VarMixedChart.options_component = 'Varmixedchartswidgetoptionscomponent';
         VarMixedChart.weight = 15;
         VarMixedChart.default_background = '#f5f5f5';
-        VarMixedChart.icon_html = `
-        <i class='fa-lg fa-fw fa-duotone fa-chart-mixed' aria-hidden='true'></i>
-        `;
+        VarMixedChart.icon_html = `<div class="fa-stack fa-fw"><i class="fa-solid fa-chart-bar fa-stack-2x"></i></div>`;
 
         await WidgetOptionsVOManager.register_widget_type(VarMixedChart, () => VarMixedChartWidgetOptionsVO.createDefault(), VarMixedChartWidgetOptionsVO.get_selected_fields);
 
@@ -517,10 +533,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         YearFilter.options_component = 'Yearfilterwidgetoptionscomponent';
         YearFilter.weight = 3;
         YearFilter.default_background = '#f5f5f5';
-        YearFilter.icon_html = `
-        <i class='fa-lg fa-fw fa-regular fa-calendar' aria-hidden='true'></i>
-        <div class='ts_overlay' style="float: left; margin-top: -1.9em; width: -webkit-fill-available; text-align: center; font-size: 0.4em;">365</div>
-        `;
+        YearFilter.icon_html = `<div class="fa-stack fa-fw"><i class="fa-regular fa-calendar fa-stack-2x"></i><strong class="fa-stack-1x icon_text_overlay" style="color: black; margin-left: 0px; margin-top: 0px; text-shadow: 1px 1px white; margin-top:4px">365</strong></div>`;
 
         await WidgetOptionsVOManager.register_widget_type(YearFilter, () => new YearFilterWidgetOptionsVO(true, null, null, true, -2, 2, true, true, 0, 0, false, null, false), YearFilterWidgetOptionsVO.get_selected_fields);
 
@@ -538,12 +551,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         ValidationFilters.options_component = 'Validationfilterswidgetoptionscomponent';
         ValidationFilters.weight = 3;
         ValidationFilters.default_background = '#f5f5f5';
-        ValidationFilters.icon_html = `
-        <div class='fa-stack fa-lg fa-fw' aria-hidden='true'>
-            <i class='fa-solid fa-filter fa-stack-2x'></i>
-            <i class='fa-solid fa-check fa-stack-1x'></i>
-        </div>
-        `;
+        ValidationFilters.icon_html = `<div class="fa-stack fa-fw"><i class="fa-solid fa-filter fa-stack-2x"></i><i class="fa-solid fa-check fa-stack-1x icon_overlay_icon" style="color: black; margin-left: 0px; margin-top: 0px; text-shadow: 1px 1px white;"></i></div>`;
         ValidationFilters.is_validation_filters = true;
         ValidationFilters.is_filter = true;
 
@@ -563,12 +571,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         SaveFavoritesFilters.options_component = 'Favoritesfilterswidgetoptionscomponent';
         SaveFavoritesFilters.weight = 3;
         SaveFavoritesFilters.default_background = '#f5f5f5';
-        SaveFavoritesFilters.icon_html = `
-        <div class='fa-stack fa-lg fa-fw' aria-hidden='true'>
-            <i class='fa-solid fa-filter fa-stack-2x'></i>
-            <i class='fa-solid fa-save fa-stack-1x'></i>
-        </div>
-        `;
+        SaveFavoritesFilters.icon_html = `<div class="fa-stack fa-fw"><i class="fa-solid fa-filter fa-stack-2x"></i><i class="fa-solid fa-floppy-disk fa-stack-1x icon_overlay_icon" style="color: black; margin-left: 0px; margin-top: 0px; text-shadow: 1px 1px white;"></i></div>`;
 
         await WidgetOptionsVOManager.register_widget_type(
             SaveFavoritesFilters,
@@ -595,12 +598,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         ShowFavoritesFilters.options_component = 'Favoritesfilterswidgetoptionscomponent';
         ShowFavoritesFilters.weight = 3;
         ShowFavoritesFilters.default_background = '#f5f5f5';
-        ShowFavoritesFilters.icon_html = `
-        <div class='fa-stack fa-lg fa-fw' aria-hidden='true'>
-            <i class='fa-solid fa-filter fa-stack-2x'></i>
-            <i class='fa-solid fa-eye fa-stack-1x'></i>
-        </div>
-        `;
+        ShowFavoritesFilters.icon_html = `<div class="fa-stack fa-fw"><i class="fa-solid fa-filter fa-stack-2x"></i><i class="fa-solid fa-eye fa-stack-1x icon_overlay_icon" style="color: black; margin-left: 0px; margin-top: 0px; text-shadow: 1px 1px white;"></i></div>`;
 
         await WidgetOptionsVOManager.register_widget_type(
             ShowFavoritesFilters,
@@ -627,12 +625,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         ResetFilters.options_component = 'Resetfilterswidgetoptionscomponent';
         ResetFilters.weight = 3;
         ResetFilters.default_background = '#f5f5f5';
-        ResetFilters.icon_html = `
-        <div class='fa-stack fa-lg fa-fw' aria-hidden='true'>
-            <i class='fa-solid fa-filter fa-stack-2x'></i>
-            <i class='fa-solid fa-redo fa-stack-1x'></i>
-        </div>
-        `;
+        ResetFilters.icon_html = `<div class="fa-stack fa-fw"><i class="fa-solid fa-filter fa-stack-2x"></i><i class="fa-solid fa-trash fa-stack-1x icon_overlay_icon" style="color: black; margin-left: 0px; margin-top: 0px; text-shadow: 1px 1px white;"></i></div>`;
         ResetFilters.is_filter = true;
 
         await WidgetOptionsVOManager.register_widget_type(ResetFilters, null, null);
@@ -651,11 +644,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         BlocText.options_component = 'BlocTextwidgetoptionscomponent';
         BlocText.weight = 3;
         BlocText.default_background = '#f5f5f5';
-        BlocText.icon_html = `
-        <div class='fa-stack fa-lg fa-fw' aria-hidden='true'>
-            <i class='fa-solid fa-text'></i>
-        </div>
-        `;
+        BlocText.icon_html = `<div class="fa-stack fa-fw"><i class="fa-solid fa-font fa-stack-2x"></i></div>`;
         BlocText.is_filter = true;
 
         await WidgetOptionsVOManager.register_widget_type(BlocText, null, null);
@@ -673,11 +662,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         SuiviCompetences.options_component = 'SuiviCompetenceswidgetoptionscomponent';
         SuiviCompetences.weight = 3;
         SuiviCompetences.default_background = '#f5f5f5';
-        SuiviCompetences.icon_html = `
-        <div class='fa-stack fa-lg fa-fw' aria-hidden='true'>
-            <i class='fa-solid fa-memo-circle-check'></i>
-        </div>
-        `;
+        SuiviCompetences.icon_html = `<div class="fa-stack fa-fw"><i class="fa-solid fa-tasks fa-stack-2x"></i></div>`;
         SuiviCompetences.is_filter = true;
 
         await WidgetOptionsVOManager.register_widget_type(
@@ -700,9 +685,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         var_widget.options_component = 'Varwidgetoptionscomponent';
         var_widget.weight = 10;
         var_widget.default_background = '#f5f5f5';
-        var_widget.icon_html = `
-        <i class='fa-lg fa-fw fa fa-bullseye' aria-hidden='true'></i>
-        `;
+        var_widget.icon_html = `<div class="fa-stack fa-fw"><i class="fa-solid fa-bullseye fa-stack-2x"></i></div>`;
 
         await WidgetOptionsVOManager.register_widget_type(var_widget, () => new VarWidgetOptions(null, null, null, null, null, null, null), VarWidgetOptions.get_selected_fields);
 
@@ -720,12 +703,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         pageswitch_widget.options_component = 'Pageswitchwidgetoptionscomponent';
         pageswitch_widget.weight = 5;
         pageswitch_widget.default_background = '#f5f5f5';
-        pageswitch_widget.icon_html = `
-        <div class='fa-stack fa-lg fa-fw' aria-hidden='true'>
-            <i class='fa-solid fa-file fa-stack-2x'></i>
-            <i class='fa-solid fa-external-link-square fa-stack-1x'></i>
-        </div>
-        `;
+        pageswitch_widget.icon_html = `<div class="fa-stack fa-fw"><i class="fa-solid fa-file fa-stack-2x"></i><i class="fa-solid fa-arrow-right-from-bracket fa-stack-1x icon_overlay_icon" style="color: black; margin-left: 0px; margin-top: 0px; text-shadow: 1px 1px white;"></i></div>`;
 
         await WidgetOptionsVOManager.register_widget_type(pageswitch_widget, () => new PageSwitchWidgetOptions(null), () => null);
 
@@ -743,9 +721,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         OseliaRunGraphWidget.options_component = 'Oseliarungraphwidgetoptionscomponent';
         OseliaRunGraphWidget.weight = 2;
         OseliaRunGraphWidget.default_background = '#f5f5f5';
-        OseliaRunGraphWidget.icon_html = `
-        <i class='fa-lg fa-fw fa fa-chart-diagram' aria-hidden='true'></i>
-        `;
+        OseliaRunGraphWidget.icon_html = `<div class="fa-stack fa-fw"><i class="fa-solid fa-project-diagram fa-stack-2x"></i></div>`;
 
         await WidgetOptionsVOManager.register_widget_type(OseliaRunGraphWidget, () => new OseliaRunGraphWidgetComponent(), () => null);
 
@@ -763,11 +739,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         CMSBlocText.options_component = 'CMSBlocTextwidgetoptionscomponent';
         CMSBlocText.weight = 3;
         CMSBlocText.default_background = '#f5f5f5';
-        CMSBlocText.icon_html = `
-        <div class='fa-stack fa-lg fa-fw' aria-hidden='true'>
-            <i class='fa-solid fa-text'></i>
-        </div>
-        `;
+        CMSBlocText.icon_html = `<div class="fa-stack fa-fw"><i class="fa-solid fa-font fa-stack-2x"></i></div>`;
         CMSBlocText.is_filter = false;
 
         await WidgetOptionsVOManager.register_widget_type(CMSBlocText, () =>
@@ -806,11 +778,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         CMSImage.options_component = 'CMSImagewidgetoptionscomponent';
         CMSImage.weight = 3;
         CMSImage.default_background = '#f5f5f5';
-        CMSImage.icon_html = `
-        <div class='fa-stack fa-lg fa-fw' aria-hidden='true'>
-            <i class='fa-solid fa-image'></i>
-        </div>
-        `;
+        CMSImage.icon_html = `<div class="fa-stack fa-fw"><i class="fa-solid fa-image fa-stack-2x"></i></div>`;
         CMSImage.is_filter = false;
 
         await WidgetOptionsVOManager.register_widget_type(CMSImage, () =>
@@ -837,11 +805,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         CMSLinkButton.options_component = 'CMSLinkButtonwidgetoptionscomponent';
         CMSLinkButton.weight = 3;
         CMSLinkButton.default_background = '#f5f5f5';
-        CMSLinkButton.icon_html = `
-        <div class='fa-stack fa-lg fa-fw' aria-hidden='true'>
-            <i class='fa-solid fa-link'></i>
-        </div>
-        `;
+        CMSLinkButton.icon_html = `<div class="fa-stack fa-fw"><i class="fa-solid fa-link fa-stack-2x"></i></div>`;
         CMSLinkButton.is_filter = false;
 
         await WidgetOptionsVOManager.register_widget_type(CMSLinkButton, () =>
@@ -874,11 +838,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         CMSBooleanButton.options_component = 'CMSBooleanButtonwidgetoptionscomponent';
         CMSBooleanButton.weight = 3;
         CMSBooleanButton.default_background = '#f5f5f5';
-        CMSBooleanButton.icon_html = `
-        <div class='fa-stack fa-lg fa-fw' aria-hidden='true'>
-            <i class='fa-solid fa-toggle-on'></i>
-        </div>
-        `;
+        CMSBooleanButton.icon_html = `<div class="fa-stack fa-fw"><i class="fa-solid fa-toggle-on fa-stack-2x"></i></div>`;
         CMSBooleanButton.is_filter = false;
 
         await WidgetOptionsVOManager.register_widget_type(CMSBooleanButton, null, null);
@@ -897,11 +857,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         CMSLikeButton.options_component = 'CMSLikeButtonwidgetoptionscomponent';
         CMSLikeButton.weight = 3;
         CMSLikeButton.default_background = '#f5f5f5';
-        CMSLikeButton.icon_html = `
-        <div class='fa-stack fa-lg fa-fw' aria-hidden='true'>
-            <i class='fa-solid fa-heart-circle'></i>
-        </div>
-        `;
+        CMSLikeButton.icon_html = `<div class="fa-stack fa-fw"><i class="fa-solid fa-heart fa-stack-2x"></i></div>`;
         CMSLikeButton.is_filter = false;
 
         await WidgetOptionsVOManager.register_widget_type(CMSLikeButton, null, null);
@@ -920,12 +876,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         CMSPrintParam.options_component = 'CMSPrintParamwidgetoptionscomponent';
         CMSPrintParam.weight = 3;
         CMSPrintParam.default_background = '#f5f5f5';
-        CMSPrintParam.icon_html = `
-        <div class='fa-stack fa-lg fa-fw' aria-hidden='true'>
-            <i class='fa-solid fa-file fa-stack-2x'></i>
-            <i class='fa-solid fa-cogs fa-stack-1x'></i>
-        </div>
-        `;
+        CMSPrintParam.icon_html = `<div class="fa-stack fa-fw"><i class="fa-solid fa-print fa-stack-2x"></i><i class="fa-solid fa-cog fa-stack-1x icon_overlay_icon" style="color: black; margin-left: 0px; margin-top: 0px; text-shadow: 1px 1px white;"></i></div>`;
         CMSPrintParam.is_filter = false;
 
         await WidgetOptionsVOManager.register_widget_type(CMSPrintParam, null, null);
@@ -944,11 +895,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         CMSVisionneusePdf.options_component = 'CMSVisionneusePdfwidgetoptionscomponent';
         CMSVisionneusePdf.weight = 3;
         CMSVisionneusePdf.default_background = '#f5f5f5';
-        CMSVisionneusePdf.icon_html = `
-        <div class='fa-stack fa-lg fa-fw' aria-hidden='true'>
-            <i class='fa-solid fa-file-pdf'></i>
-        </div>
-        `;
+        CMSVisionneusePdf.icon_html = `<div class="fa-stack fa-fw"><i class="fa-solid fa-file-pdf fa-stack-2x"></i></div>`;
         CMSVisionneusePdf.is_filter = false;
 
         await WidgetOptionsVOManager.register_widget_type(CMSVisionneusePdf, () =>
@@ -973,13 +920,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         CrudButtons.weight = 3;
         CrudButtons.default_background = '#f5f5f5';
 
-        CrudButtons.icon_html = `
-        <div class='fa-stack fa-lg fa-fw' aria-hidden='true'>
-            <i class='fa-solid fa-database fa-stack-2x'></i>
-            <i class='fa-solid fa-trash fa-stack-1x' style="position: absolute;    left: 18px;    bottom: -5px;    width: auto;    height: auto;    color: dodgerblue;    background: transparent;    padding: 1px 3px;    margin: 0;    line-height: 1.1em;"></i>
-            <i class='fa-solid fa-pen fa-stack-1x' style="position: absolute;    left: 18px;    bottom: 15px;    width: auto;    height: auto;    color: dodgerblue;    background: transparent;    padding: 1px 3px;    margin: 0; line-height: 1.1em;"></i>
-        </div>
-        `;
+        CrudButtons.icon_html = `<div class="fa-stack fa-fw"><i class="fa-solid fa-database fa-stack-2x"></i><i class="fa-solid fa-pen fa-stack-1x icon_overlay_icon--tr" style="color: black; margin-left:10px; margin-top: -10px"></i><i class="fa-solid fa-trash fa-stack-1x icon_overlay_icon--br" style="color: #dc3545; margin-left:10px; margin-top: 10px"></i></div>`;
 
         CrudButtons.is_filter = false;
 
@@ -1009,13 +950,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         CrudButtons.weight = 3;
         CrudButtons.default_background = '#f5f5f5';
 
-        CrudButtons.icon_html = `
-        <div class='fa-stack fa-lg fa-fw' aria-hidden='true' style="filter: invert(100%);">
-            <i class='fa-solid fa-database fa-stack-2x'></i>
-            <i class='fa-solid fa-trash fa-stack-1x' style="position: absolute;    left: 18px;    bottom: -5px;    width: auto;    height: auto;    color: dodgerblue;    background: transparent;    padding: 1px 3px;    margin: 0;    line-height: 1.1em;"></i>
-            <i class='fa-solid fa-pen fa-stack-1x' style="position: absolute;    left: 18px;    bottom: 15px;    width: auto;    height: auto;    color: dodgerblue;    background: transparent;    padding: 1px 3px;    margin: 0; line-height: 1.1em;"></i>
-        </div>
-        `;
+        CrudButtons.icon_html = `<div class="fa-stack fa-fw"><i class="fa-solid fa-database fa-stack-2x"></i><i class="fa-solid fa-pen fa-stack-1x icon_overlay_icon--tr" style="color: black; margin-left:10px; margin-top: -10px"></i><i class="fa-solid fa-trash fa-stack-1x icon_overlay_icon--br" style="color: #dc3545; margin-left:10px; margin-top: 10px"></i></div>`;
         CrudButtons.is_filter = false;
 
         await WidgetOptionsVOManager.register_widget_type(CrudButtons,
@@ -1043,11 +978,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         CMSVisionneusePdf.options_component = 'CMSVisionneusePdfwidgetoptionscomponent';
         CMSVisionneusePdf.weight = 3;
         CMSVisionneusePdf.default_background = '#f5f5f5';
-        CMSVisionneusePdf.icon_html = `
-        <div class='fa-stack fa-lg fa-fw' aria-hidden='true' style="filter: invert(100%);">
-            <i class='fa-solid fa-file-pdf'></i>
-        </div>
-        `;
+        CMSVisionneusePdf.icon_html = `<div class="fa-stack fa-fw"><i class="fa-solid fa-file-pdf fa-stack-2x"></i></div>`;
         CMSVisionneusePdf.is_filter = false;
 
         await WidgetOptionsVOManager.register_widget_type(CMSVisionneusePdf, () =>
@@ -1071,11 +1002,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         CMSLinkButton.options_component = 'CMSLinkButtonwidgetoptionscomponent';
         CMSLinkButton.weight = 3;
         CMSLinkButton.default_background = '#f5f5f5';
-        CMSLinkButton.icon_html = `
-        <div class='fa-stack fa-lg fa-fw' aria-hidden='true' style="filter: invert(100%);">
-            <i class='fa-solid fa-link'></i>
-        </div>
-        `;
+        CMSLinkButton.icon_html = `<div class="fa-stack fa-fw"><i class="fa-solid fa-link fa-stack-2x"></i></div>`;
         CMSLinkButton.is_filter = false;
 
         await WidgetOptionsVOManager.register_widget_type(CMSLinkButton, () =>
@@ -1108,11 +1035,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         CMSImage.options_component = 'CMSImagewidgetoptionscomponent';
         CMSImage.weight = 3;
         CMSImage.default_background = '#f5f5f5';
-        CMSImage.icon_html = `
-        <div class='fa-stack fa-lg fa-fw' aria-hidden='true' style="filter: invert(100%);">
-            <i class='fa-solid fa-image'></i>
-        </div>
-        `;
+        CMSImage.icon_html = `<div class="fa-stack fa-fw"><i class="fa-solid fa-image fa-stack-2x"></i></div>`;
         CMSImage.is_filter = false;
 
         await WidgetOptionsVOManager.register_widget_type(CMSImage, () =>
@@ -1139,11 +1062,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         CMSBlocText.options_component = 'CMSBlocTextwidgetoptionscomponent';
         CMSBlocText.weight = 3;
         CMSBlocText.default_background = '#f5f5f5';
-        CMSBlocText.icon_html = `
-        <div class='fa-stack fa-lg fa-fw' aria-hidden='true' style="filter: invert(100%);">
-            <i class='fa-solid fa-text'></i>
-        </div>
-        `;
+        CMSBlocText.icon_html = `<div class="fa-stack fa-fw"><i class="fa-solid fa-font fa-stack-2x"></i></div>`;
         CMSBlocText.is_filter = false;
 
         await WidgetOptionsVOManager.register_widget_type(CMSBlocText, () =>

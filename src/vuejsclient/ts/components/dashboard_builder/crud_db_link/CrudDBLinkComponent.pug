@@ -3,6 +3,12 @@
         .crud_db_link_api_type_id
             .input_label {{ label('crud_db_link.no_api_type_is_available') }}
     template(v-else)
+
+        //- public moduletable_crud_template_type: number = DashboardVO.MODULE_TABLE_CRUD_TEMPLATE_TYPE_CONSULTATION;
+        //- public moduletable_crud_template_saisie_mode: number = DashboardVO.MODULE_TABLE_CRUD_TEMPLATE_SAISIE_MODE_CREATE_UPDATE;
+
+
+
         .crud_db_link_api_type_id
             .input_label {{ label('crud_db_link.crud_db_link_api_type_id') }}
 
@@ -31,50 +37,103 @@
                     :disabled="!POLICY_DBB_CAN_UPDATE_CRUD_TYPE"
                 )
 
-        .switch_option_formulaire(v-if='selected_vo_type')
-            .input_label {{ label('crud_db_link.switch_option_formulaire') }}
+        .switch_type_template(v-if='selected_vo_type')
+            .input_label {{ label('crud_db_link.switch_type_template') }}
             
-            toggle-button(
-                @change="switch_option_formulaire" 
-                :value="option_formulaire" 
-                :sync="true"
-                :width="100"
-                :labels="{checked: label('crud_db_link.switch_option_formulaire.on'), unchecked: label('crud_db_link.switch_option_formulaire.off')}"
-                :disabled="!POLICY_DBB_CAN_UPDATE_OPTION_FORMULAIRE"
-            )
+                //- get moduletable_crud_template_type_options(): { id: number, label: string }[] {
+                //-     return DashboardVO.MODULE_TABLE_CRUD_TEMPLATE_TYPE_LABELS.map((label: string, index: number) => {
+                //-         return { id: index, label: this.t(label) };
+                //-     });
+                //- }
 
-        .switch_option_template_create(v-if='selected_vo_type && option_formulaire')
-            .input_label {{ label('crud_db_link.switch_option_template_create') }}
-            
-            toggle-button(
-                @change="switch_option_template_create" 
-                :value="option_template_create" 
-                :sync="true"
-                :width="100"
-                :labels="{checked: label('crud_db_link.switch_option_template_create.on'), unchecked: label('crud_db_link.switch_option_template_create.off')}"
-                :disabled="!POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_CREATE"
-            )
+            .input_wrapper
+                multiselect(
+                    v-model="moduletable_crud_template_type"
+                    :options="moduletable_crud_template_type_options"
+                    :multiple="false"
+                    :preselect-first="true"
+                    :placeholder="label('crud_db_link.switch_type_template.placeholder')"
+                    :track-by="'id'"
+                    :label="'label'"
+                    :allow-empty="false"
 
-        .switch_option_template_read(v-if='selected_vo_type')
-            .input_label {{ label('crud_db_link.switch_option_template_read') }}
-            
-            toggle-button(
-                @change="switch_option_template_read" 
-                :value="option_template_read" 
-                :sync="true"
-                :width="100"
-                :labels="{checked: label('crud_db_link.switch_option_template_read.on'), unchecked: label('crud_db_link.switch_option_template_read.off')}"
-                :disabled="!POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_READ"
-            )
+                    :select-label='label("multiselect.selectLabel")'
+                    :select-group-label='label("multiselect.selectGroupLabel")'
+                    :selected-label='label("multiselect.selectedLabel")'
+                    :deselect-label='label("multiselect.deselectLabel")'
+                    :deselect-group-label='label("multiselect.deselectGroupLabel")'
 
-        .switch_option_template_update(v-if='selected_vo_type && option_formulaire')
-            .input_label {{ label('crud_db_link.switch_option_template_update') }}
+                    id="switch_type_template"
+                )
+
+        .switch_type_saisie(v-if='selected_vo_type && (moduletable_crud_template_type?.id == type_saisie)')
+            .input_label {{ label('crud_db_link.switch_type_saisie') }}
             
-            toggle-button(
-                @change="switch_option_template_update" 
-                :value="option_template_update" 
-                :sync="true"
-                :width="100"
-                :labels="{checked: label('crud_db_link.switch_option_template_update.on'), unchecked: label('crud_db_link.switch_option_template_update.off')}"
-                :disabled="!POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_UPDATE"
-            )
+                //- get moduletable_crud_template_type_options(): { id: number, label: string }[] {
+                //-     return DashboardVO.MODULE_TABLE_CRUD_TEMPLATE_TYPE_LABELS.map((label: string, index: number) => {
+                //-         return { id: index, label: this.t(label) };
+                //-     });
+                //- }
+
+            .input_wrapper
+                multiselect(
+                    v-model="moduletable_crud_template_saisie_mode"
+                    :options="moduletable_crud_template_saisie_mode_options"
+                    :multiple="false"
+                    :preselect-first="true"
+                    :placeholder="label('crud_db_link.switch_type_saisie.placeholder')"
+                    :track-by="'id'"
+                    :label="'label'"
+                    :allow-empty="false"
+
+                    :select-label='label("multiselect.selectLabel")'
+                    :select-group-label='label("multiselect.selectGroupLabel")'
+                    :selected-label='label("multiselect.selectedLabel")'
+                    :deselect-label='label("multiselect.deselectLabel")'
+                    :deselect-group-label='label("multiselect.deselectGroupLabel")'
+
+                    id="switch_type_saisie"
+                )
+
+        //- get moduletable_crud_template_saisie_mode_options(): { id: number, label: string }[] {
+        //-     return DashboardVO.MODULE_TABLE_CRUD_TEMPLATE_SAISIE_MODE_LABELS.map((label: string, index: number) => {
+        //-         return { id: index, label: this.t(label) };
+        //-     });
+        //- }
+
+
+        //- .switch_option_template_create(v-if='selected_vo_type && option_formulaire')
+        //-     .input_label {{ label('crud_db_link.switch_option_template_create') }}
+            
+        //-     toggle-button(
+        //-         @change="switch_option_template_create" 
+        //-         :value="option_template_create" 
+        //-         :sync="true"
+        //-         :width="100"
+        //-         :labels="{checked: label('crud_db_link.switch_option_template_create.on'), unchecked: label('crud_db_link.switch_option_template_create.off')}"
+        //-         :disabled="!POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_CREATE"
+        //-     )
+
+        //- .switch_option_template_read(v-if='selected_vo_type')
+        //-     .input_label {{ label('crud_db_link.switch_option_template_read') }}
+            
+        //-     toggle-button(
+        //-         @change="switch_option_template_read" 
+        //-         :value="option_template_read" 
+        //-         :sync="true"
+        //-         :width="100"
+        //-         :labels="{checked: label('crud_db_link.switch_option_template_read.on'), unchecked: label('crud_db_link.switch_option_template_read.off')}"
+        //-         :disabled="!POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_READ"
+        //-     )
+
+        //- .switch_option_template_update(v-if='selected_vo_type && option_formulaire')
+        //-     .input_label {{ label('crud_db_link.switch_option_template_update') }}
+            
+        //-     toggle-button(
+        //-         @change="switch_option_template_update" 
+        //-         :value="option_template_update" 
+        //-         :sync="true"
+        //-         :width="100"
+        //-         :labels="{checked: label('crud_db_link.switch_option_template_update.on'), unchecked: label('crud_db_link.switch_option_template_update.off')}"
+        //-         :disabled="!POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_UPDATE"
+        //-     )

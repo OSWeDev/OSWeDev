@@ -7,7 +7,6 @@ import DashboardGraphVORefVO from "../../../shared/modules/DashboardBuilder/vos/
 import DashboardPageVO from "../../../shared/modules/DashboardBuilder/vos/DashboardPageVO";
 import DashboardPageWidgetVO from "../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO";
 import DashboardWidgetVO from "../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO";
-import CRUDDBLinkVO from "../../../shared/modules/DashboardBuilder/vos/crud/CRUDDBLinkVO";
 import ExportVOsToJSONConfVO from "../../../shared/modules/DataExport/vos/ExportVOsToJSONConfVO";
 import { field_names } from "../../../shared/tools/ObjectHandler";
 import RangeHandler from "../../../shared/tools/RangeHandler";
@@ -48,15 +47,6 @@ export default class Patch20250624AddConfExportDBToJSON implements IGeneratorWor
 
             // DashboardPageVO <= DashboardPageWidgetVO.page_id
             ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[DashboardPageWidgetVO.API_TYPE_ID][field_names<DashboardPageWidgetVO>().page_id].id,
-
-            // DashboardVO <= CRUDDBLinkVO.template_create_db_ref_id
-            ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[CRUDDBLinkVO.API_TYPE_ID][field_names<CRUDDBLinkVO>().template_create_db_ref_id].id,
-
-            // DashboardVO <= CRUDDBLinkVO.template_read_db_ref_id
-            ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[CRUDDBLinkVO.API_TYPE_ID][field_names<CRUDDBLinkVO>().template_read_db_ref_id].id,
-
-            // DashboardVO <= CRUDDBLinkVO.template_update_db_ref_id
-            ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[CRUDDBLinkVO.API_TYPE_ID][field_names<CRUDDBLinkVO>().template_update_db_ref_id].id,
         ];
         export_vo_to_json_conf.ref_fields_to_follow_id_ranges = RangeHandler.get_ids_ranges_from_list(ref_fields_to_follow);
 

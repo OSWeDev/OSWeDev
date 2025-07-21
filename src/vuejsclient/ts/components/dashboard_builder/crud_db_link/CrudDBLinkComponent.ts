@@ -3,11 +3,9 @@ import { Inject } from 'vue-property-decorator';
 import Throttle from '../../../../../shared/annotations/Throttle';
 import ModuleAccessPolicy from '../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import ModuleTableController from '../../../../../shared/modules/DAO/ModuleTableController';
 import ModuleTableVO from '../../../../../shared/modules/DAO/vos/ModuleTableVO';
 import ModuleDashboardBuilder from '../../../../../shared/modules/DashboardBuilder/ModuleDashboardBuilder';
-import CRUDDBLinkVO from '../../../../../shared/modules/DashboardBuilder/vos/crud/CRUDDBLinkVO';
 import DashboardVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import DBBConfVO from '../../../../../shared/modules/DashboardBuilder/vos/DBBConfVO';
 import EventifyEventListenerConfVO from '../../../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO';
@@ -43,10 +41,30 @@ export default class CrudDBLinkComponent extends VueComponentBase implements IDa
 
     public vo_type_options: string[] = [];
 
-    public option_formulaire: boolean = false;
-    public option_template_create: boolean = false;
-    public option_template_read: boolean = false;
-    public option_template_update: boolean = false;
+    public moduletable_crud_template_type: { id: number, label: string } = {
+        id: DashboardVO.MODULE_TABLE_CRUD_TEMPLATE_TYPE_CONSULTATION,
+        label: this.t(DashboardVO.MODULE_TABLE_CRUD_TEMPLATE_TYPE_LABELS[DashboardVO.MODULE_TABLE_CRUD_TEMPLATE_TYPE_CONSULTATION]),
+    };
+    public moduletable_crud_template_saisie_mode: { id: number, label: string } = {
+        id: DashboardVO.MODULE_TABLE_CRUD_TEMPLATE_SAISIE_MODE_CREATE_UPDATE,
+        label: this.t(DashboardVO.MODULE_TABLE_CRUD_TEMPLATE_SAISIE_MODE_LABELS[DashboardVO.MODULE_TABLE_CRUD_TEMPLATE_SAISIE_MODE_CREATE_UPDATE]),
+    };
+
+    get type_saisie(): number {
+        return DashboardVO.MODULE_TABLE_CRUD_TEMPLATE_TYPE_CREATE_UPDATE;
+    }
+
+    get moduletable_crud_template_type_options(): { id: number, label: string }[] {
+        return DashboardVO.MODULE_TABLE_CRUD_TEMPLATE_TYPE_LABELS.map((label: string, index: number) => {
+            return { id: index, label: this.t(label) };
+        });
+    }
+
+    get moduletable_crud_template_saisie_mode_options(): { id: number, label: string }[] {
+        return DashboardVO.MODULE_TABLE_CRUD_TEMPLATE_SAISIE_MODE_LABELS.map((label: string, index: number) => {
+            return { id: index, label: this.t(label) };
+        });
+    }
 
     get get_dashboard(): DashboardVO {
         return this.vuexGet(reflect<CrudDBLinkComponent>().get_dashboard);
@@ -111,55 +129,33 @@ export default class CrudDBLinkComponent extends VueComponentBase implements IDa
                 this.selected_vo_type = null;
             }
 
-            // Init option_formulaire
-            if (this.get_dashboard.moduletable_crud_template_form != this.option_formulaire) {
-                this.option_formulaire = this.get_dashboard.moduletable_crud_template_form;
+            if (this.get_dashboard.moduletable_crud_template_type != this.moduletable_crud_template_type?.id) {
+                this.moduletable_crud_template_type = { id: this.get_dashboard.moduletable_crud_template_type, label: this.t(DashboardVO.MODULE_TABLE_CRUD_TEMPLATE_TYPE_LABELS[this.get_dashboard.moduletable_crud_template_type]) };
             }
 
-            // Init option_template_xxx
-            let target_option_template_create: boolean = false;
-            let target_option_template_read: boolean = false;
-            let target_option_template_update: boolean = false;
-            if (this.get_dashboard.moduletable_crud_template_ref_id) {
-                const crud_db_link_vo: CRUDDBLinkVO = await query(CRUDDBLinkVO.API_TYPE_ID)
-                    .filter_by_id(this.get_dashboard.moduletable_crud_template_ref_id, ModuleTableVO.API_TYPE_ID)
-                    .select_vo<CRUDDBLinkVO>();
-
-                if (crud_db_link_vo) {
-                    target_option_template_create = crud_db_link_vo.template_create_db_ref_id == this.get_dashboard.id;
-                    target_option_template_read = crud_db_link_vo.template_read_db_ref_id == this.get_dashboard.id;
-                    target_option_template_update = crud_db_link_vo.template_update_db_ref_id == this.get_dashboard.id;
-                }
+            if (this.get_dashboard.moduletable_crud_template_saisie_mode != this.moduletable_crud_template_saisie_mode?.id) {
+                this.moduletable_crud_template_saisie_mode = { id: this.get_dashboard.moduletable_crud_template_saisie_mode, label: this.t(DashboardVO.MODULE_TABLE_CRUD_TEMPLATE_SAISIE_MODE_LABELS[this.get_dashboard.moduletable_crud_template_saisie_mode]) };
             }
 
-            if (target_option_template_create != this.option_template_create) {
-                this.option_template_create = target_option_template_create;
-            }
-            if (target_option_template_read != this.option_template_read) {
-                this.option_template_read = target_option_template_read;
-            }
-            if (target_option_template_update != this.option_template_update) {
-                this.option_template_update = target_option_template_update;
-            }
         } else {
 
             if (!!this.selected_vo_type) {
                 this.selected_vo_type = null;
             }
 
-            if (this.option_formulaire) {
-                this.option_formulaire = false;
-            }
-            if (this.option_template_create) {
-                this.option_template_create = false;
-            }
-            if (this.option_template_read) {
-                this.option_template_read = false;
-            }
-            if (this.option_template_update) {
-                this.option_template_update = false;
-            }
+            this.moduletable_crud_template_type = { id: DashboardVO.MODULE_TABLE_CRUD_TEMPLATE_TYPE_CONSULTATION, label: this.t(DashboardVO.MODULE_TABLE_CRUD_TEMPLATE_TYPE_LABELS[DashboardVO.MODULE_TABLE_CRUD_TEMPLATE_TYPE_CONSULTATION]) };
+            this.moduletable_crud_template_saisie_mode = { id: DashboardVO.MODULE_TABLE_CRUD_TEMPLATE_SAISIE_MODE_CREATE_UPDATE, label: this.t(DashboardVO.MODULE_TABLE_CRUD_TEMPLATE_SAISIE_MODE_LABELS[DashboardVO.MODULE_TABLE_CRUD_TEMPLATE_SAISIE_MODE_CREATE_UPDATE]) };
         }
+    }
+
+    @SafeWatch(reflect<CrudDBLinkComponent>().moduletable_crud_template_type)
+    private async onchange_moduletable_crud_template_type() {
+        await this.push_confs_to_db();
+    }
+
+    @SafeWatch(reflect<CrudDBLinkComponent>().moduletable_crud_template_saisie_mode)
+    private async onchange_moduletable_crud_template_saisie_mode() {
+        await this.push_confs_to_db();
     }
 
     @SafeWatch(reflect<CrudDBLinkComponent>().selected_vo_type)
@@ -173,18 +169,12 @@ export default class CrudDBLinkComponent extends VueComponentBase implements IDa
                 await ModuleTablesClientController.add_new_default_table(this.get_dashboard.id, this.selected_vo_type);
             }
         } else {
-            if (!!this.option_formulaire) {
-                this.option_formulaire = false;
+            if (!!this.selected_vo_type) {
+                this.selected_vo_type = null;
             }
-            if (!!this.option_template_create) {
-                this.option_template_create = false;
-            }
-            if (!!this.option_template_read) {
-                this.option_template_read = false;
-            }
-            if (!!this.option_template_update) {
-                this.option_template_update = false;
-            }
+
+            this.moduletable_crud_template_type = { id: DashboardVO.MODULE_TABLE_CRUD_TEMPLATE_TYPE_CONSULTATION, label: this.t(DashboardVO.MODULE_TABLE_CRUD_TEMPLATE_TYPE_LABELS[DashboardVO.MODULE_TABLE_CRUD_TEMPLATE_TYPE_CONSULTATION]) };
+            this.moduletable_crud_template_saisie_mode = { id: DashboardVO.MODULE_TABLE_CRUD_TEMPLATE_SAISIE_MODE_CREATE_UPDATE, label: this.t(DashboardVO.MODULE_TABLE_CRUD_TEMPLATE_SAISIE_MODE_LABELS[DashboardVO.MODULE_TABLE_CRUD_TEMPLATE_SAISIE_MODE_CREATE_UPDATE]) };
         }
         this.push_confs_to_db();
     }
@@ -197,7 +187,6 @@ export default class CrudDBLinkComponent extends VueComponentBase implements IDa
     private async push_confs_to_db() {
 
         await this.update_dashboard_vo();
-        await this.update_crud_db_link_vo();
     }
 
     public async created() {
@@ -242,52 +231,33 @@ export default class CrudDBLinkComponent extends VueComponentBase implements IDa
         return this.t(mt.label.code_text);
     }
 
-    private switch_option_formulaire() {
-        this.option_formulaire = !this.option_formulaire;
-
-        if (!this.option_formulaire) {
-
-            if (this.option_template_create) {
-                this.option_template_create = false;
-            }
-
-            if (this.option_template_update) {
-                this.option_template_update = false;
-            }
-        }
-
-        this.push_confs_to_db();
-    }
-
-    private switch_option_template_create() {
-        this.option_template_create = !this.option_template_create;
-        this.push_confs_to_db();
-    }
-
-    private switch_option_template_read() {
-        this.option_template_read = !this.option_template_read;
-        this.push_confs_to_db();
-    }
-
-    private switch_option_template_update() {
-        this.option_template_update = !this.option_template_update;
-        this.push_confs_to_db();
-    }
-
     private async update_dashboard_vo() {
         if (!this.get_dashboard) {
             return;
         }
 
         const diffs = {};
-        if (this.get_dashboard.moduletable_crud_template_ref_id != ModuleTableController.module_tables_by_vo_type[this.selected_vo_type].id) {
-            this.get_dashboard.moduletable_crud_template_ref_id = ModuleTableController.module_tables_by_vo_type[this.selected_vo_type].id;
+        if (this.get_dashboard.moduletable_crud_template_ref_id != ModuleTableController.module_tables_by_vo_type[this.selected_vo_type]?.id) {
+            this.get_dashboard.moduletable_crud_template_ref_id = ModuleTableController.module_tables_by_vo_type[this.selected_vo_type]?.id || null;
             diffs[field_names<DashboardVO>().moduletable_crud_template_ref_id] = this.get_dashboard.moduletable_crud_template_ref_id;
         }
 
-        if (this.get_dashboard.moduletable_crud_template_form != this.option_formulaire) {
-            this.get_dashboard.moduletable_crud_template_form = this.option_formulaire;
-            diffs[field_names<DashboardVO>().moduletable_crud_template_form] = this.get_dashboard.moduletable_crud_template_form;
+        if (this.moduletable_crud_template_type?.id == null) {
+            this.moduletable_crud_template_type = { id: DashboardVO.MODULE_TABLE_CRUD_TEMPLATE_TYPE_CONSULTATION, label: this.t(DashboardVO.MODULE_TABLE_CRUD_TEMPLATE_TYPE_LABELS[DashboardVO.MODULE_TABLE_CRUD_TEMPLATE_TYPE_CONSULTATION]) };
+        }
+
+        if (this.get_dashboard.moduletable_crud_template_type != this.moduletable_crud_template_type.id) {
+            this.get_dashboard.moduletable_crud_template_type = this.moduletable_crud_template_type.id;
+            diffs[field_names<DashboardVO>().moduletable_crud_template_type] = this.get_dashboard.moduletable_crud_template_type;
+        }
+
+        if (this.moduletable_crud_template_saisie_mode?.id == null) {
+            this.moduletable_crud_template_saisie_mode = { id: DashboardVO.MODULE_TABLE_CRUD_TEMPLATE_SAISIE_MODE_CREATE_UPDATE, label: this.t(DashboardVO.MODULE_TABLE_CRUD_TEMPLATE_SAISIE_MODE_LABELS[DashboardVO.MODULE_TABLE_CRUD_TEMPLATE_SAISIE_MODE_CREATE_UPDATE]) };
+        }
+
+        if (this.get_dashboard.moduletable_crud_template_saisie_mode != this.moduletable_crud_template_saisie_mode.id) {
+            this.get_dashboard.moduletable_crud_template_saisie_mode = this.moduletable_crud_template_saisie_mode.id;
+            diffs[field_names<DashboardVO>().moduletable_crud_template_saisie_mode] = this.get_dashboard.moduletable_crud_template_saisie_mode;
         }
 
         if (ObjectHandler.hasAtLeastOneAttribute(diffs)) {
@@ -295,94 +265,6 @@ export default class CrudDBLinkComponent extends VueComponentBase implements IDa
                 .exec_as_server()
                 .filter_by_id(this.get_dashboard.id)
                 .update_vos<DashboardVO>(diffs);
-        }
-    }
-
-    private async update_crud_db_link_vo() {
-        if (!this.get_dashboard) {
-            return;
-        }
-
-
-        if ((!this.get_dashboard.moduletable_crud_template_ref_id) || (!this.option_template_create && !this.option_template_read && !this.option_template_update)) {
-
-            // Si on a une conf de crud db link, et qu'elle fait référence à ce db, on doit retirer le lien
-            const template_create_db_ref_id_crud_db_link_vo: CRUDDBLinkVO = await query(CRUDDBLinkVO.API_TYPE_ID)
-                .exec_as_server()
-                .filter_by_num_eq(field_names<CRUDDBLinkVO>().template_create_db_ref_id, this.get_dashboard.id)
-                .select_vo<CRUDDBLinkVO>();
-            if (template_create_db_ref_id_crud_db_link_vo) {
-                template_create_db_ref_id_crud_db_link_vo.template_create_db_ref_id = null;
-                await ModuleDAO.getInstance().insertOrUpdateVO(template_create_db_ref_id_crud_db_link_vo);
-            }
-
-            const template_read_db_ref_id_crud_db_link_vo: CRUDDBLinkVO = await query(CRUDDBLinkVO.API_TYPE_ID)
-                .exec_as_server()
-                .filter_by_num_eq(field_names<CRUDDBLinkVO>().template_read_db_ref_id, this.get_dashboard.id)
-                .select_vo<CRUDDBLinkVO>();
-            if (template_read_db_ref_id_crud_db_link_vo) {
-                template_read_db_ref_id_crud_db_link_vo.template_read_db_ref_id = null;
-                await ModuleDAO.getInstance().insertOrUpdateVO(template_read_db_ref_id_crud_db_link_vo);
-            }
-
-
-            const template_update_db_ref_id_crud_db_link_vo: CRUDDBLinkVO = await query(CRUDDBLinkVO.API_TYPE_ID)
-                .exec_as_server()
-                .filter_by_num_eq(field_names<CRUDDBLinkVO>().template_update_db_ref_id, this.get_dashboard.id)
-                .select_vo<CRUDDBLinkVO>();
-            if (template_update_db_ref_id_crud_db_link_vo) {
-                template_update_db_ref_id_crud_db_link_vo.template_update_db_ref_id = null;
-                await ModuleDAO.getInstance().insertOrUpdateVO(template_update_db_ref_id_crud_db_link_vo);
-            }
-
-            return;
-        }
-
-        // Pour chacun, si on trouve la ref, on met à jour au besoin, sinon on crée
-        let crud_db_link_vo: CRUDDBLinkVO = await query(CRUDDBLinkVO.API_TYPE_ID)
-            .exec_as_server()
-            .filter_by_id(this.get_dashboard.moduletable_crud_template_ref_id)
-            .select_vo<CRUDDBLinkVO>();
-
-        if ((!crud_db_link_vo) && ((this.option_formulaire && (this.option_template_create || this.option_template_update)) || this.option_template_read)) {
-            crud_db_link_vo = new CRUDDBLinkVO();
-            crud_db_link_vo.moduletable_ref_id = ModuleTableController.module_tables_by_vo_type[this.selected_vo_type].id;
-            crud_db_link_vo.template_create_db_ref_id = this.option_template_create ? this.get_dashboard.id : null;
-            crud_db_link_vo.template_read_db_ref_id = this.option_template_read ? this.get_dashboard.id : null;
-            crud_db_link_vo.template_update_db_ref_id = this.option_template_update ? this.get_dashboard.id : null;
-
-            await ModuleDAO.getInstance().insertOrUpdateVO(crud_db_link_vo);
-            return;
-        }
-
-        if (crud_db_link_vo) {
-            // On a une conf, on met à jour au besoin
-            let need_update = false;
-            if (this.option_template_create && (crud_db_link_vo.template_create_db_ref_id != this.get_dashboard.id)) {
-                crud_db_link_vo.template_create_db_ref_id = this.get_dashboard.id;
-                need_update = true;
-            } else if (!this.option_template_create && (crud_db_link_vo.template_create_db_ref_id == this.get_dashboard.id)) {
-                crud_db_link_vo.template_create_db_ref_id = null;
-                need_update = true;
-            }
-            if (this.option_template_read && (crud_db_link_vo.template_read_db_ref_id != this.get_dashboard.id)) {
-                crud_db_link_vo.template_read_db_ref_id = this.get_dashboard.id;
-                need_update = true;
-            } else if (!this.option_template_read && (crud_db_link_vo.template_read_db_ref_id == this.get_dashboard.id)) {
-                crud_db_link_vo.template_read_db_ref_id = null;
-                need_update = true;
-            }
-            if (this.option_template_update && (crud_db_link_vo.template_update_db_ref_id != this.get_dashboard.id)) {
-                crud_db_link_vo.template_update_db_ref_id = this.get_dashboard.id;
-                need_update = true;
-            } else if (!this.option_template_update && (crud_db_link_vo.template_update_db_ref_id == this.get_dashboard.id)) {
-                crud_db_link_vo.template_update_db_ref_id = null;
-                need_update = true;
-            }
-
-            if (need_update) {
-                await ModuleDAO.getInstance().insertOrUpdateVO(crud_db_link_vo);
-            }
         }
     }
 }

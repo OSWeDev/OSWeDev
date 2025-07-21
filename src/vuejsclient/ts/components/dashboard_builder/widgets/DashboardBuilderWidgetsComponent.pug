@@ -5,7 +5,7 @@
             .title {{ label('dashboard_builder_widgets.title') }}
 
         .widget_tags 
-            template(v-for="(tag, tag_i) in dashboard_widget_tags")
+            template(v-for="(tag, tag_i) in filtered_dashboard_widget_tags")
                 .widget_tag(@click="switch_select_widget_tag(tag)" :class="{ selected: tag.id == selected_widget_tag?.id }")
                     //- icon_classname on utilise ce champs du tag pour préfixer une icone
                     template(v-if="tag.icon_classname")
@@ -15,7 +15,7 @@
 
 
         .widgets 
-            template(v-for="(widget_, widget_i) in tagged_widgets" :key="widget_.id")
+            template(v-for="(widget_, widget_i) in tagged_widgets")
 
                 //- .widget(@click="add_widget_to_page(widget_)" v-tooltip.top="label('dashboards.widgets.icons_tooltips.' + widget_.name)")
                 //-     template(v-if='widget_.icon_html')
@@ -25,7 +25,7 @@
                 //- Refonte, on veut afficher un bloc pour chaque widget avec le icon_component ou icon_html, en dessous le nom du widget (label)
                 //- Au clic droit sur le widget, on veut ouvrir la modale de crud pour modifier le widget
 
-                .widget(@click="add_widget_to_page(widget_)" @contextmenu.prevent="onWidgetRightClick(widget_, $event)")
+                .widget(:class="getWidgetFamilyClass(widget_)" @click="add_widget_to_page(widget_)" @contextmenu.prevent="onWidgetRightClick(widget_, $event)" :key="widget_.id")
                     .widget_icon
                         template(v-if='widget_.icon_html')
                             .widget_icon_html(v-html="widget_.icon_html")

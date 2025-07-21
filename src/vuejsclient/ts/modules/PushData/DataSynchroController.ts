@@ -149,7 +149,7 @@ export default class DataSynchroController {
         DataSynchroController.vo_events_registration_keys_by_room_id[room_id] = [];
 
         const setAndNotify = (vo: IDistantVOBase | null) => {
-            (this_elt as any)[field_name] = vo;
+            Vue.set(this_elt, field_name, vo);
             on_vo_change?.(vo);
         };
 

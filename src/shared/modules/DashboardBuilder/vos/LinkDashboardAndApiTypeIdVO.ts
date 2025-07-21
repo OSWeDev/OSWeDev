@@ -1,7 +1,7 @@
 import IDistantVOBase from '../../IDistantVOBase';
 
 /**
- * @deprecated only there for migration to CRUDDBLinkVO purpose
+ * @deprecated only there for migration to DashboardVO purpose
  */
 export default class LinkDashboardAndApiTypeIdVO implements IDistantVOBase {
     public static API_TYPE_ID: string = "link_dbb_api_type_id";

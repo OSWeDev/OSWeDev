@@ -46,7 +46,6 @@ import LinkDashboardAndApiTypeIdVO from './vos/LinkDashboardAndApiTypeIdVO';
 import SharedFiltersVO from './vos/SharedFiltersVO';
 import TableColumnDescVO from './vos/TableColumnDescVO';
 import VOFieldRefVO from './vos/VOFieldRefVO';
-import CRUDDBLinkVO from './vos/crud/CRUDDBLinkVO';
 
 export default class ModuleDashboardBuilder extends Module {
 
@@ -149,7 +148,7 @@ export default class ModuleDashboardBuilder extends Module {
         this.init_TableColumnDescVO();
         this.init_AdvancedDateFilterOptDescVO();
 
-        // Deprecated, only for migration to CRUDDBLinkVO purpose
+        // Deprecated, only for migration to DashboardVO purpose
         this.initialize_LinkDashboardAndApiTypeIdVO();
 
         this.initialize_ComponentDatatableFieldVO();
@@ -165,8 +164,6 @@ export default class ModuleDashboardBuilder extends Module {
         this.initialize_SimpleDatatableFieldVO();
         this.initialize_VarDatatableFieldVO();
         this.initialize_DashboardGraphColorPaletteVO();
-
-        this.initialize_CRUDDBLinkVO();
 
         this.initialize_DBBConfVO();
     }
@@ -201,7 +198,7 @@ export default class ModuleDashboardBuilder extends Module {
     }
 
     /**
-     * Deprecated, only for migration to CRUDDBLinkVO purpose
+     * Deprecated, only for migration to DashboardVO purpose
      */
     private initialize_LinkDashboardAndApiTypeIdVO() {
         ModuleTableFieldController.create_new(LinkDashboardAndApiTypeIdVO.API_TYPE_ID, field_names<LinkDashboardAndApiTypeIdVO>().dashboard_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, "Dashboard", true)
@@ -210,21 +207,6 @@ export default class ModuleDashboardBuilder extends Module {
         ModuleTableFieldController.create_new(LinkDashboardAndApiTypeIdVO.API_TYPE_ID, field_names<LinkDashboardAndApiTypeIdVO>().api_type_id, ModuleTableFieldVO.FIELD_TYPE_string, 'Type de données', true).unique();
 
         ModuleTableController.create_new(this.name, LinkDashboardAndApiTypeIdVO, null, "DBB Template pour un api type id");
-    }
-
-
-    private initialize_CRUDDBLinkVO() {
-        // ModuleTableFieldController.create_new(CRUDDBLinkVO.API_TYPE_ID, field_names<CRUDDBLinkVO>().crud_step_type, ModuleTableFieldVO.FIELD_TYPE_enum, 'Type d\'action sur l\'objet', true).setEnumValues(CRUDDBLinkVO.CRUD_STEP_TYPE_LABELS);
-        ModuleTableFieldController.create_new(CRUDDBLinkVO.API_TYPE_ID, field_names<CRUDDBLinkVO>().moduletable_ref_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'ModuleTable', true).unique()
-            .set_many_to_one_target_moduletable_name(ModuleTableVO.API_TYPE_ID);
-        ModuleTableFieldController.create_new(CRUDDBLinkVO.API_TYPE_ID, field_names<CRUDDBLinkVO>().template_create_db_ref_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Template - Création', false)
-            .set_many_to_one_target_moduletable_name(DashboardVO.API_TYPE_ID);
-        ModuleTableFieldController.create_new(CRUDDBLinkVO.API_TYPE_ID, field_names<CRUDDBLinkVO>().template_read_db_ref_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Template - Consultation', false)
-            .set_many_to_one_target_moduletable_name(DashboardVO.API_TYPE_ID);
-        ModuleTableFieldController.create_new(CRUDDBLinkVO.API_TYPE_ID, field_names<CRUDDBLinkVO>().template_update_db_ref_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Template - Modification', false)
-            .set_many_to_one_target_moduletable_name(DashboardVO.API_TYPE_ID);
-
-        ModuleTableController.create_new(this.name, CRUDDBLinkVO, null, "Templates des types de données");
     }
 
     private init_DashboardVO(): ModuleTableVO {
@@ -238,7 +220,8 @@ export default class ModuleDashboardBuilder extends Module {
 
         ModuleTableFieldController.create_new(DashboardVO.API_TYPE_ID, field_names<DashboardVO>().moduletable_crud_template_ref_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Template pour le type de données', false)
             .set_many_to_one_target_moduletable_name(ModuleTableVO.API_TYPE_ID);
-        ModuleTableFieldController.create_new(DashboardVO.API_TYPE_ID, field_names<DashboardVO>().moduletable_crud_template_form, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Template de formulaire', true, true, false);
+        ModuleTableFieldController.create_new(DashboardVO.API_TYPE_ID, field_names<DashboardVO>().moduletable_crud_template_type, ModuleTableFieldVO.FIELD_TYPE_enum, 'Type de template', true, true, DashboardVO.MODULE_TABLE_CRUD_TEMPLATE_TYPE_CONSULTATION).setEnumValues(DashboardVO.MODULE_TABLE_CRUD_TEMPLATE_TYPE_LABELS);
+        ModuleTableFieldController.create_new(DashboardVO.API_TYPE_ID, field_names<DashboardVO>().moduletable_crud_template_saisie_mode, ModuleTableFieldVO.FIELD_TYPE_enum, 'Mode de saisie', true, true, DashboardVO.MODULE_TABLE_CRUD_TEMPLATE_SAISIE_MODE_CREATE_UPDATE).setEnumValues(DashboardVO.MODULE_TABLE_CRUD_TEMPLATE_SAISIE_MODE_LABELS);
 
         ModuleTableFieldController.create_new(DashboardVO.API_TYPE_ID, field_names<DashboardVO>().dbb_conf_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'DBB Conf', false) // théoriquement ça devrait être obligatoire, mais on a pas encore créé les confs, compliqué de passer en obligatoire maintenant
             .set_many_to_one_target_moduletable_name(DBBConfVO.API_TYPE_ID);

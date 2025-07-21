@@ -8,19 +8,21 @@ import DashboardPageWidgetVO from '../../../../../shared/modules/DashboardBuilde
 import DashboardViewportPageWidgetVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardViewportPageWidgetVO';
 import DashboardViewportVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardViewportVO';
 import DashboardVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
+import DashboardWidgetTagVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetTagVO';
 import DashboardWidgetVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
+import NumRange from '../../../../../shared/modules/DataRender/vos/NumRange';
+import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import { field_names, reflect } from '../../../../../shared/tools/ObjectHandler';
+import RangeHandler from '../../../../../shared/tools/RangeHandler';
+import { SyncVO } from '../../../tools/annotations/SyncVO';
+import { SyncVOs } from '../../../tools/annotations/SyncVOs';
+import { ModuleDAOAction } from '../../dao/store/DaoStore';
+import { ModuleModalsAndBasicPageComponentsHolderGetter } from '../../modals_and_basic_page_components_holder/ModalsAndBasicPageComponentsHolderStore';
 import VueComponentBase from '../../VueComponentBase';
 import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../page/DashboardPageStore';
 import './DashboardBuilderWidgetsComponent.scss';
-import { SyncVOs } from '../../../tools/annotations/SyncVOs';
-import DashboardWidgetTagVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetTagVO';
-import RangeHandler from '../../../../../shared/tools/RangeHandler';
-import { ModuleModalsAndBasicPageComponentsHolderGetter } from '../../modals_and_basic_page_components_holder/ModalsAndBasicPageComponentsHolderStore';
 import CRUDUpdateModalComponent from './table_widget/crud_modals/update/CRUDUpdateModalComponent';
-import { ModuleDAOAction } from '../../dao/store/DaoStore';
-import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 
 @Component({
     template: require('./DashboardBuilderWidgetsComponent.pug'),
@@ -39,6 +41,17 @@ export default class DashboardBuilderWidgetsComponent extends VueComponentBase i
     @SyncVOs(DashboardWidgetTagVO.API_TYPE_ID)
     public dashboard_widget_tags: DashboardWidgetTagVO[] = [];
 
+    @SyncVO(DashboardWidgetTagVO.API_TYPE_ID, {
+        id_factory: async (self) => {
+            const tag = await query(DashboardWidgetTagVO.API_TYPE_ID)
+                .filter_by_text_eq(field_names<DashboardWidgetTagVO>().name, DashboardWidgetTagVO.WIDGET_TAG_TEMPLATE)
+                .select_vo<DashboardWidgetTagVO>();
+
+            return tag;
+        },
+    })
+    public template_tag: DashboardWidgetTagVO = null;
+
     public selected_widget_tag: DashboardWidgetTagVO = null;
 
     get get_dashboard_page(): DashboardPageVO {
@@ -49,6 +62,79 @@ export default class DashboardBuilderWidgetsComponent extends VueComponentBase i
     }
     get get_dashboard_pages(): DashboardPageVO[] {
         return this.vuexGet(reflect<this>().get_dashboard_pages);
+    }
+
+    get filtered_dashboard_widget_tags(): DashboardWidgetTagVO[] {
+
+        const res: DashboardWidgetTagVO[] = [];
+
+        if (!this.dashboard_widget_tags) {
+            return res;
+        }
+
+        if (!this.all_valid_widgets) {
+            return res;
+        }
+
+        let tags_id_ranges: NumRange[] = [];
+        for (const widget of this.all_valid_widgets) {
+            if (!widget.tags_id_ranges || widget.tags_id_ranges.length === 0) {
+                continue;
+            }
+            tags_id_ranges.push(...widget.tags_id_ranges);
+        }
+
+        tags_id_ranges = RangeHandler.getRangesUnion(tags_id_ranges);
+
+        for (const tag of this.dashboard_widget_tags) {
+            if (RangeHandler.elt_intersects_any_range(tag.id, tags_id_ranges)) {
+                res.push(tag);
+            }
+        }
+
+        // On trie par ordre de poids
+        res.sort((a, b) => a.weight - b.weight);
+
+        return res;
+    }
+
+    get all_valid_widgets(): DashboardWidgetVO[] {
+        const res: DashboardWidgetVO[] = [];
+
+        if (!this.get_all_widgets) {
+            return res;
+        }
+
+        if (!this.get_dashboard) {
+            return res;
+        }
+
+        // On utilise les tags pour filtrer les widgets
+        if (!this.template_tag) {
+            return res;
+        }
+
+        for (const widget of this.get_all_widgets) {
+            /**
+             * On filtre suivant le type de dashboard
+             */
+            if (!this.get_dashboard.moduletable_crud_template_ref_id) {
+                // On est pas sur un template de VO donc tous les widgets de type template sont invalides
+                if (RangeHandler.elt_intersects_any_range(this.template_tag.id, widget.tags_id_ranges)) {
+                    continue;
+                }
+            }
+            // else {
+            //     // On est sur un template de VO, on garde les widgets de type template
+            //     if (!RangeHandler.elt_intersects_any_range(this.template_tag.id, widget.tags_id_ranges)) {
+            //         continue;
+            //     }
+            // }
+
+            res.push(widget);
+        }
+
+        return res;
     }
 
     get get_all_widgets(): DashboardWidgetVO[] {
@@ -81,15 +167,41 @@ export default class DashboardBuilderWidgetsComponent extends VueComponentBase i
 
     get tagged_widgets(): DashboardWidgetVO[] {
         if (!this.selected_widget_tag) {
-            return this.get_all_widgets;
+            return this.all_valid_widgets;
         }
 
-        return this.get_all_widgets.filter(widget => {
+        return this.all_valid_widgets.filter(widget => {
             if (!widget.tags_id_ranges || widget.tags_id_ranges.length === 0) {
                 return false;
             }
             return RangeHandler.elt_intersects_any_range(this.selected_widget_tag.id, widget.tags_id_ranges);
         });
+    }
+
+    public getWidgetFamilyClass(widget: DashboardWidgetVO): string {
+        if (!widget || !widget.name) {
+            return 'widget-family-default';
+        }
+
+        const name = widget.name.toLowerCase();
+
+        if (name.startsWith('cms')) {
+            return 'widget-family-cms';
+        }
+
+        if (name.startsWith('template')) {
+            return 'widget-family-template';
+        }
+
+        if (name.includes('filter')) {
+            return 'widget-family-filter';
+        }
+
+        if (name.startsWith('var') || name.includes('chart')) {
+            return 'widget-family-chart';
+        }
+
+        return 'widget-family-default';
     }
 
     //- Au clic droit sur le .widget(data-widget-id), on veut ouvrir la modale de crud pour modifier le widget
