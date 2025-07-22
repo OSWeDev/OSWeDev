@@ -484,22 +484,13 @@ export default class SharedFiltersModalComponent extends VueComponentBase {
             selected_dashboards_shared_with_ids = this.selected_dashboards_shared_from.map((dashboard) => dashboard.id);
         }
 
-        const default_field_filters_by_dashboard_page_id: { [dashboard_page_id: number]: FieldFiltersVO } = {};
-        const default_field_filters_by_dashboard_id: { [dashboard_id: number]: FieldFiltersVO } = {};
         const dashboard_pages_by_dashboard_id: { [dashboard_id: number]: DashboardPageVO[] } = {};
 
         const dashboard_pages = await DashboardPageVOManager.find_dashboard_pages_by_dashboard_ids(
             selected_dashboards_shared_with_ids,
         );
 
-        for (const i in dashboard_pages) {
-            const dashboard_page = dashboard_pages[i];
-
-            default_field_filters_by_dashboard_page_id[dashboard_page.id] = await FieldFiltersVOManager.find_default_field_filters_by_dashboard_page_id(
-                dashboard_page.id,
-                { keep_empty_context_filter: true }
-            );
-        }
+        const default_field_filters_by_dashboard_id: { [dashboard_id: number]: FieldFiltersVO } = {};
 
         for (const i in selected_dashboards_shared_with_ids) {
             const dashboard_id = selected_dashboards_shared_with_ids[i];
@@ -508,13 +499,11 @@ export default class SharedFiltersModalComponent extends VueComponentBase {
                 (dashboard_page) => dashboard_page.dashboard_id == dashboard_id
             );
 
-            default_field_filters_by_dashboard_id[dashboard_id] = dashboard_pages_by_dashboard_id[dashboard_id]?.reduce(
-                (accumulator, dashboard_page) => ({
-                    ...accumulator,
-                    ...default_field_filters_by_dashboard_page_id[dashboard_page.id]
-                }),
-                {}
+            default_field_filters_by_dashboard_id[dashboard_id] = await FieldFiltersVOManager.find_default_field_filters_by_dashboard_id(
+                dashboard_id,
+                { keep_empty_context_filter: true }
             );
+
         }
 
         this.default_field_filters_by_dashboard_id = default_field_filters_by_dashboard_id;

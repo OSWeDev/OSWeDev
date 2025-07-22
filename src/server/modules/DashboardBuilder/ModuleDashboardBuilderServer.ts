@@ -7,8 +7,6 @@ import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import ContextFilterVOHandler from '../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import DAOController from '../../../shared/modules/DAO/DAOController';
-import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import ModuleTableController from '../../../shared/modules/DAO/ModuleTableController';
 import IUserData from '../../../shared/modules/DAO/interface/IUserData';
 import ModuleTableVO from '../../../shared/modules/DAO/vos/ModuleTableVO';
@@ -21,13 +19,12 @@ import DashboardVO from '../../../shared/modules/DashboardBuilder/vos/DashboardV
 import DashboardViewportPageWidgetVO from '../../../shared/modules/DashboardBuilder/vos/DashboardViewportPageWidgetVO';
 import DashboardViewportVO from '../../../shared/modules/DashboardBuilder/vos/DashboardViewportVO';
 import DashboardWidgetVO from '../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
-import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
 import NumSegment from '../../../shared/modules/DataRender/vos/NumSegment';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import TranslatableTextVO from '../../../shared/modules/Translation/vos/TranslatableTextVO';
 import TranslationVO from '../../../shared/modules/Translation/vos/TranslationVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import { field_names, reflect } from '../../../shared/tools/ObjectHandler';
+import { field_names } from '../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
@@ -107,17 +104,6 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             ModuleDashboardBuilder.APINAME_START_EXPORT_FAVORITES_FILTERS_DATATABLE,
             this.start_export_favorites_filters_datatable.bind(this)
         );
-        APIControllerWrapper.register_server_api_handler(
-            this.name,
-            reflect<this>().get_all_valid_api_type_ids,
-            this.get_all_valid_api_type_ids.bind(this)
-        );
-        APIControllerWrapper.register_server_api_handler(
-            this.name,
-            reflect<this>().get_all_valid_widget_ids,
-            this.get_all_valid_widget_ids.bind(this)
-        );
-
     }
 
     /**
@@ -396,98 +382,6 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_UPDATE_bo_access_dependency.src_pol_id = POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_UPDATE.id;
         POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_UPDATE_bo_access_dependency.depends_on_pol_id = POLICY_DBB_ACCESS_ONGLET_TABLE.id;
         POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_UPDATE_bo_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
-    }
-
-    /**
-     * ATTENTION ya quand même un truc un peu spécial avec ce fonctionnement :
-     * Si on a le rôle A et que A a pas de conf, on a accès à tout
-     * Si on a le rôle A et B et que A a pas de conf mais B oui, on a accès que aux éléments de la conf B, donc on a perdu des accès en ajoutant un rôle...
-     * On pourrait tester tous les rôles individuellement, mais du coup on aurait un toujours a minima le rôle du compte + le rôle connecté, et faudrait toujours une conf sur le rôle
-     * connecté, probablement vide, pour éviter que tous aient accès à tout... donc c'est pas fou non plus. Je pense que pour l'usage actuel c'est la bonne solution à voir dans le temps.
-     */
-    public async get_all_valid_api_type_ids(): Promise<string[]> {
-        // On charge les confs de dbbs en lien avec les rôles du user
-        const roles: RoleVO[] = await ModuleAccessPolicyServer.getInstance().getMyRoles();
-        if (!roles || roles.length === 0) {
-            return [];
-        }
-
-        const confs: DBBConfVO[] = await query(DBBConfVO.API_TYPE_ID)
-            .exec_as_server()
-            .filter_by_ids(roles.map((r: RoleVO) => r.id), RoleVO.API_TYPE_ID)
-            .select_vos<DBBConfVO>();
-
-        // Si ya pas de conf on active toutes les tables
-        if (!confs || confs.length === 0) {
-            return Object.keys(ModuleTableController.module_tables_by_vo_type);
-        }
-
-        // Sinon active les tables citées
-        const valid_moduletable_id_ranges: NumRange[] = [];
-        for (const conf of confs) {
-            if (conf && conf.valid_moduletable_id_ranges && conf.valid_moduletable_id_ranges.length > 0) {
-                valid_moduletable_id_ranges.push(...conf.valid_moduletable_id_ranges);
-            }
-        }
-
-        // Puis on filtre les table en fonction des droits d'accès à chaque type de données
-        const res: string[] = [];
-        RangeHandler.foreach_ranges_sync(valid_moduletable_id_ranges, (moduletable_id: number) => {
-            if (AccessPolicyServerController.checkAccessSync(DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, ModuleTableController.module_tables_by_vo_id[moduletable_id].vo_type), true)) {
-                res.push(ModuleTableController.module_tables_by_vo_id[moduletable_id].vo_type);
-            }
-        });
-
-        return res;
-    }
-
-    public async get_all_valid_widget_ids(): Promise<number[]> {
-        // On charge les confs de dbbs en lien avec les rôles du user
-        const roles: RoleVO[] = await ModuleAccessPolicyServer.getInstance().getMyRoles();
-        if (!roles || roles.length === 0) {
-            return [];
-        }
-
-        let confs: DBBConfVO[] = null;
-        let all_widgets: DashboardWidgetVO[] = null;
-        await all_promises([
-            (async () => {
-                confs = await query(DBBConfVO.API_TYPE_ID)
-                    .exec_as_server()
-                    .filter_by_ids(roles.map((r: RoleVO) => r.id), RoleVO.API_TYPE_ID)
-                    .select_vos<DBBConfVO>();
-            })(),
-            (async () => {
-                all_widgets = await query(DashboardWidgetVO.API_TYPE_ID)
-                    .exec_as_server()
-                    .select_vos<DashboardWidgetVO>();
-            })(),
-        ]);
-
-        // Si ya pas de conf on active tous les widgets
-        if ((!confs) || (confs.length === 0)) {
-            return all_widgets.map((w: DashboardWidgetVO) => w.id);
-        }
-
-        // Sinon active les widgets cités
-        // Si une des confs n'a pas de limitation de widgets, on active tous les widgets
-        const valid_widget_id_ranges: NumRange[] = [];
-        for (const conf of confs) {
-            if (!conf) {
-                continue;
-            }
-
-            if (!conf.valid_widget_id_ranges) {
-                // Si on a pas de contrainte de widget sur une conf, on active tous les widgets
-                return all_widgets.map((w: DashboardWidgetVO) => w.id);
-            }
-
-            if (conf.valid_widget_id_ranges.length > 0) {
-                valid_widget_id_ranges.push(...conf.valid_widget_id_ranges);
-            }
-        }
-
-        return RangeHandler.get_array_from_ranges(valid_widget_id_ranges);
     }
 
     private async onpreC_DashboardVO(e: DashboardVO): Promise<boolean> {
@@ -783,7 +677,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
 
         // On doit le faire pour toutes les pages
         const pages: DashboardPageVO[] = await query(DashboardPageVO.API_TYPE_ID)
-            .filter_by_ids(page_widget.page_id_ranges)
+            .filter_by_id(page_widget.dashboard_id, DashboardVO.API_TYPE_ID) // on filtre par le dashboard du widget
             .exec_as_server()
             .select_vos<DashboardPageVO>();
 

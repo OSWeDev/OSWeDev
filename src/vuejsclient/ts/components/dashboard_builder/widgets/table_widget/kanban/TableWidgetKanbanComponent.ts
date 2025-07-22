@@ -202,6 +202,9 @@ export default class TableWidgetKanbanComponent extends VueComponentBase impleme
     //     }
     // }
 
+    get get_dashboard_id(): number {
+        return this.vuexGet(reflect<this>().get_dashboard_id);
+    }
 
     get get_active_field_filters(): FieldFiltersVO {
         return this.vuexGet(reflect<this>().get_active_field_filters);
@@ -1830,7 +1833,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase impleme
     private async mounted() {
         await ValidationFiltersWidgetController.getInstance().register_updater(
             this.dashboard_page.dashboard_id,
-            this.dashboard_page.id,
+            // this.dashboard_page.id,
             this.page_widget.id,
             this.throttle_do_update_visible_options.bind(this),
         );
@@ -2606,6 +2609,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase impleme
         }
 
         return new ExportContextQueryToXLSXParamVO(
+            this.get_dashboard_id,
             export_name,
             context_query,
             this.exportable_datatable_columns,
@@ -2716,6 +2720,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase impleme
             }
 
             const query_param_vo: ExportContextQueryToXLSXQueryVO = ExportContextQueryToXLSXQueryVO.create_new(
+                this.get_dashboard_id,
                 param.filename,
                 param.context_query,
                 param.ordered_column_list,

@@ -18,6 +18,7 @@ import ExportVarcolumnConfVO from '../ExportVarcolumnConfVO';
 export default class ExportContextQueryToXLSXParamVO extends AbstractVO implements IAPIParamTranslator<ExportContextQueryToXLSXParamVO> {
 
     public constructor(
+        public dashboard_id: number,
         public filename?: string,
         public context_query?: ContextQueryVO,
         public ordered_column_list?: string[],
@@ -48,6 +49,7 @@ export default class ExportContextQueryToXLSXParamVO extends AbstractVO implemen
     }
 
     public static fromParams(
+        dashboard_id: number,
         filename: string,
         context_query: ContextQueryVO,
         ordered_column_list: string[],
@@ -72,6 +74,7 @@ export default class ExportContextQueryToXLSXParamVO extends AbstractVO implemen
     ): ExportContextQueryToXLSXParamVO {
 
         return new ExportContextQueryToXLSXParamVO(
+            dashboard_id,
             filename, context_query, ordered_column_list, column_labels, exportable_datatable_custom_field_columns, columns, fields, varcolumn_conf,
             active_field_filters, custom_filters, active_api_type_ids, discarded_field_paths, is_secured, file_access_policy_name, target_user_id,
             do_not_use_filter_by_datatable_field_uid, export_active_field_filters, export_vars_indicator, send_email_with_export_notification, vars_indicator);
@@ -79,6 +82,7 @@ export default class ExportContextQueryToXLSXParamVO extends AbstractVO implemen
 
     public static getAPIParams(param: ExportContextQueryToXLSXParamVO): any[] {
         return [
+            param.dashboard_id,
             param.filename,
             param.context_query,
             param.ordered_column_list,

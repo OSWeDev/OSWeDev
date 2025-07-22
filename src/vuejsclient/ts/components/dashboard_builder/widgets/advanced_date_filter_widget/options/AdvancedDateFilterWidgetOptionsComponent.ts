@@ -222,14 +222,6 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
         return this.vuexGet(reflect<this>().get_page_widgets);
     }
 
-    get get_selected_page_page_widgets(): DashboardPageWidgetVO[] {
-        return this.vuexGet(reflect<this>().get_selected_page_page_widgets);
-    }
-
-    get get_selected_page_page_widgets_by_id(): { [id: number]: DashboardPageWidgetVO } {
-        return this.vuexGet(reflect<this>().get_selected_page_page_widgets_by_id);
-    }
-
     get get_all_widgets(): DashboardWidgetVO[] {
         return this.vuexGet(reflect<this>().get_all_widgets);
     }

@@ -235,24 +235,22 @@ export default class YearFilterWidgetManager {
      * @return {{ [title_name_code: string]: { widget_options: FieldValueFilterWidgetOptionsVO, widget_name: string, dashboard_page_id: number, page_widget_id: number } }}
      */
     public static async get_year_filters_widgets_options_metadata(
-        dashboard_page_id: number,
         page_widget: DashboardPageWidgetVO,
-        selected_page_page_widgets: DashboardPageWidgetVO[],
+        dashboard_page_widgets: DashboardPageWidgetVO[],
     ): Promise<
         {
-            [title_name_code: string]: { widget_options: YearFilterWidgetOptionsVO, widget_name: string, dashboard_page_id: number, page_widget_id: number }
+            [title_name_code: string]: { widget_options: YearFilterWidgetOptionsVO, widget_name: string, page_widget_id: number }
         }
     > {
 
         const year_page_widgets: {
-            [page_widget_id: string]: { widget_options: any, widget_name: string, dashboard_page_id: number, page_widget_id: number }
+            [page_widget_id: string]: { widget_options: any, widget_name: string, page_widget_id: number }
         } = await DashboardPageWidgetVOManager.filter_all_page_widgets_options_by_widget_name(
-            dashboard_page_id,
-            selected_page_page_widgets,
+            dashboard_page_widgets,
             'yearfilter');
 
         const res: {
-            [title_name_code: string]: { widget_options: YearFilterWidgetOptionsVO, widget_name: string, dashboard_page_id: number, page_widget_id: number }
+            [title_name_code: string]: { widget_options: YearFilterWidgetOptionsVO, widget_name: string, page_widget_id: number }
         } = {};
 
         for (const key in year_page_widgets) {
@@ -262,7 +260,6 @@ export default class YearFilterWidgetManager {
             const name = page_widget.placeholder;
 
             res[name] = {
-                dashboard_page_id: options.dashboard_page_id,
                 page_widget_id: options.page_widget_id,
                 widget_name: options.widget_name,
                 widget_options: widget_options

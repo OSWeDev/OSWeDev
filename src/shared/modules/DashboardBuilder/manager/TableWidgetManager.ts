@@ -2,6 +2,7 @@ import { cloneDeep } from 'lodash';
 import slug from 'slug';
 import ConsoleHandler from '../../../tools/ConsoleHandler';
 import LocaleManager from '../../../tools/LocaleManager';
+import { field_names } from '../../../tools/ObjectHandler';
 import WeightHandler from '../../../tools/WeightHandler';
 import ContextFilterVOHandler from '../../ContextFilter/handler/ContextFilterVOHandler';
 import ContextFilterVOManager from '../../ContextFilter/manager/ContextFilterVOManager';
@@ -32,13 +33,11 @@ import FieldValueFilterWidgetOptionsVO from '../vos/FieldValueFilterWidgetOption
 import TableColumnDescVO from '../vos/TableColumnDescVO';
 import TableWidgetOptionsVO from '../vos/TableWidgetOptionsVO';
 import WidgetOptionsMetadataVO from '../vos/WidgetOptionsMetadataVO';
-import DashboardBuilderBoardManager from './DashboardBuilderBoardManager';
 import DashboardPageWidgetVOManager from './DashboardPageWidgetVOManager';
 import FieldFiltersVOManager from './FieldFiltersVOManager';
 import VOFieldRefVOManager from './VOFieldRefVOManager';
 import VarWidgetManager from './VarWidgetManager';
 import WidgetOptionsVOManager from './WidgetOptionsVOManager';
-import { field_names } from '../../../tools/ObjectHandler';
 
 /**
  * @class TableWidgetManager
@@ -68,7 +67,6 @@ export default class TableWidgetManager {
         dashboard_page: DashboardPageVO,
         active_field_filters: FieldFiltersVO,
         all_page_widgets_by_id: { [id: number]: DashboardPageWidgetVO },
-        current_page_widgets: DashboardPageWidgetVO[],
         dashboard_api_type_ids: string[],
         dashboard_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } },
     ): Promise<{ [title_name_code: string]: ExportContextQueryToXLSXParamVO }> {
@@ -87,12 +85,11 @@ export default class TableWidgetManager {
 
         export_name = slug(export_name, { lower: false }) + "{#Date}.xlsx";
 
-        const datatables_widgets_options = await TableWidgetManager.get_datatables_widgets_options(dashboard_page.id, current_page_widgets);
+        const datatables_widgets_options = await TableWidgetManager.get_datatables_widgets_options(Object.values(all_page_widgets_by_id));
 
         for (const name in datatables_widgets_options) {
 
             const {
-                dashboard_page_id,
                 page_widget_id,
                 widget_options,
             } = datatables_widgets_options[name];
@@ -114,6 +111,7 @@ export default class TableWidgetManager {
             }
 
             res[name] = new ExportContextQueryToXLSXParamVO(
+                dashboard.id,
                 export_name,
                 await TableWidgetManager.get_table_context_query_by_widget_options(
                     dashboard,
@@ -122,7 +120,7 @@ export default class TableWidgetManager {
                     dashboard_api_type_ids,
                     dashboard_discarded_field_paths,
                     all_page_widgets_by_id,
-                    current_page_widgets),
+                ),
                 TableWidgetManager.get_exportable_table_columns_by_widget_options(
                     widget_options,
                     active_field_filters,
@@ -148,7 +146,7 @@ export default class TableWidgetManager {
                     all_page_widgets_by_id),
                 active_field_filters,
                 await TableWidgetManager.get_table_columns_custom_filters_by_widget_options(
-                    dashboard_page_id,
+                    dashboard.id,
                     widget_options,
                     active_field_filters,
                     all_page_widgets_by_id),
@@ -161,7 +159,7 @@ export default class TableWidgetManager {
                 widget_options.can_export_active_field_filters,
                 widget_options.can_export_vars_indicator,
                 false,
-                await VarWidgetManager.get_exportable_vars_indicator(dashboard_page_id, current_page_widgets),
+                await VarWidgetManager.get_exportable_vars_indicator(Object.values(all_page_widgets_by_id)),
             );
         }
 
@@ -174,15 +172,13 @@ export default class TableWidgetManager {
      * @return {{ [title_name_code: string]: { widget_options: TableWidgetOptions, widget_name: string, dashboard_page_id: number, page_widget_id: number } }}
      */
     public static async get_datatables_widgets_options(
-        dashboard_page_id: number,
-        selected_page_page_widgets: DashboardPageWidgetVO[],
-    ): Promise<{ [title_name_code: string]: { widget_options: TableWidgetOptionsVO, widget_name: string, dashboard_page_id: number, page_widget_id: number } }> {
+        dashboard_page_widgets: DashboardPageWidgetVO[],
+    ): Promise<{ [title_name_code: string]: { widget_options: TableWidgetOptionsVO, widget_name: string, page_widget_id: number } }> {
 
         const datatable_page_widgets: {
             [page_widget_id: string]: WidgetOptionsMetadataVO
         } = await DashboardPageWidgetVOManager.filter_all_page_widgets_options_by_widget_name(
-            dashboard_page_id,
-            selected_page_page_widgets,
+            dashboard_page_widgets,
             DashboardWidgetVO.WIDGET_NAME_datatable,
         );
 
@@ -214,7 +210,6 @@ export default class TableWidgetManager {
         api_type_ids: string[],
         discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } },
         all_page_widgets_by_id: { [id: number]: DashboardPageWidgetVO },
-        current_page_widgets: DashboardPageWidgetVO[],
     ): Promise<ContextQueryVO> {
         // Get sorted_widgets from dashboard (or sorted_widgets_types)
         const sorted_widgets = await WidgetOptionsVOManager.get_all_sorted_widgets_types();
@@ -319,8 +314,8 @@ export default class TableWidgetManager {
         }
 
         // Si on a des widgets, on va ajouter les exclude values si y'en a
-        for (const i in current_page_widgets) {
-            const page_widget: DashboardPageWidgetVO = current_page_widgets[i];
+        for (const i in all_page_widgets_by_id) {
+            const page_widget: DashboardPageWidgetVO = all_page_widgets_by_id[i];
             const widget_type: DashboardWidgetVO = sorted_widgets.find(
                 (wtype) => wtype.id == page_widget.widget_id
             );
@@ -675,7 +670,7 @@ export default class TableWidgetManager {
      * @returns {{ [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } }}
      */
     public static async get_table_columns_custom_filters_by_widget_options(
-        dashboard_page_id: number,
+        dashboard_id: number,
         widget_options: TableWidgetOptionsVO,
         active_field_filters: FieldFiltersVO,
         all_page_widgets_by_id: { [id: number]: DashboardPageWidgetVO }
@@ -683,7 +678,7 @@ export default class TableWidgetManager {
 
         // Get page_widgets (or all_page_widgets from dashboard)
         const page_widgets = await query(DashboardPageWidgetVO.API_TYPE_ID)
-            .filter_by_num_eq(field_names<DashboardPageWidgetVO>().page_id, dashboard_page_id)
+            .filter_by_num_eq(field_names<DashboardPageWidgetVO>().dashboard_id, dashboard_id)
             .select_vos<DashboardPageWidgetVO>();
 
         const columns_custom_filters_by_field_uid: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } = {};

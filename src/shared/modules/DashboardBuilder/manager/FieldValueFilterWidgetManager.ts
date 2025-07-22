@@ -577,27 +577,20 @@ export default class FieldValueFilterWidgetManager {
      * @return {{ [title_name_code: string]: { widget_options: FieldValueFilterWidgetOptionsVO, widget_name: string, dashboard_page_id: number, page_widget_id: number } }}
      */
     public static async get_field_value_filters_widgets_options_metadata(
-        dashboard_page_id: number,
         page_widget: DashboardPageWidgetVO,
-        selected_page_page_widgets: DashboardPageWidgetVO[],
-    ): Promise<
-        {
-            [title_name_code: string]: { widget_options: FieldValueFilterWidgetOptionsVO, widget_name: string, dashboard_page_id: number, page_widget_id: number }
-        }
-    > {
+        dashboard_page_widgets: DashboardPageWidgetVO[],
+    ): Promise<{ [title_name_code: string]: { widget_options: FieldValueFilterWidgetOptionsVO, widget_name: string, page_widget_id: number } }> {
 
         const valuetable_page_widgets: {
-            [page_widget_id: string]: { widget_options: any, widget_name: string, dashboard_page_id: number, page_widget_id: number }
+            [page_widget_id: string]: { widget_options: any, widget_name: string, page_widget_id: number }
         } = await DashboardPageWidgetVOManager.filter_all_page_widgets_options_by_widget_name(
-            dashboard_page_id,
-            selected_page_page_widgets,
+            dashboard_page_widgets,
             'fieldvaluefilter');
 
         const res: {
             [title_name_code: string]: {
                 widget_options: FieldValueFilterWidgetOptionsVO,
                 widget_name: string,
-                dashboard_page_id: number,
                 page_widget_id: number
             }
         } = {};
@@ -609,7 +602,6 @@ export default class FieldValueFilterWidgetManager {
             const name = page_widget.placeholder;
 
             res[name] = {
-                dashboard_page_id: options.dashboard_page_id,
                 page_widget_id: options.page_widget_id,
                 widget_name: options.widget_name,
                 widget_options: widget_options

@@ -250,9 +250,8 @@ export default class MonthFilterWidgetManager {
      * @return {{ [title_name_code: string]: WidgetOptionsMetadataVO }}
      */
     public static async get_month_filters_widgets_options_metadata(
-        dashboard_page_id: number,
         page_widget: DashboardPageWidgetVO,
-        selected_page_page_widgets: DashboardPageWidgetVO[],
+        dashboard_page_widgets: DashboardPageWidgetVO[],
     ): Promise<
         {
             [title_name_code: string]: WidgetOptionsMetadataVO
@@ -262,8 +261,7 @@ export default class MonthFilterWidgetManager {
         const month_page_widgets: {
             [page_widget_id: string]: WidgetOptionsMetadataVO
         } = await DashboardPageWidgetVOManager.filter_all_page_widgets_options_by_widget_name(
-            dashboard_page_id,
-            selected_page_page_widgets,
+            dashboard_page_widgets,
             DashboardWidgetVO.WIDGET_NAME_monthfilter
         );
 
@@ -276,7 +274,6 @@ export default class MonthFilterWidgetManager {
             const name = page_widget.placeholder;
 
             res[name] = new WidgetOptionsMetadataVO().from({
-                dashboard_page_id: options.dashboard_page_id,
                 page_widget_id: options.page_widget_id,
                 widget_name: options.widget_name,
                 widget_options: widget_options

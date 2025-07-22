@@ -579,6 +579,7 @@ export default class FavoritesFiltersModalComponent extends VueComponentBase {
         favorites_filters.name = this.favorites_filters_name;
         favorites_filters.export_params = favorites_filters.export_params ? favorites_filters.export_params : new FavoritesFiltersExportParamsVO();
         favorites_filters.export_params.is_export_planned = is_export_planned;
+        favorites_filters.dashboard_id = this.dashboard_page.dashboard_id;
         favorites_filters.export_params.export_frequency = export_frequency;
         favorites_filters.export_params.exportable_data = exportable_data;
         favorites_filters.export_params.field_filters_column_translatable_titles = this.get_field_filters_column_translatable_titles();
@@ -910,9 +911,10 @@ export default class FavoritesFiltersModalComponent extends VueComponentBase {
 
         // Get the available readable field filters from the active field filters
         const available_readable_field_filters = await FieldFiltersVOManager.create_readable_filters_text_from_field_filters(
+            this.dashboard_page.dashboard_id,
             active_field_filters,
             VueAppController.getInstance().data_user_lang.code_lang,
-            this.dashboard_page?.id,
+            // this.dashboard_page?.id,
         );
 
         // If is_field_filters_fixed_dates is false,
@@ -956,13 +958,13 @@ export default class FavoritesFiltersModalComponent extends VueComponentBase {
 
         // Year filters page_widgets
         const page_widgets_yearfilter = await DashboardPageWidgetVOManager.find_page_widgets_by_widget_name(
-            this.dashboard_page.id,
+            this.dashboard_page.dashboard_id,
             DashboardWidgetVO.WIDGET_NAME_yearfilter
         );
 
         // Month filters page_widgets
         const page_widgets_monthfilter = await DashboardPageWidgetVOManager.find_page_widgets_by_widget_name(
-            this.dashboard_page.id,
+            this.dashboard_page.dashboard_id,
             DashboardWidgetVO.WIDGET_NAME_monthfilter
         );
 

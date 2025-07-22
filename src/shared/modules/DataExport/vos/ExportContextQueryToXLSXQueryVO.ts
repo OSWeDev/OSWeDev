@@ -28,6 +28,8 @@ export default class ExportContextQueryToXLSXQueryVO implements IDistantVOBase {
 
     public state: number;
 
+    public dashboard_id: number;
+
     public filename: string;
     public context_query: ContextQueryVO;
     public ordered_column_list: string[];
@@ -63,6 +65,7 @@ export default class ExportContextQueryToXLSXQueryVO implements IDistantVOBase {
     public end_date: number;
 
     public static create_new(
+        dashboard_id: number,
         filename: string,
         context_query: ContextQueryVO,
         ordered_column_list: string[],

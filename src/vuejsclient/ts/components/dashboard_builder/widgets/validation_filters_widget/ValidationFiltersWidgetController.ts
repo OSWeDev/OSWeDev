@@ -7,8 +7,10 @@ export default class ValidationFiltersWidgetController {
 
     private static instance = null;
 
-    public updaters: { [dashboard_id: number]: { [dashboard_page_id: number]: { [page_widget_id: number]: Array<{ validator_page_widget_id: number, updater: () => Promise<void> }> } } } = {};
-    public is_init: { [dashboard_id: number]: { [dashboard_page_id: number]: { [page_widget_id: number]: boolean } } } = {};
+    // public updaters: { [dashboard_id: number]: { [dashboard_page_id: number]: { [page_widget_id: number]: Array<{ validator_page_widget_id: number, updater: () => Promise<void> }> } } } = {};
+    // public is_init: { [dashboard_id: number]: { [dashboard_page_id: number]: { [page_widget_id: number]: boolean } } } = {};
+    public updaters: { [dashboard_id: number]: { [page_widget_id: number]: Array<{ validator_page_widget_id: number, updater: () => Promise<void> }> } } = {};
+    public is_init: { [dashboard_id: number]: { [page_widget_id: number]: boolean } } = {};
 
     public throttle_call_updaters = ThrottleHelper.declare_throttle_with_stackable_args(
         'ValidationFiltersWidgetController.throttle_call_updaters',
@@ -28,7 +30,7 @@ export default class ValidationFiltersWidgetController {
 
     public async register_updater(
         dashboard_id: number,
-        page_id: number,
+        // page_id: number,
         page_widget_id: number,
         updater: () => Promise<void>,
         validator_page_widget_id?: number, // To know/specify which widget call the updaters
@@ -38,12 +40,8 @@ export default class ValidationFiltersWidgetController {
             this.updaters[dashboard_id] = {};
         }
 
-        if (!this.updaters[dashboard_id][page_id]) {
-            this.updaters[dashboard_id][page_id] = {};
-        }
-
-        if (!this.updaters[dashboard_id][page_id][page_widget_id]) {
-            this.updaters[dashboard_id][page_id][page_widget_id] = [];
+        if (!this.updaters[dashboard_id][page_widget_id]) {
+            this.updaters[dashboard_id][page_widget_id] = [];
         }
 
         // Associate the actual updater to the given page_widget_id
@@ -52,16 +50,32 @@ export default class ValidationFiltersWidgetController {
             updater,
         };
 
-        this.updaters[dashboard_id][page_id][page_widget_id].push(updater_caller);
+        this.updaters[dashboard_id][page_widget_id].push(updater_caller);
+
+        // if (!this.updaters[dashboard_id][page_id]) {
+        //     this.updaters[dashboard_id][page_id] = {};
+        // }
+
+        // if (!this.updaters[dashboard_id][page_id][page_widget_id]) {
+        //     this.updaters[dashboard_id][page_id][page_widget_id] = [];
+        // }
+
+        // // Associate the actual updater to the given page_widget_id
+        // const updater_caller = {
+        //     validator_page_widget_id,
+        //     updater,
+        // };
+
+        // this.updaters[dashboard_id][page_id][page_widget_id].push(updater_caller);
     }
 
     private async throttled_call_updaters(params: ValidationFiltersCallUpdaters[]) {
 
         for (const i in params) {
 
-            const caller_page_widget_id = params[i].page_widget_id; // To know which widget activate the updaters
+            const caller_page_widget_id = params[i].page_widget_id; // To know which widget activates the updaters
             const dashboard_id = params[i].dashboard_id;
-            const page_id = params[i].page_id;
+            // const page_id = params[i].page_id;
 
             let updaters_by_page_widget_id: { [page_widget_id: number]: Array<{ validator_page_widget_id: number, updater: () => Promise<void> }> } = {};
 
@@ -69,7 +83,7 @@ export default class ValidationFiltersWidgetController {
                 ValidationFiltersWidgetController.getInstance().updaters &&
                 ValidationFiltersWidgetController.getInstance().updaters[dashboard_id]
             ) {
-                updaters_by_page_widget_id = ValidationFiltersWidgetController.getInstance().updaters[dashboard_id][page_id];
+                updaters_by_page_widget_id = ValidationFiltersWidgetController.getInstance().updaters[dashboard_id];
             }
 
             const promises = [];

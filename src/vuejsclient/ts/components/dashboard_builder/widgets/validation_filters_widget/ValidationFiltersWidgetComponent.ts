@@ -61,7 +61,7 @@ export default class ValidationFiltersWidgetComponent extends VueComponentBase {
         await ValidationFiltersWidgetController.getInstance().throttle_call_updaters(
             new ValidationFiltersCallUpdaters(
                 this.dashboard_page.dashboard_id,
-                this.dashboard_page.id,
+                // this.dashboard_page.id,
                 this.page_widget.id
             )
         );

@@ -342,7 +342,7 @@ export default class MonthFilterWidgetOptionsButtonSetterComponent extends VueCo
      */
     public async load_all_months_page_widgets() {
         this.all_months_page_widgets = await DashboardPageWidgetVOManager.find_page_widgets_by_widget_name(
-            this.page_widget.id,
+            this.page_widget.dashboard_id,
             DashboardWidgetVO.WIDGET_NAME_monthfilter
         );
     }

@@ -18,8 +18,16 @@ export default class FavoritesFiltersVO extends AbstractVO implements IDistantVO
 
     public id: number;
 
-    // page id of this favorite list (required for export params widget_options for calculations)
+    /**
+     * page id of this favorite list (required for export params widget_options for calculations)
+     * @deprecated use dashboard_id instead
+     */
     public page_id: number;
+
+    /**
+     * Dashboard in which this favorite filter has been created
+     */
+    public dashboard_id: number;
 
     // User id of saved active filters
     public owner_id: number;

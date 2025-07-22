@@ -60,6 +60,7 @@ export default class ExportContextQueryToXLSXBGThread implements IBGThread {
 
             try {
                 await ModuleDataExportServer.getInstance().do_exportContextQueryToXLSX(
+                    next_export.dashboard_id,
                     next_export.filename,
                     next_export.context_query,
                     next_export.ordered_column_list,

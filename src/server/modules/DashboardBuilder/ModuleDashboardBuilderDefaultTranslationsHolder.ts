@@ -41,11 +41,21 @@ export default class ModuleDashboardBuilderDefaultTranslationsHolder {
         }, 'dashboard_builder.module_table_crud_template_saisie_mode_create_update'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Chargement en cours...'
+        }, 'ModuleTableQueryDBComponent.loading.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Aucune page n\'est paramétrée pour servir d\'outil de requêtage sur ce type de données.'
+        }, 'ModuleTableQueryDBComponent.no_dashboard.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Consultation'
         }, 'dashboard_builder.module_table_crud_template_type_consultation'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Saisie'
         }, 'dashboard_builder.module_table_crud_template_type_create_update'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Requête'
+        }, 'dashboard_builder.module_table_crud_template_type_query'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Aucun type de données n\'est compatible avec la construction de templates de données, ou la configuration actuelle du Dashboard Builder ne vous le permet pas.'

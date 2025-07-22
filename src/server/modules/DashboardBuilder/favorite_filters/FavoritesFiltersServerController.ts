@@ -71,6 +71,7 @@ export default class FavoritesFiltersServerController {
             }
 
             const export_contextquery_to_xlsx: ExportContextQueryToXLSXQueryVO = ExportContextQueryToXLSXQueryVO.create_new(
+                favorites_filters.dashboard_id,
                 filename,
                 xlsx_data.context_query,
                 xlsx_data.ordered_column_list,

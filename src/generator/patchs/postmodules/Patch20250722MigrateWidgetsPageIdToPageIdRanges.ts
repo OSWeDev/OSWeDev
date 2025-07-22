@@ -90,13 +90,13 @@ export default class Patch20250722MigrateWidgetsPageIdToPageIdRanges implements 
             all_page_widgets_by_dashboard_id[widget_s_page.dashboard_id].push(page_widget);
         }
 
-        // On peut commencer par migrer en page_id_ranges
+        // On peut commencer par migrer en dashboard_id
         for (const page_widget of all_page_widgets) {
-            if (RangeHandler.getCardinalFromArray(page_widget.page_id_ranges) > 0) {
+            if (!!page_widget.dashboard_id) {
                 continue; // already migrated
             }
 
-            page_widget.page_id_ranges = [RangeHandler.create_single_elt_NumRange(page_widget.page_id, NumSegment.TYPE_INT)];
+            page_widget.dashboard_id = all_pages_by_id[page_widget.page_id].dashboard_id;
         }
 
         // On met à jour

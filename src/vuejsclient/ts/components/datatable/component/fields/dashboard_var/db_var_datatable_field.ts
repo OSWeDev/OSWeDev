@@ -100,10 +100,6 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase imple
         return this.vuexGet(reflect<this>().get_page_widgets);
     }
 
-    get get_selected_page_page_widgets_by_id(): { [id: number]: DashboardPageWidgetVO } {
-        return this.vuexGet(reflect<this>().get_selected_page_page_widgets_by_id);
-    }
-
     get get_widgets_by_id(): { [id: number]: DashboardWidgetVO } {
         return this.vuexGet(reflect<this>().get_widgets_by_id);
     }
@@ -160,7 +156,7 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase imple
         promises.push((async () => {
             await ValidationFiltersWidgetController.getInstance().register_updater(
                 this.dashboard_id,
-                this.page_widget.page_id,
+                // this.page_widget.page_id,
                 this.page_widget.id,
                 this.throttled_do_init_param.bind(this),
             );

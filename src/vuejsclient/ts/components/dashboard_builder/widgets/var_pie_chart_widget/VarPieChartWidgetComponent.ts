@@ -562,7 +562,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase impleme
     private async mounted() {
         await ValidationFiltersWidgetController.getInstance().register_updater(
             this.dashboard_page.dashboard_id,
-            this.dashboard_page.id,
+            // this.dashboard_page.id,
             this.page_widget.id,
             this.throttle_do_update_visible_options.bind(this),
         );

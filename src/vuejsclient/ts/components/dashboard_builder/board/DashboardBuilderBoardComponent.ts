@@ -13,6 +13,7 @@ import DashboardViewportVO from '../../../../../shared/modules/DashboardBuilder/
 import DashboardVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import DashboardWidgetVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
 import FieldFiltersVO from '../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
+import NumSegment from '../../../../../shared/modules/DataRender/vos/NumSegment';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import ObjectHandler, { field_names, reflect } from '../../../../../shared/tools/ObjectHandler';
 import RangeHandler from '../../../../../shared/tools/RangeHandler';
@@ -24,7 +25,6 @@ import DashboardCopyWidgetComponent from '../copy_widget/DashboardCopyWidgetComp
 import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../page/DashboardPageStore';
 import './DashboardBuilderBoardComponent.scss';
 import DashboardBuilderBoardItemComponent from './item/DashboardBuilderBoardItemComponent';
-import NumSegment from '../../../../../shared/modules/DataRender/vos/NumSegment';
 
 @Component({
     template: require('./DashboardBuilderBoardComponent.pug'),
@@ -59,20 +59,20 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase imp
 
         watch_fields: [
             reflect<DashboardBuilderBoardComponent>().get_dashboard_current_viewport,
-            reflect<DashboardBuilderBoardComponent>().selected_page_page_widgets,
+            reflect<DashboardBuilderBoardComponent>().get_dashboard_page,
         ],
         filters_factory: (self) => {
             if (!self.get_dashboard_current_viewport) {
                 return null;
             }
 
-            if (!self.selected_page_page_widgets || !self.selected_page_page_widgets.length) {
+            if (!self.get_dashboard_page) {
                 return null;
             }
 
             return [
                 filter(DashboardViewportPageWidgetVO.API_TYPE_ID, field_names<DashboardViewportPageWidgetVO>().viewport_id).by_num_eq(self.get_dashboard_current_viewport.id),
-                filter(DashboardViewportPageWidgetVO.API_TYPE_ID, field_names<DashboardViewportPageWidgetVO>().page_widget_id).by_num_has(self.selected_page_page_widgets.map((widget) => widget.id)),
+                filter(DashboardViewportPageWidgetVO.API_TYPE_ID, field_names<DashboardViewportPageWidgetVO>().page_id).by_num_eq(self.get_dashboard_page.id),
             ];
         },
         sync_to_store_namespace: (self) => self.storeNamespace,
@@ -102,34 +102,18 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase imp
     @SyncVOs(DashboardPageWidgetVO.API_TYPE_ID, {
         debug: true,
 
-        watch_fields: [reflect<DashboardBuilderBoardComponent>().dashboard_pages],
+        watch_fields: [reflect<DashboardBuilderBoardComponent>().get_dashboard_id],
         filters_factory: (self) => {
-            if (!self.dashboard_pages || !self.dashboard_pages.length) {
+            if (!self.get_dashboard_id) {
                 return null;
             }
 
-            return [filter(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().page_id_ranges).by_num_x_ranges(RangeHandler.get_ids_ranges_from_vos(self.dashboard_pages))];
+            return [filter(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().dashboard_id).by_num_eq(self.get_dashboard_id)];
         },
         sync_to_store_namespace: (self) => self.storeNamespace,
         // sync_to_store_property: reflect<DashboardBuilderBoardComponent>().page_widgets, // Nom iso, pas utile
     })
     public page_widgets: DashboardPageWidgetVO[] = []; // All the page_widgets of the dashboard, for all its pages
-
-    @SyncVOs(DashboardPageWidgetVO.API_TYPE_ID, {
-        debug: true,
-
-        watch_fields: [reflect<DashboardBuilderBoardComponent>().get_dashboard_page],
-        filters_factory: (self) => {
-            if (!self.get_dashboard_page) {
-                return null;
-            }
-
-            return [filter(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().page_id_ranges).by_num_x_ranges([RangeHandler.create_single_elt_NumRange(self.get_dashboard_page.id, NumSegment.TYPE_INT)])];
-        },
-        sync_to_store_namespace: (self) => self.storeNamespace,
-        // sync_to_store_property: reflect<DashboardBuilderBoardComponent>().page_widgets, // Nom iso, pas utile
-    })
-    public selected_page_page_widgets: DashboardPageWidgetVO[] = []; // The widgets of the current page, used in the board component
 
     @SyncVOs(DashboardGraphVORefVO.API_TYPE_ID, {
         debug: true,
@@ -202,10 +186,6 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase imp
         return res;
     }
 
-    get get_selected_page_page_widgets_by_id(): { [id: number]: DashboardPageWidgetVO } {
-        return this.vuexGet(reflect<this>().get_selected_page_page_widgets_by_id);
-    }
-
     get grid_breakpoints(): { [breakpoint: string]: number } {
 
         if (!ObjectHandler.hasAtLeastOneAttribute(this.get_dashboard_valid_viewports)) {
@@ -234,24 +214,12 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase imp
         return cols;
     }
 
-    get selected_page_page_widgets_by_id(): { [id: number]: DashboardPageWidgetVO } {
-        const selected_widgets: { [id: number]: DashboardPageWidgetVO } = {};
-
-        if (this.get_selected_page_page_widgets) {
-            for (const widget of this.get_selected_page_page_widgets) {
-                selected_widgets[widget.id] = widget;
-            }
-        }
-
-        return selected_widgets;
-    }
-
     get get_dashboard_valid_viewports(): DashboardViewportVO[] {
         return this.vuexGet(reflect<this>().get_dashboard_valid_viewports);
     }
 
-    get get_selected_page_page_widgets(): DashboardPageWidgetVO[] {
-        return this.vuexGet(reflect<this>().get_selected_page_page_widgets);
+    get get_page_widgets_by_id(): { [id: number]: DashboardPageWidgetVO } {
+        return this.vuexGet(reflect<this>().get_page_widgets_by_id);
     }
 
     get get_dashboard_current_viewport(): DashboardViewportVO {

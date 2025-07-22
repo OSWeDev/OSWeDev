@@ -151,16 +151,17 @@ export default class DashboardViewerComponent extends VueComponentBase implement
         this.set_selected_widget(null);
     }
 
-    @SafeWatch(reflect<DashboardViewerComponent>().dashboard)
-    public async onchange_dashboard() {
-        // We should load the shared_filters with the current dashboard
-        await DashboardVOManager.load_shared_filters_with_dashboard(
-            this.dashboard,
-            this.get_dashboard_navigation_history,
-            this.get_active_field_filters,
-            this.set_active_field_filters
-        );
-    }
+    // On a ce comportement sur le builderboard...
+    // @SafeWatch(reflect<DashboardViewerComponent>().dashboard)
+    // public async onchange_dashboard() {
+    //     // We should load the shared_filters with the current dashboard
+    //     await DashboardVOManager.load_shared_filters_with_dashboard(
+    //         this.dashboard,
+    //         this.get_dashboard_navigation_history,
+    //         this.get_active_field_filters,
+    //         this.set_active_field_filters
+    //     );
+    // }
 
     /**
      * Quand on change de dahsboard, on supprime les filtres contextuels existants (en tout cas par défaut)
@@ -250,9 +251,9 @@ export default class DashboardViewerComponent extends VueComponentBase implement
         return this.vuexAct(reflect<this>().clear_active_field_filters, null);
     }
 
-    public set_active_field_filters(param: FieldFiltersVO) {
-        return this.vuexAct(reflect<this>().set_active_field_filters, param);
-    }
+    // public set_active_field_filters(param: FieldFiltersVO) {
+    //     return this.vuexAct(reflect<this>().set_active_field_filters, param);
+    // }
 
     public set_selected_widget(selected_widget: DashboardPageWidgetVO): void {
         this.vuexAct(reflect<this>().set_selected_widget, selected_widget);

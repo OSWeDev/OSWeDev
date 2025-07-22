@@ -419,7 +419,7 @@ export default class YearFilterWidgetOptionsButtonSetterComponent extends VueCom
      */
     private async load_all_years_page_widgets() {
         this.all_years_page_widgets = await DashboardPageWidgetVOManager.find_page_widgets_by_widget_name(
-            this.page_widget.id,
+            this.page_widget.dashboard_id,
             'yearfilter'
         );
     }

@@ -1,15 +1,15 @@
 import Component from 'vue-class-component';
 import { Inject, Prop } from 'vue-property-decorator';
-import { filter } from '../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import ContextFilterVO, { filter } from '../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import FieldFiltersVO from '../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import GPTAssistantAPIThreadVO from '../../../../../shared/modules/GPT/vos/GPTAssistantAPIThreadVO';
 import ModuleOselia from '../../../../../shared/modules/Oselia/ModuleOselia';
 import ModuleParams from '../../../../../shared/modules/Params/ModuleParams';
 import { reflect } from '../../../../../shared/tools/ObjectHandler';
+import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../dashboard_builder/page/DashboardPageStore';
 import { ModuleOseliaAction, ModuleOseliaGetter } from '../../dashboard_builder/widgets/oselia_thread_widget/OseliaStore';
 import VueComponentBase from '../../VueComponentBase';
 import './OseliaDBComponent.scss';
-import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../dashboard_builder/page/DashboardPageStore';
 
 @Component({
     template: require('./OseliaDBComponent.pug'),
@@ -49,8 +49,8 @@ export default class OseliaDBComponent extends VueComponentBase implements IDash
         this.$store.dispatch(`${this.storeNamespace}/${String(action)}`, ...args);
     }
 
-    public set_active_field_filters(active_field_filters: FieldFiltersVO) {
-        return this.vuexAct(reflect<this>().set_active_field_filters, active_field_filters);
+    public set_active_field_filter(param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) {
+        return this.vuexAct(reflect<this>().set_active_field_filter, param);
     }
 
     private async mounted() {
@@ -66,16 +66,12 @@ export default class OseliaDBComponent extends VueComponentBase implements IDash
         }
 
         if (this.thread_vo_id) {
-            this.set_active_field_filters(
-                Object.assign(
-                    new FieldFiltersVO(),
-                    {
-                        [GPTAssistantAPIThreadVO.API_TYPE_ID]: {
-                            'id': filter(GPTAssistantAPIThreadVO.API_TYPE_ID, 'id').by_id(this.thread_vo_id)
-                        }
-                    },
-                    this.get_active_field_filters,
-                )
+            this.set_active_field_filter(
+                {
+                    active_field_filter: filter(GPTAssistantAPIThreadVO.API_TYPE_ID, 'id').by_id(this.thread_vo_id),
+                    vo_type: GPTAssistantAPIThreadVO.API_TYPE_ID,
+                    field_id: 'id',
+                }
             );
         }
     }

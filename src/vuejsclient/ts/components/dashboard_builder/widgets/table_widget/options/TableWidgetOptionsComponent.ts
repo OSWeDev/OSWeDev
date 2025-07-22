@@ -102,8 +102,6 @@ export default class TableWidgetOptionsComponent extends VueComponentBase implem
     public use_kanban_card_archive_if_exists: boolean = true;
     public tmp_legende_tableau: string = null;
 
-    get page_widget_options
-
     get crud_api_type_id_select_options(): string[] {
         return this.get_dashboard_api_type_ids;
     }
@@ -420,7 +418,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase implem
         }
 
         this.page_widget_options = await query(DashboardPageWidgetVO.API_TYPE_ID)
-            .filter_by_num_eq(field_names<DashboardPageWidgetVO>().page_id, this.page_widget.page_id)
+            .filter_by_num_eq(field_names<DashboardPageWidgetVO>().dashboard_id, this.page_widget.dashboard_id)
             .filter_by_num_not_eq(field_names<DashboardPageWidgetVO>().id, this.page_widget.id)
             .filter_is_true(field_names<DashboardWidgetVO>().is_filter, DashboardWidgetVO.API_TYPE_ID)
             .select_vos();

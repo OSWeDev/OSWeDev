@@ -58,22 +58,23 @@ export default class DashboardPageFieldFiltersVOManager {
 
         const dashboard_pages_field_filters_map: DashboardPageFieldFiltersVO[] = [];
 
+        // Get default field_filters of dashboard_page
+        const default_page_field_filters = await FieldFiltersVOManager.find_default_field_filters_by_dashboard_id(
+            dashboard_id,
+            {
+                keep_empty_context_filter: true
+            }
+        );
+
         for (const key in dashboard_pages) {
             const dashboard_page = dashboard_pages[key];
 
-            // Get default field_filters of dashboard_page
-            const default_page_field_filters = await FieldFiltersVOManager.find_default_field_filters_by_dashboard_page_id(
-                dashboard_page.id,
-                {
-                    keep_empty_context_filter: true
-                }
-            );
-
             // Create readable field_filters of dashboard_page
             const readable_field_filters = await FieldFiltersVOManager.create_readable_filters_text_from_field_filters(
+                dashboard_id,
                 default_page_field_filters,
                 code_lang,
-                dashboard_page.id,
+                // dashboard_page.id,
             );
 
             // Create dashboard_page_field_filters

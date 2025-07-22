@@ -1,6 +1,6 @@
 import { cloneDeep } from "lodash";
 import LocaleManager from "../../../tools/LocaleManager";
-import ObjectHandler from "../../../tools/ObjectHandler";
+import ObjectHandler, { field_names } from "../../../tools/ObjectHandler";
 import ContextFilterVOHandler from "../../ContextFilter/handler/ContextFilterVOHandler";
 import ContextFilterVOManager from "../../ContextFilter/manager/ContextFilterVOManager";
 import ContextFilterVO from "../../ContextFilter/vos/ContextFilterVO";
@@ -18,6 +18,7 @@ import DashboardPageWidgetVOManager from "./DashboardPageWidgetVOManager";
 import VOFieldRefVOManager from "./VOFieldRefVOManager";
 import WidgetOptionsVOManager from "./WidgetOptionsVOManager";
 import ModuleTranslation from "../../Translation/ModuleTranslation";
+import { query } from "../../ContextFilter/vos/ContextQueryVO";
 
 /**
  * FieldFiltersVOManager
@@ -63,8 +64,8 @@ export default class FieldFiltersVOManager {
      * @param options
      * @returns {Promise<FieldFiltersVO>}
      */
-    public static async find_default_field_filters_by_dashboard_page_id(
-        dashboard_page_id: number,
+    public static async find_default_field_filters_by_dashboard_id(
+        dashboard_id: number,
         options?: {
             refresh?: boolean,
             keep_empty_context_filter?: boolean,
@@ -76,9 +77,9 @@ export default class FieldFiltersVOManager {
         let default_field_filters: FieldFiltersVO = {};
 
         // Get widgets of the given favorites filters page
-        const page_widgets: DashboardPageWidgetVO[] = await DashboardPageWidgetVOManager.find_page_widgets_by_page_id(
-            dashboard_page_id,
-        );
+        const page_widgets: DashboardPageWidgetVO[] = await query(DashboardPageWidgetVO.API_TYPE_ID)
+            .filter_by_num_eq(field_names<DashboardPageWidgetVO>().dashboard_id, dashboard_id)
+            .select_vos<DashboardPageWidgetVO>();
 
         // Get all widgets_types
         const widgets_types = await WidgetOptionsVOManager.get_all_sorted_widgets_types();
@@ -151,9 +152,10 @@ export default class FieldFiltersVOManager {
      * @return {{ [translatable_label_code: string]: IReadableFieldFilters }}
      */
     public static async create_readable_filters_text_from_field_filters(
+        dashboard_id: number,
         field_filters: FieldFiltersVO,
         code_lang: string,
-        page_id?: number, // Case when we need to be specific to a page (TODO: should always be specific)
+        // page_id?: number, // Case when we need to be specific to a page (TODO: should always be specific)
     ): Promise<{ [translatable_label_code: string]: IReadableFieldFilters }> {
 
         field_filters = cloneDeep(field_filters);
@@ -167,10 +169,29 @@ export default class FieldFiltersVOManager {
             [translatable_label_code: string]: IReadableFieldFilters
         } = {};
 
-        if (page_id != null) {
+        // if (page_id != null) {
+        //     // Get all widgets_options of the given dashboard_page id
+        //     const widgets_options = await DashboardPageWidgetVOManager.find_all_widgets_options_by_page_id(
+        //         page_id
+        //     );
+
+        //     // Get all field_filters_porps from widgets_options
+        //     field_filters_porps = widgets_options.map((widget_options) => {
+        //         const vo_field_ref: VOFieldRefVO = VOFieldRefVOManager.create_vo_field_ref_vo_from_widget_options(
+        //             widget_options,
+        //         );
+
+        //         return {
+        //             is_filter_hidden: widget_options.hide_filter ?? false,
+        //             vo_field_ref,
+        //         };
+        //     });
+        // }
+
+        if (dashboard_id != null) {
             // Get all widgets_options of the given dashboard_page id
-            const widgets_options = await DashboardPageWidgetVOManager.find_all_widgets_options_by_page_id(
-                page_id
+            const widgets_options = await DashboardPageWidgetVOManager.find_all_widgets_options_by_dashboard_id(
+                dashboard_id
             );
 
             // Get all field_filters_porps from widgets_options
@@ -221,10 +242,12 @@ export default class FieldFiltersVOManager {
 
                 // The actual label of the filter
                 const label_code_text: string = await VOFieldRefVOManager.create_readable_vo_field_ref_label(
+                    dashboard_id,
+
                     // TODO FIXME : il faut current_page_page_widgets
                     null,
                     vo_field_ref,
-                    page_id
+                    // page_id
                 );
 
                 const label: string = translations[label_code_text] ?? label_code_text;
@@ -254,8 +277,9 @@ export default class FieldFiltersVOManager {
     }
 
     public static async get_readable_field_ref_labels_from_filters(
+        dashboard_id: number,
         field_filters: FieldFiltersVO,
-        page_id?: number // Case when we need to be specific to a page (TODO: should always be specific)
+        // page_id?: number // Case when we need to be specific to a page (TODO: should always be specific)
     ): Promise<{ [vo_field_ref_id: string]: string }> {
 
         field_filters = cloneDeep(field_filters);
@@ -265,10 +289,29 @@ export default class FieldFiltersVOManager {
 
         const res: { [vo_field_ref_id: string]: string } = {};
 
-        if (page_id != null) {
+        // if (page_id != null) {
+        //     // Get all widgets_options of the given dashboard_page id
+        //     const widgets_options = await DashboardPageWidgetVOManager.find_all_widgets_options_by_page_id(
+        //         page_id
+        //     );
+
+        //     // Get all field_filters_porps from widgets_options
+        //     field_filters_porps = widgets_options.map((widget_options) => {
+        //         const vo_field_ref: VOFieldRefVO = VOFieldRefVOManager.create_vo_field_ref_vo_from_widget_options(
+        //             widget_options,
+        //         );
+
+        //         return {
+        //             is_filter_hidden: widget_options.hide_filter ?? false,
+        //             vo_field_ref,
+        //         };
+        //     });
+        // }
+
+        if (dashboard_id != null) {
             // Get all widgets_options of the given dashboard_page id
-            const widgets_options = await DashboardPageWidgetVOManager.find_all_widgets_options_by_page_id(
-                page_id
+            const widgets_options = await DashboardPageWidgetVOManager.find_all_widgets_options_by_dashboard_id(
+                dashboard_id
             );
 
             // Get all field_filters_porps from widgets_options
@@ -283,6 +326,7 @@ export default class FieldFiltersVOManager {
                 };
             });
         }
+
 
         for (const api_type_id in field_filters) {
             const filters = field_filters[api_type_id];
@@ -314,10 +358,12 @@ export default class FieldFiltersVOManager {
 
                 // The actual label of the filter
                 const label_code_text: string = await VOFieldRefVOManager.create_readable_vo_field_ref_label(
+                    dashboard_id,
+
                     // TODO FIXME : il faut current_page_page_widgets
                     null,
                     vo_field_ref,
-                    page_id
+                    // page_id
                 );
 
                 res[vo_field_ref.api_type_id + '.' + vo_field_ref.field_id] = label_code_text;

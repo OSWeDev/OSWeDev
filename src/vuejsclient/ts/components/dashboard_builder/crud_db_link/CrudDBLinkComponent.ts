@@ -39,8 +39,6 @@ export default class CrudDBLinkComponent extends VueComponentBase implements IDa
 
     public selected_vo_type: string = null;
 
-    public vo_type_options: string[] = [];
-
     public moduletable_crud_template_type: { id: number, label: string } = {
         id: DashboardVO.MODULE_TABLE_CRUD_TEMPLATE_TYPE_CONSULTATION,
         label: this.t(DashboardVO.MODULE_TABLE_CRUD_TEMPLATE_TYPE_LABELS[DashboardVO.MODULE_TABLE_CRUD_TEMPLATE_TYPE_CONSULTATION]),
@@ -78,6 +76,10 @@ export default class CrudDBLinkComponent extends VueComponentBase implements IDa
         return this.vuexGet(reflect<CrudDBLinkComponent>().get_current_dbb_conf);
     }
 
+    get get_all_valid_db_conf_tables_by_table_name(): { [table_name: string]: ModuleTableVO } {
+        return this.vuexGet(reflect<CrudDBLinkComponent>().get_all_valid_db_conf_tables_by_table_name);
+    }
+
     get get_can_update_crud_type(): boolean {
         return this.POLICY_DBB_CAN_UPDATE_CRUD_TYPE && this.get_current_dbb_conf && this.get_current_dbb_conf.has_access_to_templating_options;
     }
@@ -98,24 +100,13 @@ export default class CrudDBLinkComponent extends VueComponentBase implements IDa
         return this.POLICY_DBB_CAN_UPDATE_IS_TEMPLATE_UPDATE && this.get_current_dbb_conf && this.get_current_dbb_conf.has_access_to_create_or_update_crud_templating_option;
     }
 
-    @SafeWatch(reflect<CrudDBLinkComponent>().get_current_dbb_conf, { immediate: true, deep: true })
-    private async onchange_current_dbb_conf() {
-        if (this.get_current_dbb_conf) {
+    get vo_type_options(): string[] {
 
-            let tables = null;
-            if (this.get_current_dbb_conf.valid_moduletable_id_ranges && this.get_current_dbb_conf.valid_moduletable_id_ranges.length > 0) {
-                tables = await query(ModuleTableVO.API_TYPE_ID)
-                    .filter_by_ids(this.get_current_dbb_conf.valid_moduletable_id_ranges)
-                    .select_vos<ModuleTableVO>();
-            } else {
-                tables = await query(ModuleTableVO.API_TYPE_ID)
-                    .select_vos<ModuleTableVO>();
-            }
-
-            this.vo_type_options = tables.map((mt: ModuleTableVO) => mt.vo_type);
-        } else {
-            this.vo_type_options = null;
+        if (!this.get_all_valid_db_conf_tables_by_table_name) {
+            return [];
         }
+
+        return Object.keys(this.get_all_valid_db_conf_tables_by_table_name);
     }
 
     @SafeWatch(reflect<CrudDBLinkComponent>().get_dashboard, { immediate: true })
@@ -191,9 +182,6 @@ export default class CrudDBLinkComponent extends VueComponentBase implements IDa
 
     public async created() {
         await all_promises([
-            // (async () => {
-            //     this.vo_type_options = await ModuleDashboardBuilder.getInstance().get_all_valid_api_type_ids();
-            // })(),
             (async () => {
                 this.POLICY_DBB_CAN_UPDATE_CRUD_TYPE = await ModuleAccessPolicy.getInstance().testAccess(ModuleDashboardBuilder.POLICY_DBB_CAN_UPDATE_CRUD_TYPE);
             })(),

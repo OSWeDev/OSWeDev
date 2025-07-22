@@ -439,6 +439,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
      *  on indique au démarrage qu'on enverra une notif avec le lien à la fin de l'export
      */
     public async do_exportContextQueryToXLSX(
+        dashboard_id: number,
         filename: string,
         context_query: ContextQueryVO,
         ordered_column_list: string[],
@@ -487,6 +488,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                     },
                     this.do_exportContextQueryToXLSX_contextuid,
                     this,
+                    dashboard_id,
                     filename,
                     context_query,
                     ordered_column_list,
@@ -511,6 +513,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 );
             } else {
                 await this.do_exportContextQueryToXLSX_contextuid(
+                    dashboard_id,
                     filename,
                     context_query,
                     ordered_column_list,
@@ -538,6 +541,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
     }
 
     public async do_exportContextQueryToXLSX_contextuid(
+        dashboard_id: number,
         filename: string,
         context_query: ContextQueryVO,
         ordered_column_list: string[],
@@ -710,7 +714,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         if (export_active_field_filters) {
 
             // TODO FIXME ça peut pas marcher comme ça... là on cherche à afficher des widgets de filtre, mais on les charge pas, et en plus le filtrage est pas la conf par défaut, faut gérer ça différemment. les filtres favoris peuvent pas exporter les filtres correctement en l'état
-            const active_filters_sheet = await this.create_active_filters_xlsx_sheet(active_field_filters, active_field_filters_column_labels);
+            const active_filters_sheet = await this.create_active_filters_xlsx_sheet(dashboard_id, active_field_filters, active_field_filters_column_labels);
 
             if (!!active_filters_sheet) {
                 sheets.push(active_filters_sheet);
@@ -1081,6 +1085,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
      * @returns {IExportableSheet}
      */
     private async create_active_filters_xlsx_sheet(
+        dashboard_id: number,
         active_field_filters: FieldFiltersVO = null,
         active_field_filters_column_labels: { [field_name: string]: string } = null,
     ): Promise<IExportableSheet> {
@@ -1107,10 +1112,10 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 }
 
                 const vo_field_ref_label: string = await VOFieldRefVOManager.create_readable_vo_field_ref_label(
-                    // TODO FIXME needs current_page_page_widgets: DashboardPageWidgetVO[],
+                    dashboard_id,
+                    // TODO FIXME needs current_page_page_widgets: DashboardPageWidgetVO[], ????
                     null,
                     { api_type_id: context_filter.vo_type, field_id: context_filter.field_name },
-                    // TODO: get page id from to get the right translation
                 );
 
                 if (active_field_filters_column_labels && !active_field_filters_column_labels[vo_field_ref_label]) {

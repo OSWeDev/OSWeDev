@@ -232,6 +232,10 @@ export default class TableWidgetTableComponent extends VueComponentBase implemen
         return this.vuexGet(reflect<this>().get_dashboard_discarded_field_paths);
     }
 
+    get get_dashboard_id(): number {
+        return this.vuexGet(reflect<this>().get_dashboard_id);
+    }
+
     get dashboard_vo_action() {
         return this.$route.params.dashboard_vo_action;
     }
@@ -2468,7 +2472,7 @@ export default class TableWidgetTableComponent extends VueComponentBase implemen
             // - throttle_call_updaters is called by the validation_filters_widget for example
             await ValidationFiltersWidgetController.getInstance().register_updater(
                 this.dashboard_page.dashboard_id,
-                this.dashboard_page.id,
+                // this.dashboard_page.id,
                 this.page_widget.id,
                 this.throttle_do_update_visible_options.bind(this),
                 validation_page_widgets[0].id,
@@ -2760,6 +2764,7 @@ export default class TableWidgetTableComponent extends VueComponentBase implemen
         }
 
         const exportable_xlsx_params = new ExportContextQueryToXLSXParamVO(
+            this.get_dashboard_id,
             export_name,
             xlsx_context_query,
             this.exportable_datatable_columns,
@@ -2858,6 +2863,7 @@ export default class TableWidgetTableComponent extends VueComponentBase implemen
             }
 
             const query_param_vo: ExportContextQueryToXLSXQueryVO = ExportContextQueryToXLSXQueryVO.create_new(
+                this.get_dashboard_id,
                 param.filename,
                 param.context_query,
                 param.ordered_column_list,
@@ -3163,8 +3169,9 @@ export default class TableWidgetTableComponent extends VueComponentBase implemen
         const active_field_filters = cloneDeep(this.get_active_field_filters);
 
         return await FieldFiltersVOManager.get_readable_field_ref_labels_from_filters(
+            this.get_dashboard_id,
             active_field_filters,
-            this.dashboard_page?.id,
+            // this.dashboard_page?.id,
         );
     }
 }

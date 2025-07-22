@@ -1,9 +1,7 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
-import { field_names, reflect } from '../../tools/ObjectHandler';
+import { field_names } from '../../tools/ObjectHandler';
 import APIControllerWrapper from '../API/APIControllerWrapper';
-import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
-import RolePolicyVO from '../AccessPolicy/vos/RolePolicyVO';
 import RoleVO from '../AccessPolicy/vos/RoleVO';
 import UserVO from '../AccessPolicy/vos/UserVO';
 import DAOController from '../DAO/DAOController';
@@ -84,10 +82,6 @@ export default class ModuleDashboardBuilder extends Module {
     private static instance: ModuleDashboardBuilder = null;
     public start_export_favorites_filters_datatable: () => Promise<void> = APIControllerWrapper.sah(ModuleDashboardBuilder.APINAME_START_EXPORT_FAVORITES_FILTERS_DATATABLE);
 
-    public get_all_valid_api_type_ids: () => Promise<string[]> = APIControllerWrapper.sah_optimizer(this.name, reflect<this>().get_all_valid_api_type_ids);
-    public get_all_valid_widget_ids: () => Promise<number[]> = APIControllerWrapper.sah_optimizer(this.name, reflect<this>().get_all_valid_widget_ids);
-
-
     private constructor() {
 
         super("dashboardbuilder", ModuleDashboardBuilder.MODULE_NAME);
@@ -111,39 +105,25 @@ export default class ModuleDashboardBuilder extends Module {
             ModuleDashboardBuilder.APINAME_START_EXPORT_FAVORITES_FILTERS_DATATABLE,
             [FavoritesFiltersVO.API_TYPE_ID]
         ));
-
-        APIControllerWrapper.registerApi(GetAPIDefinition.new(
-            ModuleDashboardBuilder.POLICY_BO_ACCESS,
-            this.name,
-            reflect<ModuleDashboardBuilder>().get_all_valid_api_type_ids,
-            [ModuleTableVO.API_TYPE_ID, RolePolicyVO.API_TYPE_ID, DBBConfVO.API_TYPE_ID],
-        ));
-
-        APIControllerWrapper.registerApi(GetAPIDefinition.new(
-            ModuleDashboardBuilder.POLICY_BO_ACCESS,
-            this.name,
-            reflect<ModuleDashboardBuilder>().get_all_valid_widget_ids,
-            [DashboardWidgetVO.API_TYPE_ID, DBBConfVO.API_TYPE_ID],
-        ));
     }
 
     public initialize() {
 
         this.init_DashboardViewportVO();
-        const db_table = this.init_DashboardVO();
+        this.init_DashboardVO();
 
         this.initialize_DashboardWidgetTagVO();
 
-        const db_page = this.init_DashboardPageVO(db_table);
+        this.init_DashboardPageVO();
         this.init_shared_filters_vo();
 
         this.initialize_FavoritesFiltersExportFrequencyVO();
         this.initialize_FavoritesFiltersExportParamVO();
-        this.init_FavoritesFiltersVO(db_page);
+        this.init_FavoritesFiltersVO();
 
-        this.init_DashboardGraphVORefVO(db_table);
-        const db_widget = this.init_DashboardWidgetVO();
-        this.init_DashboardPageWidgetVO(db_page, db_widget);
+        this.init_DashboardGraphVORefVO();
+        this.init_DashboardWidgetVO();
+        this.init_DashboardPageWidgetVO();
 
         this.initialize_ContextFilterPoolVO();
 
@@ -246,9 +226,10 @@ export default class ModuleDashboardBuilder extends Module {
         ModuleTableController.create_new(this.name, DashboardViewportVO, label, "Résolutions d'affichage des Dashboards");
     }
 
-    private init_DashboardGraphVORefVO(db_table: ModuleTableVO): ModuleTableVO {
+    private init_DashboardGraphVORefVO(): ModuleTableVO {
 
-        ModuleTableFieldController.create_new(DashboardGraphVORefVO.API_TYPE_ID, field_names<DashboardGraphVORefVO>().dashboard_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Dashboard', true).set_many_to_one_target_moduletable_name(db_table.vo_type);
+        ModuleTableFieldController.create_new(DashboardGraphVORefVO.API_TYPE_ID, field_names<DashboardGraphVORefVO>().dashboard_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Dashboard', true)
+            .set_many_to_one_target_moduletable_name(DashboardVO.API_TYPE_ID);
 
         ModuleTableFieldController.create_new(DashboardGraphVORefVO.API_TYPE_ID, field_names<DashboardGraphVORefVO>().x, ModuleTableFieldVO.FIELD_TYPE_int, 'x', true);
         ModuleTableFieldController.create_new(DashboardGraphVORefVO.API_TYPE_ID, field_names<DashboardGraphVORefVO>().y, ModuleTableFieldVO.FIELD_TYPE_int, 'y', true);
@@ -262,12 +243,13 @@ export default class ModuleDashboardBuilder extends Module {
         return res;
     }
 
-    private init_DashboardPageVO(db_table: ModuleTableVO): ModuleTableVO {
+    private init_DashboardPageVO(): ModuleTableVO {
 
         const label = ModuleTableFieldController.create_new(DashboardPageVO.API_TYPE_ID, field_names<DashboardPageVO>().titre_page, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Titre de la page', true).unique();
         ModuleTableFieldController.create_new(DashboardPageVO.API_TYPE_ID, field_names<DashboardPageVO>().titre_groupe_filtres, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Titre du groupe de filtres', true).unique();
 
-        ModuleTableFieldController.create_new(DashboardPageVO.API_TYPE_ID, field_names<DashboardPageVO>().dashboard_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Dashboard', true).set_many_to_one_target_moduletable_name(db_table.vo_type);
+        ModuleTableFieldController.create_new(DashboardPageVO.API_TYPE_ID, field_names<DashboardPageVO>().dashboard_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Dashboard', true)
+            .set_many_to_one_target_moduletable_name(DashboardVO.API_TYPE_ID);
 
         ModuleTableFieldController.create_new(DashboardPageVO.API_TYPE_ID, field_names<DashboardPageVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true, true, 0);
         ModuleTableFieldController.create_new(DashboardPageVO.API_TYPE_ID, field_names<DashboardPageVO>().hide_navigation, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Cacher la navigation', true, true, false);
@@ -302,14 +284,14 @@ export default class ModuleDashboardBuilder extends Module {
         return ModuleTableController.create_new(this.name, DashboardWidgetVO, name, "Widgets de Dashboard");
     }
 
-    private init_DashboardPageWidgetVO(db_page: ModuleTableVO, db_widget: ModuleTableVO) {
+    private init_DashboardPageWidgetVO() {
 
         ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().widget_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Widget', true)
-            .set_many_to_one_target_moduletable_name(db_widget.vo_type);
+            .set_many_to_one_target_moduletable_name(DashboardWidgetVO.API_TYPE_ID);
         ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().page_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Page Dashboard', true)
-            .set_many_to_one_target_moduletable_name(db_page.vo_type);
-        ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().page_id_ranges, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Pages', false) // Théoriquement obligatoire, mais nécessaire pour la migration des données depuis page_id
-            .set_many_to_one_target_moduletable_name(db_page.vo_type);
+            .set_many_to_one_target_moduletable_name(DashboardPageVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().dashboard_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Dashboard', false) // Théoriquement obligatoire, mais nécessaire pour la migration des données depuis page_id
+            .set_many_to_one_target_moduletable_name(DashboardVO.API_TYPE_ID);
 
 
         ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().titre, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Titre', true).unique(); // unique et mandatory uniquement par ce que le computed string l'est par défaut...
@@ -422,9 +404,12 @@ export default class ModuleDashboardBuilder extends Module {
      *  - Database table to stock user favorites of active filters
      *  - May be useful to save the actual dashboard, owner_id and page_filters
      */
-    private init_FavoritesFiltersVO(db_page: ModuleTableVO) {
+    private init_FavoritesFiltersVO() {
 
-        const page_id = ModuleTableFieldController.create_new(FavoritesFiltersVO.API_TYPE_ID, field_names<FavoritesFiltersVO>().page_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Page Dashboard', true);
+        ModuleTableFieldController.create_new(FavoritesFiltersVO.API_TYPE_ID, field_names<FavoritesFiltersVO>().page_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Page Dashboard', true)
+            .set_many_to_one_target_moduletable_name(DashboardPageVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(FavoritesFiltersVO.API_TYPE_ID, field_names<FavoritesFiltersVO>().dashboard_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Dashboard', false)
+            .set_many_to_one_target_moduletable_name(DashboardVO.API_TYPE_ID); // Théoriquement obligatoire, mais nécessaire pour la migration des données depuis page_id
 
         ModuleTableFieldController.create_new(FavoritesFiltersVO.API_TYPE_ID, field_names<FavoritesFiltersVO>().owner_id, ModuleTableFieldVO.FIELD_TYPE_string, 'Owner Id', true);
         ModuleTableFieldController.create_new(FavoritesFiltersVO.API_TYPE_ID, field_names<FavoritesFiltersVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom des filtres', true);
@@ -438,7 +423,6 @@ export default class ModuleDashboardBuilder extends Module {
             null,
             "Filtres Favoris"
         );
-        page_id.set_many_to_one_target_moduletable_name(db_page.vo_type);
     }
 
     /**

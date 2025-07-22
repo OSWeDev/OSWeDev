@@ -44,13 +44,13 @@
                         .row.body-filters-bloc(v-show="is_filtres_deplie")
                             template(v-for="item in activated_dashboard_viewport_page_widgets")
                                 template(v-if='!item.hide')
-                                    template(v-if='get_widgets_by_id[selected_page_page_widgets_by_id[item.page_widget_id]?.widget_id]?.is_filter')
+                                    template(v-if='get_widgets_by_id[get_page_widgets_by_id[item.page_widget_id]?.widget_id]?.is_filter')
                                         include ./grid_item.pug
 
                     .datatable-bloc
                         template(v-for="item in activated_dashboard_viewport_page_widgets")
                             template(v-if='!item.hide')
-                                template(v-if='!get_widgets_by_id[selected_page_page_widgets_by_id[item.page_widget_id]?.widget_id]?.is_filter')
+                                template(v-if='!get_widgets_by_id[get_page_widgets_by_id[item.page_widget_id]?.widget_id]?.is_filter')
                                     include ./grid_item.pug
 
                 template(v-else)

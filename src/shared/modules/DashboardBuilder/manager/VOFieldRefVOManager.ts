@@ -21,20 +21,25 @@ export default class VOFieldRefVOManager {
      * @return {Promise<string>}
      */
     public static async create_readable_vo_field_ref_label(
+        dashboard_id: number,
         current_page_page_widgets: DashboardPageWidgetVO[],
         vo_field_ref: { api_type_id: string, field_id: string },
-        page_id?: number
+        // page_id?: number
     ): Promise<string> {
 
         // Get widgets_options_metadata from dashboard
         let widgets_options_metadata = null;
-        if (page_id) {
-            widgets_options_metadata = await DashboardPageWidgetVOManager.find_all_widgets_options_metadata_by_page_id(page_id);
+        // if (page_id) {
+        if (current_page_page_widgets && current_page_page_widgets.length > 0) {
+            widgets_options_metadata = DashboardPageWidgetVOManager.find_all_widgets_options_metadata(current_page_page_widgets); // deprecated ??? revoir tout ce bordel
         } else {
-            // TODO: To be removed
-            // TODO FIXME à faire différemment on doit avoir current_page_page_widgets
-            widgets_options_metadata = DashboardPageWidgetVOManager.find_all_widgets_options_metadata(current_page_page_widgets);
+            widgets_options_metadata = await DashboardPageWidgetVOManager.find_all_widgets_options_metadata_by_dashboard_id(dashboard_id);
         }
+        // } else {
+        //     // TODO: To be removed
+        //     // TODO FIXME à faire différemment on doit avoir current_page_page_widgets
+        //     widgets_options_metadata = DashboardPageWidgetVOManager.find_all_widgets_options_metadata(current_page_page_widgets);
+        // }
 
         let page_widget_options = null;
         // Label of filter to be displayed
@@ -119,14 +124,4 @@ export default class VOFieldRefVOManager {
             field_id,
         });
     }
-
-    // istanbul ignore next: nothing to test
-    public static getInstance(): VOFieldRefVOManager {
-        if (!VOFieldRefVOManager.instance) {
-            VOFieldRefVOManager.instance = new VOFieldRefVOManager();
-        }
-        return VOFieldRefVOManager.instance;
-    }
-
-    protected static instance: VOFieldRefVOManager = null;
 }

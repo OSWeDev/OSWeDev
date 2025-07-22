@@ -58,10 +58,6 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
         return this.vuexGet(reflect<this>().get_dashboard);
     }
 
-    get get_selected_page_page_widgets(): DashboardPageWidgetVO[] {
-        return this.vuexGet(reflect<this>().get_selected_page_page_widgets);
-    }
-
     get get_dashboard_page(): DashboardPageVO {
         return this.vuexGet(reflect<this>().get_dashboard_page);
     }
@@ -154,7 +150,7 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
         this.start_update = true;
 
         const favorites_filters = new FavoritesFiltersVO().from({
-            page_id: this.get_dashboard_page.id,
+            dashboard_id: this.get_dashboard_page.dashboard_id,
             owner_id: this.data_user.id,
             ...props,
         });
@@ -241,7 +237,6 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
             this.get_dashboard_page,
             this.get_active_field_filters,
             this.all_page_widgets_by_id,
-            this.get_selected_page_page_widgets,
             this.get_dashboard_api_type_ids,
             this.get_dashboard_discarded_field_paths,
         );
@@ -257,9 +252,9 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
     private async get_selectionnable_active_field_filters(): Promise<FieldFiltersVO> {
         const dashboard_page_id = this.get_dashboard_page.id;
 
-        const field_value_filters_widgets_options = await FieldValueFilterWidgetManager.get_field_value_filters_widgets_options_metadata(dashboard_page_id, this.page_widget, this.get_selected_page_page_widgets);
-        const month_filters_widgets_options = await MonthFilterWidgetManager.get_month_filters_widgets_options_metadata(dashboard_page_id, this.page_widget, this.get_selected_page_page_widgets);
-        const year_filters_widgets_options = await YearFilterWidgetManager.get_year_filters_widgets_options_metadata(dashboard_page_id, this.page_widget, this.get_selected_page_page_widgets);
+        const field_value_filters_widgets_options = await FieldValueFilterWidgetManager.get_field_value_filters_widgets_options_metadata(this.page_widget, this.get_page_widgets);
+        const month_filters_widgets_options = await MonthFilterWidgetManager.get_month_filters_widgets_options_metadata(this.page_widget, this.get_page_widgets);
+        const year_filters_widgets_options = await YearFilterWidgetManager.get_year_filters_widgets_options_metadata(this.page_widget, this.get_page_widgets);
 
         const widgets_options: any[] = [];
 

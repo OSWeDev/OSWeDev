@@ -25,10 +25,9 @@ export default class DashboardPageWidgetVO extends AbstractVO implements IDistan
     public page_id: number;
 
     /**
-     * Tableau de ranges d'id de pages pour le widget en question.
-     * Permet de gérer les widgets qui sont sur plusieurs pages.
+     * On attache en fait les widgets au dashboard, pas aux pages du dashboard
      */
-    public page_id_ranges: NumRange[];
+    public dashboard_id: number;
 
     /***
      * @deprecated Use DashboardViewportPageWidgetVO.static instead

@@ -156,6 +156,7 @@ import Patch20250717AddWidgetsNames from './patchs/postmodules/Patch20250717AddW
 import Patch20250717UpdateWidgetsIconHTML from './patchs/postmodules/Patch20250717UpdateWidgetsIconHTML';
 import Patch20250721UpdateWidgetsIconHTML from './patchs/postmodules/Patch20250721UpdateWidgetsIconHTML';
 import Patch20250722MigrateWidgetsPageIdToPageIdRanges from './patchs/postmodules/Patch20250722MigrateWidgetsPageIdToPageIdRanges';
+import Patch20250722MigrateFavFiltersPageIdToDBId from './patchs/postmodules/Patch20250722MigrateFavFiltersPageIdToDBId';
 
 export default class GeneratorPatchsListHandler {
 
@@ -336,6 +337,7 @@ export default class GeneratorPatchsListHandler {
         Patch20250617MigrationCRUDDBLink.getInstance(),
 
         Patch20250722MigrateWidgetsPageIdToPageIdRanges.getInstance(),
+        Patch20250722MigrateFavFiltersPageIdToDBId.getInstance(),
 
         Patch20250624AddConfExportDBToJSON.getInstance(),
 

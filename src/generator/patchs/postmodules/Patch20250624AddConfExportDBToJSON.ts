@@ -11,6 +11,7 @@ import ExportVOsToJSONConfVO from "../../../shared/modules/DataExport/vos/Export
 import { field_names } from "../../../shared/tools/ObjectHandler";
 import RangeHandler from "../../../shared/tools/RangeHandler";
 import IGeneratorWorker from "../../IGeneratorWorker";
+import DashboardViewportPageWidgetVO from "../../../shared/modules/DashboardBuilder/vos/DashboardViewportPageWidgetVO";
 
 
 export default class Patch20250624AddConfExportDBToJSON implements IGeneratorWorker {
@@ -45,8 +46,11 @@ export default class Patch20250624AddConfExportDBToJSON implements IGeneratorWor
             // DashboardVO <= DashboardGraphVORefVO.dashboard_id
             ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[DashboardGraphVORefVO.API_TYPE_ID][field_names<DashboardGraphVORefVO>().dashboard_id].id,
 
-            // DashboardPageVO <= DashboardPageWidgetVO.page_id
-            ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[DashboardPageWidgetVO.API_TYPE_ID][field_names<DashboardPageWidgetVO>().page_id_ranges].id,
+            // DashboardVO <= DashboardPageWidgetVO.dashboard_id
+            ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[DashboardPageWidgetVO.API_TYPE_ID][field_names<DashboardPageWidgetVO>().dashboard_id].id,
+
+            // DashboardPageWidgetVO <= DashboardViewportPageWidgetVO.page_widget_id
+            ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[DashboardViewportPageWidgetVO.API_TYPE_ID][field_names<DashboardViewportPageWidgetVO>().page_widget_id].id,
         ];
         export_vo_to_json_conf.ref_fields_to_follow_id_ranges = RangeHandler.get_ids_ranges_from_list(ref_fields_to_follow);
 

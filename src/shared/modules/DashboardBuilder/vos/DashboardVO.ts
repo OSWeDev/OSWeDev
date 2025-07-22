@@ -7,9 +7,11 @@ export default class DashboardVO implements IDistantVOBase, IWeightedItem {
 
     public static MODULE_TABLE_CRUD_TEMPLATE_TYPE_CONSULTATION: number = 0;
     public static MODULE_TABLE_CRUD_TEMPLATE_TYPE_CREATE_UPDATE: number = 1;
+    public static MODULE_TABLE_CRUD_TEMPLATE_TYPE_QUERY: number = 2;
     public static MODULE_TABLE_CRUD_TEMPLATE_TYPE_LABELS: string[] = [
         "dashboard_builder.module_table_crud_template_type_consultation",
-        "dashboard_builder.module_table_crud_template_type_create_update"
+        "dashboard_builder.module_table_crud_template_type_create_update",
+        "dashboard_builder.module_table_crud_template_type_query"
     ];
 
     public static MODULE_TABLE_CRUD_TEMPLATE_SAISIE_MODE_CREATE: number = 0;

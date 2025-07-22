@@ -1,6 +1,8 @@
 import Vue from 'vue';
 import { ActionContext, ActionTree, GetterTree } from "vuex";
 import ContextFilterVO from "../../../../../shared/modules/ContextFilter/vos/ContextFilterVO";
+import ModuleTableController from '../../../../../shared/modules/DAO/ModuleTableController';
+import ModuleTableVO from '../../../../../shared/modules/DAO/vos/ModuleTableVO';
 import DashboardGraphVORefVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardGraphVORefVO';
 import DashboardPageVO from "../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO";
 import DashboardPageWidgetVO from "../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO";
@@ -12,6 +14,7 @@ import DBBConfVO from '../../../../../shared/modules/DashboardBuilder/vos/DBBCon
 import FieldFiltersVO from '../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import SharedFiltersVO from '../../../../../shared/modules/DashboardBuilder/vos/SharedFiltersVO';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
+import VOsTypesManager from '../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ObjectHandler from '../../../../../shared/tools/ObjectHandler';
 import RangeHandler from '../../../../../shared/tools/RangeHandler';
 import IStoreModule from "../../../store/IStoreModule";
@@ -34,11 +37,6 @@ export interface IDashboardPageState {
      * Tous les page_widgets du Dashboard (toutes pages confondues)
      */
     page_widgets: DashboardPageWidgetVO[];
-
-    /**
-     * Tous les page_widgets de la page actuellement visualisée du Dashboard
-     */
-    selected_page_page_widgets: DashboardPageWidgetVO[];
 
     /**
      * Currently Selected Widget
@@ -89,6 +87,39 @@ export interface IDashboardPageState {
 }
 
 const getters = {
+
+    get_all_valid_db_conf_tables_by_table_name(state: IDashboardPageState): { [table_name: string]: ModuleTableVO } {
+
+        if (!state.dashboard || !state.dbb_confs || state.dbb_confs.length <= 0) {
+            // No dashboard or no DBB confs, return the first valid DBB conf
+            return null;
+        }
+
+        const dbb_conf = state.dbb_confs.find((conf) => conf.id == state.dashboard.dbb_conf_id) || null;
+
+        if (!dbb_conf) {
+            return null;
+        }
+
+        const res: { [table_name: string]: ModuleTableVO } = {};
+
+        if (dbb_conf.valid_moduletable_id_ranges && dbb_conf.valid_moduletable_id_ranges.length > 0) {
+            for (const id in ModuleTableController.module_tables_by_vo_id) {
+                const mt = ModuleTableController.module_tables_by_vo_id[id];
+
+                if (RangeHandler.elt_intersects_any_range(mt.id, dbb_conf.valid_moduletable_id_ranges)) {
+                    res[mt.table_name] = mt;
+                }
+            }
+        } else {
+            for (const id in ModuleTableController.module_tables_by_vo_id) {
+                const mt = ModuleTableController.module_tables_by_vo_id[id];
+                res[mt.table_name] = mt;
+            }
+        }
+
+        return res;
+    },
 
     get_selected_onglet(state: IDashboardPageState): string {
         return state.selected_onglet || DashboardBuilderVueController.DBB_ONGLET_TABLE;
@@ -182,21 +213,6 @@ const getters = {
         return state.dashboard_pages;
     },
 
-    get_selected_page_page_widgets(state: IDashboardPageState): DashboardPageWidgetVO[] {
-        return state.selected_page_page_widgets;
-    },
-
-    get_selected_page_page_widgets_by_id(state: IDashboardPageState): { [id: number]: DashboardPageWidgetVO } {
-        const selected_page_page_widgets_by_id: { [id: number]: DashboardPageWidgetVO } = {};
-
-        for (const i in state.selected_page_page_widgets) {
-            const page_widget = state.selected_page_page_widgets[i];
-            selected_page_page_widgets_by_id[page_widget.id] = page_widget;
-        }
-
-        return selected_page_page_widgets_by_id;
-    },
-
     get_db_graph_vo_refs(state: IDashboardPageState): DashboardGraphVORefVO[] {
         return state.db_graph_vo_refs;
     },
@@ -254,6 +270,15 @@ const getters = {
         return state.page_widgets;
     },
 
+    get_page_widgets_by_id(state: IDashboardPageState): { [id: number]: DashboardPageWidgetVO } {
+
+        if (!state.page_widgets || state.page_widgets.length <= 0) {
+            return {};
+        }
+
+        return VOsTypesManager.vosArray_to_vosByIds(state.page_widgets);
+    },
+
     get_active_field_filters(state: IDashboardPageState): FieldFiltersVO {
         return state.active_field_filters;
     },
@@ -270,29 +295,6 @@ const getters = {
         }
 
         return api_type_ids;
-    },
-
-    get_page_widgets_by_page_id(state: IDashboardPageState): { [page_id: number]: DashboardPageWidgetVO[] } {
-        const page_widgets_by_page_id: { [page_id: number]: DashboardPageWidgetVO[] } = {};
-
-        if (!state.page_widgets || state.page_widgets.length <= 0) {
-            return page_widgets_by_page_id;
-        }
-
-        for (const i in state.page_widgets) {
-            const page_widget = state.page_widgets[i];
-
-            RangeHandler.foreach_ranges_sync(page_widget.page_id_ranges, (page_id) => {
-
-                if (!page_widgets_by_page_id[page_id]) {
-                    page_widgets_by_page_id[page_id] = [];
-                }
-
-                page_widgets_by_page_id[page_id].push(page_widget);
-            });
-        }
-
-        return page_widgets_by_page_id;
     },
 
     get_dashboard_discarded_field_paths(state: IDashboardPageState): { [vo_type: string]: { [field_id: string]: boolean } } {
@@ -336,7 +338,6 @@ const actions = {
     set_dashboard_viewport_page_widgets: (context: DashboardPageContext, dashboard_viewport_page_widgets: DashboardViewportPageWidgetVO[]) => context.commit(store_mutations_names(storeInstance).set_dashboard_viewport_page_widgets, dashboard_viewport_page_widgets),
     set_all_widgets: (context: DashboardPageContext, all_widgets: DashboardWidgetVO[]) => context.commit(store_mutations_names(storeInstance).set_all_widgets, all_widgets),
     set_dashboard_pages: (context: DashboardPageContext, dashboard_pages: DashboardPageVO[]) => context.commit(store_mutations_names(storeInstance).set_dashboard_pages, dashboard_pages),
-    set_selected_page_page_widgets: (context: DashboardPageContext, selected_page_page_widgets: DashboardPageWidgetVO[]) => context.commit(store_mutations_names(storeInstance).set_selected_page_page_widgets, selected_page_page_widgets),
     set_db_graph_vo_refs: (context: DashboardPageContext, db_graph_vo_refs: DashboardGraphVORefVO[]) => context.commit(store_mutations_names(storeInstance).set_db_graph_vo_refs, db_graph_vo_refs),
     set_dashboard: (context: DashboardPageContext, dashboard: DashboardVO) => context.commit(store_mutations_names(storeInstance).set_dashboard, dashboard),
     set_callback_for_set_selected_widget: (context: DashboardPageContext, callback_for_set_selected_widget: (page_widget: DashboardPageWidgetVO) => void) => context.commit(store_mutations_names(storeInstance).set_callback_for_set_selected_widget, callback_for_set_selected_widget),
@@ -469,14 +470,6 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
             }
 
             state.dashboard_pages = dashboard_pages;
-        },
-
-        set_selected_page_page_widgets(state: IDashboardPageState, selected_page_page_widgets: DashboardPageWidgetVO[]) {
-            if (state.selected_page_page_widgets === selected_page_page_widgets) {
-                return;
-            }
-
-            state.selected_page_page_widgets = selected_page_page_widgets;
         },
 
         set_db_graph_vo_refs(state: IDashboardPageState, db_graph_vo_refs: DashboardGraphVORefVO[]) {
@@ -651,7 +644,6 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
             crud_vo: null, // VO used for CRUD operations (read, create, update) in the dashboard / used by template widgets
             dashboard_page: null, // Current dashboard page
             dashboard_id: null, // Dashboard id of the current dashboard
-            selected_page_page_widgets: [], // DashboardPageWidgetVO[] - Page widgets of the currently selected page
             dashboard: null,
             selected_widget: null,
             page_widgets: [],

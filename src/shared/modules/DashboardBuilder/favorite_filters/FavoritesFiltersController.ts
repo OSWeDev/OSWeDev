@@ -100,8 +100,8 @@ export default class FavoritesFiltersController {
         let custom_field_filters: FieldFiltersVO = {}; // custom field filters (if the user choose to config its dates filters)
 
         // Default field_filters from each page widget_options
-        const default_field_filters: FieldFiltersVO = await FieldFiltersVOManager.find_default_field_filters_by_dashboard_page_id(
-            favorites_filters.page_id
+        const default_field_filters: FieldFiltersVO = await FieldFiltersVOManager.find_default_field_filters_by_dashboard_id(
+            favorites_filters.dashboard_id,
         );
 
         // TODO: Deduct default_field_filters behaviors depending on the favorites_filters_options

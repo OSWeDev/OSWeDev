@@ -1,0 +1,17 @@
+.ModuleTableQueryDBComponent
+    template(v-if='!module_table')
+        .is_loading
+            .text-center
+                i.fa.fa-spinner.fa-spin
+                span {{ label('ModuleTableQueryDBComponent.loading') }}
+    template(v-else)
+        template(v-if='!dashboard')
+            .no_dashboard
+                .text-center
+                    i.fa.fa-exclamation-triangle
+                    span {{ label('ModuleTableQueryDBComponent.no_dashboard') }}
+        template(v-else)
+            .module_table_query_db_component_wrapper
+                DashboardViewerComponent(
+                    :dashboard_id='dashboard.id'
+                )

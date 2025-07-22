@@ -53,7 +53,6 @@ export default class DashboardPageWidgetVOManager {
      * @returns {{ [page_widget_id: number]: WidgetOptionsMetadataVO }}
      */
     public static async filter_all_page_widgets_options_by_widget_name(
-        dashboard_page_id: number,
         dashboard_page_widgets: DashboardPageWidgetVO[],
         widget_name: string,
         options?: {
@@ -100,7 +99,6 @@ export default class DashboardPageWidgetVOManager {
 
             res[page_widget_id] = new WidgetOptionsMetadataVO().from({
                 widget_options: page_widget_options,
-                dashboard_page_id: page_widget.page_id,
                 page_widget_id: page_widget.id,
                 widget_name,
                 page_widget: page_widget, // Add page_widget to metadata for easy access
@@ -155,7 +153,6 @@ export default class DashboardPageWidgetVOManager {
 
             res[page_widget_id] = new WidgetOptionsMetadataVO().from({
                 widget_options: page_widget_options,
-                dashboard_page_id: page_widget.page_id,
                 page_widget_id: page_widget.id,
                 widget_name: sorted_widgets_types_by_id[page_widget.widget_id].name,
             });
@@ -164,23 +161,76 @@ export default class DashboardPageWidgetVOManager {
         return res;
     }
 
+    // /**
+    //  * find_all_widgets_options_metadata_by_page_id
+    //  * - Return all page widgets_options metadata of the given page_id
+    //  *
+    //  * @param {number} dashboard_page_id
+    //  * @returns {{ [page_widget_id: number]: WidgetOptionsMetadataVO }}
+    //  */
+    // public static async find_all_widgets_options_metadata_by_page_id(
+    //     dashboard_page_id: number,
+    // ): Promise<{ [page_widget_id: number]: WidgetOptionsMetadataVO }> {
+
+    //     // All sorted_widgets_types (Should get all possible widgets_types)
+    //     const sorted_widgets_types = await WidgetOptionsVOManager.get_all_sorted_widgets_types();
+    //     // Get page_widgets of actual page
+    //     const page_widgets = await DashboardPageWidgetVOManager.find_page_widgets_by_page_id(
+    //         dashboard_page_id
+    //     );
+
+    //     const widgets_options_metadata: {
+    //         [page_widget_id: number]: WidgetOptionsMetadataVO
+    //     } = {};
+
+    //     // Classify by widget_type
+    //     for (const key_i in sorted_widgets_types) {
+    //         const widget_type = sorted_widgets_types[key_i];
+
+    //         // Find all widgets of the given widget_type of actual page
+    //         const filtered_page_widgets = Object.values(page_widgets)?.filter(
+    //             (pw: DashboardPageWidgetVO) => pw.widget_id == widget_type.id
+    //         );
+
+    //         for (const key in filtered_page_widgets) {
+    //             const page_widget = filtered_page_widgets[key];
+
+    //             const page_widget_options = JSON.parse(page_widget?.json_options ?? '{}');
+    //             const page_widget_id = page_widget.id;
+
+    //             // TODO: May be good to create the actual widget_options vo here (ex: YearFilterVO)
+    //             // TODO: Create widget_options vo factory
+
+    //             widgets_options_metadata[page_widget_id] = new WidgetOptionsMetadataVO().from({
+    //                 widget_options: page_widget_options,
+    //                 dashboard_page_id: page_widget.page_id,
+    //                 page_widget_id: page_widget.id,
+    //                 widget_name: widget_type?.name,
+    //             });
+    //         }
+    //     }
+
+    //     return widgets_options_metadata;
+    // }
+
+
     /**
      * find_all_widgets_options_metadata_by_page_id
      * - Return all page widgets_options metadata of the given page_id
      *
-     * @param {number} dashboard_page_id
+     * @param {number} dashboard_id
      * @returns {{ [page_widget_id: number]: WidgetOptionsMetadataVO }}
      */
-    public static async find_all_widgets_options_metadata_by_page_id(
-        dashboard_page_id: number,
+    public static async find_all_widgets_options_metadata_by_dashboard_id(
+        dashboard_id: number,
     ): Promise<{ [page_widget_id: number]: WidgetOptionsMetadataVO }> {
 
         // All sorted_widgets_types (Should get all possible widgets_types)
         const sorted_widgets_types = await WidgetOptionsVOManager.get_all_sorted_widgets_types();
         // Get page_widgets of actual page
-        const page_widgets = await DashboardPageWidgetVOManager.find_page_widgets_by_page_id(
-            dashboard_page_id
-        );
+        const page_widgets = await query(DashboardPageWidgetVO.API_TYPE_ID)
+            .filter_by_num_eq(field_names<DashboardPageWidgetVO>().dashboard_id, dashboard_id)
+            .select_vos<DashboardPageWidgetVO>();
 
         const widgets_options_metadata: {
             [page_widget_id: number]: WidgetOptionsMetadataVO
@@ -206,7 +256,6 @@ export default class DashboardPageWidgetVOManager {
 
                 widgets_options_metadata[page_widget_id] = new WidgetOptionsMetadataVO().from({
                     widget_options: page_widget_options,
-                    dashboard_page_id: page_widget.page_id,
                     page_widget_id: page_widget.id,
                     widget_name: widget_type?.name,
                 });
@@ -215,6 +264,7 @@ export default class DashboardPageWidgetVOManager {
 
         return widgets_options_metadata;
     }
+
 
     /**
      * find_widget_options_metadata_by_page_widget_id
@@ -240,7 +290,6 @@ export default class DashboardPageWidgetVOManager {
             widget_options: any, // JSON widget_options of page_widget
             widget_name: string, // Required to find widget_type for factory construction
             page_widget_id: number // Required to find page_widget
-            dashboard_page_id: number, // Required to find dashboard_page
         } = null;
 
         // Find the widget_type of the given page_widget
@@ -257,7 +306,6 @@ export default class DashboardPageWidgetVOManager {
 
         widgets_options_metadata = {
             widget_options: page_widget_options,
-            dashboard_page_id: page_widget.page_id,
             page_widget_id: page_widget.id,
             widget_name: widget_type?.name,
         };
@@ -267,20 +315,44 @@ export default class DashboardPageWidgetVOManager {
         );
     }
 
+    // /**
+    //  * find_all_widgets_options_by_page_id
+    //  * - Return all page widgets_options of the given page_id
+    //  *
+    //  * @param {number} page_id
+    //  * @returns {{ [page_widget_id: number]: WidgetOptionsMetadataVO }}
+    //  */
+    // public static async find_all_widgets_options_by_page_id(
+    //     page_id: number,
+    // ): Promise<any[]> {
+
+    //     // Get widgets_options_metadata of the current dashboard_page
+    //     const widgets_options_metadata = await DashboardPageWidgetVOManager.find_all_widgets_options_metadata_by_dashboard_id(
+    //         dashboard_id,
+    //     );
+
+    //     // Get widgets_options of the current dashboard_page
+    //     const widgets_options = Object.values(widgets_options_metadata).map(
+    //         (widget_options_metadata) => widget_options_metadata.widget_options
+    //     );
+
+    //     return widgets_options;
+    // }
+
     /**
-     * find_all_widgets_options_by_page_id
-     * - Return all page widgets_options of the given page_id
+     * find_all_widgets_options_by_dashboard_id
+     * - Return all page widgets_options of the given dashboard_id
      *
-     * @param {number} page_id
+     * @param {number} dashboard_id
      * @returns {{ [page_widget_id: number]: WidgetOptionsMetadataVO }}
      */
-    public static async find_all_widgets_options_by_page_id(
-        page_id: number,
+    public static async find_all_widgets_options_by_dashboard_id(
+        dashboard_id: number,
     ): Promise<any[]> {
 
         // Get widgets_options_metadata of the current dashboard_page
-        const widgets_options_metadata = await DashboardPageWidgetVOManager.find_all_widgets_options_metadata_by_page_id(
-            page_id
+        const widgets_options_metadata = await DashboardPageWidgetVOManager.find_all_widgets_options_metadata_by_dashboard_id(
+            dashboard_id,
         );
 
         // Get widgets_options of the current dashboard_page
@@ -337,20 +409,20 @@ export default class DashboardPageWidgetVOManager {
 
     /**
      * find_page_widgets_by_widget_name
-     * - This method is responsible for loading the page_widgets of the given page_id
+     * - This method is responsible for loading the page_widgets of the given dashboard_id
      *
-     * @param {number} page_id
+     * @param {number} dashboard_id
      * @param {string} widget_name - widget_name (ex: yearfilter, fieldvaluefilter, monthfilter, ...)
      * @returns {Promise<DashboardPageWidgetVO[]>}
      */
     public static async find_page_widgets_by_widget_name(
-        page_id: number,
+        dashboard_id: number,
         widget_name: string, // - widget_name (ex: yearfilter, fieldvaluefilter, monthfilter, ...)
     ): Promise<DashboardPageWidgetVO[]> {
-        // All page_widgets of the given page_id
-        const page_widgets: DashboardPageWidgetVO[] = await DashboardPageWidgetVOManager.find_page_widgets_by_page_id(
-            page_id,
-        );
+        // All page_widgets of the given dashboard_id
+        const page_widgets: DashboardPageWidgetVO[] = await query(DashboardPageWidgetVO.API_TYPE_ID)
+            .filter_by_num_eq(field_names<DashboardPageWidgetVO>().dashboard_id, dashboard_id)
+            .select_vos<DashboardPageWidgetVO>();
 
         // All sorted_widgets_types (Should get all possible widgets_types)
         const sorted_widgets_types = await WidgetOptionsVOManager.get_all_sorted_widgets_types();
@@ -380,45 +452,26 @@ export default class DashboardPageWidgetVOManager {
         return filtered_page_widgets;
     }
 
-    /**
-     * find_page_widgets_by_page_id
-     * - This method is responsible for loading the page_widgets of the given page_id
-     *
-     * @param {number} page_id
-     * @returns {Promise<DashboardPageWidgetVO[]>}
-     */
-    public static async find_page_widgets_by_page_id(
-        page_id: number,
-    ): Promise<DashboardPageWidgetVO[]> {
+    // /**
+    //  * find_page_widgets_by_page_id
+    //  * - This method is responsible for loading the page_widgets of the given page_id
+    //  *
+    //  * @param {number} page_id
+    //  * @returns {Promise<DashboardPageWidgetVO[]>}
+    //  */
+    // public static async find_page_widgets_by_page_id(
+    //     page_id: number,
+    // ): Promise<DashboardPageWidgetVO[]> {
 
-        // Initialize page_widgets (all_page_widget in dashboard) of DashboardPageWidgetVOManager instance
-        // its should be initialized each time the dashboard page is loaded
-        const page_widgets = await query(DashboardPageWidgetVO.API_TYPE_ID)
-            .filter_by_num_eq(field_names<DashboardPageWidgetVO>().page_id, page_id)
-            .select_vos<DashboardPageWidgetVO>();
+    //     // Initialize page_widgets (all_page_widget in dashboard) of DashboardPageWidgetVOManager instance
+    //     // its should be initialized each time the dashboard page is loaded
+    //     const page_widgets = await query(DashboardPageWidgetVO.API_TYPE_ID)
+    //         .filter_by_num_eq(field_names<DashboardPageWidgetVO>().page_id, page_id)
+    //         .select_vos<DashboardPageWidgetVO>();
 
-        return page_widgets;
-    }
+    //     return page_widgets;
+    // }
 
-    /**
-     * find_page_widgets_by_page_ids
-     *
-     * @param {number[]} page_ids
-     * @param {boolean} options.refresh
-     * @returns {Promise<DashboardPageWidgetVO[]>}
-     */
-    public static async find_page_widgets_by_page_ids(
-        page_ids: number[],
-    ): Promise<DashboardPageWidgetVO[]> {
-
-        // Initialize pages_widgets (all_page_widget in dashboard) of DashboardPageWidgetVOManager instance
-        // its should be initialized each time the dashboard page is loaded
-        const pages_widgets = await query(DashboardPageWidgetVO.API_TYPE_ID)
-            .filter_by_num_has(field_names<DashboardPageWidgetVO>().page_id, page_ids)
-            .select_vos<DashboardPageWidgetVO>();
-
-        return pages_widgets;
-    }
 
     /**
      * find_page_widget

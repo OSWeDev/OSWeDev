@@ -23,7 +23,6 @@ import VueComponentBase from '../../VueComponentBase';
 import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../page/DashboardPageStore';
 import './DashboardBuilderWidgetsComponent.scss';
 import CRUDUpdateModalComponent from './table_widget/crud_modals/update/CRUDUpdateModalComponent';
-import NumSegment from '../../../../../shared/modules/DataRender/vos/NumSegment';
 
 @Component({
     template: require('./DashboardBuilderWidgetsComponent.pug'),
@@ -154,6 +153,10 @@ export default class DashboardBuilderWidgetsComponent extends VueComponentBase i
         return this.vuexGet(reflect<this>().get_widgets_by_id);
     }
 
+    get get_dashboard_id(): number {
+        return this.vuexGet(reflect<this>().get_dashboard_id);
+    }
+
     get selected_widget_type(): DashboardWidgetVO {
         if (!this.get_selected_widget) {
             return null;
@@ -262,7 +265,7 @@ export default class DashboardBuilderWidgetsComponent extends VueComponentBase i
         self.snotify.async(
             self.label('DashboardBuilderBoardComponent.add_widget_to_page.start'), () => new Promise(async (resolve, reject) => {
                 try {
-                    page_widget.page_id_ranges = [RangeHandler.create_single_elt_NumRange(self.get_dashboard_page.id, NumSegment.TYPE_INT)];
+                    page_widget.dashboard_id = self.get_dashboard_id;
                     page_widget.widget_id = widget.id;
 
                     try {
@@ -283,6 +286,7 @@ export default class DashboardBuilderWidgetsComponent extends VueComponentBase i
                     // on active le viewport page widget
                     const new_viewport_page_widget: DashboardViewportPageWidgetVO = await query(DashboardViewportPageWidgetVO.API_TYPE_ID)
                         .filter_by_num_eq(field_names<DashboardViewportPageWidgetVO>().page_widget_id, page_widget.id)
+                        .filter_by_num_eq(field_names<DashboardViewportPageWidgetVO>().page_id, self.get_dashboard_page.id)
                         .filter_by_num_eq(field_names<DashboardViewportPageWidgetVO>().viewport_id, self.get_dashboard_current_viewport.id)
                         .select_vo<DashboardViewportPageWidgetVO>();
                     if (!new_viewport_page_widget) {

@@ -11,6 +11,7 @@ import DashboardBuilderController from '../../../../shared/modules/DashboardBuil
 import ModuleDashboardBuilder from '../../../../shared/modules/DashboardBuilder/ModuleDashboardBuilder';
 import DashboardVOManager from '../../../../shared/modules/DashboardBuilder/manager/DashboardVOManager';
 import WidgetOptionsVOManager from '../../../../shared/modules/DashboardBuilder/manager/WidgetOptionsVOManager';
+import ContextFilterPoolVO from '../../../../shared/modules/DashboardBuilder/vos/ContextFilterPoolVO';
 import DBBConfVO from '../../../../shared/modules/DashboardBuilder/vos/DBBConfVO';
 import DashboardPageVO from '../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
@@ -30,6 +31,7 @@ import { SyncVO } from '../../tools/annotations/SyncVO';
 import { SyncVOs } from '../../tools/annotations/SyncVOs';
 import { TestAccess } from '../../tools/annotations/TestAccess';
 import InlineTranslatableText from '../InlineTranslatableText/InlineTranslatableText';
+import ModuleTableQueryDBComponent from '../ModuleTableQueryDBComponent.ts/ModuleTableQueryDBComponent';
 import VueComponentBase from '../VueComponentBase';
 import ModuleTablesComponent from '../module_tables/ModuleTablesComponent';
 import './DashboardBuilderComponent.scss';
@@ -58,6 +60,7 @@ import DashboardBuilderWidgetsComponent from './widgets/DashboardBuilderWidgetsC
         Cruddblinkcomponent: CrudDBLinkComponent,
         DashboardViewportConfComponent: DashboardViewportConfComponent,
         // DashboardRightsComponent: DashboardRightsComponent,
+        ModuleTableQueryDBComponent: ModuleTableQueryDBComponent,
     },
 })
 export default class DashboardBuilderComponent extends VueComponentBase implements IDashboardPageConsumer {
@@ -182,10 +185,16 @@ export default class DashboardBuilderComponent extends VueComponentBase implemen
     public export_vos_to_json_conf: ExportVOsToJSONConfVO = null;
     public selected_dbb_conf: DBBConfVO = null; // The current DBB configuration selected by the user, used to filter the available DBs
 
-    public all_tables_by_table_name: { [table_name: string]: ModuleTableVO } = {};
+    get get_filter_pool_api_type_id(): string {
+        return ContextFilterPoolVO.API_TYPE_ID;
+    }
 
     get get_selected_onglet(): string {
         return this.vuexGet(reflect<this>().get_selected_onglet);
+    }
+
+    get get_all_valid_db_conf_tables_by_table_name(): { [table_name: string]: ModuleTableVO } {
+        return this.vuexGet(reflect<CrudDBLinkComponent>().get_all_valid_db_conf_tables_by_table_name);
     }
 
     get get_dashboard_current_viewport(): DashboardViewportVO {
@@ -339,10 +348,6 @@ export default class DashboardBuilderComponent extends VueComponentBase implemen
         return this.vuexGet(reflect<this>().get_page_widgets);
     }
 
-    get get_selected_page_page_widgets(): DashboardPageWidgetVO[] {
-        return this.vuexGet(reflect<this>().get_selected_page_page_widgets);
-    }
-
     get get_dashboard_viewport_page_widgets(): DashboardViewportPageWidgetVO[] {
         return this.vuexGet(reflect<this>().get_dashboard_viewport_page_widgets);
     }
@@ -423,10 +428,6 @@ export default class DashboardBuilderComponent extends VueComponentBase implemen
         this.vuexAct(reflect<this>().set_selected_widget, selected_widget);
     }
 
-    public set_selected_page_page_widgets(page_widgets: DashboardPageWidgetVO[]): void {
-        this.vuexAct(reflect<this>().set_selected_page_page_widgets, page_widgets);
-    }
-
     public set_dashboard_current_viewport(dashboard_current_viewport: DashboardViewportVO): void {
         this.vuexAct(reflect<this>().set_dashboard_current_viewport, dashboard_current_viewport);
     }
@@ -489,8 +490,6 @@ export default class DashboardBuilderComponent extends VueComponentBase implemen
             const get_selected_fields = WidgetOptionsVOManager.widgets_get_selected_fields[name];
             this.set_selected_fields(get_selected_fields ? get_selected_fields(page_widget) : {});
         });
-
-        await this.init_all_valid_tables();
 
         // Ne pas mettre en immediate true, le storeNamespace n'est pas encore créé
         this.onchange_dashboard_id();
@@ -982,22 +981,6 @@ export default class DashboardBuilderComponent extends VueComponentBase implemen
         this.collapsed_fields_wrapper_2 = !this.collapsed_fields_wrapper_2;
     }
 
-    public async init_all_valid_tables() {
-
-        // On charge la conf pour les rôles du user
-        const valid_vo_types: string[] = await ModuleDashboardBuilder.getInstance().get_all_valid_api_type_ids();
-
-        if (!valid_vo_types || !valid_vo_types.length) {
-            this.all_tables_by_table_name = {};
-        }
-
-        const all_tables_by_table_name = {};
-        for (const i in valid_vo_types) {
-            const table_name = valid_vo_types[i];
-            all_tables_by_table_name[table_name] = ModuleTableController.module_tables_by_vo_type[table_name];
-        }
-        this.all_tables_by_table_name = all_tables_by_table_name;
-    }
 
     public viewport_label(viewport: DashboardViewportVO): string {
         if ((viewport == null) || (typeof viewport == 'undefined')) {

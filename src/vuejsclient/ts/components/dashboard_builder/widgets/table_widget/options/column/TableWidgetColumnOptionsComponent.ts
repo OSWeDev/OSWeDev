@@ -665,7 +665,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
 
 
         this.page_widget_options = await query(DashboardPageWidgetVO.API_TYPE_ID)
-            .filter_by_num_eq(field_names<DashboardPageWidgetVO>().page_id, this.page_widget.page_id)
+            .filter_by_num_eq(field_names<DashboardPageWidgetVO>().dashboard_id, this.page_widget.dashboard_id)
             .filter_by_num_not_eq(field_names<DashboardPageWidgetVO>().id, this.page_widget.id)
             .filter_is_true(field_names<DashboardWidgetVO>().is_filter, DashboardWidgetVO.API_TYPE_ID)
             .select_vos();

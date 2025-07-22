@@ -14,8 +14,6 @@ export default class WidgetOptionsMetadataVO extends AbstractVO {
 
     public widget_name: string;
 
-    public dashboard_page_id: number;
-
     public page_widget_id: number;
 
     public page_widget: DashboardPageWidgetVO;

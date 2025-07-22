@@ -222,7 +222,7 @@
                     :fields_by_table_name_and_field_name='fields_by_table_name_and_field_name'
                     :tables_by_table_name='tables_by_table_name'
                     :discarded_field_paths='get_discarded_field_paths'
-                    :all_tables_by_table_name='all_tables_by_table_name'
+                    :all_tables_by_table_name='get_all_valid_db_conf_tables_by_table_name'
                     :dashboard_id='dashboard_id'
                 )
 
@@ -256,7 +256,10 @@
 
         .row(v-if='(get_selected_onglet == onglet_shared_filters) && selected_db_is_in_dbs')
             .col-sm-12.shared_filters_wrapper 
-                Dashboardsharedfilterscomponent
+                //- Dashboardsharedfilterscomponent
+                ModuleTableQueryDBComponent(
+                    :api_type_id='get_filter_pool_api_type_id'
+                )
 
         //- .row(v-if='get_selected_onglet == onglet_rights')
         //-     .col-sm-12.shared_filters_wrapper 
