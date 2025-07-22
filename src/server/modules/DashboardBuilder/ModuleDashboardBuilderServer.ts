@@ -4,10 +4,8 @@ import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/Access
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
-import UserRoleVO from '../../../shared/modules/AccessPolicy/vos/UserRoleVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import ContextFilterVOHandler from '../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
-import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import DAOController from '../../../shared/modules/DAO/DAOController';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
@@ -32,10 +30,8 @@ import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import { field_names, reflect } from '../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../shared/tools/RangeHandler';
-import StackContext from '../../StackContext';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
-import DAOServerController from '../DAO/DAOServerController';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOPostCreateTriggerHook from '../DAO/triggers/DAOPostCreateTriggerHook';
 import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
@@ -658,21 +654,11 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             return;
         }
 
-        const page_widget = await query(DashboardPageWidgetVO.API_TYPE_ID)
-            .filter_by_id(viewport_page_widget.page_widget_id)
-            .exec_as_server()
-            .select_vo<DashboardPageWidgetVO>();
-
-        if (!page_widget?.page_id) {
-            ConsoleHandler.error(`Impossible de vérifier l'intersection du DashboardViewportPageWidgetVO ${viewport_page_widget.id} car le DashboardPageWidgetVO ${viewport_page_widget.page_widget_id} n'existe pas ou n'a pas de page associée.`);
-            return;
-        }
-
         // on charge les autres widgets de la page
         const other_widgets: DashboardViewportPageWidgetVO[] = await query(DashboardViewportPageWidgetVO.API_TYPE_ID)
             .filter_by_num_not_eq(field_names<DashboardViewportPageWidgetVO>().id, viewport_page_widget.id) // on exclut le widget en cours
             .filter_by_num_eq(field_names<DashboardViewportPageWidgetVO>().viewport_id, viewport_page_widget.viewport_id) // on filtre par le viewport
-            .filter_by_num_eq(field_names<DashboardPageWidgetVO>().page_id, page_widget.page_id, DashboardPageWidgetVO.API_TYPE_ID) // on filtre par la page du widget
+            .filter_by_num_eq(field_names<DashboardViewportPageWidgetVO>().page_id, viewport_page_widget.page_id) // on filtre par la page du widget
             .exec_as_server()
             .select_vos<DashboardViewportPageWidgetVO>();
 
@@ -696,7 +682,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
                     ' join ' + ModuleTableController.module_tables_by_vo_type[DashboardPageWidgetVO.API_TYPE_ID].full_name + ' pw on vpw.page_widget_id = pw.id ' +
                     ' where ' +
                     (viewport_page_widget.id ? 'vpw.id != ' + viewport_page_widget.id + ' and ' : '') +
-                    'pw.page_id = ' + page_widget?.page_id + ' and vpw.activated is true and vpw.viewport_id = ' + viewport_page_widget.viewport_id, // le max de y+h des widgets de cette page, dans ce viewport, parmis les widgets activés (hors widget en cours de vérification)
+                    'vpw.page_id = ' + viewport_page_widget.page_id + ' and vpw.activated is true and vpw.viewport_id = ' + viewport_page_widget.viewport_id, // le max de y+h des widgets de cette page, dans ce viewport, parmis les widgets activés (hors widget en cours de vérification)
                     null, true);
                 let max_y = (query_res && (query_res.length == 1) && (typeof query_res[0]['max_y'] != 'undefined') && (query_res[0]['max_y'] !== null)) ? query_res[0]['max_y'] : null;
                 max_y = max_y ? parseInt(max_y.toString()) : null;
@@ -738,21 +724,12 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             return;
         }
 
-        const page_widget = await query(DashboardPageWidgetVO.API_TYPE_ID)
-            .filter_by_id(viewport_page_widget.page_widget_id)
-            .exec_as_server()
-            .select_vo<DashboardPageWidgetVO>();
-        if (!page_widget?.page_id) {
-            ConsoleHandler.error(`Impossible de vérifier la position Y du DashboardViewportPageWidgetVO ${viewport_page_widget.id} car le DashboardPageWidgetVO ${viewport_page_widget.page_widget_id} n'existe pas ou n'a pas de page associée.`);
-            return;
-        }
-
         const query_res = await ModuleDAOServer.instance.query(
             'SELECT max(vpw.y + vpw.h) as max_y from ' + ModuleTableController.module_tables_by_vo_type[DashboardViewportPageWidgetVO.API_TYPE_ID].full_name + ' vpw ' +
             ' join ' + ModuleTableController.module_tables_by_vo_type[DashboardPageWidgetVO.API_TYPE_ID].full_name + ' pw on vpw.page_widget_id = pw.id ' +
             ' where ' +
             (viewport_page_widget.id ? 'vpw.id != ' + viewport_page_widget.id + ' and ' : '') +
-            'pw.page_id = ' + page_widget?.page_id + ' and vpw.activated is true and vpw.viewport_id = ' + viewport_page_widget.viewport_id, // le max de y+h des widgets de cette page, dans ce viewport, parmis les widgets activés (hors widget en cours de vérification)
+            'vpw.page_id = ' + viewport_page_widget.page_id + ' and vpw.activated is true and vpw.viewport_id = ' + viewport_page_widget.viewport_id, // le max de y+h des widgets de cette page, dans ce viewport, parmis les widgets activés (hors widget en cours de vérification)
             null, true);
         let max_y = (query_res && (query_res.length == 1) && (typeof query_res[0]['max_y'] != 'undefined') && (query_res[0]['max_y'] !== null)) ? query_res[0]['max_y'] : null;
         max_y = max_y ? parseInt(max_y.toString()) : null;
@@ -804,22 +781,31 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             return;
         }
 
-        const viewports: DashboardViewportVO[] = await query(DashboardViewportVO.API_TYPE_ID)
-            .filter_by_id(page_widget.page_id, DashboardPageVO.API_TYPE_ID)
-            .using(DashboardVO.API_TYPE_ID) // ça va faire la ref via les id_ranges des viewports activés sur le dbs, et pour le db en lien avec la page du widget
+        // On doit le faire pour toutes les pages
+        const pages: DashboardPageVO[] = await query(DashboardPageVO.API_TYPE_ID)
+            .filter_by_ids(page_widget.page_id_ranges)
             .exec_as_server()
-            .select_vos<DashboardViewportVO>();
+            .select_vos<DashboardPageVO>();
 
         const new_items = [];
-        for (const i in viewports) {
-            const viewport: DashboardViewportVO = viewports[i];
+        for (const page of pages) {
+            const viewports: DashboardViewportVO[] = await query(DashboardViewportVO.API_TYPE_ID)
+                .filter_by_id(page.id, DashboardPageVO.API_TYPE_ID)
+                .using(DashboardVO.API_TYPE_ID) // ça va faire la ref via les id_ranges des viewports activés sur le dbs, et pour le db en lien avec la page du widget
+                .exec_as_server()
+                .select_vos<DashboardViewportVO>();
 
-            const viewport_page_widget: DashboardViewportPageWidgetVO = new DashboardViewportPageWidgetVO();
-            viewport_page_widget.page_widget_id = page_widget.id;
-            viewport_page_widget.viewport_id = viewport.id;
-            viewport_page_widget.activated = false; // On active pas par défaut le nouveau widget sur les autres viewports (le viewport de la création du widget sera passé actif côté client par le DBB)
+            for (const i in viewports) {
+                const viewport: DashboardViewportVO = viewports[i];
 
-            new_items.push(viewport_page_widget);
+                const viewport_page_widget: DashboardViewportPageWidgetVO = new DashboardViewportPageWidgetVO();
+                viewport_page_widget.page_widget_id = page_widget.id;
+                viewport_page_widget.page_id = page.id;
+                viewport_page_widget.viewport_id = viewport.id;
+                viewport_page_widget.activated = false; // On active pas par défaut le nouveau widget sur les autres viewports (le viewport de la création du widget sera passé actif côté client par le DBB)
+
+                new_items.push(viewport_page_widget);
+            }
         }
 
         if (new_items.length > 0) {

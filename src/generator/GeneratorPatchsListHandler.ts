@@ -155,6 +155,7 @@ import Patch20250717AddWidgetsTags from './patchs/postmodules/Patch20250717AddWi
 import Patch20250717AddWidgetsNames from './patchs/postmodules/Patch20250717AddWidgetsDefaultNames';
 import Patch20250717UpdateWidgetsIconHTML from './patchs/postmodules/Patch20250717UpdateWidgetsIconHTML';
 import Patch20250721UpdateWidgetsIconHTML from './patchs/postmodules/Patch20250721UpdateWidgetsIconHTML';
+import Patch20250722MigrateWidgetsPageIdToPageIdRanges from './patchs/postmodules/Patch20250722MigrateWidgetsPageIdToPageIdRanges';
 
 export default class GeneratorPatchsListHandler {
 
@@ -334,6 +335,8 @@ export default class GeneratorPatchsListHandler {
         Patch20250617AddRightsModuleTableAndFields.getInstance(),
         Patch20250617MigrationCRUDDBLink.getInstance(),
 
+        Patch20250722MigrateWidgetsPageIdToPageIdRanges.getInstance(),
+
         Patch20250624AddConfExportDBToJSON.getInstance(),
 
         Patch20250701AddBasicDBBConfs.getInstance(),
@@ -346,5 +349,6 @@ export default class GeneratorPatchsListHandler {
         Patch20250717AddWidgetsNames.getInstance(),
         Patch20250717UpdateWidgetsIconHTML.getInstance(),
         Patch20250721UpdateWidgetsIconHTML.getInstance(),
+
     ];
 }

@@ -1,4 +1,5 @@
 import IDistantVOBase from "../../../../shared/modules/IDistantVOBase";
+import NumRange from "../../DataRender/vos/NumRange";
 import AbstractVO from "../../VO/abstract/AbstractVO";
 import IDashboardGridItem from "../interfaces/IDashboardGridItem";
 import FieldValueFilterWidgetOptionsVO from "./FieldValueFilterWidgetOptionsVO";
@@ -18,8 +19,16 @@ export default class DashboardPageWidgetVO extends AbstractVO implements IDistan
 
     /**
      * id de la page pour le widget en question.
+     * @deprecated use page_id_ranges à la place
+     * @see page_id_ranges
      */
     public page_id: number;
+
+    /**
+     * Tableau de ranges d'id de pages pour le widget en question.
+     * Permet de gérer les widgets qui sont sur plusieurs pages.
+     */
+    public page_id_ranges: NumRange[];
 
     /***
      * @deprecated Use DashboardViewportPageWidgetVO.static instead

@@ -378,6 +378,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         DOWFilter.widget_component = 'Dowfilterwidgetcomponent';
         DOWFilter.options_component = 'Dowfilterwidgetoptionscomponent';
         DOWFilter.weight = 1;
+        DOWFilter.is_filter = true;
         DOWFilter.default_background = '#f5f5f5';
         DOWFilter.icon_html = `<div class="fa-stack fa-fw"><i class="fa-regular fa-calendar fa-stack-2x"></i><strong class="fa-stack-1x icon_text_overlay" style="color: black; margin-left: 0px; margin-top: 0px; text-shadow: 1px 1px white; margin-top:4px">7</strong></div>`;
 
@@ -396,6 +397,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         MonthFilter.widget_component = 'Monthfilterwidgetcomponent';
         MonthFilter.options_component = 'Monthfilterwidgetoptionscomponent';
         MonthFilter.weight = 2;
+        MonthFilter.is_filter = true;
         MonthFilter.default_background = '#f5f5f5';
         MonthFilter.icon_html = `<div class="fa-stack fa-fw"><i class="fa-regular fa-calendar fa-stack-2x"></i><strong class="fa-stack-1x icon_text_overlay" style="color: black; margin-left: 0px; margin-top: 0px; text-shadow: 1px 1px white; margin-top:4px">31</strong></div>`;
 
@@ -415,6 +417,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         AdvancedDateFilter.widget_component = 'Advanceddatefilterwidgetcomponent';
         AdvancedDateFilter.options_component = 'Advanceddatefilterwidgetoptionscomponent';
         AdvancedDateFilter.weight = 4;
+        AdvancedDateFilter.is_filter = true;
         AdvancedDateFilter.default_background = '#f5f5f5';
         AdvancedDateFilter.icon_html = `<div class="fa-stack fa-fw"><i class="fa-regular fa-calendar fa-stack-2x"></i><strong class="fa-stack-1x icon_text_overlay" style="color: black; margin-left: 0px; margin-top: 0px; text-shadow: 1px 1px white; margin-top:4px">X</strong></div>`;
 
@@ -532,6 +535,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         YearFilter.widget_component = 'Yearfilterwidgetcomponent';
         YearFilter.options_component = 'Yearfilterwidgetoptionscomponent';
         YearFilter.weight = 3;
+        YearFilter.is_filter = true;
         YearFilter.default_background = '#f5f5f5';
         YearFilter.icon_html = `<div class="fa-stack fa-fw"><i class="fa-regular fa-calendar fa-stack-2x"></i><strong class="fa-stack-1x icon_text_overlay" style="color: black; margin-left: 0px; margin-top: 0px; text-shadow: 1px 1px white; margin-top:4px">365</strong></div>`;
 
@@ -645,7 +649,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         BlocText.weight = 3;
         BlocText.default_background = '#f5f5f5';
         BlocText.icon_html = `<div class="fa-stack fa-fw"><i class="fa-solid fa-font fa-stack-2x"></i></div>`;
-        BlocText.is_filter = true;
+        BlocText.is_filter = false;
 
         await WidgetOptionsVOManager.register_widget_type(BlocText, null, null);
 
@@ -663,7 +667,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         SuiviCompetences.weight = 3;
         SuiviCompetences.default_background = '#f5f5f5';
         SuiviCompetences.icon_html = `<div class="fa-stack fa-fw"><i class="fa-solid fa-tasks fa-stack-2x"></i></div>`;
-        SuiviCompetences.is_filter = true;
+        SuiviCompetences.is_filter = false;
 
         await WidgetOptionsVOManager.register_widget_type(
             SuiviCompetences,

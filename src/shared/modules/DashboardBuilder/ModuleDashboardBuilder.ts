@@ -29,6 +29,7 @@ import TimeSegment from '../DataRender/vos/TimeSegment';
 import Module from '../Module';
 import VarConfVO from '../Var/vos/VarConfVO';
 import AdvancedDateFilterOptDescVO from './vos/AdvancedDateFilterOptDescVO';
+import ContextFilterPoolVO from './vos/ContextFilterPoolVO';
 import DBBConfVO from './vos/DBBConfVO';
 import DashboardGraphColorPaletteVO from './vos/DashboardGraphColorPaletteVO';
 import DashboardGraphVORefVO from './vos/DashboardGraphVORefVO';
@@ -143,6 +144,9 @@ export default class ModuleDashboardBuilder extends Module {
         this.init_DashboardGraphVORefVO(db_table);
         const db_widget = this.init_DashboardWidgetVO();
         this.init_DashboardPageWidgetVO(db_page, db_widget);
+
+        this.initialize_ContextFilterPoolVO();
+
         this.initialize_DashboardViewportPageWidgetVO();
         this.init_VOFieldRefVO();
         this.init_TableColumnDescVO();
@@ -300,8 +304,13 @@ export default class ModuleDashboardBuilder extends Module {
 
     private init_DashboardPageWidgetVO(db_page: ModuleTableVO, db_widget: ModuleTableVO) {
 
-        const widget_id = ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().widget_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Widget', true);
-        const page_id = ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().page_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Page Dashboard', true);
+        ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().widget_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Widget', true)
+            .set_many_to_one_target_moduletable_name(db_widget.vo_type);
+        ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().page_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Page Dashboard', true)
+            .set_many_to_one_target_moduletable_name(db_page.vo_type);
+        ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().page_id_ranges, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Pages', false) // Théoriquement obligatoire, mais nécessaire pour la migration des données depuis page_id
+            .set_many_to_one_target_moduletable_name(db_page.vo_type);
+
 
         ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().titre, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Titre', true).unique(); // unique et mandatory uniquement par ce que le computed string l'est par défaut...
         const name = ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().widget_name, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Nom du widget', true).unique(); // unique et mandatory uniquement par ce que le computed string l'est par défaut...
@@ -358,14 +367,27 @@ export default class ModuleDashboardBuilder extends Module {
             name,
             "Widget - Instancié dans une page de Dashboard"
         );
+    }
 
-        widget_id.set_many_to_one_target_moduletable_name(db_widget.vo_type);
-        page_id.set_many_to_one_target_moduletable_name(db_page.vo_type);
+    private initialize_ContextFilterPoolVO() {
+        const name = ModuleTableFieldController.create_new(ContextFilterPoolVO.API_TYPE_ID, field_names<ContextFilterPoolVO>().name, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Nom', true).unique();
+        ModuleTableFieldController.create_new(ContextFilterPoolVO.API_TYPE_ID, field_names<ContextFilterPoolVO>().description, ModuleTableFieldVO.FIELD_TYPE_translatable_string, 'Description', true);
+        ModuleTableFieldController.create_new(ContextFilterPoolVO.API_TYPE_ID, field_names<ContextFilterPoolVO>().page_widget_id_ranges, ModuleTableFieldVO.FIELD_TYPE_refrange_array, 'Widgets', false)
+            .set_many_to_one_target_moduletable_name(DashboardViewportPageWidgetVO.API_TYPE_ID);
+
+        ModuleTableController.create_new(
+            this.name,
+            ContextFilterPoolVO,
+            name,
+            "Contextes de filtres",
+        );
     }
 
     private initialize_DashboardViewportPageWidgetVO() {
         const page_widget_id = ModuleTableFieldController.create_new(DashboardViewportPageWidgetVO.API_TYPE_ID, field_names<DashboardViewportPageWidgetVO>().page_widget_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Page Widget', true)
             .set_many_to_one_target_moduletable_name(DashboardPageWidgetVO.API_TYPE_ID);
+        const page_id = ModuleTableFieldController.create_new(DashboardViewportPageWidgetVO.API_TYPE_ID, field_names<DashboardViewportPageWidgetVO>().page_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Page Dashboard', false) // Le temps de faire les migrations...
+            .set_many_to_one_target_moduletable_name(DashboardPageVO.API_TYPE_ID);
         const viewport_id = ModuleTableFieldController.create_new(DashboardViewportPageWidgetVO.API_TYPE_ID, field_names<DashboardViewportPageWidgetVO>().viewport_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Viewport', true)
             .set_many_to_one_target_moduletable_name(DashboardViewportVO.API_TYPE_ID);
 
@@ -382,6 +404,7 @@ export default class ModuleDashboardBuilder extends Module {
             DashboardViewportPageWidgetVO.API_TYPE_ID,
             [
                 page_widget_id,
+                page_id,
                 viewport_id,
             ],
         );

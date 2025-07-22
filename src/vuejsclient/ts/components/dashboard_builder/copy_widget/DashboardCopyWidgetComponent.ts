@@ -19,6 +19,7 @@ import DashboardPageWidgetController from '../DashboardPageWidgetController';
 import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../page/DashboardPageStore';
 import './DashboardCopyWidgetComponent.scss';
 
+// TODO FIXME la copie de widget n'a plus aucun sens si on peut l'activer sur plusieurs pages
 @Component({
     template: require('./DashboardCopyWidgetComponent.pug'),
     components: {
@@ -87,7 +88,7 @@ export default class DashboardCopyWidgetComponent extends VueComponentBase imple
 
         this.show_modal = true;
         this.pages = pages;
-        this.page_id = page_widget.page_id;
+        this.page_id = page_widget.page_id; // TODO FIXME la copie de widget n'a plus aucun sens si on peut l'activer sur plusieurs pages
         this.page_widget = page_widget;
         this.copy_to_page = null;
         this.onclose_callback = onclose_callback;
@@ -191,7 +192,7 @@ export default class DashboardCopyWidgetComponent extends VueComponentBase imple
         delete page_widget_to_copy.id;
 
         const to_which_page_id: number = this.page_to_copy_in_id;
-        page_widget_to_copy.page_id = to_which_page_id;
+        page_widget_to_copy.page_id = to_which_page_id; // TODO FIXME la copie de widget n'a plus aucun sens si on peut l'activer sur plusieurs pages
 
         await ModuleDAO.instance.insertOrUpdateVO(page_widget_to_copy);
 

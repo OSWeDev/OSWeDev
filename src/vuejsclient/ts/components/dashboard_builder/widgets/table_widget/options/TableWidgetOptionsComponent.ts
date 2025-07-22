@@ -102,6 +102,8 @@ export default class TableWidgetOptionsComponent extends VueComponentBase implem
     public use_kanban_card_archive_if_exists: boolean = true;
     public tmp_legende_tableau: string = null;
 
+    get page_widget_options
+
     get crud_api_type_id_select_options(): string[] {
         return this.get_dashboard_api_type_ids;
     }

@@ -282,11 +282,14 @@ const getters = {
         for (const i in state.page_widgets) {
             const page_widget = state.page_widgets[i];
 
-            if (!page_widgets_by_page_id[page_widget.page_id]) {
-                page_widgets_by_page_id[page_widget.page_id] = [];
-            }
+            RangeHandler.foreach_ranges_sync(page_widget.page_id_ranges, (page_id) => {
 
-            page_widgets_by_page_id[page_widget.page_id].push(page_widget);
+                if (!page_widgets_by_page_id[page_id]) {
+                    page_widgets_by_page_id[page_id] = [];
+                }
+
+                page_widgets_by_page_id[page_id].push(page_widget);
+            });
         }
 
         return page_widgets_by_page_id;

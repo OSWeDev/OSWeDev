@@ -76,7 +76,7 @@ export default class DashboardBuilderBoardItemComponent extends VueComponentBase
         throttle_ms: 100,
     })
     public async onchange_widget() {
-        if ((!this.page_widget) || (this.page_widget.page_id != this.dashboard_page?.id)) {
+        if (!this.page_widget) { // || (this.page_widget.page_id != this.dashboard_page?.id)) {
             return;
         }
 
@@ -114,7 +114,7 @@ export default class DashboardBuilderBoardItemComponent extends VueComponentBase
 
 
     public mounted() {
-        if ((!this.page_widget?.id) || (this.page_widget.page_id != this.dashboard_page?.id)) {
+        if (!this.page_widget?.id) { // || (this.page_widget.page_id != this.dashboard_page?.id)) {
             return;
         }
 

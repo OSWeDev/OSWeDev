@@ -46,7 +46,7 @@ export default class Patch20250624AddConfExportDBToJSON implements IGeneratorWor
             ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[DashboardGraphVORefVO.API_TYPE_ID][field_names<DashboardGraphVORefVO>().dashboard_id].id,
 
             // DashboardPageVO <= DashboardPageWidgetVO.page_id
-            ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[DashboardPageWidgetVO.API_TYPE_ID][field_names<DashboardPageWidgetVO>().page_id].id,
+            ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[DashboardPageWidgetVO.API_TYPE_ID][field_names<DashboardPageWidgetVO>().page_id_ranges].id,
         ];
         export_vo_to_json_conf.ref_fields_to_follow_id_ranges = RangeHandler.get_ids_ranges_from_list(ref_fields_to_follow);
 

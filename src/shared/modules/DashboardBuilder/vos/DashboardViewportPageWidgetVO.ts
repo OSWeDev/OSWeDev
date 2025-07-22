@@ -8,6 +8,7 @@ export default class DashboardViewportPageWidgetVO implements IDistantVOBase, ID
     public _type: string = DashboardViewportPageWidgetVO.API_TYPE_ID;
 
     public page_widget_id: number;
+    public page_id: number;
     public viewport_id: number;
 
     /**

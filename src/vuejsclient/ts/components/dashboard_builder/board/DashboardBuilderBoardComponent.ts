@@ -24,6 +24,7 @@ import DashboardCopyWidgetComponent from '../copy_widget/DashboardCopyWidgetComp
 import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../page/DashboardPageStore';
 import './DashboardBuilderBoardComponent.scss';
 import DashboardBuilderBoardItemComponent from './item/DashboardBuilderBoardItemComponent';
+import NumSegment from '../../../../../shared/modules/DataRender/vos/NumSegment';
 
 @Component({
     template: require('./DashboardBuilderBoardComponent.pug'),
@@ -107,7 +108,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase imp
                 return null;
             }
 
-            return [filter(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().page_id).by_num_has(self.dashboard_pages.map((page) => page.id))];
+            return [filter(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().page_id_ranges).by_num_x_ranges(RangeHandler.get_ids_ranges_from_vos(self.dashboard_pages))];
         },
         sync_to_store_namespace: (self) => self.storeNamespace,
         // sync_to_store_property: reflect<DashboardBuilderBoardComponent>().page_widgets, // Nom iso, pas utile
@@ -123,7 +124,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase imp
                 return null;
             }
 
-            return [filter(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().page_id).by_num_eq(self.get_dashboard_page.id)];
+            return [filter(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().page_id_ranges).by_num_x_ranges([RangeHandler.create_single_elt_NumRange(self.get_dashboard_page.id, NumSegment.TYPE_INT)])];
         },
         sync_to_store_namespace: (self) => self.storeNamespace,
         // sync_to_store_property: reflect<DashboardBuilderBoardComponent>().page_widgets, // Nom iso, pas utile
@@ -187,12 +188,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase imp
         const res: DashboardViewportPageWidgetVO[] = [];
 
         for (const viewport_page_widget of this.dashboard_viewport_page_widgets) {
-            const page_widget = this.get_selected_page_page_widgets_by_id[viewport_page_widget.page_widget_id];
-            if (!page_widget) {
-                continue;
-            }
-
-            if (page_widget.page_id != this.get_dashboard_page?.id) {
+            if (viewport_page_widget.page_id != this.get_dashboard_page?.id) {
                 continue; // On ne garde que les widgets de la page actuelle
             }
 

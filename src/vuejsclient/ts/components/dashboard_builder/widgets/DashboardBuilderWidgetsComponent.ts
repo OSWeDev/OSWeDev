@@ -23,6 +23,7 @@ import VueComponentBase from '../../VueComponentBase';
 import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../page/DashboardPageStore';
 import './DashboardBuilderWidgetsComponent.scss';
 import CRUDUpdateModalComponent from './table_widget/crud_modals/update/CRUDUpdateModalComponent';
+import NumSegment from '../../../../../shared/modules/DataRender/vos/NumSegment';
 
 @Component({
     template: require('./DashboardBuilderWidgetsComponent.pug'),
@@ -261,7 +262,7 @@ export default class DashboardBuilderWidgetsComponent extends VueComponentBase i
         self.snotify.async(
             self.label('DashboardBuilderBoardComponent.add_widget_to_page.start'), () => new Promise(async (resolve, reject) => {
                 try {
-                    page_widget.page_id = self.get_dashboard_page.id;
+                    page_widget.page_id_ranges = [RangeHandler.create_single_elt_NumRange(self.get_dashboard_page.id, NumSegment.TYPE_INT)];
                     page_widget.widget_id = widget.id;
 
                     try {
