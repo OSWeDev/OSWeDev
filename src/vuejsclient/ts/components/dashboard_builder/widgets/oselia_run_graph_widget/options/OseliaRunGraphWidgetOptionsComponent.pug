@@ -1,2 +1,10 @@
 .oselia_run_graph_widget_options
+    .form-group
+        label {{ t('oselia_run_graph_widget.auto_refresh.label') }}
+        input(type="checkbox" v-model="auto_refresh")
+        small.form-text.text-muted {{ t('oselia_run_graph_widget.auto_refresh.help') }}
     
+    .form-group(v-if="auto_refresh")
+        label {{ t('oselia_run_graph_widget.auto_refresh_seconds.label') }}
+        input(type="number" v-model.number="auto_refresh_seconds" min="1" max="300")
+        small.form-text.text-muted {{ t('oselia_run_graph_widget.auto_refresh_seconds.help') }}

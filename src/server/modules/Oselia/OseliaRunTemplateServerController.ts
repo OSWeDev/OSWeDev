@@ -85,6 +85,15 @@ export default class OseliaRunTemplateServerController {
             // Si on fournit un initial_content_text, on l'append au initial_content_text du template, pour apporter un complément d'info spécifique à ce run
             oselia_run.initial_content_text = template.initial_content_text ? template.initial_content_text + '\n' + initial_content_text : initial_content_text;
 
+            // Si le template n'a ni initial_content_text ni initial_prompt_id, on fournit un contenu par défaut basé sur le type de run
+            if (!oselia_run.initial_content_text && !template.initial_prompt_id) {
+                if (template.run_type === OseliaRunVO.RUN_TYPE_REALTIME) {
+                    oselia_run.initial_content_text = "Session interactive en temps réel avec l'utilisateur";
+                } else {
+                    oselia_run.initial_content_text = "Exécution du template " + template.name;
+                }
+            }
+
             oselia_run.initial_prompt_id = template.initial_prompt_id;
             oselia_run.initial_prompt_parameters = initial_prompt_parameters;
             oselia_run.name = template.name;

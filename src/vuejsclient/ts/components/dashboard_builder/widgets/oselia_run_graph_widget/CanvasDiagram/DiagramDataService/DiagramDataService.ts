@@ -117,6 +117,8 @@ export default class DiagramDataService {
      *
      * Les appels de fonction sont ordonnés par end_date.
      * On ne crée plus de liaison avec les GPTAssistantAPIFunctionVO.
+     *
+     * NOUVEAU : On gère aussi la hiérarchie des runs (agents avec enfants)
      */
     public static async prepareRunData(
         currentItems: { [id: string]: OseliaRunVO | GPTAssistantAPIFunctionVO | OseliaRunFunctionCallVO }
@@ -127,6 +129,7 @@ export default class DiagramDataService {
         for (const id of Object.keys(currentItems)) {
             adjacency[id] = [];
         }
+
         // 2) Trouver tous les runs
         const runIds = Object.keys(currentItems).filter(id => {
             return currentItems[id]._type === OseliaRunVO.API_TYPE_ID;
@@ -135,13 +138,56 @@ export default class DiagramDataService {
             return { adjacency, items: currentItems };
         }
 
-        // 3) Récupérer tous les appels de fonction (runFunctionCall) liés aux runs trouvés
-        const runIdsNum = runIds.map(rid => Number(rid));
+        // 3) Gestion hiérarchie des runs (agents avec enfants)
+        // PROTECTION : On ne cherche la hiérarchie que si on a peu de runs pour éviter les problèmes de performances
+        const runItems = currentItems as { [id: string]: OseliaRunVO };
+
+        if (runIds.length < 50) {  // Protection : pas plus de 50 runs pour éviter les boucles
+            // Pour chaque run, ajouter ses enfants dans l'adjacence
+            for (const runId of runIds) {
+                const run = runItems[runId];
+                if (!run) continue;
+
+                // Si c'est un agent, chercher ses enfants UNIQUEMENT parmi les runs déjà chargés
+                if (run.run_type === OseliaRunVO.RUN_TYPE_AGENT) {
+                    const runNumId = Number(runId);
+
+                    // Trouver tous les runs enfants de cet agent SEULEMENT parmi ceux déjà dans currentItems
+                    const childRuns = Object.values(runItems).filter(r =>
+                        r.parent_run_id === runNumId
+                    );
+
+                    for (const childRun of childRuns) {
+                        const childId = String(childRun.id);
+                        if (!adjacency[runId].includes(childId)) {
+                            adjacency[runId].push(childId);
+                        }
+                    }
+                }
+            }
+        } else {
+            console.warn(`[DiagramDataService] Trop de runs (${runIds.length}), hiérarchie désactivée pour éviter les problèmes de performances`);
+        }
+
+        // 4) Récupérer TOUS les appels de fonction (runFunctionCall) liés aux runs trouvés
+        // PROTECTION : On limite le nombre de runs traités pour éviter les boucles infinies
+        const runIdsNum = runIds.slice(0, 20).map(rid => Number(rid)); // MAX 20 runs pour éviter les problèmes
+
+        if (runIdsNum.length === 0) {
+            console.log('[DiagramDataService] Aucun run à traiter');
+            return { adjacency, items: currentItems };
+        }
+
+        console.log(`[DiagramDataService] Traitement de ${runIdsNum.length} runs pour les function calls...`);
+
         const allRunFunctions = await query(OseliaRunFunctionCallVO.API_TYPE_ID)
             .filter_by_num_has(field_names<OseliaRunFunctionCallVO>().oselia_run_id, runIdsNum)
-            .select_vos<OseliaRunFunctionCallVO>();
+            .select_vos<OseliaRunFunctionCallVO>();  // Pas de exec_as_server pour éviter les problèmes
 
-        // 4) GPT Functions associées
+        console.log(`[DiagramDataService] Trouvé ${allRunFunctions.length} function calls pour ${runIds.length} runs:`,
+            allRunFunctions.map(f => `call_${f.id}(run_${f.oselia_run_id})`));
+
+        // 5) GPT Functions associées
         const allGptFunctionIds = allRunFunctions.map(f => f.gpt_function_id);
         const uniqueFunctionIds = [...new Set(allGptFunctionIds)];
         let allGptFunctions: GPTAssistantAPIFunctionVO[] = [];
@@ -158,48 +204,25 @@ export default class DiagramDataService {
             mapGpt[gf.id] = gf;
         }
 
-        // 4) Pour chaque run, trier les appels sur end_date
+        // 6) Pour chaque run, ajouter TOUS ses appels de fonction (même s'il n'y en a pas)
         for (const rid of runIds) {
             const runNum = Number(rid);
 
             // Filtre des calls pour ce run
             const runCalls = allRunFunctions.filter(rc => rc.oselia_run_id === runNum);
 
-            // Tri par end_date (montant ou descendant, à adapter)
-            runCalls.sort((a, b) => {
-                // Par défaut, on peut traiter l'absence de end_date en bas de liste
-                if (!a.end_date && !b.end_date) {
-                    return 0;
-                } else if (!a.end_date) {
-                    return 1;
-                } else if (!b.end_date) {
-                    return -1;
-                }
-                // Si end_date est un nombre (timestamp) :
-                return a.end_date - b.end_date;
+            // IMPORTANT : Tri par ID pour avoir les appels dans l'ordre de création
+            // (pas par end_date car on veut voir tous les appels, même en cours)
+            runCalls.sort((a, b) => a.id - b.id);
 
-                // Si end_date est un string (format date), on peut faire :
-                // return new Date(a.end_date).getTime() - new Date(b.end_date).getTime();
-            });
-
-            // Trouver l'ensemble des GPT functions de ce run
-            const uniqueFids = new Set(runCalls.map(rc => rc.gpt_function_id));
-
-            // Pour chaque GPT function ID
-            for (const fid of uniqueFids) {
-                const gfVO = mapGpt[fid];
-                if (!gfVO) {
-                    continue; // GPT function ID inexistant
-                }
-            }
-
-            // 5) Ajouter chaque call dans le graphe
+            // 7) Ajouter TOUS les calls de ce run dans le graphe
             for (const callVO of runCalls) {
                 const callNodeId = `call_${callVO.id}`;
 
-                // On stocke dans items si pas déjà présent
-                if (!currentItems[callNodeId]) {
-                    currentItems[callNodeId] = callVO;
+                // MISE À JOUR FORCÉE : On remplace toujours l'objet pour forcer la réactivité
+                // Même si l'ID existe déjà, on met à jour avec les nouvelles données
+                currentItems[callNodeId] = callVO;
+                if (!adjacency[callNodeId]) {
                     adjacency[callNodeId] = [];
                 }
 
@@ -207,6 +230,21 @@ export default class DiagramDataService {
                 if (!adjacency[rid].includes(callNodeId)) {
                     adjacency[rid].push(callNodeId);
                 }
+            }
+
+            // NOUVEAU : Mise à jour forcée du run lui-même pour refléter les changements d'état
+            // On s'assure que le run dans currentItems a les dernières données
+            const allRunItems = currentItems as { [id: string]: OseliaRunVO };
+            const currentRun = allRunItems[rid];
+            if (currentRun && currentRun._type === OseliaRunVO.API_TYPE_ID) {
+                // Force la mise à jour des propriétés du run (état, dates, etc.)
+                currentItems[rid] = { ...currentRun };
+            }
+
+            // Si le run n'a pas de function calls, on s'assure qu'il reste visible
+            if (runCalls.length === 0) {
+                // Le run reste dans items et adjacency même sans function calls
+                // adjacency[rid] reste un tableau vide mais le run sera affiché
             }
         }
 

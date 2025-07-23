@@ -66,7 +66,15 @@ export default class OseliaRealtimeController extends VueComponentBase {
 
     @Watch('get_current_thread')
     private async onCurrentThreadChange(new_thread: GPTAssistantAPIThreadVO | null) {
-        if (!this.call_thread && new_thread) {
+        // Si on n'est pas connecté au realtime ou qu'on est en cours de connexion, pas besoin de faire quoi que ce soit
+        if (!this.is_connected_to_realtime || this.connecting) {
+            return;
+        }
+
+        // Si le thread actuel change pendant une session realtime active,
+        // on met à jour notre référence pour maintenir la synchronisation
+        if (new_thread && new_thread.id !== this.call_thread?.id) {
+            ConsoleHandler.log('OseliaRealtimeController: Thread actuel changé pendant session realtime, mise à jour:', new_thread.id);
             this.call_thread = new_thread;
         }
     }
@@ -99,25 +107,44 @@ export default class OseliaRealtimeController extends VueComponentBase {
             .select_vo<OseliaRunTemplateVO>();
 
         if (!this.oselia_run_template) {
-            throw new Error(`Le template de run "${oselia_run_template_name}" n'existe pas.`);
+            throw new Error(`OseliaRealtimeController : Le template de run "${oselia_run_template_name}" n'existe pas.`);
         }
-        /* 3) On donne le prompt s'il existe au template */
-        this.oselia_run_template.initial_content_text = prompt || '';
-        /* 3)  (re)crée un thread si besoin */
-        if (!this.call_thread) {
+        /* 3) On ne met plus initial_content_text car on crée maintenant un message technique dédié */
+        // this.oselia_run_template.initial_content_text = prompt || '';
+
+        /* 3)  (re)crée un thread si besoin, ou utilise le thread courant */
+        const current_thread = this.get_current_thread;
+        if (current_thread) {
+            // Utiliser le thread existant si disponible (usage depuis thread widget)
+            // Mais d'abord le recharger depuis la base pour avoir la version la plus récente
+            ConsoleHandler.log('OseliaRealtimeController: Rechargement du thread existant:', current_thread.id);
+            this.call_thread = await query(GPTAssistantAPIThreadVO.API_TYPE_ID)
+                .filter_by_id(current_thread.id)
+                .select_vo<GPTAssistantAPIThreadVO>();
+            if (!this.call_thread) {
+                throw new Error('OseliaRealtimeController : Impossible de recharger le thread existant');
+            }
+            ConsoleHandler.log('OseliaRealtimeController: Thread existant rechargé avec succès:', this.call_thread.id);
+        } else {
+            // Créer un nouveau thread si aucun thread courant (usage depuis nouveau contexte)
             const thread_id = await ModuleOselia.getInstance().create_thread();
             if (!thread_id) throw new Error('OseliaRealtimeController : Impossible de créer le thread');
             this.call_thread = await query(GPTAssistantAPIThreadVO.API_TYPE_ID)
                 .filter_by_id(thread_id)
                 .select_vo<GPTAssistantAPIThreadVO>();
             if (!this.call_thread) throw new Error('OseliaRealtimeController : Impossible de récupérer le thread');
+            ConsoleHandler.log('OseliaRealtimeController: Nouveau thread créé:', this.call_thread.id);
+        }
 
-            /* 4) On donne au thread l'assistant */
-            if (this.oselia_run_template.assistant_id) {
-                this.call_thread.current_oselia_assistant_id = this.oselia_run_template.assistant_id;
-                this.call_thread.current_default_assistant_id = this.oselia_run_template.assistant_id;
-            }
-            await ModuleDAO.getInstance().insertOrUpdateVO(this.call_thread);
+        /* 4) On met à jour l'assistant du thread selon le template (même si le thread existe déjà) */
+        if (this.oselia_run_template.assistant_id) {
+            this.call_thread.current_oselia_assistant_id = this.oselia_run_template.assistant_id;
+            this.call_thread.current_default_assistant_id = this.oselia_run_template.assistant_id;
+            // On marque ce thread comme étant en cours d'utilisation pour realtime
+            this.call_thread.realtime_activated = true;
+
+            // Utiliser une méthode avec retry pour éviter les conflits de concurrence
+            await this.updateThreadWithRetry(this.call_thread);
         }
 
         /* 5) On met le vo dans le cache du thread */
@@ -125,16 +152,25 @@ export default class OseliaRealtimeController extends VueComponentBase {
             await ModuleOselia.getInstance().set_cache_value(this.call_thread, Object.keys(map_cache_vo)[0], JSON.stringify(Object.values(map_cache_vo)[0]), this.call_thread.id);
         }
 
-        /* 6)  Drapeaux */
+        /* 5.5) Si on a un prompt, on crée un message technique (système) sans déclencher l'assistant */
+        if (prompt && prompt.trim()) {
+            await this.create_technical_message(prompt);
+            // Petit délai pour s'assurer que la synchronisation s'est bien faite
+            await new Promise(resolve => setTimeout(resolve, 500));
+        }
+
+        /* 6)  Met à jour le store AVANT de marquer la connexion comme active pour éviter les conflits avec le watcher */
+        await VueAppBaseInstanceHolder.instance.vueInstance.$store.dispatch('OseliaStore/set_current_thread', this.call_thread);
+
+        /* 7)  Drapeaux */
         this.connecting = true;
         this.connection_ready = false;
 
-        /* 7)  Connecte au serveur + initialise VAD/micro */
-        await this.connect_to_server(this.call_thread.gpt_thread_id);
+        /* 8)  Connecte au serveur + initialise VAD/micro */
+        await this.connect_to_server(this.call_thread.gpt_thread_id, prompt);
 
         await this.initRecorder();          // démarre la capture micro
 
-        await VueAppBaseInstanceHolder.instance.vueInstance.$store.dispatch('OseliaStore/set_current_thread', this.call_thread);
         this.connecting = false;
     }
 
@@ -169,7 +205,7 @@ export default class OseliaRealtimeController extends VueComponentBase {
         /* 4)  Sauve la VO si besoin */
         if (this.call_thread && this.call_thread.realtime_activated) {
             this.call_thread.realtime_activated = false;
-            await ModuleDAO.getInstance().insertOrUpdateVO(this.call_thread);
+            await this.updateThreadWithRetry(this.call_thread);
         }
 
         /* 5)  Notifie l’UI */
@@ -181,6 +217,22 @@ export default class OseliaRealtimeController extends VueComponentBase {
         audio.play().catch(err => console.error("Erreur de lecture :", err));
     }
 
+    /**
+     * Crée un message technique (système) dans le thread sans déclencher l'assistant
+     */
+    private async create_technical_message(prompt: string): Promise<void> {
+        if (!this.call_thread || !prompt?.trim()) {
+            return;
+        }
+
+        // Appel direct à la nouvelle API pour créer un message technique
+        await ModuleGPT.getInstance().create_technical_message(
+            this.call_thread.gpt_thread_id,
+            prompt,
+            VueAppController.getInstance().data_user.id
+        );
+    }
+
     /**  Petit helper interne */
     private lock<T>(op: () => Promise<T>): Promise<T | void> {
         const next = this.ready.then(op).catch(console.error);
@@ -188,7 +240,74 @@ export default class OseliaRealtimeController extends VueComponentBase {
         return next;
     }
 
-    private async connect_to_server(gpt_thread_id: string | null) {
+    /**
+     * Met à jour un thread avec retry automatique en cas de conflit de concurrence
+     * @param thread_vo Le thread à mettre à jour
+     * @param maxRetries Nombre maximum de tentatives (par défaut 3)
+     * @param delayMs Délai entre les tentatives en ms (par défaut 500ms)
+     */
+    private async updateThreadWithRetry(
+        thread_vo: GPTAssistantAPIThreadVO,
+        maxRetries: number = 3,
+        delayMs: number = 500
+    ): Promise<void> {
+        let lastError: Error | null = null;
+
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                await ModuleDAO.getInstance().insertOrUpdateVO(thread_vo);
+                ConsoleHandler.log(`OseliaRealtimeController: Thread ${thread_vo.id} mis à jour avec succès (tentative ${attempt})`);
+                return; // Succès, on sort de la boucle
+
+            } catch (error) {
+                lastError = error;
+                const errorMsg = error?.message || String(error);
+
+                if (errorMsg.includes('The thread was modified by another request') ||
+                    errorMsg.includes('concurrent_modification') ||
+                    errorMsg.includes('409')) {
+
+                    ConsoleHandler.log(`OseliaRealtimeController: Conflit de concurrence détecté (tentative ${attempt}/${maxRetries}), retry dans ${delayMs}ms...`);
+
+                    if (attempt < maxRetries) {
+                        // Attendre avant la prochaine tentative
+                        await new Promise(resolve => setTimeout(resolve, delayMs));
+
+                        // Recharger le thread depuis la base pour avoir la version la plus récente
+                        try {
+                            const fresh_thread = await query(GPTAssistantAPIThreadVO.API_TYPE_ID)
+                                .filter_by_id(thread_vo.id)
+                                .select_vo<GPTAssistantAPIThreadVO>();
+
+                            if (fresh_thread) {
+                                // Appliquer nos modifications sur la version fraîche
+                                fresh_thread.current_oselia_assistant_id = thread_vo.current_oselia_assistant_id;
+                                fresh_thread.current_default_assistant_id = thread_vo.current_default_assistant_id;
+                                fresh_thread.realtime_activated = thread_vo.realtime_activated;
+                                thread_vo = fresh_thread;
+                                ConsoleHandler.log(`OseliaRealtimeController: Thread rechargé pour la tentative ${attempt + 1}`);
+                            }
+                        } catch (reloadError) {
+                            ConsoleHandler.error(`OseliaRealtimeController: Erreur lors du rechargement du thread: ${reloadError}`);
+                        }
+
+                        // Augmenter le délai pour la prochaine tentative (backoff exponentiel)
+                        delayMs = Math.min(delayMs * 1.5, 2000);
+                    }
+                } else {
+                    // Erreur non liée à la concurrence, on ne retry pas
+                    ConsoleHandler.error(`OseliaRealtimeController: Erreur non-concurrentielle lors de la mise à jour du thread: ${error}`);
+                    throw error;
+                }
+            }
+        }
+
+        // Si on arrive ici, toutes les tentatives ont échoué
+        ConsoleHandler.error(`OseliaRealtimeController: Échec de la mise à jour du thread après ${maxRetries} tentatives. Dernière erreur: ${lastError}`);
+        throw new Error(`Impossible de mettre à jour le thread après ${maxRetries} tentatives: ${lastError}`);
+    }
+
+    private async connect_to_server(gpt_thread_id: string | null, prompt?: string) {
         if (this.is_connected_to_realtime) return;
         try {
             if (this.session_overload_object) {
@@ -201,7 +320,8 @@ export default class OseliaRealtimeController extends VueComponentBase {
                 String(this.call_thread.id),
                 VueAppController.getInstance().data_user.id,
                 this.oselia_run_template,
-                Object.keys(this.map_cache_vo)[0]
+                this.map_cache_vo ? Object.keys(this.map_cache_vo)[0] : null,
+                prompt // Passer le prompt comme message technique
             );
 
             const { protocol, hostname, port } = window.location;
@@ -228,8 +348,8 @@ export default class OseliaRealtimeController extends VueComponentBase {
             };
 
             this.is_connected_to_realtime = true;
-            this.call_thread!.realtime_activated = true;
-            await ModuleDAO.getInstance().insertOrUpdateVO(this.call_thread);
+            // realtime_activated est déjà défini plus tôt dans _connect_impl
+            await this.updateThreadWithRetry(this.call_thread);
         } catch (err) {
             ConsoleHandler.error('OseliaRealtimeController : Erreur connexion websocket: ' + err);
             this.connecting = false;
@@ -244,7 +364,10 @@ export default class OseliaRealtimeController extends VueComponentBase {
         this.connection_ready = false;
         if (this.call_thread && this.call_thread.realtime_activated) {
             this.call_thread.realtime_activated = false;
-            await ModuleDAO.getInstance().insertOrUpdateVO(this.call_thread);
+            await this.updateThreadWithRetry(this.call_thread);
+
+            // Note: Le run realtime spécifique à cette session est automatiquement fermé
+            // côté serveur lors de la fermeture du WebSocket OpenAI (voir GPTAssistantAPIServerController)
         }
         const audio = new Audio("public/vuejsclient/sound/realtime-deactivated.mp3");
         audio.play().catch(err => console.error("Erreur de lecture :", err));

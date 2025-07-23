@@ -135,16 +135,25 @@ export default class DiagramLayout {
         const blockPositions: { [id: string]: BlockPosition } = {};
         const resultsLinks: LinkDrawInfo[] = [];
 
-        // Liste des runs
+        // Trouve les runs "root" (sans parent ou parent pas dans items)
+        const runItems = items as { [id: string]: OseliaRunVO };
         const runIds = Object.keys(items).filter(id => {
             return items[id]._type === OseliaRunVO.API_TYPE_ID;
         });
 
-        // On parcourt chaque run, on le place, puis on place directement ses Calls
+        const rootRuns = runIds.filter(rId => {
+            const run = runItems[rId];
+            if (!run.parent_run_id) return true; // pas de parent => root
+            // vérifier si son parent est dans les items actuels
+            const parentId = String(run.parent_run_id);
+            return !runIds.includes(parentId);
+        });
+
+        // Layout récursif des runs avec hiérarchie
         let currentY = 0;
-        for (const runId of runIds) {
-            currentY = this.layoutOneRunWithCalls(
-                runId,
+        for (const rootId of rootRuns) {
+            currentY = this.layoutRunRecursively(
+                rootId,
                 currentY,
                 adjacency,
                 items,
@@ -158,6 +167,70 @@ export default class DiagramLayout {
             blockPositions,
             drawnLinks: resultsLinks
         };
+    }
+
+    /**
+     * NOUVEAU : Layout récursif pour les runs avec hiérarchie (agents avec enfants)
+     */
+    private static layoutRunRecursively(
+        runId: string,
+        startY: number,
+        adjacency: { [id: string]: string[] },
+        items: { [id: string]: OseliaRunVO | OseliaRunFunctionCallVO },
+        blockPositions: { [id: string]: BlockPosition },
+        resultsLinks: LinkDrawInfo[],
+        expandedRuns: { [id: string]: boolean }
+    ): number {
+
+        let currentY = this.layoutOneRunWithCalls(
+            runId,
+            startY,
+            adjacency,
+            items,
+            blockPositions,
+            resultsLinks,
+            expandedRuns
+        );
+
+        // Si c'est un agent et qu'il est étendu, placer ses enfants
+        const run = items[runId] as OseliaRunVO;
+        if (run.run_type === OseliaRunVO.RUN_TYPE_AGENT && expandedRuns[runId]) {
+            const childIds = adjacency[runId] || [];
+            const childRunIds = childIds.filter(cId =>
+                items[cId] && items[cId]._type === OseliaRunVO.API_TYPE_ID
+            );
+
+            for (const childId of childRunIds) {
+                currentY = this.layoutRunRecursively(
+                    childId,
+                    currentY,
+                    adjacency,
+                    items,
+                    blockPositions,
+                    resultsLinks,
+                    expandedRuns
+                );
+
+                // Créer un lien du parent vers l'enfant
+                const parentPos = blockPositions[runId];
+                const childPos = blockPositions[childId];
+                if (parentPos && childPos) {
+                    const pathPoints = this.createElbowPoints(
+                        parentPos.x + parentPos.w / 2,
+                        parentPos.y + parentPos.h,
+                        childPos.x + childPos.w / 2,
+                        childPos.y
+                    );
+                    resultsLinks.push({
+                        sourceItemId: runId,
+                        targetItemId: childId,
+                        pathPoints
+                    });
+                }
+            }
+        }
+
+        return currentY;
     }
 
     /**

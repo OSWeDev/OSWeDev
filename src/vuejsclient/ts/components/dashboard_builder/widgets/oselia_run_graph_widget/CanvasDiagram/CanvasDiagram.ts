@@ -281,7 +281,7 @@ export default class CanvasDiagram extends VueComponentBase {
     @Watch('updatedItem')
     onUpdatedItemChange() {
         if (this.updatedItem) {
-            this.items[this.updatedItem.id] = this.updatedItem;
+            this.$set(this.items, this.updatedItem.id, this.updatedItem);
             this.throttle_reRender();
         }
     }
@@ -790,6 +790,9 @@ export default class CanvasDiagram extends VueComponentBase {
         if (this.isRunVo) return;
 
         const parentVO = this.items[parentId] as OseliaRunTemplateVO;
+        if (!parentVO.children) {
+            parentVO.children = [];
+        }
         parentVO.children = [];
         let weight = 0;
 

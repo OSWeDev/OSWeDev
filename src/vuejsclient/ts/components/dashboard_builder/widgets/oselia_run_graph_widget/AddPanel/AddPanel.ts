@@ -26,6 +26,7 @@ export default class AddPanel extends VueComponentBase {
 
     public localDisplayMode: 'templates' | 'runs' = 'templates';
     public addSearch: string = '';
+    private is_changing_mode: boolean = false;
 
     get itemsArray(): Array<OseliaRunTemplateVO | OseliaRunVO> {
         const rawItems = Array.isArray(this.items)
@@ -56,8 +57,12 @@ export default class AddPanel extends VueComponentBase {
         this.onModeChange();
     }
     private onModeChange() {
-        if (this.changeDisplayModeFn) {
+        if (this.changeDisplayModeFn && !this.is_changing_mode) {
+            this.is_changing_mode = true;
             this.changeDisplayModeFn(this.localDisplayMode);
+            setTimeout(() => {
+                this.is_changing_mode = false;
+            }, 50);
         }
     }
 

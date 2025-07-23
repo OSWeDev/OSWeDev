@@ -301,7 +301,7 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
             .exec_as_server()
             .select_vos<GPTAssistantAPIThreadMessageContentVO>();
 
-        let user = null;
+        const user = null;
 
         for (const i in contents) {
             const content = contents[i];
@@ -344,7 +344,7 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
 
                     // On ajoute le nom de l'emetteur du message + son id - si on est sur un message de type user
                     // eslint-disable-next-line no-case-declarations
-                    let content_type_text = content.content_type_text.value;
+                    const content_type_text = content.content_type_text.value;
                     // if (vo.role == GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_USER) {
                     //     if (!user) {
                     //         user = await query(UserVO.API_TYPE_ID).filter_by_id(vo.user_id).exec_as_server().select_vo<UserVO>();
@@ -478,24 +478,34 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
             thread_message_vo = new GPTAssistantAPIThreadMessageVO();
 
             // Identifier le run qui a enclenché la création de ce message
-            const gpt_run_vo: GPTAssistantAPIRunVO = await query(GPTAssistantAPIRunVO.API_TYPE_ID)
-                .filter_by_text_eq(field_names<GPTAssistantAPIRunVO>().gpt_run_id, thread_message.run_id)
-                .filter_by_num_eq(field_names<GPTAssistantAPIRunVO>().thread_id, thread_vo.id)
-                .exec_as_server()
-                .select_vo<GPTAssistantAPIRunVO>();
+            // Pour les messages realtime, run_id peut être null
+            let gpt_run_vo: GPTAssistantAPIRunVO = null;
 
-            if (!gpt_run_vo) {
-                throw new Error('Error while syncing thread message : gpt_run_vo not found for run_id : ' + thread_message.run_id);
+            if (thread_message.run_id) {
+                gpt_run_vo = await query(GPTAssistantAPIRunVO.API_TYPE_ID)
+                    .filter_by_text_eq(field_names<GPTAssistantAPIRunVO>().gpt_run_id, thread_message.run_id)
+                    .filter_by_num_eq(field_names<GPTAssistantAPIRunVO>().thread_id, thread_vo.id)
+                    .exec_as_server()
+                    .select_vo<GPTAssistantAPIRunVO>();
+
+                if (!gpt_run_vo) {
+                    throw new Error('Error while syncing thread message : gpt_run_vo not found for run_id : ' + thread_message.run_id);
+                }
             }
 
-            const oselia_run: OseliaRunVO = await query(OseliaRunVO.API_TYPE_ID)
-                .filter_by_num_eq(field_names<OseliaRunVO>().thread_id, thread_vo.id)
-                .filter_by_num_eq(field_names<OseliaRunVO>().run_gpt_run_id, gpt_run_vo.id)
-                .exec_as_server()
-                .select_vo<OseliaRunVO>();
+            let oselia_run: OseliaRunVO = null;
+
+            // Si on a un gpt_run_vo, on cherche le run Oselia associé
+            if (gpt_run_vo) {
+                oselia_run = await query(OseliaRunVO.API_TYPE_ID)
+                    .filter_by_num_eq(field_names<OseliaRunVO>().thread_id, thread_vo.id)
+                    .filter_by_num_eq(field_names<OseliaRunVO>().run_gpt_run_id, gpt_run_vo.id)
+                    .exec_as_server()
+                    .select_vo<OseliaRunVO>();
+            }
 
             if (oselia_run) {
-                thread_message_vo.oselia_run_id = oselia_run ? oselia_run.id : null;
+                thread_message_vo.oselia_run_id = oselia_run.id;
                 thread_message_vo.autogen_voice_summary = oselia_run.generate_voice_summary;
             }
 
@@ -890,7 +900,7 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
 
                     // On ajoute le nom de l'emetteur du message + son id - si on est sur un message de type user
                     // eslint-disable-next-line no-case-declarations
-                    let content_type_text = content.content_type_text.value;
+                    const content_type_text = content.content_type_text.value;
                     // if (vo.role == GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_USER) {
                     //     const intro_info_user = GPTAssistantAPIServerSyncThreadMessagesController.get_user_info_prefix_for_content_text(user);
                     //     if (!content_type_text.startsWith(intro_info_user)) {

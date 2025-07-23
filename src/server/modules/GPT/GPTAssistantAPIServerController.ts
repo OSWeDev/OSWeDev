@@ -65,6 +65,8 @@ interface ConversationContext {
     vo?: unknown;
     current_user: UserVO;
     current_thread_id: string;
+    session_run?: OseliaRunVO; // Run Oselia associé à cette session realtime
+    conversation_summary?: string; // Résumé de la conversation existante pour Realtime
 }
 export default class GPTAssistantAPIServerController {
 
@@ -1009,6 +1011,32 @@ export default class GPTAssistantAPIServerController {
                 generate_voice_summary,
             );
 
+            // Vérifier si une session Realtime est active pour ce thread
+            const activeRealtimeConversation = this.get_active_realtime_conversation(thread_vo);
+
+            if (activeRealtimeConversation && !hide_prompt) {
+                // Si Realtime est actif, créer le message utilisateur pour l'historique
+                asking_message_vo = await this.get_asking_message(
+                    thread_vo,
+                    oselia_run,
+                    last_thread_msg,
+                    user_id,
+                    content_text,
+                    files,
+                    hide_prompt,
+                    false
+                );
+
+                // Envoyer le message via Realtime pour obtenir une réponse vocale
+                await this.send_message_to_realtime_if_active(thread_vo, content_text, user_id);
+
+                // Déclencher la synchronisation pour que le message apparaisse dans l'interface
+                await GPTAssistantAPIServerController.resync_thread_messages(thread_vo);
+
+                // Retourner le message créé pour l'affichage, mais la réponse viendra via Realtime
+                return [asking_message_vo];
+            }
+
             asking_message_vo = await this.get_asking_message(
                 thread_vo,
                 oselia_run,
@@ -1016,7 +1044,8 @@ export default class GPTAssistantAPIServerController {
                 user_id,
                 content_text,
                 files,
-                hide_prompt
+                hide_prompt,
+                false  // toujours false maintenant
             );
 
             // à cette étape, le RUN est lancé côté OpenAI, on peut faire les chargements potentiellement nécessaires pour les fonctions
@@ -1149,6 +1178,175 @@ export default class GPTAssistantAPIServerController {
         return new_messages;
     }
 
+    /**
+     * Créer un message technique (système) dans un thread sans déclencher d'assistant
+     * Utilisé pour ajouter des informations contextuelles qui ne nécessitent pas de réponse
+     * @param gpt_thread_id ID du thread GPT
+     * @param content_text Contenu du message technique
+     * @param user_id ID de l'utilisateur
+     * @returns Le message créé
+     */
+    public static async create_technical_message(
+        gpt_thread_id: string,
+        content_text: string,
+        user_id: number = null
+    ): Promise<GPTAssistantAPIThreadMessageVO> {
+
+        if (!gpt_thread_id || !content_text?.trim()) {
+            return null;
+        }
+
+        // Récupération du thread
+        const thread_vo = await query(GPTAssistantAPIThreadVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<GPTAssistantAPIThreadVO>().gpt_thread_id, gpt_thread_id)
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIThreadVO>();
+
+        if (!thread_vo) {
+            ConsoleHandler.error('GPTAssistantAPIServerController.create_technical_message: thread not found: ' + gpt_thread_id);
+            return null;
+        }
+
+        if (!user_id) {
+            user_id = thread_vo.user_id || await ModuleVersionedServer.getInstance().get_robot_user_id();
+        }
+
+        try {
+            // Vérifier si une session Realtime est active pour ce thread
+            const activeRealtimeConversation = this.get_active_realtime_conversation(thread_vo);
+
+            if (activeRealtimeConversation) {
+                // Si Realtime est actif, envoyer via Realtime ET sauvegarder pour le contexte permanent
+                await this.send_message_to_realtime_if_active(thread_vo, `[TECHNICAL INFO] ${content_text}`, user_id);
+
+                // Créer le message directement en base pour maintenir le contexte permanent
+                // (sera synchronisé avec OpenAI à la fin de la session Realtime)
+                const lastMessage = await query(GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
+                    .filter_by_num_eq(field_names<GPTAssistantAPIThreadMessageVO>().thread_id, thread_vo.id)
+                    .filter_is_false(field_names<GPTAssistantAPIThreadMessageVO>().archived)
+                    .set_sort(new SortByVO(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().weight, false))
+                    .set_limit(1)
+                    .exec_as_server()
+                    .select_vo<GPTAssistantAPIThreadMessageVO>();
+
+                const nextWeight = (lastMessage ? lastMessage.weight : 0) + 1;
+
+                const technical_message = new GPTAssistantAPIThreadMessageVO();
+                technical_message.thread_id = thread_vo.id;
+                technical_message.gpt_thread_id = thread_vo.gpt_thread_id;
+                technical_message.user_id = user_id;
+                technical_message.role = GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_USER;
+                technical_message.date = Dates.now();
+                // Ne pas pré-générer d'ID GPT - laissons OpenAI créer l'ID lors de la synchronisation
+                technical_message.weight = nextWeight;
+                technical_message.archived = false;
+
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(technical_message);
+
+                // Créer le contenu texte
+                const text_content = new GPTAssistantAPIThreadMessageContentTextVO();
+                text_content.value = `[TECHNICAL INFO] ${content_text}`;
+                text_content.annotations = [];
+
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(text_content);
+
+                // Créer le contenu du message et le lier au texte
+                const message_content = new GPTAssistantAPIThreadMessageContentVO();
+                message_content.thread_message_id = technical_message.id;
+                message_content.gpt_thread_message_id = technical_message.gpt_id;
+                message_content.type = GPTAssistantAPIThreadMessageContentVO.TYPE_TEXT;
+                message_content.weight = 0;
+                message_content.content_type_text = text_content;
+
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(message_content);
+
+                // Marquer le thread comme ayant du contenu
+                if (!thread_vo.has_content) {
+                    thread_vo.has_content = true;
+                    await ModuleDAOServer.instance.insertOrUpdateVO_as_server(thread_vo);
+                }
+
+                ConsoleHandler.log(`GPTAssistantAPIServerController.create_technical_message: Message technique envoyé via Realtime et sauvegardé pour le thread ${thread_vo.id}`);
+                return technical_message;
+            }
+
+            // Création du message directement dans OpenAI avec le rôle USER (OpenAI ne supporte pas les messages SYSTEM après création)
+            const openai_message = await GPTAssistantAPIServerController.wrap_api_call(
+                ModuleGPTServer.openai.beta.threads.messages.create,
+                ModuleGPTServer.openai.beta.threads.messages,
+                gpt_thread_id,
+                {
+                    role: 'user', // OpenAI ne permet que 'user' ou 'assistant' dans les messages
+                    content: `[TECHNICAL INFO] ${content_text}`, // Préfixe pour indiquer que c'est technique
+                }
+            );
+
+            if (!openai_message) {
+                ConsoleHandler.error('GPTAssistantAPIServerController.create_technical_message: failed to create message in OpenAI');
+                return null;
+            }
+
+            // Synchronisation du message depuis OpenAI vers notre base
+            await GPTAssistantAPIServerController.resync_thread_messages(thread_vo);
+
+            // Récupération du message créé dans notre base après synchronisation
+            const technical_message = await query(GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
+                .filter_by_text_eq(field_names<GPTAssistantAPIThreadMessageVO>().gpt_id, openai_message.id)
+                .exec_as_server()
+                .select_vo<GPTAssistantAPIThreadMessageVO>();
+
+            if (technical_message) {
+                // Marquer le thread comme ayant du contenu
+                if (!thread_vo.has_content) {
+                    thread_vo.has_content = true;
+                    await ModuleDAOServer.instance.insertOrUpdateVO_as_server(thread_vo);
+                }
+
+                // Envoyer le message au realtime si une session est active
+                await this.send_message_to_realtime_if_active(thread_vo, `[TECHNICAL INFO] ${content_text}`, user_id);
+
+                return technical_message;
+            }
+
+            ConsoleHandler.error('GPTAssistantAPIServerController.create_technical_message: message created in OpenAI but not found after sync');
+            return null;
+
+        } catch (error) {
+            ConsoleHandler.error('GPTAssistantAPIServerController.create_technical_message: ' + error);
+            return null;
+        }
+    }
+
+    /**
+     * Ferme tous les runs en cours pour un thread donné (utilisé pour le realtime)
+     * @param thread_id L'ID du thread pour lequel fermer les runs
+     */
+    public static async close_realtime_runs(thread_id: number): Promise<void> {
+        if (!thread_id) {
+            return;
+        }
+
+        try {
+            const runs: OseliaRunVO[] = await query(OseliaRunVO.API_TYPE_ID)
+                .filter_by_num_eq('thread_id', thread_id)
+                .filter_by_num_eq('run_type', OseliaRunVO.RUN_TYPE_REALTIME)
+                .filter_is_null('end_date')
+                .select_vos<OseliaRunVO>();
+
+            if (runs?.length) {
+                for (const run of runs) {
+                    run.end_date = Dates.now();
+                    run.state = OseliaRunVO.STATE_DONE;
+                }
+
+                await ModuleDAOServer.instance.insertOrUpdateVOs_as_server(runs);
+                ConsoleHandler.log('GPTAssistantAPIServerController.close_realtime_runs: Closed ' + runs.length + ' realtime runs for thread_id: ' + thread_id);
+            }
+        } catch (error) {
+            ConsoleHandler.error('GPTAssistantAPIServerController.close_realtime_runs:ERROR: thread_id:' + thread_id + ':' + error);
+        }
+    }
+
     public static async postupdate_rdv_cr_vo_handle_pipe(vo: DAOUpdateVOHolder<any>) {
         // const convCtx = GPTAssistantAPIServerController.conversations.forEach(async (ctx) => {
         //     if (!ctx || !ctx.openaiSocket || !ctx.vo) {
@@ -1190,7 +1388,8 @@ export default class GPTAssistantAPIServerController {
         thread_id: string,
         user_id: number,
         oselia_run_template?: OseliaRunTemplateVO,
-        initial_cache_key?: string
+        initial_cache_key?: string,
+        technical_message_prompt?: string  // Nouveau paramètre pour le message technique
     ): Promise<void> {
         try {
             let session: GPTRealtimeAPISessionVO = null;
@@ -1220,12 +1419,91 @@ export default class GPTAssistantAPIServerController {
                 session.tool_choice = 'auto';
                 session.id = (await ModuleDAO.getInstance().insertOrUpdateVO(session)).id;
             }
-            await this.create_realtime_session(session, conversation_id, thread_id, user_id, oselia_run_template, initial_cache_key);
+            await this.create_realtime_session(session, conversation_id, thread_id, user_id, oselia_run_template, initial_cache_key, technical_message_prompt);
         } catch(error) {
             ConsoleHandler.error('GPTAssistantAPIServerController.connect_to_realtime_voice: ' + error);
         }
         return;
     }
+
+
+    /**
+     * Vérifie si un thread a une session realtime active
+     * @param thread_vo Le thread à vérifier
+     * @returns La conversation realtime active ou null
+     */
+    private static get_active_realtime_conversation(thread_vo: GPTAssistantAPIThreadVO): ConversationContext | null {
+        if (!thread_vo) {
+            return null;
+        }
+
+        // Rechercher une conversation active pour ce thread
+        for (const conversation of this.conversations.values()) {
+            if (conversation.current_thread_id === thread_vo.id.toString() &&
+                conversation.openaiSocket &&
+                conversation.openaiSocket.readyState === conversation.openaiSocket.OPEN) {
+                return conversation;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Envoie un message vers une session realtime active si elle existe
+     * @param thread_vo Le thread concerné
+     * @param content_text Le contenu du message
+     * @param user_id L'ID de l'utilisateur
+     */
+    private static async send_message_to_realtime_if_active(
+        thread_vo: GPTAssistantAPIThreadVO,
+        content_text: string,
+        user_id: number = null
+    ): Promise<void> {
+        const activeConversation = this.get_active_realtime_conversation(thread_vo);
+
+        if (!activeConversation || !content_text?.trim()) {
+            return;
+        }
+
+        try {
+            // Créer un message conversation item pour le realtime
+            const conversationItem = {
+                type: 'conversation.item.create',
+                item: {
+                    type: 'message',
+                    role: 'user',
+                    content: [
+                        {
+                            type: 'input_text',
+                            text: content_text
+                        }
+                    ]
+                }
+            };
+
+            // Envoyer le message à la session realtime
+            if (activeConversation.openaiSocket.readyState === activeConversation.openaiSocket.OPEN) {
+                activeConversation.openaiSocket.send(JSON.stringify(conversationItem));
+
+                // Déclencher une réponse automatique
+                const responseCreate = {
+                    type: 'response.create',
+                    response: {
+                        modalities: ['text', 'audio']
+                    }
+                };
+                activeConversation.openaiSocket.send(JSON.stringify(responseCreate));
+
+                if (ConfigurationService.node_configuration.debug_oselia_realtime) {
+                    ConsoleHandler.log(`Message envoyé au realtime pour thread ${thread_vo.id}: ${content_text}`);
+                }
+            }
+        } catch (error) {
+            ConsoleHandler.error('GPTAssistantAPIServerController.send_message_to_realtime_if_active: ' + error);
+        }
+    }
+
 
     /**
      * Initialise (si besoin) le serveur WebSocket local **et** la socket OpenAI pour la conversation.
@@ -1237,7 +1515,8 @@ export default class GPTAssistantAPIServerController {
         thread_id: string,
         user_id: number,
         oselia_run_template?: OseliaRunTemplateVO,
-        initial_cache_key?: string
+        initial_cache_key?: string,
+        technical_message_prompt?: string  // Nouveau paramètre pour le message technique
     ): Promise<void> {
         try {
             if (!session) {
@@ -1258,14 +1537,30 @@ export default class GPTAssistantAPIServerController {
                 ConsoleHandler.error('GPTAssistantAPIServerController.create_realtime_session: oselia_run_template not found');
                 throw new Error('GPTAssistantAPIServerController.create_realtime_session: oselia_run_template not found');
             }
+
+            // Déterminer l'assistant à utiliser :
+            // 1. Assistant du template (priorité)
+            // 2. Assistant Osélia actuel du thread
+            // 3. Assistant par défaut du thread
+            const assistant_id = oselia_run_template.assistant_id ||
+                                thread_vo.current_oselia_assistant_id ||
+                                thread_vo.current_default_assistant_id;
+
             const assistant = await query(GPTAssistantAPIAssistantVO.API_TYPE_ID)
-                .filter_by_num_eq(field_names<GPTAssistantAPIAssistantVO>().id, thread_vo.current_default_assistant_id)
+                .filter_by_num_eq(field_names<GPTAssistantAPIAssistantVO>().id, assistant_id)
                 .exec_as_server()
                 .select_vo<GPTAssistantAPIAssistantVO>();
 
             if (!assistant) {
-                ConsoleHandler.error('GPTAssistantAPIServerController.create_realtime_session: assistant not found');
-                throw new Error('GPTAssistantAPIServerController.create_realtime_session: assistant not found');
+                ConsoleHandler.error(`GPTAssistantAPIServerController.create_realtime_session: assistant not found for id: ${assistant_id}`);
+                throw new Error(`GPTAssistantAPIServerController.create_realtime_session: assistant not found for id: ${assistant_id}`);
+            }
+
+            // Mettre à jour le thread avec l'assistant choisi pour maintenir la cohérence
+            if (thread_vo.current_oselia_assistant_id !== assistant.id) {
+                thread_vo.current_oselia_assistant_id = assistant.id;
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(thread_vo);
+                ConsoleHandler.log(`GPTAssistantAPIServerController.create_realtime_session: Thread ${thread_vo.id} mis à jour avec assistant ${assistant.id}`);
             }
             const user = await query(UserVO.API_TYPE_ID)
                 .filter_by_id(user_id)
@@ -1294,21 +1589,53 @@ export default class GPTAssistantAPIServerController {
             if(initial_cache_key) {
                 initial_cache_values = await ModuleOseliaServer.getInstance().get_cache_value(thread_vo, initial_cache_key);
             }
-            const session_run = await OseliaRunTemplateServerController.create_run_from_template(
-                oselia_run_template,
-                null,
-                initial_cache_values ? { [initial_cache_key]: initial_cache_values } : null,
-                null,
-                thread_vo,
-                user,
-                null,
-                null,
-                null,
-                false
-            );
-            session_run.run_type = OseliaRunVO.RUN_TYPE_REALTIME;
-            session_run.state = OseliaRunVO.STATE_RUNNING;
-            await ModuleDAOServer.instance.insertOrUpdateVO_as_server(session_run);
+
+            // Vérifier s'il existe déjà un run realtime actif pour ce thread
+            let session_run = await query(OseliaRunVO.API_TYPE_ID)
+                .filter_by_num_eq('thread_id', thread_vo.id)
+                .filter_by_num_eq('run_type', OseliaRunVO.RUN_TYPE_REALTIME)
+                .filter_is_null('end_date')
+                .exec_as_server()
+                .select_vo<OseliaRunVO>();
+
+            if (!session_run) {
+                // Aucun run realtime actif trouvé, créer un nouveau run
+                session_run = await OseliaRunTemplateServerController.create_run_from_template(
+                    oselia_run_template,
+                    null,
+                    initial_cache_values ? { [initial_cache_key]: initial_cache_values } : null,
+                    null,
+                    thread_vo,
+                    user,
+                    null,
+                    null,
+                    null,
+                    false
+                );
+                session_run.run_type = OseliaRunVO.RUN_TYPE_REALTIME;
+                session_run.state = OseliaRunVO.STATE_RUNNING;
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(session_run);
+                ConsoleHandler.log(`GPTAssistantAPIServerController.create_realtime_session: Nouveau run realtime créé (id: ${session_run.id}) pour thread_id: ${thread_vo.id}`);
+            } else {
+                // Réutiliser le run existant et le marquer comme actif
+                session_run.state = OseliaRunVO.STATE_RUNNING;
+                session_run.end_date = null; // S'assurer qu'il n'est pas marqué comme terminé
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(session_run);
+                ConsoleHandler.log(`GPTAssistantAPIServerController.create_realtime_session: Réutilisation du run realtime existant (id: ${session_run.id}) pour thread_id: ${thread_vo.id}`);
+            }
+
+            // Générer un résumé de la conversation si le thread a du contenu existant
+            let conversationSummary = '';
+            if (thread_vo.has_content) {
+                try {
+                    conversationSummary = await this.generate_conversation_summary(thread_vo);
+                    if (conversationSummary && conversationSummary.length > 0) {
+                        ConsoleHandler.log(`GPTAssistantAPIServerController.create_realtime_session: Résumé généré pour le thread ${thread_vo.id} (${conversationSummary.length} caractères)`);
+                    }
+                } catch (error) {
+                    ConsoleHandler.error(`GPTAssistantAPIServerController.create_realtime_session: Erreur lors de la génération du résumé: ${error}`);
+                }
+            }
 
             // Préparation des tools pour OpenAI
             const functions: GPTAssistantAPIFunctionVO[] = Object.values(availableFunctions);
@@ -1347,8 +1674,6 @@ export default class GPTAssistantAPIServerController {
                 }
                 // —> Connexion d’un client navigateur / app
                 this.wss.on('connection', (clientSocket: WebSocket) => {
-                    session_run.state = OseliaRunVO.STATE_RUNNING;
-                    ModuleDAOServer.instance.insertOrUpdateVO_as_server(session_run);
                     let joinedConversationId: string | null = null;
 
                     /**
@@ -1374,6 +1699,14 @@ export default class GPTAssistantAPIServerController {
                                 }
                                 convCtx.clients.add(clientSocket);
                                 convCtx.current_thread_id = thread_id;
+
+                                // Maintenant qu'on connaît la conversation, on peut activer le bon run
+                                if (convCtx.session_run && convCtx.session_run.state !== OseliaRunVO.STATE_RUNNING) {
+                                    convCtx.session_run.state = OseliaRunVO.STATE_RUNNING;
+                                    await ModuleDAOServer.instance.insertOrUpdateVO_as_server(convCtx.session_run);
+                                    ConsoleHandler.log(`GPTAssistantAPIServerController: Run ${convCtx.session_run.id} remis en état RUNNING pour la conversation ${joinedConversationId}`);
+                                }
+
                                 /* replay tous les messages manqués */
                                 for (const bufferedMsg of convCtx.buffered) {
                                     clientSocket.send(JSON.stringify(bufferedMsg));
@@ -1415,8 +1748,16 @@ export default class GPTAssistantAPIServerController {
                             if (convCtx) {
                                 convCtx.clients.delete(clientSocket);
                                 if (convCtx.clients.size === 0) {
-                                    // Dernier participant : on ferme la socket OpenAI
+                                    // Dernier participant : on ferme la socket OpenAI et synchronise les messages
                                     if (convCtx.openaiSocket.readyState === WebSocket.OPEN) convCtx.openaiSocket.close();
+
+                                    // Synchroniser les messages Realtime avec OpenAI après la fermeture de la session
+                                    this.sync_realtime_messages_to_openai(convCtx.current_thread_id).then(() => {
+                                        ConsoleHandler.log(`GPTAssistantAPIServerController: Messages Realtime synchronisés avec OpenAI pour le thread ${convCtx.current_thread_id}`);
+                                    }).catch((error) => {
+                                        ConsoleHandler.error(`GPTAssistantAPIServerController: Erreur lors de la synchronisation des messages Realtime: ${error}`);
+                                    });
+
                                     this.conversations.delete(joinedConversationId);
                                 }
                             }
@@ -1453,6 +1794,8 @@ export default class GPTAssistantAPIServerController {
                 current_user,
                 current_thread_id: thread_id,
                 vo: undefined,
+                session_run: session_run, // Stocker le run pour pouvoir l'arrêter proprement
+                conversation_summary: conversationSummary, // Résumé de la conversation existante
             } as const;
             this.conversations.set(conversationId, convCtx);
 
@@ -1513,7 +1856,7 @@ export default class GPTAssistantAPIServerController {
                 },
             };
 
-            openaiSocket.once('open', () => {
+            openaiSocket.once('open', async () => {
                 openaiSocket.send(JSON.stringify(sessionUpdate));
                 if(initial_cache_key && initial_cache_values) {
                     openaiSocket.send(JSON.stringify({
@@ -1529,6 +1872,44 @@ export default class GPTAssistantAPIServerController {
                             ]
                         },
                     }));
+                }
+
+                // Envoyer le message technique initial si fourni (contexte prime, CR, etc.)
+                if (technical_message_prompt && technical_message_prompt.trim()) {
+                    openaiSocket.send(JSON.stringify({
+                        type: 'conversation.item.create',
+                        item: {
+                            type: 'message',
+                            role: "system",
+                            content: [
+                                {
+                                    type: "input_text",
+                                    text: `[TECHNICAL INFO] ${technical_message_prompt}`
+                                }
+                            ]
+                        },
+                    }));
+
+                    // Créer aussi le message en base pour l'historique permanent
+                    await this.create_technical_message(thread_vo.gpt_thread_id, technical_message_prompt, user_id);
+                }
+
+                // Envoyer le résumé de la conversation existante en mode technique si disponible
+                if (convCtx.conversation_summary && convCtx.conversation_summary.length > 0) {
+                    openaiSocket.send(JSON.stringify({
+                        type: 'conversation.item.create',
+                        item: {
+                            type: 'message',
+                            role: "system",
+                            content: [
+                                {
+                                    type: "input_text",
+                                    text: convCtx.conversation_summary
+                                }
+                            ]
+                        },
+                    }));
+                    ConsoleHandler.log(`GPTAssistantAPIServerController: Résumé de conversation envoyé à Realtime pour le thread ${convCtx.current_thread_id}`);
                 }
             });
 
@@ -1583,7 +1964,7 @@ export default class GPTAssistantAPIServerController {
                     return;
                 }
 
-                // 4) — APPels de fonctions ------------------------------------------------
+                // 4) — APPels de fonctions ------------------------------------------------------
                 if (msg?.type === 'response.output_item.done' && msg.item?.type === 'function_call') {
 
                     const { name: fnName, arguments: rawArgs, call_id: callId, id: itemId } = msg.item;
@@ -1614,7 +1995,7 @@ export default class GPTAssistantAPIServerController {
                         }
 
                         // Type inattendu
-                        ConsoleHandler.warn(`Type inattendu pour arguments de ${fnName} :`, typeof rawArgs);
+                        ConsoleHandler.warn(`GPTAssistantAPIServerController.create_realtime_session: Type inattendu pour arguments de ${fnName} :`, typeof rawArgs);
                         return {};
                     })();
 
@@ -1643,112 +2024,6 @@ export default class GPTAssistantAPIServerController {
                                 {} // referrer_external_api_by_name
                             );
                         }
-
-                        // try {
-                        //     switch (fnName) {
-                        //         case 'edit_cr_word': {
-                        //             if(args.confidence && args.confidence < 100) {
-                        //                 output = { error: confidence_error_msg };
-                        //                 break;
-                        //             }
-                        //             output = await ModuleGPT.getInstance().edit_cr_word(
-                        //                 args.new_content,
-                        //                 args.section,
-                        //                 convCtx.cr_vo,
-                        //                 convCtx.cr_field_titles,
-                        //             );
-                        //             break;
-                        //         }
-                        //         case 'get_cr_field_titles': {
-                        //             if(args.confidence && args.confidence < 100) {
-                        //                 output = { error: confidence_error_msg };
-                        //                 break;
-                        //             }
-                        //             output = convCtx.cr_field_titles ?? [];
-                        //             break;
-                        //         }
-                        //         case 'get_current_cr_field': {
-                        //             if(args.confidence && args.confidence < 100) {
-                        //                 output = { error: confidence_error_msg };
-                        //                 break;
-                        //             }
-                        //             const cr_titles = convCtx.cr_field_titles ? convCtx.cr_field_titles.map(str => str.trim()).filter(str => str.length > 0) : [];
-                        //             const idx = cr_titles?.indexOf(args.section) ?? -1;
-                        //             output = idx >= 0 ? (convCtx.cr_vo as any)?.html_contents[idx] : null;
-                        //             break;
-                        //         }
-                        //         case 'get_current_user_name': {
-                        //             if(args.confidence && args.confidence < 100) {
-                        //                 output = { error: confidence_error_msg };
-                        //                 break;
-                        //             }
-                        //             output = convCtx.current_user?.name ?? null;
-                        //             break;
-                        //         }
-                        //         case 'get_current_consultant': {
-                        //             if(args.confidence && args.confidence < 100) {
-                        //                 output = { error: confidence_error_msg };
-                        //                 break;
-                        //             }
-                        //             const name = convCtx.cr_vo ? await ModuleProgramPlanBase.getInstance().getCurrentConsultant(convCtx.cr_vo): null;
-                        //             output = name;
-                        //             break;
-                        //         }
-                        //         case 'get_all_consultants': {
-                        //             if(args.confidence && args.confidence < 100) {
-                        //                 output = { error: confidence_error_msg };
-                        //                 break;
-                        //             }
-                        //             const consultants_names = await ModuleProgramPlanBase.getInstance()
-                        //                 .getAllConsultantsName();
-                        //             output = consultants_names;
-                        //             break;
-                        //         }
-                        //         case 'set_current_consultant': {
-                        //             if(args.confidence && args.confidence < 100) {
-                        //                 output = { error: confidence_error_msg };
-                        //                 break;
-                        //             }
-                        //             const list_of_consultants = await ModuleProgramPlanBase.getInstance()
-                        //                 .getAllConsultantsName();
-                        //             if (args.consultant_name && !list_of_consultants.includes(args.consultant_name)) {
-                        //                 output = { error: `Le consultant ${args.consultant_name} n'existe pas dans la liste des consultants. Il faut strictement un consultant existant de cette liste.` };
-                        //                 break;
-                        //             }
-                        //             output = await ModuleProgramPlanBase.getInstance()
-                        //                 .setConsultantName(
-                        //                     convCtx.cr_vo,
-                        //                     args.consultant_name
-                        //                 );
-                        //             break;
-                        //         }
-                        //         case 'set_first_etape': {
-
-                        //             output = await ModuleProgramPlanBase.getInstance()
-                        //                 .setFirstEtape(convCtx.prime_object);
-                        //             break;
-                        //         }
-                        //         case 'set_second_etape': {
-
-                        //             output = await ModuleProgramPlanBase.getInstance()
-                        //                 .setSecondEtape(convCtx.prime_object);
-                        //             break;
-                        //         }
-                        //         case 'set_third_etape': {
-
-                        //             output = await ModuleProgramPlanBase.getInstance()
-                        //                 .setThirdEtape(convCtx.prime_object);
-                        //             break;
-                        //         }
-                        //         case 'set_fourth_etape': {
-
-                    //             output = await ModuleProgramPlanBase.getInstance()
-                    //                 .setFourthEtape(convCtx.prime_object);
-                    //             break;
-                    //         }
-                    //         default:
-                    //             output = { error: `Fonction inconnue : ${fnName}` };
-                    //     }
                     } catch (err) {
                         ConsoleHandler.error(`GPTAssistantAPIServerController.create_realtime_session: ${err}`);
                         session_run.state = OseliaRunVO.STATE_ERROR;
@@ -1770,6 +2045,32 @@ export default class GPTAssistantAPIServerController {
                         c.send(JSON.stringify(msg));
                     }
                     return;
+                }
+
+                // 5.1) — Response créée (par OpenAI) - on sauvegarde la réponse de l'assistant dans le thread
+                if (msg?.type === 'response.done' && msg.response?.output?.length > 0) {
+                    // Extraire le contenu des messages de réponse
+                    for (const output_item of msg.response.output) {
+                        if (output_item.type === 'message' && output_item.content?.length > 0) {
+                            for (const content_part of output_item.content) {
+                                if (content_part.type === 'text' && content_part.text) {
+                                    // Sauvegarder la réponse de l'assistant dans le thread
+                                    // Utiliser send_transcription_to_thread pour créer directement en base (mode Realtime)
+                                    try {
+                                        this.send_transcription_to_thread(
+                                            convCtx.current_thread_id,
+                                            content_part.text,
+                                            convCtx.current_user.id,
+                                            true // from_oselia = true pour indiquer que c'est une réponse d'assistant
+                                        );
+                                    } catch (error) {
+                                        ConsoleHandler.error('GPTAssistantAPIServerController.create_realtime_session: Error saving assistant response to thread: ' + error);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    // Note: Pas besoin de resynchroniser car send_transcription_to_thread gère déjà la création en base
                 }
 
                 // 6) Transcription audio
@@ -1797,16 +2098,52 @@ export default class GPTAssistantAPIServerController {
             // ——————————————————————————————————————————
             //  Fermeture / Erreur socket OpenAI
             // ——————————————————————————————————————————
-            openaiSocket.on('close', () => {
+            openaiSocket.on('close', async () => {
+                // Synchroniser une dernière fois le thread pour s'assurer que tous les messages sont envoyés à OpenAI
+                if (convCtx.current_thread_id) {
+                    try {
+                        // Récupérer le thread_vo depuis l'ID
+                        const closing_thread_vo = await query(GPTAssistantAPIThreadVO.API_TYPE_ID)
+                            .filter_by_id(parseInt(convCtx.current_thread_id))
+                            .exec_as_server()
+                            .select_vo<GPTAssistantAPIThreadVO>();
+
+                        if (closing_thread_vo) {
+                            ConsoleHandler.log(`GPTAssistantAPIServerController.create_realtime_session: Synchronisation finale des messages pour le thread ${closing_thread_vo.id}`);
+                            await GPTAssistantAPIServerController.resync_thread_messages(closing_thread_vo);
+                        }
+                    } catch (error) {
+                        ConsoleHandler.error(`GPTAssistantAPIServerController.create_realtime_session: Erreur lors de la synchronisation finale: ${error}`);
+                    }
+                }
+
+                // Fermer proprement le run Oselia associé à cette session
+                if (convCtx.session_run) {
+                    try {
+                        convCtx.session_run.state = OseliaRunVO.STATE_DONE;
+                        convCtx.session_run.end_date = Dates.now();
+                        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(convCtx.session_run);
+                        ConsoleHandler.log(`GPTAssistantAPIServerController.create_realtime_session: Realtime session run ${convCtx.session_run.id} properly closed`);
+                    } catch (error) {
+                        ConsoleHandler.error(`GPTAssistantAPIServerController.create_realtime_session:Error closing realtime session run: ${error}`);
+                    }
+                }
+
                 for (const c of convCtx.clients) if (c.readyState === WebSocket.OPEN) c.close();
                 this.conversations.delete(conversationId);
             });
 
-            openaiSocket.on('error', (err) => {
+            openaiSocket.on('error', async (err) => {
                 ConsoleHandler.error(`GPTAssistantAPIServerController.create_realtime_session: OpenAI socket error [${conversationId}] : ${err}`);
-                session_run.state = OseliaRunVO.STATE_ERROR;
-                session_run.error_msg = String(err);
-                ModuleDAOServer.instance.insertOrUpdateVO_as_server(session_run);
+
+                // Marquer le run comme erreur lors d'une erreur de socket
+                if (convCtx.session_run) {
+                    convCtx.session_run.state = OseliaRunVO.STATE_ERROR;
+                    convCtx.session_run.error_msg = String(err);
+                    convCtx.session_run.end_date = Dates.now();
+                    await ModuleDAOServer.instance.insertOrUpdateVO_as_server(convCtx.session_run);
+                }
+
                 openaiSocket.close();
             });
         } catch (error) {
@@ -1844,41 +2181,264 @@ export default class GPTAssistantAPIServerController {
             return;
         }
 
+        try {
+            // Vérifier si une session Realtime est active pour ce thread
+            const activeRealtimeConversation = this.get_active_realtime_conversation(thread_vo);
 
-        const last_thread_msg: GPTAssistantAPIThreadMessageVO = await query(GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
-            .filter_by_num_eq(field_names<GPTAssistantAPIThreadMessageVO>().thread_id, thread_vo.id)
-            .filter_is_false(field_names<GPTAssistantAPIThreadMessageVO>().archived)
-            .set_sort(new SortByVO(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().weight, true))
-            .set_limit(1)
-            .exec_as_server()
-            .select_vo<GPTAssistantAPIThreadMessageVO>();
+            if (activeRealtimeConversation) {
+                // Si Realtime est actif, créer directement le message en base sans passer par l'API OpenAI
+                // pour éviter les conflits tout en gardant l'historique
+                ConsoleHandler.log('send_transcription_to_thread: Creating local message because Realtime is active for thread: ' + thread_id);
 
-        const asking_message_vo = new GPTAssistantAPIThreadMessageVO();
-        asking_message_vo.date = Dates.now();
-        asking_message_vo.gpt_thread_id = thread_vo.gpt_thread_id;
-        asking_message_vo.thread_id = thread_vo.id;
-        asking_message_vo.weight = last_thread_msg ? last_thread_msg.weight + 1 : 0;
-        if (from_oselia) {
-            asking_message_vo.role = GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_ASSISTANT;
-        } else {
-            asking_message_vo.role = GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_USER;
+                // Obtenir le poids suivant pour ce thread
+                const lastMessage = await query(GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
+                    .filter_by_num_eq(field_names<GPTAssistantAPIThreadMessageVO>().thread_id, thread_vo.id)
+                    .filter_is_false(field_names<GPTAssistantAPIThreadMessageVO>().archived)
+                    .set_sort(new SortByVO(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().weight, false))
+                    .set_limit(1)
+                    .exec_as_server()
+                    .select_vo<GPTAssistantAPIThreadMessageVO>();
+
+                const nextWeight = (lastMessage ? lastMessage.weight : 0) + 1;
+
+                // Créer le message directement en base
+                const transcription_message = new GPTAssistantAPIThreadMessageVO();
+                transcription_message.thread_id = thread_vo.id;
+                transcription_message.gpt_thread_id = thread_vo.gpt_thread_id;
+                transcription_message.user_id = user_id || thread_vo.user_id;
+                transcription_message.role = from_oselia ? GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_ASSISTANT : GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_USER;
+                transcription_message.date = Dates.now();
+                // Ne pas pré-générer d'ID GPT - laissons OpenAI créer l'ID lors de la synchronisation
+                transcription_message.weight = nextWeight;
+                transcription_message.archived = false;
+
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(transcription_message);
+
+                // Créer le contenu texte d'abord
+                const text_content = new GPTAssistantAPIThreadMessageContentTextVO();
+                text_content.value = transcription;
+                text_content.annotations = [];
+
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(text_content);
+
+                // Créer le contenu du message et le lier au texte
+                const message_content = new GPTAssistantAPIThreadMessageContentVO();
+                message_content.thread_message_id = transcription_message.id;
+                message_content.gpt_thread_message_id = transcription_message.gpt_id;
+                message_content.type = GPTAssistantAPIThreadMessageContentVO.TYPE_TEXT;
+                message_content.weight = 0;
+                message_content.content_type_text = text_content; // Lier directement l'objet texte
+
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(message_content);
+
+                // Marquer le thread comme ayant du contenu
+                if (!thread_vo.has_content) {
+                    thread_vo.has_content = true;
+                    await ModuleDAOServer.instance.insertOrUpdateVO_as_server(thread_vo);
+                }
+
+                // Déclencher la synchronisation du thread pour actualiser l'interface
+                await GPTAssistantAPIServerController.resync_thread_messages(thread_vo);
+
+                ConsoleHandler.log('send_transcription_to_thread: Message de transcription créé localement pour thread: ' + thread_id + ' - contenu: ' + transcription.substring(0, 50) + '...');
+                return;
+            }
+
+            // Créer le message directement via l'API OpenAI pour assurer la synchronisation
+            const role = from_oselia ? 'assistant' : 'user';
+
+            await GPTAssistantAPIServerController.wrap_api_call(
+                ModuleGPTServer.openai.beta.threads.messages.create,
+                ModuleGPTServer.openai.beta.threads.messages,
+                thread_vo.gpt_thread_id,
+                {
+                    role: role,
+                    content: transcription,
+                }
+            );
+
+            // Resynchroniser automatiquement le thread pour récupérer le message créé
+            await GPTAssistantAPIServerController.resync_thread_messages(thread_vo);
+
+        } catch (error) {
+            ConsoleHandler.error('send_transcription_to_thread: Error creating message in OpenAI: ' + error);
         }
-        asking_message_vo.user_id = user_id ? user_id : thread_vo.user_id;
-        asking_message_vo.is_ready = false;
-        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(asking_message_vo);
+    }
 
-        const message_content = new GPTAssistantAPIThreadMessageContentVO();
-        message_content.thread_message_id = asking_message_vo.id;
-        message_content.content_type_text = new GPTAssistantAPIThreadMessageContentTextVO();
-        message_content.content_type_text.value = transcription;
-        message_content.gpt_thread_message_id = asking_message_vo.gpt_id;
-        message_content.type = GPTAssistantAPIThreadMessageContentVO.TYPE_TEXT;
-        message_content.weight = 0;
-        message_content.hidden = false;
-        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(message_content);
+    /**
+     * Génère un résumé textuel de la conversation existante dans un thread
+     * pour l'envoyer en mode technique à Realtime
+     */
+    private static async generate_conversation_summary(thread_vo: GPTAssistantAPIThreadVO): Promise<string> {
+        if (!thread_vo) {
+            return '';
+        }
 
-        asking_message_vo.is_ready = true;
-        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(asking_message_vo);
+        try {
+            // Récupérer tous les messages du thread (non archivés)
+            const messages = await query(GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
+                .filter_by_num_eq(field_names<GPTAssistantAPIThreadMessageVO>().thread_id, thread_vo.id)
+                .filter_is_false(field_names<GPTAssistantAPIThreadMessageVO>().archived)
+                .set_sort(new SortByVO(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().weight, true))
+                .exec_as_server()
+                .select_vos<GPTAssistantAPIThreadMessageVO>();
+
+            if (!messages || messages.length === 0) {
+                return '';
+            }
+
+            let summary = `**RÉSUMÉ DE LA CONVERSATION PRÉCÉDENTE**\n\n`;
+            summary += `Thread: ${thread_vo.thread_title || `Thread ${thread_vo.id}`}\n`;
+            summary += `Nombre de messages: ${messages.length}\n\n`;
+
+            // Parcourir les messages et extraire le contenu
+            for (const message of messages) {
+                try {
+                    // Récupérer le contenu du message
+                    const contents = await query(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID)
+                        .filter_by_num_eq(field_names<GPTAssistantAPIThreadMessageContentVO>().thread_message_id, message.id)
+                        .exec_as_server()
+                        .select_vos<GPTAssistantAPIThreadMessageContentVO>();
+
+                    if (!contents || contents.length === 0) {
+                        continue;
+                    }
+
+                    // Prendre le premier contenu de type texte
+                    const content = contents.find(c => c.content_type_text) || contents[0];
+                    if (!content || !content.content_type_text) {
+                        continue;
+                    }
+
+                    const text_content = await query(GPTAssistantAPIThreadMessageContentTextVO.API_TYPE_ID)
+                        .filter_by_id(content.content_type_text.id)
+                        .exec_as_server()
+                        .select_vo<GPTAssistantAPIThreadMessageContentTextVO>();
+
+                    if (!text_content || !text_content.value) {
+                        continue;
+                    }
+
+                    // Formater le message selon le rôle
+                    const role_label = message.role === GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_ASSISTANT ? 'Assistant' : 'Utilisateur';
+                    const date_str = message.date ? Dates.format(message.date, 'dd/MM/yyyy HH:mm') : '';
+
+                    summary += `**${role_label}** ${date_str ? `(${date_str})` : ''}:\n`;
+                    summary += `${text_content.value}\n\n`;
+
+                } catch (error) {
+                    ConsoleHandler.error(`generate_conversation_summary: Erreur lors de la récupération du message ${message.id}: ${error}`);
+                }
+            }
+
+            summary += `**FIN DU RÉSUMÉ**\n\n`;
+            summary += `Tu peux maintenant continuer la conversation en tenant compte de cet historique. L'utilisateur va maintenant communiquer avec toi en mode vocal temps réel.`;
+
+            return summary;
+
+        } catch (error) {
+            ConsoleHandler.error(`generate_conversation_summary: Erreur générale: ${error}`);
+            return '';
+        }
+    }
+
+    /**
+     * Synchronise les messages Realtime stockés en local avec OpenAI après la fermeture d'une session Realtime
+     */
+    private static async sync_realtime_messages_to_openai(thread_id: string) {
+        if (!thread_id) {
+            return;
+        }
+
+        try {
+            const thread_vo: GPTAssistantAPIThreadVO = await query(GPTAssistantAPIThreadVO.API_TYPE_ID)
+                .filter_by_id(parseInt(thread_id))
+                .exec_as_server()
+                .select_vo<GPTAssistantAPIThreadVO>();
+
+            if (!thread_vo) {
+                ConsoleHandler.error('sync_realtime_messages_to_openai: Thread not found');
+                return;
+            }
+
+            // Récupérer tous les messages créés localement (avec gpt_id commençant par 'realtime_')
+            const realtime_messages = await query(GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
+                .filter_by_num_eq(field_names<GPTAssistantAPIThreadMessageVO>().thread_id, thread_vo.id)
+                .filter_is_false(field_names<GPTAssistantAPIThreadMessageVO>().archived)
+                .exec_as_server()
+                .select_vos<GPTAssistantAPIThreadMessageVO>();
+
+            if (!realtime_messages || realtime_messages.length === 0) {
+                return;
+            }
+
+            // Filtrer les messages créés pendant la session Realtime (gpt_id commence par 'realtime_')
+            const messages_to_sync = realtime_messages.filter(msg =>
+                msg.gpt_id && msg.gpt_id.startsWith('realtime_')
+            );
+
+            if (messages_to_sync.length === 0) {
+                return;
+            }
+
+            ConsoleHandler.log(`sync_realtime_messages_to_openai: Synchronisation de ${messages_to_sync.length} messages Realtime avec OpenAI pour le thread ${thread_id}`);
+
+            // Trier les messages par poids pour maintenir l'ordre
+            messages_to_sync.sort((a, b) => a.weight - b.weight);
+
+            // Synchroniser chaque message avec OpenAI
+            for (const message of messages_to_sync) {
+                try {
+                    // Récupérer le contenu du message
+                    const content = await query(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID)
+                        .filter_by_num_eq(field_names<GPTAssistantAPIThreadMessageContentVO>().thread_message_id, message.id)
+                        .exec_as_server()
+                        .select_vo<GPTAssistantAPIThreadMessageContentVO>();
+
+                    if (!content || !content.content_type_text) {
+                        continue;
+                    }
+
+                    const text_content = await query(GPTAssistantAPIThreadMessageContentTextVO.API_TYPE_ID)
+                        .filter_by_id(content.content_type_text.id)
+                        .exec_as_server()
+                        .select_vo<GPTAssistantAPIThreadMessageContentTextVO>();
+
+                    if (!text_content || !text_content.value) {
+                        continue;
+                    }
+
+                    // Créer le message dans OpenAI
+                    const openai_message = await GPTAssistantAPIServerController.wrap_api_call(
+                        ModuleGPTServer.openai.beta.threads.messages.create,
+                        ModuleGPTServer.openai.beta.threads.messages,
+                        thread_vo.gpt_thread_id,
+                        {
+                            role: message.role === GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_ASSISTANT ? 'assistant' : 'user',
+                            content: text_content.value,
+                        }
+                    );
+
+                    // Mettre à jour le gpt_id avec l'ID OpenAI réel
+                    if (openai_message && openai_message.id) {
+                        message.gpt_id = openai_message.id;
+                        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(message);
+                        ConsoleHandler.log(`sync_realtime_messages_to_openai: Message ${message.id} synchronisé avec OpenAI (ID: ${openai_message.id})`);
+                    }
+
+                } catch (error) {
+                    ConsoleHandler.error(`sync_realtime_messages_to_openai: Erreur lors de la synchronisation du message ${message.id}: ${error}`);
+                }
+            }
+
+            // Resynchroniser le thread complet après l'ajout des messages
+            await GPTAssistantAPIServerController.resync_thread_messages(thread_vo);
+
+            ConsoleHandler.log(`sync_realtime_messages_to_openai: Synchronisation terminée pour le thread ${thread_id}`);
+
+        } catch (error) {
+            ConsoleHandler.error(`sync_realtime_messages_to_openai: Erreur générale: ${error}`);
+        }
     }
 
     private static async close_thread_oselia(thread_vo: GPTAssistantAPIThreadVO) {
@@ -1902,7 +2462,8 @@ export default class GPTAssistantAPIServerController {
         user_id: number,
         new_msg_content_text: string,
         new_msg_files: FileVO[],
-        hide_content: boolean = false
+        hide_content: boolean = false,
+        is_system_message: boolean = false
     ): Promise<GPTAssistantAPIThreadMessageVO> {
         let has_image_file: boolean = false;
         const has_sound_file: boolean = false;
@@ -1965,7 +2526,7 @@ export default class GPTAssistantAPIServerController {
             asking_message_vo.gpt_thread_id = thread_vo.gpt_thread_id;
             asking_message_vo.thread_id = thread_vo.id;
             asking_message_vo.weight = last_thread_msg ? last_thread_msg.weight + 1 : 0;
-            asking_message_vo.role = GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_USER;
+            asking_message_vo.role = is_system_message ? GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_SYSTEM : GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_USER;
             asking_message_vo.user_id = user_id ? user_id : thread_vo.user_id;
             asking_message_vo.is_ready = false;
             await ModuleDAOServer.instance.insertOrUpdateVO_as_server(asking_message_vo);

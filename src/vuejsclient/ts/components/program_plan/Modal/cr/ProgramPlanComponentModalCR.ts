@@ -1,4 +1,5 @@
 import { Component, Prop, Watch } from 'vue-property-decorator';
+import Vue from 'vue';
 import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
@@ -116,6 +117,11 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
     private in_edit_inline: boolean = false;
     private revertToPreviousVersionBool: boolean = false;
     private revertToNextVersionBool: boolean = false;
+
+    // Propriétés réactives pour l'état des boutons de versioning
+    private can_go_to_previous_version: boolean = false;
+    private can_go_to_next_version: boolean = false;
+    private versioningStateUpdateTimer: NodeJS.Timer = null;
 
     get custom_cr_create_component() {
         return this.program_plan_controller.customCRCreateComponent;
@@ -303,11 +309,13 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
     }
 
     get can_revert_to_previous(): boolean {
-        return !!(this.edited_cr || this.in_edit_inline);
+        // Permettre la navigation si des versions existent, indépendamment du mode d'édition
+        return this.can_go_to_previous_version;
     }
 
     get can_revert_to_next(): boolean {
-        return !!(this.edited_cr || this.in_edit_inline);
+        // Permettre la navigation si des versions existent, indépendamment du mode d'édition
+        return this.can_go_to_next_version;
     }
 
     get oselia_blocked(): boolean {
@@ -358,11 +366,54 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
 
         // Ajouter les raccourcis clavier pour le versionnement
         document.addEventListener('keydown', this.handleKeyboardShortcuts);
+
+        // Démarrer le timer pour mettre à jour l'état des boutons de versioning
+        this.startVersioningStateUpdater();
     }
 
     private async beforeDestroy() {
         // Nettoyer les raccourcis clavier
         document.removeEventListener('keydown', this.handleKeyboardShortcuts);
+
+        // Arrêter le timer de mise à jour
+        this.stopVersioningStateUpdater();
+    }
+
+    private startVersioningStateUpdater(): void {
+        this.updateVersioningButtonsState();
+        this.versioningStateUpdateTimer = setInterval(() => {
+            this.updateVersioningButtonsState();
+        }, 100); // Mettre à jour toutes les 100ms
+    }
+
+    private stopVersioningStateUpdater(): void {
+        if (this.versioningStateUpdateTimer) {
+            clearInterval(this.versioningStateUpdateTimer);
+            this.versioningStateUpdateTimer = null;
+        }
+    }
+
+    private updateVersioningButtonsState(): void {
+        const crReadComponent = this.$refs.crReadComponent as Vue & {
+            canGoToPreviousVersion?: () => boolean;
+            canGoToNextVersion?: () => boolean;
+        };
+        if (crReadComponent) {
+            if (typeof crReadComponent.canGoToPreviousVersion === 'function') {
+                this.can_go_to_previous_version = crReadComponent.canGoToPreviousVersion();
+            } else {
+                this.can_go_to_previous_version = false;
+            }
+
+            if (typeof crReadComponent.canGoToNextVersion === 'function') {
+                this.can_go_to_next_version = crReadComponent.canGoToNextVersion();
+            } else {
+                this.can_go_to_next_version = false;
+            }
+        } else {
+            this.can_go_to_previous_version = false;
+            this.can_go_to_next_version = false;
+        }
     }
 
     private handleKeyboardShortcuts = (event: KeyboardEvent) => {

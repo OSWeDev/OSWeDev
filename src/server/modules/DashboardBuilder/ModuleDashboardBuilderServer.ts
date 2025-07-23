@@ -3926,6 +3926,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             { 'fr-fr': "Résultat" },
             'oselia_run_graph_widget_component.selection_panel.function_call_result.___LABEL___'
         ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Montrer la sélection" },
+            'oselia_run_graph_widget_component.show_selection_panel_button.___LABEL___'
+        ));
         // AddPanel
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': "Ajouter un agent" },

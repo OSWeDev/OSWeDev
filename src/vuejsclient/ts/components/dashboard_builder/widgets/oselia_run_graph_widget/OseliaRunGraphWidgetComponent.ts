@@ -5,7 +5,7 @@ import SelectionPanel from './SelectionPanel/SelectionPanel';
 import AddPanel from './AddPanel/AddPanel';
 import './OseliaRunGraphWidgetComponent.scss';
 
-import ContextFilterVO, { filter } from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
@@ -33,6 +33,12 @@ import SortByVO from '../../../../../../shared/modules/ContextFilter/vos/SortByV
 import OseliaRunFunctionCallVO from '../../../../../../shared/modules/Oselia/vos/OseliaRunFunctionCallVO';
 import Throttle from '../../../../../../shared/annotations/Throttle';
 import EventifyEventListenerConfVO from '../../../../../../shared/modules/Eventify/vos/EventifyEventListenerConfVO';
+import ThreadHandler from '../../../../../../shared/tools/ThreadHandler';
+
+interface OseliaRunGraphWidgetOptions {
+    auto_refresh?: boolean;
+    auto_refresh_seconds?: number;
+}
 
 @Component({
     components: {
@@ -139,6 +145,29 @@ export default class OseliaRunGraphWidgetComponent extends VueComponentBase {
     private template_choices: OseliaRunTemplateVO[] = [];
     private type_of_item_displayed: 'template' | 'run' | 'none' = 'none';
 
+    // Options pour l'auto-refresh
+    private auto_refresh_timer: NodeJS.Timeout = null;
+    private is_loading_choices: boolean = false; // Protection contre les chargements simultanés
+
+    get widget_options(): OseliaRunGraphWidgetOptions {
+        if (!this.page_widget) {
+            return {
+                auto_refresh: true,
+                auto_refresh_seconds: 5
+            };
+        }
+
+        try {
+            const options = JSON.parse(this.page_widget.json_options) as OseliaRunGraphWidgetOptions;
+            return options;
+        } catch (error) {
+            return {
+                auto_refresh: true,
+                auto_refresh_seconds: 5
+            };
+        }
+    }
+
     get showClearButton(): boolean {
         return Object.keys(this.items).length > 0;
     }
@@ -166,13 +195,17 @@ export default class OseliaRunGraphWidgetComponent extends VueComponentBase {
 
     @Watch('choices_of_item', { immediate:true, deep: true})
     private async onChoicesOfItemChange() {
+        // Protection contre les modifications en cours
+        if (this.is_loading_choices) {
+            return;
+        }
         // Si on est en mode single run, on n’utilise pas le vieux mécanisme
         if (this.is_single_run_found) {
             return;
         }
 
         try {
-
+            this.is_loading_choices = true;
             if (this.choices_of_item.length === 1 && Object.values(this.items).length === 0) {
                 // Ancienne logique : on suppose qu’on a choisi un agent template
                 if (Object.values(this.items).length > 0) {
@@ -194,6 +227,8 @@ export default class OseliaRunGraphWidgetComponent extends VueComponentBase {
             }
         } catch (error) {
             console.error('Erreur lors du fetch des agents :', error);
+        } finally {
+            this.is_loading_choices = false;  // ← AJOUTER CETTE LIGNE
         }
     }
 
@@ -227,52 +262,64 @@ export default class OseliaRunGraphWidgetComponent extends VueComponentBase {
         leading: true,
     })
     private async chargeChoices() {
-        const active_filters = FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters);
-        const context_filters = ContextFilterVOManager.get_context_filters_from_active_field_filters(active_filters);
+        if (this.is_loading_choices) {
+            return;
+        }
+        console.log('[CHARGE_CHOICES] Début du chargement...');
+        this.is_loading_choices = true;
+        try {
+            const active_filters = FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters);
+            const context_filters = ContextFilterVOManager.get_context_filters_from_active_field_filters(active_filters);
 
-        let runs: OseliaRunVO[] = [];
-        if (this.localThreadId != null) {
-            runs = await query(OseliaRunVO.API_TYPE_ID)
-                .filter_by_num_eq('thread_id', this.localThreadId)
-                .select_vos<OseliaRunVO>();
-        } else {
-            runs = await query(OseliaRunVO.API_TYPE_ID)
-                .add_filters(context_filters)
-                .select_vos<OseliaRunVO>();
-        }
-        const uniqueRunsMap: { [name: string]: OseliaRunVO } = {};
-        for (const r of runs) {
-            if (!uniqueRunsMap[r.name] || uniqueRunsMap[r.name].id < r.id) {
-                uniqueRunsMap[r.name] = r;
+            let runs: OseliaRunVO[] = [];
+            if (this.localThreadId != null) {
+                console.log(`[CHARGE_CHOICES] Recherche des runs pour le thread ${this.localThreadId}`);
+                runs = await query(OseliaRunVO.API_TYPE_ID)
+                    .filter_by_num_eq('thread_id', this.localThreadId)
+                    .select_vos<OseliaRunVO>();  // Pas de exec_as_server pour éviter les problèmes
+            } else {
+                console.log('[CHARGE_CHOICES] Recherche des runs avec les filtres contextuels');
+                runs = await query(OseliaRunVO.API_TYPE_ID)
+                    .add_filters(context_filters)
+                    .select_vos<OseliaRunVO>();  // Pas de exec_as_server pour éviter les problèmes
             }
-        }
-        this.run_choices = Object.values(uniqueRunsMap);
 
-        this.template_choices = await query(OseliaRunTemplateVO.API_TYPE_ID)
-            .add_filters([
-                filter(OseliaRunTemplateVO.API_TYPE_ID,
-                    field_names<OseliaRunTemplateVO>().run_type)
-                    .by_num_eq(OseliaRunVO.RUN_TYPE_AGENT)
-            ])
-            .select_vos<OseliaRunTemplateVO>();
-        if (this.run_choices.length === 1 && this.type_of_item_displayed === 'none') {
-            this.is_single_run_found = true;
-            this.display_mode = 'runs';
-            this.single_run = this.run_choices[0];
-            await this.buildItemsFromSingleRun();
-        } else {
-            if (this.is_single_run_found) {
-                this.is_single_run_found = false;
-                this.single_run = null;
-                this.items = {};
-                if (this.selectedItem) {
-                    this.selectedItem = null;
-                    this.selectedItemRunInfo = null;
-                }
+            // PROTECTION : Limiter le nombre de runs pour éviter les problèmes
+            if (runs.length > 20) {
+                console.warn(`[CHARGE_CHOICES] Trop de runs (${runs.length}), limitation à 20 pour éviter les problèmes`);
+                runs = runs.slice(0, 20);
             }
-            this.applyDisplayMode();
+
+            // FORCE LA RÉACTIVITÉ : Copie les objets pour forcer la détection des changements
+            this.run_choices = runs.map(run => ({ ...run }));
+
+            console.log(`[CHARGE_CHOICES] Thread ${this.localThreadId}: trouvé ${runs.length} runs:`, runs.map(r => `${r.id}(${r.name})`));
+
+            this.template_choices = await query(OseliaRunTemplateVO.API_TYPE_ID)
+                .select_vos<OseliaRunTemplateVO>();
+
+            if (this.run_choices.length > 0) {
+                // Si on a des runs, on les affiche directement sur le graphique
+                this.display_mode = 'runs';
+                await this.buildItemsFromAllRuns();
+                this.has_agent = true;
+                this.showAddPanel = false;
+                this.showPlusButton = false;
+                this.choices_of_item = [];
+
+                // FORCE LE REDRAW pour s'assurer que les changements visuels sont appliqués
+                this.reDraw = !this.reDraw;
+            } else {
+                // Pas de runs : on affiche les templates comme choix
+                this.has_agent = this.template_choices.length > 0;
+                this.applyDisplayMode();
+            }
+
+            console.log('[CHARGE_CHOICES] Chargement terminé');
+            return;
+        } finally {
+            this.is_loading_choices = false;
         }
-        return;
     }
 
 
@@ -304,56 +351,82 @@ export default class OseliaRunGraphWidgetComponent extends VueComponentBase {
     // -------------------------------------------------------------------------
     public async mounted() {
         await this.chargeChoices();
+
+        // Démarrer l'auto-refresh si activé
+        if (this.widget_options && this.widget_options.auto_refresh) {
+            await this.start_auto_refresh();
+        }
     }
+
+    public async beforeDestroy() {
+        // Nettoyer le timer d'auto-refresh
+        if (this.auto_refresh_timer) {
+            clearTimeout(this.auto_refresh_timer);
+            this.auto_refresh_timer = null;
+        }
+
+        await this.unregister_all_vo_event_callbacks();
+    }
+
 
     // -------------------------------------------------------------------------
     // Méthodes existantes pour ajouter / retirer un item (mode template)
     // -------------------------------------------------------------------------
     public async addItem(itemId: string) {
-        // Ancienne logique
-        this.showAddPanel = false;
-        const itemAdded: OseliaRunTemplateVO | OseliaRunVO = this.choices_of_item.find((item) => item.id == Number(itemId));
-        if (itemAdded._type == OseliaRunTemplateVO.API_TYPE_ID) {
-            const local_itemAdded = itemAdded as OseliaRunTemplateVO;
-            if (local_itemAdded.children && local_itemAdded.children.length) {
-                const _children = await query(OseliaRunTemplateVO.API_TYPE_ID)
-                    .filter_by_ids(local_itemAdded.children)
-                    .set_sort(new SortByVO(OseliaRunTemplateVO.API_TYPE_ID, field_names<OseliaRunTemplateVO>().weight, true))
-                    .select_vos<OseliaRunTemplateVO>();
-                for (const child of _children) {
-                    if (this.choices_of_item.findIndex((item) => item.id == Number(child.id)) != -1) {
-                        this.choices_of_item.splice(this.choices_of_item.findIndex((item) => item.id == Number(child.id)), 1);
-                    }
-                }
-            }
-        } else if (itemAdded._type == OseliaRunVO.API_TYPE_ID) {
-            const runItem = itemAdded as OseliaRunVO;
-            if (runItem.run_type === OseliaRunVO.RUN_TYPE_AGENT) {
-                const children = await query(OseliaRunVO.API_TYPE_ID)
-                    .filter_by_num_eq('parent_run_id', runItem.id)
-                    .select_vos<OseliaRunVO>();
-                for (const child of children) {
-                    if (this.choices_of_item.findIndex((item) => item.id == child.id) !== -1) {
-                        this.choices_of_item.splice(this.choices_of_item.findIndex((item) => item.id == child.id), 1);
-                    }
-                    this.$set(this.items, String(child.id), child);
-                    if (child.run_type === OseliaRunVO.RUN_TYPE_AGENT) {
-                        await this.addRunChildrenRecursively(child.id);
-                    }
-                }
-            }
+        // Protection contre les modifications simultanées
+        if (this.is_loading_choices) {
+            return;
         }
-        this.$set(this.items, itemId, itemAdded);
-        if (itemAdded._type == OseliaRunTemplateVO.API_TYPE_ID) {
-            const idx = this.choices_of_item.findIndex((item) => item.id == Number(itemId));
-            if (idx != -1) {
-                this.choices_of_item.splice(idx, 1);
+        this.is_loading_choices = true;
+        try {
+            // Ancienne logique
+            this.showAddPanel = false;
+            const itemAdded: OseliaRunTemplateVO | OseliaRunVO = this.choices_of_item.find((item) => item.id == Number(itemId));
+            if (itemAdded._type == OseliaRunTemplateVO.API_TYPE_ID) {
+                const local_itemAdded = itemAdded as OseliaRunTemplateVO;
+                if (local_itemAdded.children && local_itemAdded.children.length) {
+                    const _children = await query(OseliaRunTemplateVO.API_TYPE_ID)
+                        .filter_by_ids(local_itemAdded.children)
+                        .set_sort(new SortByVO(OseliaRunTemplateVO.API_TYPE_ID, field_names<OseliaRunTemplateVO>().weight, true))
+                        .select_vos<OseliaRunTemplateVO>();
+                    for (const child of _children) {
+                        if (this.choices_of_item.findIndex((item) => item.id == Number(child.id)) != -1) {
+                            this.choices_of_item.splice(this.choices_of_item.findIndex((item) => item.id == Number(child.id)), 1);
+                        }
+                    }
+                }
+            } else if (itemAdded._type == OseliaRunVO.API_TYPE_ID) {
+                const runItem = itemAdded as OseliaRunVO;
+                // Récupérer les enfants seulement si c'est un agent
+                if (runItem.run_type === OseliaRunVO.RUN_TYPE_AGENT) {
+                    const children = await query(OseliaRunVO.API_TYPE_ID)
+                        .filter_by_num_eq('parent_run_id', runItem.id)
+                        .select_vos<OseliaRunVO>();
+                    for (const child of children) {
+                        if (this.choices_of_item.findIndex((item) => item.id == child.id) !== -1) {
+                            this.choices_of_item.splice(this.choices_of_item.findIndex((item) => item.id == child.id), 1);
+                        }
+                        this.$set(this.items, String(child.id), child);
+                        if (child.run_type === OseliaRunVO.RUN_TYPE_AGENT) {
+                            await this.addRunChildrenRecursively(child.id);
+                        }
+                    }
+                }
             }
-        } else if (itemAdded._type == OseliaRunVO.API_TYPE_ID) {
-            const idx = this.choices_of_item.findIndex((item) => item.id == Number(itemId));
-            if (idx != -1) {
-                this.choices_of_item.splice(idx, 1);
+            this.$set(this.items, itemId, itemAdded);
+            if (itemAdded._type == OseliaRunTemplateVO.API_TYPE_ID) {
+                const idx = this.choices_of_item.findIndex((item) => item.id == Number(itemId));
+                if (idx != -1) {
+                    this.choices_of_item.splice(idx, 1);
+                }
+            } else if (itemAdded._type == OseliaRunVO.API_TYPE_ID) {
+                const idx = this.choices_of_item.findIndex((item) => item.id == Number(itemId));
+                if (idx != -1) {
+                    this.choices_of_item.splice(idx, 1);
+                }
             }
+        } finally {
+            this.is_loading_choices = false;
         }
     }
 
@@ -416,6 +489,55 @@ export default class OseliaRunGraphWidgetComponent extends VueComponentBase {
         this.executeAutofit = false;
     }
 
+    // -------------------------------------------------------------------------
+    // AUTO-REFRESH
+    // -------------------------------------------------------------------------
+    private async start_auto_refresh() {
+        console.log('[AUTO_REFRESH] Démarrage de l\'auto-refresh...');
+
+        // Cache des options pour éviter les accès répétés au getter
+        const options = this.widget_options;
+        if (!options || !options.auto_refresh || !options.auto_refresh_seconds) {
+            console.log('[AUTO_REFRESH] Auto-refresh désactivé ou pas de durée configurée');
+            return;
+        }
+
+        // PROTECTION CONTRE LES BOUCLES INFINIES
+        let refresh_count = 0;
+        const MAX_REFRESH = 100; // Protection contre les boucles infinies
+
+        // Boucle d'auto-refresh - on utilise les options cachées
+        while (options.auto_refresh && refresh_count < MAX_REFRESH) {
+            // Vérification additionnelle : si les options ont changé, on arrête
+            const currentOptions = this.widget_options;
+            if (!currentOptions || !currentOptions.auto_refresh) {
+                console.log('[AUTO_REFRESH] Auto-refresh désactivé, arrêt de la boucle');
+                break;
+            }
+
+            refresh_count++;
+            console.log(`[AUTO_REFRESH] Cycle ${refresh_count}/${MAX_REFRESH} - Attente de ${options.auto_refresh_seconds}s...`);
+
+            await ThreadHandler.sleep((options.auto_refresh_seconds * 1000), 'OseliaRunGraphWidgetComponent.start_auto_refresh');
+
+            // PROTECTION : On ne recharge que si on n'est pas déjà en train de charger
+            console.log(`[AUTO_REFRESH] Cycle ${refresh_count} - Rechargement des données...`);
+            try {
+                await this.chargeChoices();
+                console.log(`[AUTO_REFRESH] Cycle ${refresh_count} - Rechargement terminé avec succès`);
+            } catch (error) {
+                console.error(`[AUTO_REFRESH] Erreur lors du cycle ${refresh_count}:`, error);
+                // En cas d'erreur, on arrête l'auto-refresh pour éviter les problèmes
+                break;
+            }
+        }
+
+        if (refresh_count >= MAX_REFRESH) {
+            console.error('[AUTO_REFRESH] LIMITE ATTEINTE - Arrêt forcé pour éviter une boucle infinie');
+        }
+        console.log(`[AUTO_REFRESH] Arrêt de l'auto-refresh après ${refresh_count} cycles`);
+    }
+
 
     /**
      * CHANGEMENT : Construit le dictionnaire this.items à partir du run unique
@@ -433,10 +555,35 @@ export default class OseliaRunGraphWidgetComponent extends VueComponentBase {
         this.showAddPanel = false;
         this.choices_of_item = [];
         this.showPlusButton = false;
-        // Si c’est un agent, aller chercher ses enfants (OseliaRunVO) et les insérer
+        this.has_agent = true; // On affiche maintenant tous les runs
+        // Si c'est un agent, aller chercher ses enfants (OseliaRunVO) et les insérer
         if (this.single_run.run_type === OseliaRunVO.RUN_TYPE_AGENT) {
-            this.has_agent = true;
             await this.addRunChildrenRecursively(this.single_run.id);
+        }
+    }
+
+    /**
+     * NOUVEAU : Construit le dictionnaire this.items à partir de tous les runs disponibles
+     * et récupère récursivement leurs enfants si ce sont des agents.
+     * MISE À JOUR RÉACTIVE : Force la mise à jour de tous les runs à chaque appel
+     */
+    private async buildItemsFromAllRuns() {
+        // NE PAS vider this.items = {} car cela supprimerait les function calls
+        // À la place, on met à jour les runs existants et on ajoute les nouveaux
+
+        if (!this.run_choices || this.run_choices.length === 0) {
+            return;
+        }
+
+        // On injecte/met à jour tous les runs avec $set pour forcer la réactivité
+        for (const run of this.run_choices) {
+            // Force la mise à jour même si le run existe déjà
+            this.$set(this.items, run.id, { ...run });
+
+            // Si c'est un agent, aller chercher ses enfants
+            if (run.run_type === OseliaRunVO.RUN_TYPE_AGENT) {
+                await this.addRunChildrenRecursively(run.id);
+            }
         }
     }
 
@@ -446,7 +593,7 @@ export default class OseliaRunGraphWidgetComponent extends VueComponentBase {
         this.selectedItemRunInfo = null;
         this.showAddPanel = false;
         this.showPlusButton = true;
-        this.has_agent = false;
+        // Ne pas remettre has_agent à false si on a des runs à afficher
         this.choices_of_item = [];
         this.localThreadId = null;
         this.canAutofit(false);
@@ -526,13 +673,6 @@ export default class OseliaRunGraphWidgetComponent extends VueComponentBase {
     private applyDisplayMode() {
         this.choices_of_item = this.display_mode === 'runs' ? this.run_choices : this.template_choices;
     }
-    // -------------------------------------------------------------------------
-    // beforeDestroy
-    // -------------------------------------------------------------------------
-    private async beforeDestroy() {
-        await this.unregister_all_vo_event_callbacks();
-    }
-
     private async doAutofit() {
         this.executeAutofit = true;
     }

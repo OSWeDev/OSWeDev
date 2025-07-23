@@ -258,7 +258,12 @@
                                     button.fa-solid.fa-bug(v-on:click='switch_show_hidden_messages')
                                 template(v-else)
                                     button.fa-solid.fa-bug-slash(v-on:click='switch_show_hidden_messages')
-                            .oselia_chat_btn_closed.fa-duotone.fa-vacuum-robot(v-if="!oselia_blocked && POLICY_CAN_USE_REALTIME" :class="{ 'opened': use_realtime_voice }" @click='switchOpenRealtime()')
+                            .thread_message_input_button.activate_realtime(v-if="!oselia_blocked && POLICY_CAN_USE_REALTIME")
+                                button(:class="{ 'opened': use_realtime_voice, 'pulse': use_realtime_voice, 'connecting': realtime_connecting }" @click='switchOpenRealtime()' :disabled="realtime_connecting")
+                                    template(v-if="realtime_connecting")
+                                        i.fa-duotone.fa-spinner-third.fa-spin
+                                    template(v-else)
+                                        i.fa-duotone.fa-vacuum-robot
 
                             
                                 
@@ -398,7 +403,8 @@
                                         button.fa-solid.fa-bug(v-on:click='switch_show_hidden_messages')
                                     template(v-else)
                                         button.fa-solid.fa-bug-slash(v-on:click='switch_show_hidden_messages')
-                                .oselia_chat_btn_closed.fa-duotone.fa-vacuum-robot(v-if="!oselia_blocked && POLICY_CAN_USE_REALTIME" :class="{ 'opened': use_realtime_voice }" @click='switchOpenRealtime()')
+                                .thread_message_input_button.activate_realtime(v-if="!oselia_blocked && POLICY_CAN_USE_REALTIME")
+                                    button.fa-duotone.fa-vacuum-robot(:class="{ 'opened': use_realtime_voice }" @click='switchOpenRealtime()')
 
                                     
                             .thread_message_input_send

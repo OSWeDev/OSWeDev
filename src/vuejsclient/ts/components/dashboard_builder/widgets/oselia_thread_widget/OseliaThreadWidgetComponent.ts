@@ -169,6 +169,8 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     private dashboard_export_id: number = null;
     private is_creating_thread: boolean = false;
     private realtime_on: boolean = false;
+    private realtime_manual_control: boolean = false; // Flag pour éviter les conflits avec le watcher
+    private realtime_connecting: boolean = false; // Flag pour indiquer la connexion en cours
     private send_message_create: boolean = false;
     private POLICY_CAN_USE_REALTIME: boolean = false;
     // private is_recording_voice: boolean = false;
@@ -363,37 +365,49 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
 
     @Watch(reflect<OseliaThreadWidgetComponent>().use_realtime_voice, { immediate: true })
     private async on_use_realtime_voice_change() {
-        const controller = await OseliaRealtimeController.getInstance();
-        if (this.use_realtime_voice && this.POLICY_CAN_USE_REALTIME) {
-            let used_assistant = null;
-            // On peut utiliser le realtime
-            if (!this.thread) {
-                const new_thread: number = await ModuleOselia.getInstance().create_thread();
+        // Si on est en contrôle manuel, on laisse la méthode switchOpenRealtime gérer
+        if (this.realtime_manual_control) {
+            ConsoleHandler.log('Watcher realtime ignoré car en contrôle manuel');
+            return;
+        }
 
-                if (new_thread) {
-                    this.set_active_field_filter({
-                        field_id: field_names<GPTAssistantAPIThreadVO>().id,
-                        vo_type: GPTAssistantAPIThreadVO.API_TYPE_ID,
-                        active_field_filter: filter(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().id).by_id(new_thread)
-                    });
-                    const context_query_select: ContextQueryVO = query(GPTAssistantAPIThreadVO.API_TYPE_ID)
-                        .using(this.get_dashboard_api_type_ids)
-                        .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
-                            FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters)
-                        ));
-                    const thread = await context_query_select.select_vo<GPTAssistantAPIThreadVO>();
-                    used_assistant = thread.current_default_assistant_id;
+        try {
+            const controller = OseliaRealtimeController.getInstance();
+            if (this.use_realtime_voice && this.POLICY_CAN_USE_REALTIME) {
+                let used_assistant = null;
+                // On peut utiliser le realtime
+                if (!this.thread) {
+                    const new_thread: number = await ModuleOselia.getInstance().create_thread();
+
+                    if (new_thread) {
+                        this.set_active_field_filter({
+                            field_id: field_names<GPTAssistantAPIThreadVO>().id,
+                            vo_type: GPTAssistantAPIThreadVO.API_TYPE_ID,
+                            active_field_filter: filter(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().id).by_id(new_thread)
+                        });
+                        const context_query_select: ContextQueryVO = query(GPTAssistantAPIThreadVO.API_TYPE_ID)
+                            .using(this.get_dashboard_api_type_ids)
+                            .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
+                                FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters)
+                            ));
+                        const thread = await context_query_select.select_vo<GPTAssistantAPIThreadVO>();
+                        used_assistant = thread.current_default_assistant_id;
+                    } else {
+                        return;
+                    }
                 } else {
-                    return;
+                    used_assistant = this.currently_selected_assistant ? this.currently_selected_assistant : this.assistant;
                 }
-            } else {
-                used_assistant = this.currently_selected_assistant ? this.currently_selected_assistant : this.assistant;
-            }
 
-            await controller.connect_to_realtime(OseliaRunTemplateVO.NEW_SESSION_OSELIA_RUN_TEMPLATE);
-        } else {
-        // On ne peut pas utiliser le realtime
-            controller.disconnect_to_realtime();
+                await controller.connect_to_realtime(OseliaRunTemplateVO.NEW_SESSION_OSELIA_RUN_TEMPLATE);
+                ConsoleHandler.log('Realtime activé via watcher');
+            } else {
+                // On ne peut pas utiliser le realtime OU il faut le désactiver
+                await controller.disconnect_to_realtime();
+                ConsoleHandler.log('Realtime désactivé via watcher');
+            }
+        } catch (error) {
+            ConsoleHandler.error('Erreur dans le watcher realtime:', error);
         }
     }
 
@@ -406,11 +420,22 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     }
 
     private async beforeDestroy() {
+        // Arrêter l'audio en cours
         if (this.audio_is_playing && this.current_audio) {
             this.current_audio.pause();
             this.current_audio = null;
         }
         this.audio_is_playing = false;
+
+        // S'assurer que le realtime est complètement arrêté
+        if (this.use_realtime_voice) {
+            try {
+                await this.ensureRealtimeFullyDisconnected();
+            } catch (error) {
+                ConsoleHandler.error('Erreur lors de l\'arrêt du realtime dans beforeDestroy:', error);
+            }
+        }
+
         await this.unregister_all_vo_event_callbacks();
 
         window.removeEventListener('keydown', this.handleShortcutKeyDown);
@@ -425,11 +450,125 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         this.set_show_hidden_messages(!this.get_show_hidden_messages);
     }
 
-    private switchOpenRealtime() {
-        this.use_realtime_voice = !this.use_realtime_voice;
+    private async switchOpenRealtime() {
+        // Empêcher les clics multiples pendant la connexion
+        if (this.realtime_connecting) {
+            return;
+        }
+
+        // Marquer qu'on utilise le contrôle manuel pour éviter les conflits avec le watcher
+        this.realtime_manual_control = true;
+
+        const new_value = !this.use_realtime_voice;
+
+        if (new_value) {
+            // Activer le realtime
+            this.realtime_connecting = true;
+            try {
+                const controller = OseliaRealtimeController.getInstance();
+
+                // Si on a un thread existant, on utilise l'assistant par défaut du thread
+                if (this.thread) {
+                    // On définit le thread actuel dans le controller
+                    await this.$store.dispatch('OseliaStore/set_current_thread', this.thread);
+                }
+
+                // Lancement de la session realtime avec un template neutre (nouvelle session)
+                await controller.connect_to_realtime(OseliaRunTemplateVO.NEW_SESSION_OSELIA_RUN_TEMPLATE);
+
+                // Mettre à jour le flag seulement après succès
+                this.use_realtime_voice = true;
+
+                ConsoleHandler.log('Session realtime démarrée depuis le bouton du thread widget');
+            } catch (error) {
+                ConsoleHandler.error('Erreur lors du démarrage de la session realtime:', error);
+                // Ne pas changer le flag en cas d'erreur
+                this.use_realtime_voice = false;
+            } finally {
+                this.realtime_connecting = false;
+            }
+        } else {
+            // Désactiver le realtime - Déconnexion forcée
+            this.realtime_connecting = true;
+            try {
+                const controller = OseliaRealtimeController.getInstance();
+
+                // Marquer immédiatement le flag comme false pour l'UI
+                this.use_realtime_voice = false;
+
+                // Force la déconnexion complète
+                await controller.disconnect_to_realtime();
+
+                // Attendre un délai pour s'assurer que toutes les ressources sont libérées
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                // S'assurer que le thread dans le store est réinitialisé
+                if (this.thread) {
+                    await this.$store.dispatch('OseliaStore/set_current_thread', null);
+                    // Petite pause puis remettre le thread actuel
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    await this.$store.dispatch('OseliaStore/set_current_thread', this.thread);
+                }
+
+                ConsoleHandler.log('Session realtime arrêtée depuis le bouton du thread widget');
+            } catch (error) {
+                ConsoleHandler.error('Erreur lors de l\'arrêt de la session realtime:', error);
+                // En cas d'erreur, utiliser la méthode de déconnexion forcée
+                await this.ensureRealtimeFullyDisconnected();
+            } finally {
+                this.realtime_connecting = false;
+                // S'assurer que le flag est bien à false
+                this.use_realtime_voice = false;
+            }
+        }
+
+        // Réinitialiser le flag de contrôle manuel après un délai
+        setTimeout(() => {
+            this.realtime_manual_control = false;
+        }, 100);
     }
 
-    private async mounted() {
+    /**
+     * Méthode utilitaire pour s'assurer que le realtime est complètement arrêté
+     */
+    private async ensureRealtimeFullyDisconnected(): Promise<void> {
+        try {
+            const controller = OseliaRealtimeController.getInstance();
+
+            ConsoleHandler.log('Début de la déconnexion forcée du realtime...');
+
+            // Force une déconnexion même si l'état semble déjà déconnecté
+            await controller.disconnect_to_realtime();
+
+            // Attendre que toutes les ressources soient libérées
+            await new Promise(resolve => setTimeout(resolve, 300));
+
+            // Force une seconde déconnexion pour s'assurer que tout est nettoyé
+            await controller.disconnect_to_realtime();
+
+            // Attendre encore un peu
+            await new Promise(resolve => setTimeout(resolve, 200));
+
+            // S'assurer que le flag use_realtime_voice est à false
+            if (this.use_realtime_voice) {
+                this.use_realtime_voice = false;
+            }
+
+            // Nettoyer l'état du thread si nécessaire
+            if (this.thread) {
+                await this.$store.dispatch('OseliaStore/set_current_thread', null);
+                await new Promise(resolve => setTimeout(resolve, 100));
+                await this.$store.dispatch('OseliaStore/set_current_thread', this.thread);
+            }
+
+            ConsoleHandler.log('Déconnexion realtime forcée terminée');
+        } catch (error) {
+            ConsoleHandler.error('Erreur lors de la déconnexion forcée du realtime:', error);
+            // Forcer les flags même si ça a échoué
+            this.use_realtime_voice = false;
+            this.realtime_connecting = false;
+        }
+    }    private async mounted() {
         this.POLICY_CAN_USE_REALTIME = await ModuleAccessPolicy.getInstance().testAccess(ModuleGPT.POLICY_USE_OSELIA_REALTIME_IN_CR);
 
         await all_promises([

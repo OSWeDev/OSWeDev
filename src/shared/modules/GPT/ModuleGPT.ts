@@ -21,6 +21,7 @@ import OseliaThreadMessageFeedbackVO from '../Oselia/vos/OseliaThreadMessageFeed
 import OseliaUserPromptVO from '../Oselia/vos/OseliaUserPromptVO';
 import VersionedVOController from '../Versioned/VersionedVOController';
 import APIGPTAskAssistantParam, { APIGPTAskAssistantParamStatic } from './api/APIGPTAskAssistantParam';
+import APIGPTCreateTechnicalMessageParam, { APIGPTCreateTechnicalMessageParamStatic } from './api/APIGPTCreateTechnicalMessageParam';
 import APIGPTGenerateResponseParam, { APIGPTGenerateResponseParamStatic } from './api/APIGPTGenerateResponseParam';
 import APIRealtimeVoiceConnectParam, { APIRealtimeVoiceConnectParamStatic } from './api/APIRealtimeVoiceConnectParam';
 import APIGPTTranscribeParam, { APIGPTTranscribeParamStatic } from './api/APIGPTTranscribeParam';
@@ -63,6 +64,8 @@ export default class ModuleGPT extends Module {
     public static APINAME_generate_response: string = "modulegpt_generate_response";
 
     public static APINAME_ask_assistant: string = "modulegpt_ask_assistant";
+    public static APINAME_create_technical_message: string = "modulegpt_create_technical_message";
+    public static APINAME_close_realtime_runs: string = "modulegpt_close_realtime_runs";
     public static APINAME_rerun: string = "modulegpt_rerun";
     // public static APINAME_connect_to_realtime_voice: string = "modulegpt_connect_to_realtime_voice";
 
@@ -72,6 +75,8 @@ export default class ModuleGPT extends Module {
     public static POLICY_BO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleGPT.MODULE_NAME + ".BO_ACCESS";
     public static POLICY_FO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleGPT.MODULE_NAME + ".FO_ACCESS";
     public static POLICY_ask_assistant = AccessPolicyTools.POLICY_UID_PREFIX + ModuleGPT.MODULE_NAME + ".ask_assistant";
+    public static POLICY_create_technical_message = AccessPolicyTools.POLICY_UID_PREFIX + ModuleGPT.MODULE_NAME + ".create_technical_message";
+    public static POLICY_close_realtime_runs = AccessPolicyTools.POLICY_UID_PREFIX + ModuleGPT.MODULE_NAME + ".close_realtime_runs";
     public static POLICY_rerun = AccessPolicyTools.POLICY_UID_PREFIX + ModuleGPT.MODULE_NAME + ".rerun";
     public static POLICY_USE_OSELIA_REALTIME: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleGPT.MODULE_NAME + '.USE_OSELIA_REALTIME';
     public static POLICY_USE_OSELIA_REALTIME_IN_CR: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleGPT.MODULE_NAME + '.USE_OSELIA_REALTIME_IN_CR';
@@ -106,6 +111,16 @@ export default class ModuleGPT extends Module {
         generate_voice_summary: boolean,
     ) => Promise<GPTAssistantAPIThreadMessageVO[]> = APIControllerWrapper.sah<APIGPTAskAssistantParam, GPTAssistantAPIThreadMessageVO[]>(ModuleGPT.APINAME_ask_assistant);
 
+    public create_technical_message: (
+        gpt_thread_id: string,
+        content_text: string,
+        user_id: number,
+    ) => Promise<GPTAssistantAPIThreadMessageVO> = APIControllerWrapper.sah<APIGPTCreateTechnicalMessageParam, GPTAssistantAPIThreadMessageVO>(ModuleGPT.APINAME_create_technical_message);
+
+    public close_realtime_runs: (
+        thread_id: number,
+    ) => Promise<void> = APIControllerWrapper.sah<NumberParamVO, void>(ModuleGPT.APINAME_close_realtime_runs);
+
     public get_tts_file: (message_content_id: number) => Promise<FileVO> = APIControllerWrapper.sah_optimizer<NumberParamVO, FileVO>(this.name, reflect<this>().get_tts_file);
     public transcribe_file: (file_vo_id: number, auto_commit_auto_input: boolean, gpt_assistant_id: string, gpt_thread_id: string, user_id: number) => Promise<string> = APIControllerWrapper.sah_optimizer<APIGPTTranscribeParam, string>(this.name, reflect<this>().transcribe_file);
 
@@ -124,7 +139,8 @@ export default class ModuleGPT extends Module {
         thread_id: string,
         user_id: number,
         oselia_run_template?: OseliaRunTemplateVO,
-        initial_cache_key?: string
+        initial_cache_key?: string,
+        technical_message_prompt?: string
     ) => void = APIControllerWrapper.sah_optimizer<APIRealtimeVoiceConnectParam, void>(this.name, reflect<this>().connect_to_realtime_voice);
 
     /**
@@ -233,6 +249,25 @@ export default class ModuleGPT extends Module {
             ],
             APIGPTAskAssistantParamStatic,
             APIDefinition.API_RETURN_TYPE_NOTIF,
+        ));
+
+        APIControllerWrapper.registerApi(new PostAPIDefinition<APIGPTCreateTechnicalMessageParam, GPTAssistantAPIThreadMessageVO>(
+            ModuleGPT.POLICY_create_technical_message,
+            ModuleGPT.APINAME_create_technical_message,
+            [
+                GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID,
+                GPTAssistantAPIThreadMessageVO.API_TYPE_ID,
+                GPTAssistantAPIThreadVO.API_TYPE_ID,
+                GPTAssistantAPIThreadMessageContentTextVO.API_TYPE_ID,
+            ],
+            APIGPTCreateTechnicalMessageParamStatic,
+        ));
+
+        APIControllerWrapper.registerApi(new PostAPIDefinition<NumberParamVO, void>(
+            ModuleGPT.POLICY_close_realtime_runs,
+            ModuleGPT.APINAME_close_realtime_runs,
+            [],
+            NumberParamVOStatic,
         ));
 
         APIControllerWrapper.registerApi(new PostAPIDefinition<NumberParamVO, GPTAssistantAPIThreadMessageVO[]>(

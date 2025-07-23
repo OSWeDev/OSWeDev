@@ -13,6 +13,7 @@ export default class APIRealtimeVoiceConnectParam implements IAPIParamTranslator
         public user_id: number,
         public oselia_run_template: OseliaRunTemplateVO | null = null,
         public initial_cache_key: string | null = null,
+        public technical_message_prompt: string | null = null,
     ) {}
 
 
@@ -22,14 +23,15 @@ export default class APIRealtimeVoiceConnectParam implements IAPIParamTranslator
         thread_id: string,
         user_id: number,
         oselia_run_template: OseliaRunTemplateVO | null = null,
-        initial_cache_key: string | null = null
+        initial_cache_key: string | null = null,
+        technical_message_prompt: string | null = null
     ): APIRealtimeVoiceConnectParam {
 
-        return new APIRealtimeVoiceConnectParam(session_id, conversation_id, thread_id, user_id, oselia_run_template, initial_cache_key);
+        return new APIRealtimeVoiceConnectParam(session_id, conversation_id, thread_id, user_id, oselia_run_template, initial_cache_key, technical_message_prompt);
     }
 
     public static getAPIParams(param: APIRealtimeVoiceConnectParam): any[] {
-        return [param.session_id, param.conversation_id, param.thread_id, param.user_id, param.oselia_run_template, param.initial_cache_key];
+        return [param.session_id, param.conversation_id, param.thread_id, param.user_id, param.oselia_run_template, param.initial_cache_key, param.technical_message_prompt];
     }
 
 }

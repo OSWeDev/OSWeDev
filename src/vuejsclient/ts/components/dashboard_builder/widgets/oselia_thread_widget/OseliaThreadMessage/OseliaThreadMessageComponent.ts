@@ -236,7 +236,7 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
 
         // await navigator.clipboard.writeText(text);
 
-        let selection = null;
+        const selection = null;
         try {
 
             const range = document.createRange();
@@ -401,7 +401,7 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
                 const gpt_files: GPTAssistantAPIFileVO[] = await query(GPTAssistantAPIFileVO.API_TYPE_ID)
                     .filter_by_text_eq(field_names<GPTAssistantAPIFileVO>().gpt_file_id, attachment.gpt_file_id)
                     .select_vos<GPTAssistantAPIFileVO>();
-                const files: FileVO[] = []
+                const files: FileVO[] = [];
                 for (const gpt_file of gpt_files) {
                     const file = await query(FileVO.API_TYPE_ID)
                         .filter_by_id(gpt_file.file_id)
@@ -411,7 +411,7 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
                 if (files.length > 0) {
                     for (const file of files) {
                         if (this.thread_message_files.every((value) => {
-                            if (value['.' + file.path.split('.').pop()].id = file.id) {
+                            if (value['.' + file.path.split('.').pop()].id == file.id) {
                                 return false;
                             }
                             return true;
@@ -446,10 +446,12 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
     }
 
     private async play_tts(message: GPTAssistantAPIThreadMessageContentVO) {
+        // Stop and clean up any existing audio before playing a new one
         if (this.audio) {
-            this.audio.play();
-            this.is_tts_playing = true;
-            return;
+            this.audio.pause();
+            this.audio.currentTime = 0;
+            this.audio = null;
+            this.is_tts_playing = false;
         }
 
         this.preparing_tts_file = true;

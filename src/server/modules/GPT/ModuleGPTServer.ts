@@ -381,6 +381,22 @@ export default class ModuleGPTServer extends ModuleServerBase {
         );
     }
 
+    public async create_technical_message(
+        gpt_thread_id: string,
+        content_text: string,
+        user_id: number,
+    ): Promise<GPTAssistantAPIThreadMessageVO> {
+        return GPTAssistantAPIServerController.create_technical_message(
+            gpt_thread_id,
+            content_text,
+            user_id,
+        );
+    }
+
+    public async close_realtime_runs(thread_id: number): Promise<void> {
+        return GPTAssistantAPIServerController.close_realtime_runs(thread_id);
+    }
+
     /**
      * Demander un run d'un assistant suite à un nouveau message
      * @param session_id null pour une nouvelle session, id de la session au sens de l'API GPT
@@ -761,6 +777,14 @@ export default class ModuleGPTServer extends ModuleServerBase {
         POLICY_USE_OSELIA_REALTIME_IN_CR.translatable_name = ModuleGPT.POLICY_USE_OSELIA_REALTIME_IN_CR;
         POLICY_USE_OSELIA_REALTIME_IN_CR = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_USE_OSELIA_REALTIME_IN_CR, DefaultTranslationVO.create_new({
             'fr-fr': 'API: use oselia realtime voice in CR'
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+
+        let POLICY_CREATE_TECHNICAL_MESSAGE: AccessPolicyVO = new AccessPolicyVO();
+        POLICY_CREATE_TECHNICAL_MESSAGE.group_id = group.id;
+        POLICY_CREATE_TECHNICAL_MESSAGE.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        POLICY_CREATE_TECHNICAL_MESSAGE.translatable_name = ModuleGPT.POLICY_create_technical_message;
+        POLICY_CREATE_TECHNICAL_MESSAGE = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_CREATE_TECHNICAL_MESSAGE, DefaultTranslationVO.create_new({
+            'fr-fr': 'API: create technical message'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
     }
 

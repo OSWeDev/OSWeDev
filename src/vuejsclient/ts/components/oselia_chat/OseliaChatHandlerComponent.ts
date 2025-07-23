@@ -72,6 +72,12 @@ export default class OseliaChatHandlerComponent extends VueComponentBase {
 
     @Watch(reflect<OseliaChatHandlerComponent>().get_current_thread, { deep: true })
     private async onCurrentThreadChange() {
+        // Ne réagir que si le composant est actif (usage externe avec referrer)
+        // Sinon on évite les conflits avec l'usage interne (thread widget)
+        if (!this.isActive) {
+            return;
+        }
+
         if (this.get_current_thread) {
             if ((this.currentThreadVO && this.get_current_thread) && (this.currentThreadVO.id == this.get_current_thread.id)) {
                 if (this.connection_established != this.get_current_thread.realtime_activated) {
