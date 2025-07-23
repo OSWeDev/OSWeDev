@@ -58,4 +58,4 @@ await cmsInstance.initialize();
 
 ---
 
-*Dernière mise à jour : 23/07/2025 10:01:02*
+*Dernière mise à jour : 23/07/2025 10:03:16*
