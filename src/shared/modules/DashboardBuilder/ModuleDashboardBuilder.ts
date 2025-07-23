@@ -879,7 +879,6 @@ export default class ModuleDashboardBuilder extends Module {
         ModuleTableFieldController.create_new(FavoritesFiltersExportParamsVO.API_TYPE_ID, field_names<FavoritesFiltersExportParamsVO>().last_export_at_ts, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Dernier export', false).set_segmentation_type(TimeSegment.TYPE_SECOND);
         ModuleTableFieldController.create_new(FavoritesFiltersExportParamsVO.API_TYPE_ID, field_names<FavoritesFiltersExportParamsVO>().export_to_user_id_ranges, ModuleTableFieldVO.FIELD_TYPE_refrange_array, 'Utilisateurs ciblés', true)
             .set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
-        ModuleTableFieldController.create_new(FavoritesFiltersExportParamsVO.API_TYPE_ID, field_names<FavoritesFiltersExportParamsVO>().field_filters_column_translatable_titles, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Titres des filtres', false);
 
         ModuleTableController.create_new(this.name, FavoritesFiltersExportParamsVO, null, "Paramètres d'export");
     }

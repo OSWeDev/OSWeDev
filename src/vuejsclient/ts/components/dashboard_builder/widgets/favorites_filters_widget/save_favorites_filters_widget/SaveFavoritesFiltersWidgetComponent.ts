@@ -247,7 +247,7 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
     /**
      * Get Selectionnable Active Field Filters
      *
-     * @return {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO }}
+     * @return {FieldFiltersVO}
      */
     private async get_selectionnable_active_field_filters(): Promise<FieldFiltersVO> {
         const dashboard_page_id = this.get_dashboard_page.id;

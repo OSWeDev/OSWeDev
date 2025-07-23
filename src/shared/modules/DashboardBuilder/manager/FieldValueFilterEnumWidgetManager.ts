@@ -163,12 +163,12 @@ export default class FieldValueFilterEnumWidgetManager {
 
             const api_type_field_filters = field_filters_by_api_type_id[api_type_id];
 
-            const api_type_context_filters: ContextFilterVO[] = ContextFilterVOManager.get_context_filters_from_active_field_filters(
+            const api_type_context_filters: ContextFilterVO[] = ContextFilterVOManager.get_context_filters_from_field_filters(
                 api_type_field_filters
             );
 
             // TODO: May be add widget_options boolean to enable/disable keep_other_context_filters (or specify api_type_ids to keep)
-            const other_context_filters: ContextFilterVO[] = ContextFilterVOManager.get_context_filters_from_active_field_filters(
+            const other_context_filters: ContextFilterVO[] = ContextFilterVOManager.get_context_filters_from_field_filters(
                 other_field_filter,
             );
 
@@ -404,7 +404,7 @@ export default class FieldValueFilterEnumWidgetManager {
         );
 
         // TODO: May be add widget_options boolean to enable/disable keep_other_context_filters (or specify api_type_ids to keep)
-        const other_context_filters: ContextFilterVO[] = ContextFilterVOManager.get_context_filters_from_active_field_filters(
+        const other_context_filters: ContextFilterVO[] = ContextFilterVOManager.get_context_filters_from_field_filters(
             other_field_filter,
         );
 
@@ -430,7 +430,7 @@ export default class FieldValueFilterEnumWidgetManager {
 
                 const api_type_field_filters = field_filters_by_api_type_id[api_type_id];
 
-                const api_type_context_filters: ContextFilterVO[] = ContextFilterVOManager.get_context_filters_from_active_field_filters(
+                const api_type_context_filters: ContextFilterVO[] = ContextFilterVOManager.get_context_filters_from_field_filters(
                     api_type_field_filters
                 );
 

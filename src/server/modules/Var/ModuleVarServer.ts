@@ -1378,7 +1378,7 @@ export default class ModuleVarServer extends ModuleServerBase {
     private async getVarParamFromContextFilters(
         var_name: string,
         get_active_field_filters: FieldFiltersVO,
-        custom_filters: { [var_param_field_name: string]: ContextFilterVO },
+        custom_filters: { [var_param_field_name: string]: { [widget_id: number]: ContextFilterVO } },
         active_api_type_ids: string[],
         discarded_field_paths: { [vo_type: string]: { [field_name: string]: boolean } },
         accept_max_ranges: boolean = false
@@ -1467,7 +1467,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                             const alias = matroid_field.foreign_ref_vo_type + '__id';
                             const context_query: ContextQueryVO = query(matroid_field.foreign_ref_vo_type)
                                 .using(active_api_type_ids)
-                                .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(cleaned_active_field_filters))
+                                .add_filters(ContextFilterVOManager.get_context_filters_from_context_field_filters(cleaned_active_field_filters))
                                 .set_query_distinct()
                                 .add_fields([
                                     new ContextQueryFieldVO(matroid_field.foreign_ref_vo_type, 'id', alias)

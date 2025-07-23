@@ -1955,7 +1955,14 @@ export default class TableWidgetTableComponent extends VueComponentBase implemen
 
             // The actual required filter
             // - At this step it must be found
-            const context_filter: ContextFilterVO = active_field_filters[field_filters_key][vo_field_ref.field_id];
+            if (!active_field_filters[field_filters_key] ||
+                !active_field_filters[field_filters_key][vo_field_ref.field_id] ||
+                !active_field_filters[field_filters_key][vo_field_ref.field_id][page_widget.widget_id]
+            ) {
+                return;
+            }
+
+            const context_filter: ContextFilterVO = active_field_filters[field_filters_key][vo_field_ref.field_id][page_widget.widget_id];
 
             // filter to HMI readable
             const filter_readable = ContextFilterVOHandler.context_filter_to_readable_ihm(context_filter);
@@ -2123,7 +2130,7 @@ export default class TableWidgetTableComponent extends VueComponentBase implemen
             return;
         }
 
-        const context_filters: ContextFilterVO[] = ContextFilterVOManager.get_context_filters_from_active_field_filters(
+        const context_filters: ContextFilterVO[] = ContextFilterVOManager.get_context_filters_from_field_filters(
             FieldFiltersVOManager.clean_field_filters_for_request(
                 TableWidgetManager.get_active_field_filters(
                     this.get_active_field_filters,
@@ -2881,7 +2888,6 @@ export default class TableWidgetTableComponent extends VueComponentBase implemen
                 VueAppBase.getInstance().appController.data_user ? [RangeHandler.create_single_elt_NumRange(VueAppBase.getInstance().appController.data_user.id, NumSegment.TYPE_INT)] : null,
                 param.do_not_use_filter_by_datatable_field_uid,
                 param.export_active_field_filters,
-                await this.get_field_filters_column_translatable_titles(),
                 param.export_vars_indicator,
                 param.send_email_with_export_notification,
                 param.vars_indicator,
@@ -3018,7 +3024,7 @@ export default class TableWidgetTableComponent extends VueComponentBase implemen
 
             const context_query: ContextQueryVO = query(column.api_type_id)
                 .field(column.field_id, alias_field, column.api_type_id, VarConfVO.SUM_AGGREGATOR)
-                .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
+                .add_filters(ContextFilterVOManager.get_context_filters_from_field_filters(
                     FieldFiltersVOManager.clean_field_filters_for_request(TableWidgetManager.get_active_field_filters(
                         this.get_active_field_filters,
                         this.widget_options.do_not_use_page_widget_ids,
@@ -3163,15 +3169,5 @@ export default class TableWidgetTableComponent extends VueComponentBase implemen
         }
 
         return exportable_datatable_data;
-    }
-
-    public async get_field_filters_column_translatable_titles(): Promise<{ [vo_field_ref_id: string]: string }> {
-        const active_field_filters = cloneDeep(this.get_active_field_filters);
-
-        return await FieldFiltersVOManager.get_readable_field_ref_labels_from_filters(
-            this.get_dashboard_id,
-            active_field_filters,
-            // this.dashboard_page?.id,
-        );
     }
 }

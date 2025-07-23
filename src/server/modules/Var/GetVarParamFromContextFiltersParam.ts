@@ -6,7 +6,7 @@ export default class GetVarParamFromContextFiltersParam {
     public constructor(
         public var_name: string,
         public get_active_field_filters: FieldFiltersVO,
-        public custom_filters: { [var_param_field_name: string]: ContextFilterVO },
+        public custom_filters: { [var_param_field_name: string]: { [widget_id: number]: ContextFilterVO } },
         public active_api_type_ids: string[],
         public discarded_field_paths: { [vo_type: string]: { [field_name: string]: boolean } },
         public accept_max_ranges: boolean = false,

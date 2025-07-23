@@ -1,25 +1,24 @@
-import SupervisionManager from "../../Supervision/manager/SupervisionManager";
-import PromisePipeline from '../../../tools/PromisePipeline/PromisePipeline';
-import SupervisedCategoryVO from '../../Supervision/vos/SupervisedCategoryVO';
-import SupervisedProbeGroupVO from '../../Supervision/vos/SupervisedProbeGroupVO';
-import ISupervisedItemController from '../../Supervision/interfaces/ISupervisedItemController';
-import SupervisionTypeWidgetOptionsVO from '../vos/SupervisionTypeWidgetOptionsVO';
-import ContextQueryVO, { query } from '../../ContextFilter/vos/ContextQueryVO';
-import SupervisionController from '../../Supervision/SupervisionController';
-import ModuleAccessPolicy from '../../AccessPolicy/ModuleAccessPolicy';
-import FieldFiltersVO from "../vos/FieldFiltersVO";
 import ObjectHandler, { field_names } from "../../../tools/ObjectHandler";
-import DashboardVO from "../vos/DashboardVO";
-import ModuleDAO from '../../DAO/ModuleDAO';
-import DashboardBuilderBoardManager from "./DashboardBuilderBoardManager";
-import FieldValueFilterWidgetManager from "./FieldValueFilterWidgetManager";
-import SupervisedProbeVO from "../../Supervision/vos/SupervisedProbeVO";
+import PromisePipeline from '../../../tools/PromisePipeline/PromisePipeline';
+import RangeHandler from "../../../tools/RangeHandler";
+import ModuleAccessPolicy from '../../AccessPolicy/ModuleAccessPolicy';
 import ContextFilterVOManager from "../../ContextFilter/manager/ContextFilterVOManager";
 import ContextFilterVO from "../../ContextFilter/vos/ContextFilterVO";
-import FieldFiltersVOManager from "./FieldFiltersVOManager";
-import ISupervisedItem from "../../Supervision/interfaces/ISupervisedItem";
-import RangeHandler from "../../../tools/RangeHandler";
+import ContextQueryVO, { query } from '../../ContextFilter/vos/ContextQueryVO';
+import ModuleDAO from '../../DAO/ModuleDAO';
 import NumRange from "../../DataRender/vos/NumRange";
+import ISupervisedItem from "../../Supervision/interfaces/ISupervisedItem";
+import ISupervisedItemController from '../../Supervision/interfaces/ISupervisedItemController';
+import SupervisionManager from "../../Supervision/manager/SupervisionManager";
+import SupervisionController from '../../Supervision/SupervisionController';
+import SupervisedCategoryVO from '../../Supervision/vos/SupervisedCategoryVO';
+import SupervisedProbeGroupVO from '../../Supervision/vos/SupervisedProbeGroupVO';
+import SupervisedProbeVO from "../../Supervision/vos/SupervisedProbeVO";
+import DashboardVO from "../vos/DashboardVO";
+import FieldFiltersVO from "../vos/FieldFiltersVO";
+import SupervisionTypeWidgetOptionsVO from '../vos/SupervisionTypeWidgetOptionsVO';
+import FieldFiltersVOManager from "./FieldFiltersVOManager";
+import FieldValueFilterWidgetManager from "./FieldValueFilterWidgetManager";
 
 /**
  * @class SupervisionTypeWidgetManager
@@ -122,44 +121,54 @@ export default class SupervisionTypeWidgetManager {
         // Shall load all active_supervision_api_type_ids by default
         // Show active_supervision_api_type_ids that match the supervision_category_active_field_filters
         for (const field_id in supervision_category_active_field_filters) {
-            const filter = supervision_category_active_field_filters[field_id];
+            const filters = supervision_category_active_field_filters[field_id];
 
-            if (!filter || !filter.param_textarray?.length) {
-                continue;
+            for (const widget_id_str in filters) {
+
+                const filter: ContextFilterVO = filters[widget_id_str];
+
+                if (!filter || !filter.param_textarray?.length) {
+                    continue;
+                }
+
+                // Get each category from the textarray
+                category_selections = filter.param_textarray?.map((category_name: string) => {
+                    return categories_by_name[category_name];
+                });
             }
-
-            // Get each category from the textarray
-            category_selections = filter.param_textarray?.map((category_name: string) => {
-                return categories_by_name[category_name];
-            });
         }
 
         // gestion des filtre de groupes
         for (const field_id in supervision_group_selection_active_field_filters) {
-            const filter = supervision_group_selection_active_field_filters[field_id];
+            const filters = supervision_group_selection_active_field_filters[field_id];
 
-            if (!filter) {
-                continue;
-            }
+            for (const widget_id_str in filters) {
 
-            if (!filter.param_tsranges?.length) {
-                console.debug('SupervisionTypeWidgetManager.find_available_supervision_type_ids: filter de groupe non géré ' + JSON.stringify(filter));
-                continue;
-            }
+                const filter: ContextFilterVO = filters[widget_id_str];
 
-            if (!options?.groups?.length) {
-                console.debug('SupervisionTypeWidgetManager.find_available_supervision_type_ids: pas de group chargés ');
-                continue;
-            }
-
-            // Get each category from the param_tsranges
-            for (const gi in options.groups) {
-                const group: SupervisedProbeGroupVO = options.groups[gi];
-                if (!group) {
+                if (!filter) {
                     continue;
                 }
-                if (RangeHandler.any_range_intersects_any_range(group.ts_ranges, filter.param_tsranges) && !!group.probe_id_ranges?.length) {
-                    probe_id_ranges.push(...group.probe_id_ranges);
+
+                if (!filter.param_tsranges?.length) {
+                    console.debug('SupervisionTypeWidgetManager.find_available_supervision_type_ids: filter de groupe non géré ' + JSON.stringify(filter));
+                    continue;
+                }
+
+                if (!options?.groups?.length) {
+                    console.debug('SupervisionTypeWidgetManager.find_available_supervision_type_ids: pas de group chargés ');
+                    continue;
+                }
+
+                // Get each category from the param_tsranges
+                for (const gi in options.groups) {
+                    const group: SupervisedProbeGroupVO = options.groups[gi];
+                    if (!group) {
+                        continue;
+                    }
+                    if (RangeHandler.any_range_intersects_any_range(group.ts_ranges, filter.param_tsranges) && !!group.probe_id_ranges?.length) {
+                        probe_id_ranges.push(...group.probe_id_ranges);
+                    }
                 }
             }
         }
@@ -331,20 +340,26 @@ export default class SupervisionTypeWidgetManager {
             // on retire les filtres par état prééxistant dans active_field_filters
             if (!!api_type_field_filters && !!api_type_field_filters[sup_api_type_id]) {
                 for (const field_id in api_type_field_filters[sup_api_type_id]) {
-                    const filter: ContextFilterVO = api_type_field_filters[sup_api_type_id][field_id];
-
-                    if (filter.field_name == field_names<ISupervisedItem>().state) {
+                    // FIXME : TESTER : A quel moment le field_id serait  !=  du filter.field_name ? Et maintenant qu'on a plus filter.field_name directement, c'est quand même terriblement plus simple
+                    if (field_id == field_names<ISupervisedItem>().state) {
                         delete api_type_field_filters[sup_api_type_id][field_id];
                         continue;
                     }
+
+                    // const filter: ContextFilterVO = api_type_field_filters[sup_api_type_id][field_id];
+
+                    // if (filter.field_name == field_names<ISupervisedItem>().state) {
+                    //     delete api_type_field_filters[sup_api_type_id][field_id];
+                    //     continue;
+                    // }
                 }
             }
 
-            const other_context_filters: ContextFilterVO[] = ContextFilterVOManager.get_context_filters_from_active_field_filters(
+            const other_context_filters: ContextFilterVO[] = ContextFilterVOManager.get_context_filters_from_field_filters(
                 other_field_filter,
             );
 
-            const api_type_context_filters: ContextFilterVO[] = ContextFilterVOManager.get_context_filters_from_active_field_filters(
+            const api_type_context_filters: ContextFilterVO[] = ContextFilterVOManager.get_context_filters_from_field_filters(
                 api_type_field_filters
             );
 

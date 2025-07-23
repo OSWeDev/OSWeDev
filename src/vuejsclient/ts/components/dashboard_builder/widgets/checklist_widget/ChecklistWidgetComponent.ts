@@ -528,7 +528,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase implement
             const context_query: ContextQueryVO = query(self.checklist_shared_module.checklistitem_type_id)
                 .set_limit(this.pagination_pagesize, this.pagination_offset)
                 .using(this.get_dashboard_api_type_ids)
-                .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(field_filters))
+                .add_filters(ContextFilterVOManager.get_context_filters_from_field_filters(field_filters))
                 .set_sort(new SortByVO(self.checklist_shared_module.checklistitem_type_id, 'id', false));
             FieldValueFilterWidgetManager.add_discarded_field_paths(context_query, this.get_dashboard_discarded_field_paths);
 
@@ -578,7 +578,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase implement
 
         const query_count: ContextQueryVO = query(self.checklist_shared_module.checklistitem_type_id)
             .using(this.get_dashboard_api_type_ids)
-            .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(field_filters));
+            .add_filters(ContextFilterVOManager.get_context_filters_from_field_filters(field_filters));
         FieldValueFilterWidgetManager.add_discarded_field_paths(query_count, this.get_dashboard_discarded_field_paths);
 
         this.pagination_count = await ModuleContextFilter.instance.select_count(query_count);

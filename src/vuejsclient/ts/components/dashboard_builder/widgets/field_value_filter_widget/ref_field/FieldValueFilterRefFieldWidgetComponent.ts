@@ -1366,7 +1366,7 @@ export default class FieldValueFilterRefFieldWidgetComponent extends VueComponen
 
             let context_query = query(api_type_id)
                 .field(this.vo_field_ref.field_id, 'label', this.vo_field_ref.api_type_id)
-                .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(active_field_filters))
+                .add_filters(ContextFilterVOManager.get_context_filters_from_field_filters(active_field_filters))
                 .set_limit(this.widget_options.max_visible_options)
                 .set_sort(new SortByVO(field_sort.api_type_id, field_sort.field_id, true))
                 .using(this.get_dashboard_api_type_ids);
@@ -1454,7 +1454,7 @@ export default class FieldValueFilterRefFieldWidgetComponent extends VueComponen
 
                     const query_field_ref = query(field_ref_api_type_id)
                         .field(field_ref.field_id, 'label')
-                        .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(active_field_filters))
+                        .add_filters(ContextFilterVOManager.get_context_filters_from_field_filters(active_field_filters))
                         .set_limit(this.widget_options.max_visible_options)
                         .set_sort(new SortByVO(field_sort.api_type_id, field_sort.field_id, true))
                         .using(this.get_dashboard_api_type_ids);
@@ -1549,7 +1549,7 @@ export default class FieldValueFilterRefFieldWidgetComponent extends VueComponen
 
                         const context_query_lvl2 = query(field_ref_api_type_id)
                             .field(this.vo_field_ref_lvl2.field_id, 'label')
-                            .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(active_field_filters_lvl2))
+                            .add_filters(ContextFilterVOManager.get_context_filters_from_field_filters(active_field_filters_lvl2))
                             .set_limit(this.widget_options.max_visible_options)
                             .set_sort(new SortByVO(field_sort_lvl2.api_type_id, field_sort_lvl2.field_id, true))
                             .using(this.get_dashboard_api_type_ids);

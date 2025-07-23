@@ -1,6 +1,7 @@
 import ObjectHandler from "../../../tools/ObjectHandler";
 import RangeHandler from "../../../tools/RangeHandler";
 import ModuleTableFieldVO from "../../DAO/vos/ModuleTableFieldVO";
+import ContextFieldFiltersVO from "../../DashboardBuilder/vos/ContextFieldFiltersVO";
 import FieldFiltersVO from "../../DashboardBuilder/vos/FieldFiltersVO";
 import VOFieldRefVO from "../../DashboardBuilder/vos/VOFieldRefVO";
 import DataFilterOption from "../../DataRender/vos/DataFilterOption";
@@ -151,11 +152,11 @@ export default class ContextFilterVOManager {
      *  - Get Context Filters From Active Field Filters
      *  - Flatten the active_field_filters to get the context_filters in a single array
      *
-     * @param {FieldFiltersVO} active_field_filters
+     * @param {ContextFieldFiltersVO} active_field_filters
      * @returns {ContextFilterVO[]}
      */
-    public static get_context_filters_from_active_field_filters(
-        active_field_filters: FieldFiltersVO
+    public static get_context_filters_from_context_field_filters(
+        active_field_filters: ContextFieldFiltersVO
     ): ContextFilterVO[] {
         const context_filters: ContextFilterVO[] = [];
         if (!ObjectHandler.hasAtLeastOneAttribute(active_field_filters)) {
@@ -180,6 +181,50 @@ export default class ContextFilterVOManager {
                 }
 
                 context_filters.push(context_filter);
+            }
+        }
+
+        return context_filters;
+    }
+
+    /**
+ * get_context_filters_from_active_field_filters
+ *  - Get Context Filters From Active Field Filters
+ *  - Flatten the active_field_filters to get the context_filters in a single array
+ *
+ * @param {FieldFiltersVO} field_filters
+ * @returns {ContextFilterVO[]}
+ */
+    public static get_context_filters_from_field_filters(
+        field_filters: FieldFiltersVO
+    ): ContextFilterVO[] {
+        const context_filters: ContextFilterVO[] = [];
+        if (!ObjectHandler.hasAtLeastOneAttribute(field_filters)) {
+            return context_filters;
+        }
+        for (const key_i in field_filters) {
+            const filters = field_filters[key_i];
+
+            if (!ObjectHandler.hasAtLeastOneAttribute(filters)) {
+                return context_filters;
+            }
+
+            for (const key_j in filters) {
+                const context_filter = filters[key_j];
+
+                if (!context_filter) {
+                    continue;
+                }
+
+                for (const widget_id_str in context_filter) {
+                    let filter = context_filter[widget_id_str];
+
+                    if (!(filter instanceof ContextFilterVO)) {
+                        filter = new ContextFilterVO().from(filter);
+                    }
+
+                    context_filters.push(filter);
+                }
             }
         }
 
@@ -327,16 +372,4 @@ export default class ContextFilterVOManager {
 
         return false;
     }
-
-    // istanbul ignore next: nothing to test
-    public static getInstance(): ContextFilterVOManager {
-        if (!ContextFilterVOManager.instance) {
-            ContextFilterVOManager.instance = new ContextFilterVOManager();
-        }
-        return ContextFilterVOManager.instance;
-    }
-
-    private static instance: ContextFilterVOManager = null;
-
-    private constructor() { }
 }

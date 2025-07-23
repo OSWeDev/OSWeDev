@@ -22,13 +22,14 @@ export default class VarWidgetManager {
      */
     public static get_var_custom_filters(
         var_custom_filters: { [var_param_field_name: string]: string },
+        widget_id: number,
         field_filters: FieldFiltersVO
-    ): { [var_param_field_name: string]: ContextFilterVO } {
+    ): { [var_param_field_name: string]: { [widget_id: number]: ContextFilterVO } } {
 
         /**
          * On crée le custom_filters
          */
-        const custom_filters: { [var_param_field_name: string]: ContextFilterVO } = {};
+        const custom_filters: { [var_param_field_name: string]: { [widget_id: number]: ContextFilterVO } } = {};
 
         for (const var_param_field_name in var_custom_filters) {
             const custom_filter_name = var_custom_filters[var_param_field_name];
@@ -39,16 +40,21 @@ export default class VarWidgetManager {
 
             const is_field_filter_empty = FieldFiltersVOHandler.is_field_filters_empty(
                 { api_type_id: ContextFilterVO.CUSTOM_FILTERS_TYPE, field_id: custom_filter_name },
+                widget_id,
                 field_filters,
             );
 
-            const custom_filter = !is_field_filter_empty ? field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE][custom_filter_name] : null;
+            const custom_filter = !is_field_filter_empty ? field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE][custom_filter_name][widget_id] : null;
 
             if (!custom_filter) {
                 continue;
             }
 
-            custom_filters[var_param_field_name] = custom_filter;
+            if (!custom_filters[var_param_field_name]) {
+                custom_filters[var_param_field_name] = {};
+            }
+
+            custom_filters[var_param_field_name][widget_id] = custom_filter;
         }
 
         return custom_filters;

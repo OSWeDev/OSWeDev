@@ -114,7 +114,7 @@ export default class PerfReportGraphWidgetComponent extends VueComponentBase imp
         // On build la query pour select le perf report
         const context_query_select: ContextQueryVO = query(EventifyPerfReportVO.API_TYPE_ID)
             .using(this.get_dashboard_api_type_ids)
-            .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
+            .add_filters(ContextFilterVOManager.get_context_filters_from_field_filters(
                 FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters)
             ));
         FieldValueFilterWidgetManager.add_discarded_field_paths(context_query_select, this.get_dashboard_discarded_field_paths);

@@ -93,8 +93,10 @@ export default class TableWidgetManager {
                 page_widget_id,
                 widget_options,
             } = datatables_widgets_options[name];
+            const page_widget: DashboardPageWidgetVO = all_page_widgets_by_id[page_widget_id];
 
             const widget_options_fields = TableWidgetManager.get_table_fields_by_widget_options(
+                page_widget.widget_id,
                 dashboard,
                 widget_options,
                 active_field_filters,
@@ -114,6 +116,7 @@ export default class TableWidgetManager {
                 dashboard.id,
                 export_name,
                 await TableWidgetManager.get_table_context_query_by_widget_options(
+                    page_widget.widget_id,
                     dashboard,
                     widget_options,
                     active_field_filters,
@@ -122,30 +125,36 @@ export default class TableWidgetManager {
                     all_page_widgets_by_id,
                 ),
                 TableWidgetManager.get_exportable_table_columns_by_widget_options(
+                    page_widget.widget_id,
                     widget_options,
                     active_field_filters,
                     all_page_widgets_by_id),
                 TableWidgetManager.get_table_columns_labels_by_widget_options(
+                    page_widget.widget_id,
                     widget_options,
                     page_widget_id,
                     active_field_filters,
                     all_page_widgets_by_id),
                 TableWidgetManager.get_exportable_table_custom_field_columns_by_widget_options(
+                    page_widget.widget_id,
                     widget_options,
                     active_field_filters,
                     all_page_widgets_by_id),
                 TableWidgetManager.get_table_columns_by_widget_options(
+                    page_widget.widget_id,
                     widget_options,
                     active_field_filters,
                     all_page_widgets_by_id,
                 ),
                 fields,
                 TableWidgetManager.get_table_varcolumn_conf_by_widget_options(
+                    page_widget.widget_id,
                     widget_options,
                     active_field_filters,
                     all_page_widgets_by_id),
                 active_field_filters,
                 await TableWidgetManager.get_table_columns_custom_filters_by_widget_options(
+                    page_widget.widget_id,
                     dashboard.id,
                     widget_options,
                     active_field_filters,
@@ -204,6 +213,7 @@ export default class TableWidgetManager {
      * @return {ContextQueryVO}
      */
     public static async get_table_context_query_by_widget_options(
+        widget_id: number,
         dashboard: DashboardVO,
         widget_options: TableWidgetOptionsVO,
         active_field_filters: FieldFiltersVO,
@@ -215,6 +225,7 @@ export default class TableWidgetManager {
         const sorted_widgets = await WidgetOptionsVOManager.get_all_sorted_widgets_types();
 
         const table_fields = TableWidgetManager.get_table_fields_by_widget_options(
+            widget_id,
             dashboard,
             widget_options,
             active_field_filters,
@@ -243,7 +254,7 @@ export default class TableWidgetManager {
             return;
         }
 
-        const context_filter = ContextFilterVOManager.get_context_filters_from_active_field_filters(
+        const context_filter = ContextFilterVOManager.get_context_filters_from_field_filters(
             FieldFiltersVOManager.clean_field_filters_for_request(active_field_filters)
         );
 
@@ -262,6 +273,7 @@ export default class TableWidgetManager {
         }
 
         const columns_by_field_id = TableWidgetManager.get_table_columns_by_field_id_by_widget_options(
+            widget_id,
             widget_options,
             active_field_filters,
             all_page_widgets_by_id
@@ -353,11 +365,12 @@ export default class TableWidgetManager {
 
     /**
      * Get Table Columns By Widget Options
-     *
+     * widget_id = Type de widget, pas page_widget
      * @param {TableWidgetOptionsVO} [widget_options]
      * @returns {TableColumnDescVO[]}
      */
     public static get_table_columns_by_widget_options(
+        widget_id: number,
         widget_options: TableWidgetOptionsVO,
         active_field_filters: FieldFiltersVO,
         all_page_widgets_by_id: { [id: number]: DashboardPageWidgetVO },
@@ -422,6 +435,7 @@ export default class TableWidgetManager {
 
                     const is_active_field_filters_empty = FieldFiltersVOHandler.is_field_filters_empty(
                         vo_field_ref,
+                        widget_id,
                         active_field_filters
                     );
 
@@ -458,6 +472,7 @@ export default class TableWidgetManager {
 
                     const is_active_field_filters_empty = FieldFiltersVOHandler.is_field_filters_empty(
                         vo_field_ref,
+                        widget_id,
                         active_field_filters
                     );
 
@@ -512,6 +527,7 @@ export default class TableWidgetManager {
      * @returns {string[]}
      */
     public static get_exportable_table_columns_by_widget_options(
+        widget_id: number,
         widget_options: TableWidgetOptionsVO,
         active_field_filters: FieldFiltersVO,
         all_page_widgets_by_id: { [id: number]: DashboardPageWidgetVO }
@@ -519,6 +535,7 @@ export default class TableWidgetManager {
         const res: string[] = [];
 
         const columns = TableWidgetManager.get_table_columns_by_widget_options(
+            widget_id,
             widget_options,
             active_field_filters,
             all_page_widgets_by_id
@@ -558,6 +575,7 @@ export default class TableWidgetManager {
      * @returns {{ [field_uid: string]: string }}
      */
     public static get_table_columns_labels_by_widget_options(
+        widget_id: number,
         widget_options: TableWidgetOptionsVO,
         page_widget_id: number,
         active_field_filters: FieldFiltersVO,
@@ -566,6 +584,7 @@ export default class TableWidgetManager {
         const label_by_field_uid: { [field_uid: string]: string } = {};
 
         const columns = TableWidgetManager.get_table_columns_by_widget_options(
+            widget_id,
             widget_options,
             active_field_filters,
             all_page_widgets_by_id
@@ -595,6 +614,7 @@ export default class TableWidgetManager {
      * @returns {{ [datatable_field_uid: string]: string }}
      */
     public static get_exportable_table_custom_field_columns_by_widget_options(
+        widget_id: number,
         widget_options: TableWidgetOptionsVO,
         active_field_filters: FieldFiltersVO,
         all_page_widgets_by_id: { [id: number]: DashboardPageWidgetVO }
@@ -603,6 +623,7 @@ export default class TableWidgetManager {
         const custom_field_columns_by_field_uid: { [datatable_field_uid: string]: string } = {};
 
         const columns = TableWidgetManager.get_table_columns_by_widget_options(
+            widget_id,
             widget_options,
             active_field_filters,
             all_page_widgets_by_id
@@ -632,6 +653,7 @@ export default class TableWidgetManager {
      * @returns {{ [datatable_field_uid: string]: ExportVarcolumnConfVO }}
      */
     public static get_table_varcolumn_conf_by_widget_options(
+        widget_id: number,
         widget_options: TableWidgetOptionsVO,
         active_field_filters: FieldFiltersVO,
         all_page_widgets_by_id: { [id: number]: DashboardPageWidgetVO }
@@ -640,6 +662,7 @@ export default class TableWidgetManager {
         const res: { [datatable_field_uid: string]: ExportVarcolumnConfVO } = {};
 
         const columns = TableWidgetManager.get_table_columns_by_widget_options(
+            widget_id,
             widget_options,
             active_field_filters,
             all_page_widgets_by_id
@@ -670,22 +693,24 @@ export default class TableWidgetManager {
      * @returns {{ [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } }}
      */
     public static async get_table_columns_custom_filters_by_widget_options(
+        widget_id: number,
         dashboard_id: number,
         widget_options: TableWidgetOptionsVO,
         active_field_filters: FieldFiltersVO,
         all_page_widgets_by_id: { [id: number]: DashboardPageWidgetVO }
-    ): Promise<{ [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } }> {
+    ): Promise<{ [datatable_field_uid: string]: { [var_param_field_name: string]: { [widget_id: number]: ContextFilterVO } } }> {
 
         // Get page_widgets (or all_page_widgets from dashboard)
         const page_widgets = await query(DashboardPageWidgetVO.API_TYPE_ID)
             .filter_by_num_eq(field_names<DashboardPageWidgetVO>().dashboard_id, dashboard_id)
             .select_vos<DashboardPageWidgetVO>();
 
-        const columns_custom_filters_by_field_uid: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } = {};
+        const columns_custom_filters_by_field_uid: { [datatable_field_uid: string]: { [var_param_field_name: string]: { [widget_id: number]: ContextFilterVO } } } = {};
 
         active_field_filters = cloneDeep(active_field_filters);
 
         const columns = TableWidgetManager.get_table_columns_by_widget_options(
+            widget_id,
             widget_options,
             active_field_filters,
             all_page_widgets_by_id
@@ -722,6 +747,7 @@ export default class TableWidgetManager {
 
             columns_custom_filters_by_field_uid[column.datatable_field_uid] = VarWidgetManager.get_var_custom_filters(
                 Object.keys(column.filter_custom_field_filters)?.length > 0 ? column.filter_custom_field_filters : null,
+                widget_id,
                 active_field_filters
             );
         }
@@ -736,6 +762,7 @@ export default class TableWidgetManager {
      * @returns {{ [column_id: number]: DatatableField<any, any> }}
      */
     public static get_table_fields_by_widget_options(
+        widget_id: number,
         dashboard: DashboardVO,
         widget_options: TableWidgetOptionsVO,
         active_field_filters: FieldFiltersVO,
@@ -745,6 +772,7 @@ export default class TableWidgetManager {
         const field_by_column_id: { [column_id: number]: DatatableField<any, any> } = {};
 
         const columns = TableWidgetManager.get_table_columns_by_widget_options(
+            widget_id,
             widget_options,
             active_field_filters,
             all_page_widgets_by_id,
@@ -823,6 +851,7 @@ export default class TableWidgetManager {
      * @returns {{ [datatable_field_uid: string]: TableColumnDescVO }}
      */
     public static get_table_columns_by_field_id_by_widget_options(
+        widget_id: number,
         widget_options: TableWidgetOptionsVO,
         active_field_filters: FieldFiltersVO,
         all_page_widgets_by_id: { [id: number]: DashboardPageWidgetVO }
@@ -831,6 +860,7 @@ export default class TableWidgetManager {
         const columns_by_field_id: { [datatable_field_uid: string]: TableColumnDescVO } = {};
 
         const columns = TableWidgetManager.get_table_columns_by_widget_options(
+            widget_id,
             widget_options,
             active_field_filters,
             all_page_widgets_by_id

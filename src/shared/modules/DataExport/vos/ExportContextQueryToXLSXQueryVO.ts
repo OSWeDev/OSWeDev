@@ -40,7 +40,7 @@ export default class ExportContextQueryToXLSXQueryVO implements IDistantVOBase {
     public fields: { [datatable_field_uid: string]: DatatableField<any, any> };
     public varcolumn_conf: { [datatable_field_uid: string]: ExportVarcolumnConfVO };
     public active_field_filters: FieldFiltersVO;
-    public custom_filters: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } };
+    public custom_filters: { [datatable_field_uid: string]: { [var_param_field_name: string]: { [widget_id: number]: ContextFilterVO } } };
     public active_api_type_ids: string[];
     public discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
 
@@ -52,7 +52,6 @@ export default class ExportContextQueryToXLSXQueryVO implements IDistantVOBase {
     public do_not_use_filter_by_datatable_field_uid: { [datatable_field_uid: string]: { [vo_type: string]: { [field_id: string]: boolean } } };
 
     public export_active_field_filters: boolean;
-    public active_field_filters_column_labels: { [field_name: string]: string } = null;
 
     public export_vars_indicator: boolean;
     public send_email_with_export_notification: boolean;
@@ -78,7 +77,7 @@ export default class ExportContextQueryToXLSXQueryVO implements IDistantVOBase {
         varcolumn_conf: { [datatable_field_uid: string]: ExportVarcolumnConfVO } = null,
 
         active_field_filters: FieldFiltersVO = null,
-        custom_filters: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } = null,
+        custom_filters: { [datatable_field_uid: string]: { [var_param_field_name: string]: { [widget_id: number]: ContextFilterVO } } } = null,
 
         active_api_type_ids: string[] = null,
         discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } } = null,
@@ -91,7 +90,6 @@ export default class ExportContextQueryToXLSXQueryVO implements IDistantVOBase {
         do_not_use_filter_by_datatable_field_uid: { [datatable_field_uid: string]: { [vo_type: string]: { [field_id: string]: boolean } } } = null,
 
         export_active_field_filters?: boolean,
-        active_field_filters_column_labels: { [field_name: string]: string } = null,
 
         export_vars_indicator?: boolean,
         send_email_with_export_notification?: boolean,
@@ -123,7 +121,6 @@ export default class ExportContextQueryToXLSXQueryVO implements IDistantVOBase {
         res.do_not_use_filter_by_datatable_field_uid = do_not_use_filter_by_datatable_field_uid;
 
         res.export_active_field_filters = export_active_field_filters;
-        res.active_field_filters_column_labels = active_field_filters_column_labels;
 
         res.export_vars_indicator = export_vars_indicator;
         res.send_email_with_export_notification = send_email_with_export_notification;

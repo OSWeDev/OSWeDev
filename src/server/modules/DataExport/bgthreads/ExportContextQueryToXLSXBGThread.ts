@@ -70,7 +70,6 @@ export default class ExportContextQueryToXLSXBGThread implements IBGThread {
                     next_export.fields,
                     next_export.varcolumn_conf,
                     next_export.active_field_filters,
-                    next_export.active_field_filters_column_labels,
                     next_export.custom_filters,
                     next_export.active_api_type_ids,
                     next_export.discarded_field_paths,

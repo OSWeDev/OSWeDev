@@ -2114,7 +2114,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase impleme
         const query_: ContextQueryVO = query(crud_api_type_id)
             .set_limit(this.limit, this.pagination_offset)
             .using(this.get_dashboard_api_type_ids)
-            .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
+            .add_filters(ContextFilterVOManager.get_context_filters_from_field_filters(
                 FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters)
             ));
 
@@ -2881,7 +2881,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase impleme
 
             const query_: ContextQueryVO = query(column.api_type_id)
                 .field(column.field_id, alias_field, column.api_type_id, VarConfVO.SUM_AGGREGATOR)
-                .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
+                .add_filters(ContextFilterVOManager.get_context_filters_from_field_filters(
                     FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters)
                 ));
             // .set_limit(this.limit, this.pagination_offset) =;> à ajouter pour le sous - total(juste le contenu de la page)

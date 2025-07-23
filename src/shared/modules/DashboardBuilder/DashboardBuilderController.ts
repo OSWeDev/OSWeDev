@@ -32,56 +32,56 @@ export default class DashboardBuilderController {
         return DashboardBuilderController.instance;
     }
 
-    public add_table_row_context(
-        context: FieldFiltersVO,
-        columns: TableColumnDescVO[],
-        row_value: any,
-    ): FieldFiltersVO {
+    // public add_table_row_context(
+    //     context: FieldFiltersVO,
+    //     columns: TableColumnDescVO[],
+    //     row_value: any,
+    // ): FieldFiltersVO {
 
-        /**
-         * Si on a des colonnes qui sont des colonnes de données sur la row, on doit amender les filtres pour ajouter le "contexte" de la ligne
-         */
-        if (!context) {
-            context = {};
-        }
+    //     /**
+    //      * Si on a des colonnes qui sont des colonnes de données sur la row, on doit amender les filtres pour ajouter le "contexte" de la ligne
+    //      */
+    //     if (!context) {
+    //         context = {};
+    //     }
 
-        for (const i in columns) {
-            const column = columns[i];
+    //     for (const i in columns) {
+    //         const column = columns[i];
 
-            if (column.type != TableColumnDescVO.TYPE_vo_field_ref) {
-                continue;
-            }
+    //         if (column.type != TableColumnDescVO.TYPE_vo_field_ref) {
+    //             continue;
+    //         }
 
-            /**
-             * Si on est sur une aggrégation, on doit ignorer le filtrage sur cette colonne
-             */
-            if (column.many_to_many_aggregate) {
-                continue;
-            }
+    //         /**
+    //          * Si on est sur une aggrégation, on doit ignorer le filtrage sur cette colonne
+    //          */
+    //         if (column.many_to_many_aggregate) {
+    //             continue;
+    //         }
 
-            if (!context[column.api_type_id]) {
-                context[column.api_type_id] = {};
-            }
+    //         if (!context[column.api_type_id]) {
+    //             context[column.api_type_id] = {};
+    //         }
 
-            const field_filter = this.get_ContextFilterVO_add_Column_context(column, row_value);
+    //         const field_filter = this.get_ContextFilterVO_add_Column_context(column, row_value);
 
-            if (!context[column.api_type_id][column.field_id]) {
-                context[column.api_type_id][column.field_id] = field_filter;
-            } else {
+    //         if (!context[column.api_type_id][column.field_id]) {
+    //             context[column.api_type_id][column.field_id] = field_filter;
+    //         } else {
 
-                const existing_filter = context[column.api_type_id][column.field_id];
-                const and_filter = new ContextFilterVO();
-                and_filter.field_name = column.field_id;
-                and_filter.vo_type = column.api_type_id;
-                and_filter.filter_type = ContextFilterVO.TYPE_FILTER_AND;
-                and_filter.left_hook = existing_filter;
-                and_filter.right_hook = field_filter;
-                context[column.api_type_id][column.field_id] = and_filter;
-            }
-        }
+    //             const existing_filter = context[column.api_type_id][column.field_id];
+    //             const and_filter = new ContextFilterVO();
+    //             and_filter.field_name = column.field_id;
+    //             and_filter.vo_type = column.api_type_id;
+    //             and_filter.filter_type = ContextFilterVO.TYPE_FILTER_AND;
+    //             and_filter.left_hook = existing_filter;
+    //             and_filter.right_hook = field_filter;
+    //             context[column.api_type_id][column.field_id] = and_filter;
+    //         }
+    //     }
 
-        return context;
-    }
+    //     return context;
+    // }
 
     public get_ContextFilterVO_add_Column_context(
         column: TableColumnDescVO, row_value: any): ContextFilterVO {

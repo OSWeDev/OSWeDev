@@ -24,6 +24,7 @@ import ContextFilterVO from '../vos/ContextFilterVO';
 import ContextQueryFieldVO from '../vos/ContextQueryFieldVO';
 import { query } from '../vos/ContextQueryVO';
 import { field_names } from '../../../tools/ObjectHandler';
+import ContextFieldFiltersVO from '../../DashboardBuilder/vos/ContextFieldFiltersVO';
 
 /**
  * ContextFilterVOHandler
@@ -490,8 +491,8 @@ export default class ContextFilterVOHandler {
         return resData;
     }
 
-    public static get_active_field_filters(filters: ContextFilterVO[]): FieldFiltersVO {
-        const res: FieldFiltersVO = {};
+    public static get_active_field_filters(filters: ContextFilterVO[]): ContextFieldFiltersVO {
+        const res: ContextFieldFiltersVO = {};
         for (const i in filters) {
             const filter = filters[i];
 

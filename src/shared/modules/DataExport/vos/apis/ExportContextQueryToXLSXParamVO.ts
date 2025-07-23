@@ -29,7 +29,7 @@ export default class ExportContextQueryToXLSXParamVO extends AbstractVO implemen
         public fields: { [datatable_field_uid: string]: DatatableField<any, any> } = null,
         public varcolumn_conf: { [datatable_field_uid: string]: ExportVarcolumnConfVO } = null,
         public active_field_filters: FieldFiltersVO = null,
-        public custom_filters: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } = null,
+        public custom_filters: { [datatable_field_uid: string]: { [var_param_field_name: string]: { [widget_id: number]: ContextFilterVO } } } = null,
         public active_api_type_ids: string[] = null,
         public discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } } = null,
 
@@ -59,7 +59,7 @@ export default class ExportContextQueryToXLSXParamVO extends AbstractVO implemen
         fields: { [datatable_field_uid: string]: DatatableField<any, any> } = null,
         varcolumn_conf: { [datatable_field_uid: string]: ExportVarcolumnConfVO } = null,
         active_field_filters: FieldFiltersVO = null,
-        custom_filters: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } = null,
+        custom_filters: { [datatable_field_uid: string]: { [var_param_field_name: string]: { [widget_id: number]: ContextFilterVO } } } = null,
         active_api_type_ids: string[] = null,
         discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } } = null,
         is_secured: boolean = false,

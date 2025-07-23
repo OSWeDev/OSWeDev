@@ -582,32 +582,12 @@ export default class FavoritesFiltersModalComponent extends VueComponentBase {
         favorites_filters.dashboard_id = this.dashboard_page.dashboard_id;
         favorites_filters.export_params.export_frequency = export_frequency;
         favorites_filters.export_params.exportable_data = exportable_data;
-        favorites_filters.export_params.field_filters_column_translatable_titles = this.get_field_filters_column_translatable_titles();
         favorites_filters.export_params.export_to_user_id_ranges = favorites_filters.export_params.export_to_user_id_ranges ? RangeHandler.cloneArrayFrom(favorites_filters.export_params.export_to_user_id_ranges) : [RangeHandler.create_single_elt_NumRange(VueAppController.getInstance().data_user.id, NumSegment.TYPE_INT)];
         favorites_filters.options = options;
 
         await this.on_validation_callback(favorites_filters);
 
         this.is_modal_open = false;
-    }
-
-    private get_field_filters_column_translatable_titles(): { [vo_field_ref_id: string]: string } {
-        const res: { [vo_field_ref_id: string]: string } = {};
-
-        for (const i in this.readable_field_filters) {
-            const readable_field_filter = this.readable_field_filters[i];
-
-            if (!readable_field_filter) {
-                continue;
-            }
-
-            const field_id = readable_field_filter.vo_field_ref.field_id;
-            const api_type_id = readable_field_filter.vo_field_ref.api_type_id;
-
-            res[`${api_type_id}.${field_id}`] = readable_field_filter.label;
-        }
-
-        return res;
     }
 
     /**

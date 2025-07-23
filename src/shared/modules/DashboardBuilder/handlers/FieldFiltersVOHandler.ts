@@ -18,11 +18,12 @@ export default class FieldFiltersVOHandler {
      */
     public static is_field_filters_empty(
         vo_field_ref: Partial<VOFieldRefVO>,
-        active_field_filters: FieldFiltersVO
+        widget_id: number,
+        active_field_filters: FieldFiltersVO,
     ): boolean {
 
         // Check if vo_field_ref is valid
-        if (!vo_field_ref?.api_type_id || !vo_field_ref?.field_id) {
+        if (!vo_field_ref?.api_type_id || !vo_field_ref?.field_id || !widget_id) {
             throw new Error(
                 `FieldFiltersVOHandler.is_field_filters_empty: ` +
                 `vo_field_ref.api_type_id or vo_field_ref.field_id is missing`
@@ -35,8 +36,12 @@ export default class FieldFiltersVOHandler {
             return true;
         }
 
-        const has_field_filters = !!(api_type_id_filters[vo_field_ref.field_id]);
+        const field_filters = api_type_id_filters[vo_field_ref.field_id];
 
-        return !(has_field_filters);
+        if (!field_filters) {
+            return true;
+        }
+
+        return !(field_filters[widget_id]);
     }
 }

@@ -1,10 +1,11 @@
 
-import { isEmpty } from 'lodash';
+import ConsoleHandler from '../../../tools/ConsoleHandler';
+import LocaleManager from '../../../tools/LocaleManager';
+import ObjectHandler, { field_names } from '../../../tools/ObjectHandler';
 import ContextFilterVO from "../../ContextFilter/vos/ContextFilterVO";
 import { query } from "../../ContextFilter/vos/ContextQueryVO";
 import DashboardPageWidgetVO from "../vos/DashboardPageWidgetVO";
 import VOFieldRefVO from "../vos/VOFieldRefVO";
-import DashboardPageWidgetVOManager from "./DashboardPageWidgetVOManager";
 
 /**
  * @class VOFieldRefVOManager
@@ -12,79 +13,155 @@ import DashboardPageWidgetVOManager from "./DashboardPageWidgetVOManager";
 export default class VOFieldRefVOManager {
 
     /**
-     * create_readable_vo_field_ref_label
-     * - Create Readable Label From VOFieldRefVO
-     * - This method is responsible for creating the readable label from a VOFieldRefVO
-     *
-     * TODO: Maybe we should move this method to WidgetOptionsVOManager
-     *
+     * En priorité :
+     * - On cherche dans les widgets de la page celui du type demandé et qui pointe sur le champ demandé (ou custom)
+     * - On doit le trouver, sinon on retourne le nom du champ
+     * - Si il y a un nom traduit, on le retourne
+     * - Si il y a un titre de widget traduit, on le retourne
+     * - Sinon, on retourne le nom du champ
      * @return {Promise<string>}
      */
     public static async create_readable_vo_field_ref_label(
         dashboard_id: number,
-        current_page_page_widgets: DashboardPageWidgetVO[],
+        widget_id: number,
         vo_field_ref: { api_type_id: string, field_id: string },
-        // page_id?: number
     ): Promise<string> {
 
-        // Get widgets_options_metadata from dashboard
-        let widgets_options_metadata = null;
-        // if (page_id) {
-        if (current_page_page_widgets && current_page_page_widgets.length > 0) {
-            widgets_options_metadata = DashboardPageWidgetVOManager.find_all_widgets_options_metadata(current_page_page_widgets); // deprecated ??? revoir tout ce bordel
-        } else {
-            widgets_options_metadata = await DashboardPageWidgetVOManager.find_all_widgets_options_metadata_by_dashboard_id(dashboard_id);
-        }
-        // } else {
-        //     // TODO: To be removed
-        //     // TODO FIXME à faire différemment on doit avoir current_page_page_widgets
-        //     widgets_options_metadata = DashboardPageWidgetVOManager.find_all_widgets_options_metadata(current_page_page_widgets);
-        // }
+        let default_label = `${vo_field_ref.api_type_id}.${vo_field_ref.field_id}`;
+        const widgets: DashboardPageWidgetVO[] = await query(DashboardPageWidgetVO.API_TYPE_ID)
+            .filter_by_num_eq(field_names<DashboardPageWidgetVO>().dashboard_id, dashboard_id)
+            .filter_by_num_eq(field_names<DashboardPageWidgetVO>().widget_id, widget_id)
+            .select_vos<DashboardPageWidgetVO>();
 
-        let page_widget_options = null;
-        // Label of filter to be displayed
-        let label: string = null;
-
-        if (!(vo_field_ref instanceof VOFieldRefVO)) {
-            // Path to find the actual filter
-            vo_field_ref = VOFieldRefVOManager.create_vo_field_ref_vo_from_widget_options(
-                { vo_field_ref },
-            );
+        if (!widgets || widgets.length === 0) {
+            // If no widgets found, return the field_id as label
+            ConsoleHandler.error(`No widgets found for dashboard_id: ${dashboard_id} and widget_id: ${widget_id}`);
+            return default_label;
         }
 
-        if (!isEmpty(widgets_options_metadata)) {
-            // Get the page_widget_options from widgets_options_metadata
-            // - The page_widget_options is used to get the label of the filter
-            page_widget_options = Object.values(widgets_options_metadata)?.filter((sorted_page_widget_option: any) => {
-                const widget_options = sorted_page_widget_option?.widget_options;
-                const _vo_field_ref = widget_options?.vo_field_ref;
+        let widget: DashboardPageWidgetVO = null;
 
-                const has_api_type_id = _vo_field_ref?.api_type_id === vo_field_ref.api_type_id;
-                const has_field_id = _vo_field_ref?.field_id === vo_field_ref.field_id;
+        for (const w of widgets) {
+            // On doit checker la correspondance du type de vo_field_ref et du widget
+            const widget_options = ObjectHandler.try_get_json(w.json_options);
 
-                if (widget_options?.is_vo_field_ref === false) {
-                    return widget_options?.custom_filter_name === vo_field_ref.field_id;
+            if (!widget_options) {
+                ConsoleHandler.error(`Widget options not found for widget_id: ${w.id}`);
+                continue;
+            }
+
+            if (widget_options.is_vo_field_ref) {
+
+                if (widget_options.vo_field_ref.api_type_id === vo_field_ref.api_type_id &&
+                    widget_options.vo_field_ref.field_id === vo_field_ref.field_id) {
+                    widget = w;
+                    break;
                 }
+            } else {
 
-                return has_api_type_id && has_field_id;
-            })?.shift();
+                if (widget_options.custom_filter_name === vo_field_ref.field_id) {
+                    widget = w;
+                    default_label = widget_options.custom_filter_name;
+                    break;
+                }
+            }
         }
 
-        if (page_widget_options?.widget_options?.is_vo_field_ref === false) {
-            label = page_widget_options?.widget_options?.custom_filter_name;
-
-        } else if (page_widget_options?.page_widget_id) {
-            const page_widget: DashboardPageWidgetVO = await query(DashboardPageWidgetVO.API_TYPE_ID)
-                .filter_by_id(page_widget_options.page_widget_id)
-                .select_vo<DashboardPageWidgetVO>();
-
-            label = page_widget?.titre;
+        if (!widget) {
+            ConsoleHandler.error(`Widget not found for vo_field_ref: ${JSON.stringify(vo_field_ref)}`);
+            return default_label;
         }
 
-        label = (label?.length > 0) ? label : `${vo_field_ref.api_type_id}.${vo_field_ref.field_id}`;
+        // Si le label existe, on le retourne
+        const widget_name = await LocaleManager.t(widget.widget_name);
+        if (widget_name && widget_name.length > 0 && widget_name !== widget.titre) {
+            return widget_name;
+        }
 
-        return label;
+        // Si le titre existe, on le retourne
+        const widget_title = await LocaleManager.t(widget.titre);
+        if (widget_title && widget_title.length > 0) {
+            return widget_title;
+        }
+
+        // Sinon, on retourne le nom du champ
+        return default_label;
     }
+
+    // /**
+    //  * create_readable_vo_field_ref_label
+    //  * - Create Readable Label From VOFieldRefVO
+    //  * - This method is responsible for creating the readable label from a VOFieldRefVO
+    //  *
+    //  * TODO: Maybe we should move this method to WidgetOptionsVOManager
+    //  *
+    //  * @return {Promise<string>}
+    //  */
+    // public static async create_readable_vo_field_ref_label(
+    //     dashboard_id: number,
+    //     current_page_page_widgets: DashboardPageWidgetVO[],
+    //     vo_field_ref: { api_type_id: string, field_id: string },
+    //     // page_id?: number
+    // ): Promise<string> {
+
+    //     // Get widgets_options_metadata from dashboard
+    //     let widgets_options_metadata = null;
+    //     // if (page_id) {
+    //     if (current_page_page_widgets && current_page_page_widgets.length > 0) {
+    //         widgets_options_metadata = DashboardPageWidgetVOManager.find_all_widgets_options_metadata(current_page_page_widgets); // deprecated ??? revoir tout ce bordel
+    //     } else {
+    //         widgets_options_metadata = await DashboardPageWidgetVOManager.find_all_widgets_options_metadata_by_dashboard_id(dashboard_id);
+    //     }
+    //     // } else {
+    //     //     // TODO: To be removed
+    //     //     // TODO FIXME à faire différemment on doit avoir current_page_page_widgets
+    //     //     widgets_options_metadata = DashboardPageWidgetVOManager.find_all_widgets_options_metadata(current_page_page_widgets);
+    //     // }
+
+    //     let page_widget_options = null;
+    //     // Label of filter to be displayed
+    //     let label: string = null;
+
+    //     if (!(vo_field_ref instanceof VOFieldRefVO)) {
+    //         // Path to find the actual filter
+    //         vo_field_ref = VOFieldRefVOManager.create_vo_field_ref_vo_from_widget_options(
+    //             { vo_field_ref },
+    //         );
+    //     }
+
+    //     if (!isEmpty(widgets_options_metadata)) {
+    //         // Get the page_widget_options from widgets_options_metadata
+    //         // - The page_widget_options is used to get the label of the filter
+    //         page_widget_options = Object.values(widgets_options_metadata)?.filter((sorted_page_widget_option: any) => {
+    //             const widget_options = sorted_page_widget_option?.widget_options;
+    //             const _vo_field_ref = widget_options?.vo_field_ref;
+
+    //             const has_api_type_id = _vo_field_ref?.api_type_id === vo_field_ref.api_type_id;
+    //             const has_field_id = _vo_field_ref?.field_id === vo_field_ref.field_id;
+
+    //             if (widget_options?.is_vo_field_ref === false) {
+    //                 return widget_options?.custom_filter_name === vo_field_ref.field_id;
+    //             }
+
+    //             return has_api_type_id && has_field_id;
+    //         })?.shift();
+    //     }
+
+    //     if (page_widget_options?.widget_options?.is_vo_field_ref === false) {
+    //         label = page_widget_options?.widget_options?.custom_filter_name;
+
+    //     } else if (page_widget_options?.page_widget_id) {
+    //         const page_widget: DashboardPageWidgetVO = await query(DashboardPageWidgetVO.API_TYPE_ID)
+    //             .filter_by_id(page_widget_options.page_widget_id)
+    //             .select_vo<DashboardPageWidgetVO>();
+
+    //         label = page_widget?.titre;
+    //     }
+
+    //     label = (label?.length > 0) ? label : `${vo_field_ref.api_type_id}.${vo_field_ref.field_id}`;
+
+    //     return label;
+    // }
 
     /**
      * Create a VOFieldRefVO from a widget_options

@@ -18,5 +18,4 @@ export default class FavoritesFiltersExportParamsVO extends AbstractVO implement
     public export_frequency: FavoritesFiltersExportFrequencyVO; // Export frequency (ex: daily, weekly, monthly)
     public exportable_data: { [title_name_code: string]: ExportContextQueryToXLSXParamVO };
     public export_to_user_id_ranges: NumRange[]; // Users to export to
-    public field_filters_column_translatable_titles: { [vo_field_ref_id: string]: string }; // Titles of the field filters (ex: "widget_66.title" for "api_type_id.field_id" field filter)
 }

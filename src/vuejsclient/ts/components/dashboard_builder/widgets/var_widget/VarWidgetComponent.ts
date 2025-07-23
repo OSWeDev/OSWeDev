@@ -135,12 +135,12 @@ export default class VarWidgetComponent extends VueComponentBase implements IDas
     public static get_var_custom_filters(
         var_custom_filters: { [var_param_field_name: string]: string },
         get_active_field_filters: FieldFiltersVO
-    ): { [var_param_field_name: string]: ContextFilterVO } {
+    ): { [var_param_field_name: string]: { [widget_id: number]: ContextFilterVO } } {
 
         /**
          * On crée le custom_filters
          */
-        const custom_filters: { [var_param_field_name: string]: ContextFilterVO } = {};
+        const custom_filters: { [var_param_field_name: string]: { [widget_id: number]: ContextFilterVO } } = {};
 
         for (const var_param_field_name in var_custom_filters) {
             const custom_filter_name = var_custom_filters[var_param_field_name];
@@ -252,7 +252,7 @@ export default class VarWidgetComponent extends VueComponentBase implements IDas
         /**
          * On crée le custom_filters
          */
-        const custom_filters: { [var_param_field_name: string]: ContextFilterVO } = VarWidgetComponent.get_var_custom_filters(this.var_custom_filters, this.get_active_field_filters);
+        const custom_filters: { [var_param_field_name: string]: { [widget_id: number]: ContextFilterVO } } = VarWidgetComponent.get_var_custom_filters(this.var_custom_filters, this.get_active_field_filters);
 
         /**
          * Pour les dates il faut réfléchir....

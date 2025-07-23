@@ -234,7 +234,7 @@ export default class OseliaRunGraphWidgetComponent extends VueComponentBase impl
     })
     private async chargeChoices() {
         const active_filters = FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters);
-        const context_filters = ContextFilterVOManager.get_context_filters_from_active_field_filters(active_filters);
+        const context_filters = ContextFilterVOManager.get_context_filters_from_field_filters(active_filters);
 
         let runs: OseliaRunVO[] = [];
         if (this.localThreadId != null) {

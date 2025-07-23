@@ -541,10 +541,9 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
     /**
      * Get Selectionnable Active Field Filters
      *
-     * @return {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO }}
+     * @return {FieldFiltersVO}
      */
     private async get_selectionnable_active_field_filters(): Promise<FieldFiltersVO> {
-        const dashboard_page_id = this.get_dashboard_page.id;
 
         const field_value_filters_widgets_options = await FieldValueFilterWidgetManager.get_field_value_filters_widgets_options_metadata(this.page_widget, this.get_page_widgets);
         const month_filters_widgets_options = await MonthFilterWidgetManager.get_month_filters_widgets_options_metadata(this.page_widget, this.get_page_widgets);

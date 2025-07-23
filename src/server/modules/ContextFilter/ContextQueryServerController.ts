@@ -58,6 +58,7 @@ import ContextAccessServerController from './ContextAccessServerController';
 import ContextFieldPathServerController from './ContextFieldPathServerController';
 import ContextFilterServerController from './ContextFilterServerController';
 import ContextQueryFieldServerController from './ContextQueryFieldServerController';
+import ContextFieldFiltersVO from '../../../shared/modules/DashboardBuilder/vos/ContextFieldFiltersVO';
 
 export default class ContextQueryServerController {
 
@@ -570,7 +571,7 @@ export default class ContextQueryServerController {
             throw new Error('Invalid context_query param');
         }
         const field = context_query.fields[0];
-        const get_active_field_filters = ContextFilterVOHandler.get_active_field_filters(context_query.filters);
+        const get_active_field_filters: ContextFieldFiltersVO = ContextFilterVOHandler.get_active_field_filters(context_query.filters);
 
         /**
          * on ignore le filtre sur ce champs par défaut, et par contre on considère le acutal_query comme un filtrage en text_contient
@@ -604,7 +605,7 @@ export default class ContextQueryServerController {
             get_active_field_filters[field.api_type_id][field.field_name] = actual_filter;
         }
 
-        context_query.filters = ContextFilterVOManager.get_context_filters_from_active_field_filters(get_active_field_filters);
+        context_query.filters = ContextFilterVOManager.get_context_filters_from_context_field_filters(get_active_field_filters);
 
         const query_res: any[] = await ContextQueryServerController.select_datatable_rows(context_query, null, null);
         if ((!query_res) || (!query_res.length)) {
@@ -1303,7 +1304,7 @@ export default class ContextQueryServerController {
 
                     default:
                         delete get_active_field_filters[field.api_type_id][field.field_name];
-                        context_query.filters = ContextFilterVOManager.get_context_filters_from_active_field_filters(get_active_field_filters);
+                        context_query.filters = ContextFilterVOManager.get_context_filters_from_context_field_filters(get_active_field_filters);
                         break;
                 }
             }

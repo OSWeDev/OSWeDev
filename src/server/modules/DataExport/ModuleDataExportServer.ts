@@ -451,7 +451,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         varcolumn_conf: { [datatable_field_uid: string]: ExportVarcolumnConfVO } = null,
         active_field_filters: FieldFiltersVO = null,
         active_field_filters_column_labels: { [field_name: string]: string } = null,
-        custom_filters: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } = null,
+        custom_filters: { [datatable_field_uid: string]: { [var_param_field_name: string]: { [widget_id: number]: ContextFilterVO } } } = null,
         active_api_type_ids: string[] = null,
         discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } } = null,
 
@@ -553,7 +553,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         varcolumn_conf: { [datatable_field_uid: string]: ExportVarcolumnConfVO } = null, // TODO FIXME : Quand est-ce qu'on applique le format ???
         active_field_filters: FieldFiltersVO = null,
         active_field_filters_column_labels: { [field_name: string]: string } = null,
-        custom_filters: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } = null,
+        custom_filters: { [datatable_field_uid: string]: { [var_param_field_name: string]: { [widget_id: number]: ContextFilterVO } } } = null,
         active_api_type_ids: string[] = null,
         discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } } = null,
 
@@ -714,7 +714,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         if (export_active_field_filters) {
 
             // TODO FIXME ça peut pas marcher comme ça... là on cherche à afficher des widgets de filtre, mais on les charge pas, et en plus le filtrage est pas la conf par défaut, faut gérer ça différemment. les filtres favoris peuvent pas exporter les filtres correctement en l'état
-            const active_filters_sheet = await this.create_active_filters_xlsx_sheet(dashboard_id, active_field_filters, active_field_filters_column_labels);
+            const active_filters_sheet = await this.create_active_filters_xlsx_sheet(dashboard_id, active_field_filters);
 
             if (!!active_filters_sheet) {
                 sheets.push(active_filters_sheet);
@@ -1087,7 +1087,6 @@ export default class ModuleDataExportServer extends ModuleServerBase {
     private async create_active_filters_xlsx_sheet(
         dashboard_id: number,
         active_field_filters: FieldFiltersVO = null,
-        active_field_filters_column_labels: { [field_name: string]: string } = null,
     ): Promise<IExportableSheet> {
 
         if ((!active_field_filters)) {
@@ -1104,31 +1103,29 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         for (const api_type_id in active_field_filters) {
             const active_filter = active_field_filters[api_type_id];
 
-            for (const context_filter_name in active_filter) {
-                const context_filter: ContextFilterVO = active_filter[context_filter_name];
+            for (const context_field_id in active_filter) {
+                const context_filters: { [widget_id: number]: ContextFilterVO } = active_filter[context_field_id];
 
-                if (context_filter == null) {
-                    continue;
+                for (const widget_id_str in context_filters) {
+                    const context_filter: ContextFilterVO = context_filters[widget_id_str];
+
+                    if (context_filter == null) {
+                        continue;
+                    }
+
+                    const vo_field_ref_label: string = await VOFieldRefVOManager.create_readable_vo_field_ref_label(
+                        dashboard_id,
+                        parseInt(widget_id_str),
+                        { api_type_id: context_filter.vo_type, field_id: context_filter.field_name },
+                    );
+
+                    const data: { [column_list_key: string]: { value: string | number, format?: string } } = {
+                        filter_name: { value: vo_field_ref_label },
+                        value: { value: ContextFilterVOHandler.context_filter_to_readable_ihm(context_filter) }
+                    };
+
+                    sheet.datas.push(data);
                 }
-
-                const vo_field_ref_label: string = await VOFieldRefVOManager.create_readable_vo_field_ref_label(
-                    dashboard_id,
-                    // TODO FIXME needs current_page_page_widgets: DashboardPageWidgetVO[], ????
-                    null,
-                    { api_type_id: context_filter.vo_type, field_id: context_filter.field_name },
-                );
-
-                if (active_field_filters_column_labels && !active_field_filters_column_labels[vo_field_ref_label]) {
-                    ConsoleHandler.warn('create_active_filters_xlsx_sheet:Unknown field label:' + vo_field_ref_label + ':api_type_id:' + api_type_id + ':field_id:' + context_filter.field_name + ': Pour exporter ce filtre actif, il faut nommer le widget et qu\'il ne soit pas masqué');
-                    continue;
-                }
-
-                const data: { [column_list_key: string]: { value: string | number, format?: string } } = {
-                    filter_name: { value: ((active_field_filters_column_labels && active_field_filters_column_labels[vo_field_ref_label]) ? active_field_filters_column_labels[vo_field_ref_label] : vo_field_ref_label) },
-                    value: { value: ContextFilterVOHandler.context_filter_to_readable_ihm(context_filter) }
-                };
-
-                sheet.datas.push(data);
             }
         }
 
@@ -1173,7 +1170,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
             const varcolumn_conf = vars_indicator.varcolumn_conf[var_name];
 
-            const this_custom_filters: { [var_param_field_name: string]: ContextFilterVO } = {};
+            const this_custom_filters: { [var_param_field_name: string]: { [widget_id: number]: ContextFilterVO } } = {};
             let filter_additional_params = null;
 
             if (has_errors) {
@@ -2001,7 +1998,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         datatable_rows: IDistantVOBase[],
         columns: TableColumnDescVO[],
 
-        custom_filters: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } = null,
+        custom_filters: { [datatable_field_uid: string]: { [var_param_field_name: string]: { [widget_id: number]: ContextFilterVO } } } = null,
     ): Promise<IDistantVOBase[]> {
 
         // May be better to not alter the original data rows

@@ -115,12 +115,17 @@ export default class FavoritesFiltersController {
             const filters = default_field_filters[api_type_id];
 
             for (const field_id in filters) {
-                // Add default context filters
-                context_field_filters = FieldFiltersVOManager.overwrite_field_filters_with_context_filter(
-                    context_field_filters,
-                    { api_type_id, field_id },
-                    filters[field_id]
-                );
+                const field_filters = filters[field_id];
+
+                for (const widget_id in field_filters) {
+
+                    // Add default context filters
+                    context_field_filters = FieldFiltersVOManager.overwrite_field_filters_with_context_filter(
+                        context_field_filters,
+                        { api_type_id, field_id },
+                        field_filters[widget_id]
+                    );
+                }
             }
         }
 
@@ -129,12 +134,17 @@ export default class FavoritesFiltersController {
             const filters = favorites_field_filters[api_type_id];
 
             for (const field_id in filters) {
-                // Add default context filters
-                context_field_filters = FieldFiltersVOManager.overwrite_field_filters_with_context_filter(
-                    context_field_filters,
-                    { api_type_id, field_id },
-                    filters[field_id]
-                );
+                const field_filters = filters[field_id];
+
+                for (const widget_id in field_filters) {
+
+                    // Add default context filters
+                    context_field_filters = FieldFiltersVOManager.overwrite_field_filters_with_context_filter(
+                        context_field_filters,
+                        { api_type_id, field_id },
+                        field_filters[widget_id]
+                    );
+                }
             }
         }
 
@@ -167,6 +177,7 @@ export default class FavoritesFiltersController {
                     custom_field_filters = FieldFiltersVOManager.merge_field_filters_with_context_filter(
                         custom_field_filters,
                         vo_field_ref,
+                        widget_id,
                         context_filter
                     );
                 }
@@ -182,12 +193,17 @@ export default class FavoritesFiltersController {
             const filters = custom_field_filters[api_type_id];
 
             for (const field_id in filters) {
-                // Add custom context filters
-                context_field_filters = FieldFiltersVOManager.overwrite_field_filters_with_context_filter(
-                    context_field_filters,
-                    { api_type_id, field_id },
-                    filters[field_id]
-                );
+                const field_filters = filters[field_id];
+
+                for (const widget_id in field_filters) {
+
+                    // Add custom context filters
+                    context_field_filters = FieldFiltersVOManager.overwrite_field_filters_with_context_filter(
+                        context_field_filters,
+                        { api_type_id, field_id },
+                        field_filters[widget_id]
+                    );
+                }
             }
         }
 
@@ -205,18 +221,22 @@ export default class FavoritesFiltersController {
                         const custom_filter = custom_filters[custom_filter_key_1];
 
                         for (const custom_filter_key_2 in custom_filter) {
-                            const custom_arbo = custom_filter[custom_filter_key_2];
+                            const field_filters = custom_filter[custom_filter_key_2];
 
-                            if (custom_arbo.vo_type !== ContextFilterVO.CUSTOM_FILTERS_TYPE) {
-                                continue;
+                            for (const custom_filter_widget_id in field_filters) {
+                                const custom_arbo = field_filters[custom_filter_widget_id];
+
+                                if (custom_arbo.vo_type !== ContextFilterVO.CUSTOM_FILTERS_TYPE) {
+                                    continue;
+                                }
+
+                                if ((!custom_field_filters) || (!custom_field_filters[custom_arbo.vo_type]) || (!custom_field_filters[custom_arbo.vo_type][custom_arbo.field_name]) || (!custom_field_filters[custom_arbo.vo_type][custom_arbo.field_name][custom_filter_widget_id])) {
+                                    continue;
+                                }
+
+                                const custom_copy = cloneDeep(custom_field_filters[custom_arbo.vo_type][custom_arbo.field_name][custom_filter_widget_id]);
+                                field_filters[custom_filter_widget_id] = custom_copy;
                             }
-
-                            if ((!custom_field_filters) || (!custom_field_filters[custom_arbo.vo_type]) || (!custom_field_filters[custom_arbo.vo_type][custom_arbo.field_name])) {
-                                continue;
-                            }
-
-                            const custom_copy = cloneDeep(custom_field_filters[custom_arbo.vo_type][custom_arbo.field_name]);
-                            custom_filter[custom_filter_key_2] = custom_copy;
                         }
                     }
                 }

@@ -210,7 +210,7 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase im
             SuiviCompetencesWidgetController.default_action_rapport = null;
         }
 
-        const context_filters: ContextFilterVO[] = ContextFilterVOManager.get_context_filters_from_active_field_filters(
+        const context_filters: ContextFilterVO[] = ContextFilterVOManager.get_context_filters_from_field_filters(
             FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters)
         );
 

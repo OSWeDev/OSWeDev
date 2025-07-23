@@ -951,7 +951,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase impl
             const q = query(this.widget_options.multiple_dataset_vo_field_ref.api_type_id)
                 .set_limit(this.widget_options.max_dataset_values)
                 .using(this.get_dashboard_api_type_ids)
-                .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
+                .add_filters(ContextFilterVOManager.get_context_filters_from_field_filters(
                     FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters)
                 ));
             FieldValueFilterWidgetManager.add_discarded_field_paths(q, this.get_dashboard_discarded_field_paths);
@@ -975,7 +975,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase impl
      * set_charts_var_params_by_dimension : calcule charts_var_params_by_dimension
      */
     private async set_charts_var_params_by_dimension(
-        custom_filters: { [chart_id: string]: { [var_param_field_name: string]: ContextFilterVO } },
+        custom_filters: { [chart_id: string]: { [var_param_field_name: string]: { [widget_id: number]: ContextFilterVO } } },
         launch_cpt: number
     ) {
         let charts_var_params_by_dimension: { [chart_id: string]: { [dimension_value: number]: VarDataBaseVO } } = {};
@@ -1004,7 +1004,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase impl
      * => On remplit charts_var_params_by_dimension
      */
     private async get_charts_var_params_by_dimension_when_dimension_is_vo_field_ref(
-        custom_filters: { [chart_id: string]: { [var_param_field_name: string]: ContextFilterVO } }
+        custom_filters: { [chart_id: string]: { [var_param_field_name: string]: { [widget_id: number]: ContextFilterVO } } }
     ): Promise<{ [chart_id: string]: { [dimension_value: number]: VarDataBaseVO } }> {
 
         // Vérif basique
@@ -1027,7 +1027,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase impl
             .using(this.get_dashboard_api_type_ids)
             .field(this.widget_options.dimension_vo_field_ref.field_id)
             .set_query_distinct()
-            .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
+            .add_filters(ContextFilterVOManager.get_context_filters_from_field_filters(
                 FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters)
             ));
         FieldValueFilterWidgetManager.add_discarded_field_paths(context_query, this.get_dashboard_discarded_field_paths);
@@ -1188,7 +1188,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase impl
      * => dimension = custom filter (souvent date). On segmente par TimeSegment
      */
     private async get_charts_var_params_by_dimension_when_dimension_is_custom_filter(
-        custom_filters: { [chart_id: string]: { [var_param_field_name: string]: ContextFilterVO } }
+        custom_filters: { [chart_id: string]: { [var_param_field_name: string]: { [widget_id: number]: ContextFilterVO } } }
     ): Promise<{ [chart_id: string]: { [dimension_value: number]: VarDataBaseVO } }> {
         if (
             !this.widget_options?.var_charts_options?.length ||

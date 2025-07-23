@@ -646,7 +646,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
                     0
                 );
             query_.fields = [new ContextQueryFieldVO(this.vo_field_ref.api_type_id, this.vo_field_ref.field_id, 'label')];
-            query_.filters = ContextFilterVOManager.get_context_filters_from_active_field_filters(active_field_filters_query);
+            query_.filters = ContextFilterVOManager.get_context_filters_from_field_filters(active_field_filters_query);
             query_.active_api_type_ids = this.get_dashboard_api_type_ids;
 
             FieldValueFilterWidgetController.getInstance().add_discarded_field_paths(query_, this.get_dashboard_discarded_field_paths);

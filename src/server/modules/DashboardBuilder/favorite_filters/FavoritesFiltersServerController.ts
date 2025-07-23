@@ -89,7 +89,6 @@ export default class FavoritesFiltersServerController {
                 favorites_filters.export_params.export_to_user_id_ranges,
                 xlsx_data.do_not_use_filter_by_datatable_field_uid,
                 xlsx_data.export_active_field_filters,
-                favorites_filters.export_params.field_filters_column_translatable_titles,
                 xlsx_data.export_vars_indicator,
                 xlsx_data.send_email_with_export_notification
             );

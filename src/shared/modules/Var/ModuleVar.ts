@@ -118,14 +118,14 @@ export default class ModuleVar extends Module {
     public getVarParamFromContextFilters: (
         var_name: string,
         get_active_field_filters: FieldFiltersVO,
-        custom_filters: { [var_param_field_name: string]: ContextFilterVO },
+        custom_filters: { [var_param_field_name: string]: { [widget_id: number]: ContextFilterVO } },
         active_api_type_ids: string[],
         discarded_field_paths: { [vo_type: string]: { [field_name: string]: boolean } },
         accept_max_ranges?: boolean,
     ) => Promise<VarDataBaseVO> = APIControllerWrapper.sah(ModuleVar.APINAME_getVarParamFromContextFilters, null, (
         var_name: string,
         get_active_field_filters: FieldFiltersVO,
-        custom_filters: { [var_param_field_name: string]: ContextFilterVO },
+        custom_filters: { [var_param_field_name: string]: { [widget_id: number]: ContextFilterVO } },
         active_api_type_ids: string[],
         discarded_field_paths: { [vo_type: string]: { [field_name: string]: boolean } },
         accept_max_ranges?: boolean,
@@ -391,9 +391,10 @@ export default class ModuleVar extends Module {
         return true;
     }
 
-
-    public get_ts_ranges_from_custom_filter(custom_filter: ContextFilterVO, limit_nb_range: number = 100): TSRange[] {
+    public get_ts_ranges_from_custom_filter(custom_filter: { [widget_id: number]: ContextFilterVO }, limit_nb_range: number = 100): TSRange[] {
         const res: TSRange[] = [];
+
+        // TODO FIXME On doit  d'abord merger les filtres de tous les widgets, puis ensuite faire le traitement
 
         /**
          * On va chercher par type, et on décide d'un ordre de priorité. Le but étant d'être le plus discriminant possible pour éviter de dépasser la limite du nombre de ranges
@@ -629,7 +630,7 @@ export default class ModuleVar extends Module {
     public getVarParamFromDataRow(
         row: any,
         column: TableColumnDescVO,
-        custom_filters: { [var_param_field_name: string]: ContextFilterVO },
+        custom_filters: { [var_param_field_name: string]: { [widget_id: number]: ContextFilterVO } },
         limit_nb_ts_ranges_on_param_by_context_filter: number = 100,
         accept_max_ranges: boolean = false,
         log_refuse_param: boolean = true,

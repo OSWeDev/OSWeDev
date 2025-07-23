@@ -7,10 +7,20 @@ import FieldFiltersVO from "../../DashboardBuilder/vos/FieldFiltersVO";
 
 export default class GetVarParamFromContextFiltersParamVO implements IAPIParamTranslator<GetVarParamFromContextFiltersParamVO> {
 
+    public constructor(
+        public var_name: string,
+        public get_active_field_filters: FieldFiltersVO,
+        public custom_filters: { [var_param_field_name: string]: { [widget_id: number]: ContextFilterVO } },
+        public active_api_type_ids: string[],
+        public discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } },
+        public accept_max_ranges: boolean = false
+    ) {
+    }
+
     public static fromParams(
         var_name: string,
         get_active_field_filters: FieldFiltersVO,
-        custom_filters: { [var_param_field_name: string]: ContextFilterVO },
+        custom_filters: { [var_param_field_name: string]: { [widget_id: number]: ContextFilterVO } },
         active_api_type_ids: string[],
         discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } },
         accept_max_ranges: boolean): GetVarParamFromContextFiltersParamVO {
@@ -29,15 +39,6 @@ export default class GetVarParamFromContextFiltersParamVO implements IAPIParamTr
         ];
     }
 
-    public constructor(
-        public var_name: string,
-        public get_active_field_filters: FieldFiltersVO,
-        public custom_filters: { [var_param_field_name: string]: ContextFilterVO },
-        public active_api_type_ids: string[],
-        public discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } },
-        public accept_max_ranges: boolean = false
-    ) {
-    }
 }
 
 export const GetVarParamFromContextFiltersParamVOStatic: IAPIParamTranslatorStatic<GetVarParamFromContextFiltersParamVO> = GetVarParamFromContextFiltersParamVO;
