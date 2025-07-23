@@ -73,4 +73,4 @@ await ModuleDAO.insertOrUpdateVO(newUser);
 
 ---
 
-*Dernière mise à jour : 23/07/2025 09:58:31*
+*Dernière mise à jour : 23/07/2025 10:01:02*

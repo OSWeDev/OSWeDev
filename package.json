@@ -31,7 +31,10 @@
         "build": "npm run-script clean && tsc --project ./",
         "tsc-watch": "tsc-watch --project ./",
         "project-watch": "npm run-script clean && concurrently --prefix \"[{name}]\" --names \"TSC,VUE\" -c \"bgBlue.bold,bgRed.bold\" \"npm run tsc-watch\" \"npm run watch\"",
-        "version": "echo $npm_package_version"
+        "version": "echo $npm_package_version",
+        "docs:generate": "node docs-generator/generate-docs.js",
+        "docs:auto": "docs-generator/auto-generate.sh",
+        "docs:setup": "docs-generator/setup-automation.sh"
     },
     "author": "Wedev",
     "license": "Apache-2.0",
