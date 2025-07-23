@@ -12,7 +12,3 @@ test-reports.xml
 /playwright-report/
 /playwright/.cache/
 playwright-report/
-
-# Documentation generator logs
-docs-generator/generation.log
-docs.backup.*
