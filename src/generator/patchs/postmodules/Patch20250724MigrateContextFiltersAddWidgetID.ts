@@ -149,7 +149,7 @@ export default class Patch20250724MigrateContextFiltersAddWidgetID implements IG
                  * et si yen a plusieurs types, on les affecte tous...
                  */
 
-                const widgets = filters_by_vo_field_ref[api_type_id][field_id] || [];
+                const widgets = (filters_by_vo_field_ref[api_type_id] ? filters_by_vo_field_ref[api_type_id][field_id] || [] : []);
                 for (const widget_id of widgets) {
 
                     new_field_filters[api_type_id][field_id][widget_id] = new ContextFilterVO().from(old_context_filter);
