@@ -9,11 +9,11 @@ import DashboardViewportPageWidgetVO from '../../../shared/modules/DashboardBuil
 import DashboardWidgetVO from '../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
 import TableColumnDescVO from '../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import ExportContextQueryToXLSXQueryVO from '../../../shared/modules/DataExport/vos/ExportContextQueryToXLSXQueryVO';
-import NumSegment from '../../../shared/modules/DataRender/vos/NumSegment';
 import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import LocaleManager from '../../../shared/tools/LocaleManager';
 import ObjectHandler, { field_names } from '../../../shared/tools/ObjectHandler';
+import { all_promises } from '../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import IGeneratorWorker from '../../IGeneratorWorker';
 
@@ -59,7 +59,7 @@ export default class Patch20250722MigrateWidgetsPageIdToPageIdRanges implements 
          *      - 2.4 on supprime les page_widget qu'on a fusionné
          */
 
-        const all_page_widgets: DashboardPageWidgetVO[] = await query(DashboardPageWidgetVO.API_TYPE_ID)
+        let all_page_widgets: DashboardPageWidgetVO[] = await query(DashboardPageWidgetVO.API_TYPE_ID)
             .exec_as_server()
             .select_vos<DashboardPageWidgetVO>();
 
@@ -79,7 +79,7 @@ export default class Patch20250722MigrateWidgetsPageIdToPageIdRanges implements 
             all_pages_by_id[page.id] = page;
         }
 
-        const all_page_widgets_by_dashboard_id: { [dashboard_id: number]: DashboardPageWidgetVO[] } = {};
+        let all_page_widgets_by_dashboard_id: { [dashboard_id: number]: DashboardPageWidgetVO[] } = {};
 
         for (const page_widget of all_page_widgets) {
             const widget_s_page = all_pages_by_id[page_widget.page_id];
@@ -103,27 +103,142 @@ export default class Patch20250722MigrateWidgetsPageIdToPageIdRanges implements 
         await ModuleDAOServer.instance.insertOrUpdateVOs_as_server(all_page_widgets);
 
         // De manière générale, on doit mettre à jour tous les DashboardViewportPageWidgetVO pour reprendre le page_id actuelle du DashboardPageWidgetVO
+        const promises = [];
         for (const page_widget of all_page_widgets) {
 
-            await query(DashboardViewportPageWidgetVO.API_TYPE_ID)
+            promises.push(query(DashboardViewportPageWidgetVO.API_TYPE_ID)
                 .filter_by_num_x_ranges(field_names<DashboardViewportPageWidgetVO>().page_widget_id, RangeHandler.get_ids_ranges_from_vos([page_widget]))
+                .filter_is_null_or_empty(field_names<DashboardViewportPageWidgetVO>().page_id)
                 .exec_as_server()
                 .update_vos<DashboardViewportPageWidgetVO>({
                     page_id: page_widget.page_id, // eslint-disable-line @stylistic/indent
-                }); // eslint-disable-line @stylistic/indent
+                })); // eslint-disable-line @stylistic/indent
         }
+
+        await all_promises(promises);
 
         // Maintenant on passe à la fusion des widgets de filtre
         // On le fait db par db
 
+        const exports_by_id: { [id: number]: ExportContextQueryToXLSXQueryVO } = VOsTypesManager.vosArray_to_vosByIds(
+            await query(ExportContextQueryToXLSXQueryVO.API_TYPE_ID)
+                .exec_as_server()
+                .select_vos<ExportContextQueryToXLSXQueryVO>());
+
+
         for (const dashboard_id in all_page_widgets_by_dashboard_id) {
+            ConsoleHandler.log(`Checking duplicates for dashboard ${dashboard_id}...`);
+
+            await this.check_duplicates(
+                all_page_widgets,
+                all_page_widgets_by_dashboard_id[dashboard_id],
+                all_pages_by_id,
+                all_widgets_by_id,
+                exports_by_id,
+            );
+        }
+
+        // On a peut-être supprimé des widgets, on doit donc mettre à jour la liste
+        all_page_widgets = await query(DashboardPageWidgetVO.API_TYPE_ID)
+            .exec_as_server()
+            .select_vos<DashboardPageWidgetVO>();
+        all_page_widgets_by_dashboard_id = {};
+        for (const page_widget of all_page_widgets) {
+            const widget_s_page = all_pages_by_id[page_widget.page_id];
+
+            if (!all_page_widgets_by_dashboard_id[widget_s_page.dashboard_id]) {
+                all_page_widgets_by_dashboard_id[widget_s_page.dashboard_id] = [];
+            }
+            all_page_widgets_by_dashboard_id[widget_s_page.dashboard_id].push(page_widget);
+        }
+
+        for (const dashboard_id in all_page_widgets_by_dashboard_id) {
+            ConsoleHandler.log(`Merging page widgets for dashboard ${dashboard_id}...`);
             await this.merge_page_widgets(
                 all_page_widgets,
                 all_page_widgets_by_dashboard_id[dashboard_id],
                 all_pages_by_id,
                 all_widgets_by_id,
+                exports_by_id,
             );
         }
+    }
+
+    private async check_duplicates(
+        all_page_widgets: DashboardPageWidgetVO[],
+        this_dashboard_page_widgets: DashboardPageWidgetVO[],
+        all_pages_by_id: { [page_id: number]: DashboardPageVO },
+        all_widgets_by_id: { [widget_id: number]: DashboardWidgetVO },
+        exports_by_id: { [id: number]: ExportContextQueryToXLSXQueryVO },
+    ) {
+
+        // On doit dans un premier temps vérifier qu'il n'y a pas de doublons de widget_id sur une même page du db. sinon on supprime le page_widget le plus bas dans la page
+        // Pour ce faire, on regroupe les widgets par page_id / widget_id / vo_field_ref
+        // On doit identifier les widgets de filtre et les regrouper par field_name/vo_type + widget_id
+        const filters_by_vo_field_ref: { [widget_id: number]: { [vo_field_ref: string]: DashboardPageWidgetVO[] } } = this.get_filters_by_vo_field_ref(
+            this_dashboard_page_widgets,
+            all_widgets_by_id,
+        );
+
+        // On doit vérifier les doublons
+        for (const widget_id in filters_by_vo_field_ref) {
+            const filters_by_vo_field_ref_for_widget: { [vo_field_ref: string]: DashboardPageWidgetVO[] } = filters_by_vo_field_ref[widget_id];
+
+            // On doit maintenant vérifier les doublons de widgets de filtre pour ce widget_id
+            for (const vo_field_ref in filters_by_vo_field_ref_for_widget) {
+                const page_widgets: DashboardPageWidgetVO[] = filters_by_vo_field_ref_for_widget[vo_field_ref];
+
+                // on doit les grouper par page_id
+                const page_widgets_by_page_id: { [page_id: number]: DashboardPageWidgetVO[] } = {};
+
+                for (const page_widget of page_widgets) {
+                    if (!page_widgets_by_page_id[page_widget.page_id]) {
+                        page_widgets_by_page_id[page_widget.page_id] = [];
+                    }
+                    page_widgets_by_page_id[page_widget.page_id].push(page_widget);
+                }
+
+                // On doit maintenant vérifier les doublons de widgets de filtre pour ce widget_id et cette vo_field_ref
+                for (const page_id in page_widgets_by_page_id) {
+                    const page_widgets_for_page: DashboardPageWidgetVO[] = page_widgets_by_page_id[page_id];
+
+                    if (page_widgets_for_page.length <= 1) {
+                        continue; // pas besoin de fusionner
+                    }
+
+                    // On garde le page widget ayant le plus petit y
+                    let page_widget_to_keep: DashboardPageWidgetVO = page_widgets_for_page[0];
+                    for (const page_widget of page_widgets_for_page) {
+                        if (page_widget.y < page_widget_to_keep.y) {
+                            page_widget_to_keep = page_widget;
+                        }
+                    }
+
+                    // On supprime les autres widgets
+                    const page_widgets_to_delete: DashboardPageWidgetVO[] = [];
+                    for (const page_widget of page_widgets_for_page) {
+                        if (page_widget.id !== page_widget_to_keep.id) {
+                            page_widgets_to_delete.push(page_widget);
+                        }
+                    }
+
+                    // On supprime les références vers ces widgets
+                    await this.delete_references_to_page_widgets(
+                        all_page_widgets,
+                        all_widgets_by_id,
+                        all_pages_by_id,
+                        all_widgets_by_id,
+                        page_widgets_to_delete,
+                        page_widget_to_keep,
+                        exports_by_id,
+                    );
+
+                    // On supprime les widgets qu'on a fusionné
+                    await ModuleDAOServer.instance.deleteVOs_as_server(page_widgets_to_delete);
+                }
+            }
+        }
+
     }
 
     private async merge_page_widgets(
@@ -131,13 +246,13 @@ export default class Patch20250722MigrateWidgetsPageIdToPageIdRanges implements 
         this_dashboard_page_widgets: DashboardPageWidgetVO[],
         all_pages_by_id: { [page_id: number]: DashboardPageVO },
         all_widgets_by_id: { [widget_id: number]: DashboardWidgetVO },
+        exports_by_id: { [id: number]: ExportContextQueryToXLSXQueryVO },
     ) {
 
         // On doit identifier les widgets de filtre et les regrouper par field_name/vo_type + widget_id
         const filters_by_vo_field_ref: { [widget_id: number]: { [vo_field_ref: string]: DashboardPageWidgetVO[] } } = this.get_filters_by_vo_field_ref(
             this_dashboard_page_widgets,
             all_widgets_by_id,
-            all_pages_by_id,
         );
 
         // On doit maintenant fusionner les widgets de filtre
@@ -178,6 +293,7 @@ export default class Patch20250722MigrateWidgetsPageIdToPageIdRanges implements 
                     all_widgets_by_id,
                     page_widget_to_keep,
                     page_widgets_to_delete,
+                    exports_by_id,
                 );
 
                 // On supprime les widgets qu'on a fusionné
@@ -189,7 +305,6 @@ export default class Patch20250722MigrateWidgetsPageIdToPageIdRanges implements 
     private get_filters_by_vo_field_ref(
         this_dashboard_page_widgets: DashboardPageWidgetVO[],
         all_widgets_by_id: { [widget_id: number]: DashboardWidgetVO },
-        all_pages_by_id: { [page_id: number]: DashboardPageVO },
     ): { [widget_id: number]: { [vo_field_ref: string]: DashboardPageWidgetVO[] } } {
 
         // On doit identifier les widgets de filtre et les regrouper par field_name/vo_type + widget_id
@@ -269,7 +384,7 @@ export default class Patch20250722MigrateWidgetsPageIdToPageIdRanges implements 
 
                     if (!options || !options.vo_field_ref) {
                         ConsoleHandler.error(`Widget ${widget.name} has no vo_field_ref, cannot merge`);
-                        continue; // pas de vo_field_ref, on ne peut pas merger
+                        continue; // pas de vo_field_ref, on ne peut pas merger => pourquoi pas sur le custom ? => par ce que dow pour le coup ya pas.
                     }
 
                     if (!filters_by_vo_field_ref[widget.id]) {
@@ -288,8 +403,24 @@ export default class Patch20250722MigrateWidgetsPageIdToPageIdRanges implements 
                     // MonthFilterWidgetOptionsVO.vo_field_ref
 
                     if (!options || !options.vo_field_ref) {
-                        ConsoleHandler.error(`Widget ${widget.name} has no vo_field_ref, cannot merge`);
-                        continue; // pas de vo_field_ref, on ne peut pas merger
+                        // ConsoleHandler.error(`Widget ${widget.name} has no vo_field_ref, cannot merge`);
+                        // continue; // pas de vo_field_ref, on ne peut pas merger => pourquoi pas sur le custom ? => par ce que dow pour le coup ya pas.
+
+                        if (!options.custom_filter_name) {
+                            ConsoleHandler.error(`Widget ${widget.name} has no vo_field_ref and no custom_filter_name, cannot merge`);
+                            continue; // pas de vo_field_ref, on ne peut pas merger
+                        }
+
+                        if (!filters_by_vo_field_ref[widget.id]) {
+                            filters_by_vo_field_ref[widget.id] = {};
+                        }
+
+                        if (!filters_by_vo_field_ref[widget.id][options.custom_filter_name]) {
+                            filters_by_vo_field_ref[widget.id][options.custom_filter_name] = [];
+                        }
+
+                        filters_by_vo_field_ref[widget.id][options.custom_filter_name].push(page_widget);
+                        continue;
                     }
 
                     if (!filters_by_vo_field_ref[widget.id]) {
@@ -307,8 +438,24 @@ export default class Patch20250722MigrateWidgetsPageIdToPageIdRanges implements 
                     // YearFilterWidgetOptionsVO.vo_field_ref
 
                     if (!options || !options.vo_field_ref) {
-                        ConsoleHandler.error(`Widget ${widget.name} has no vo_field_ref, cannot merge`);
-                        continue; // pas de vo_field_ref, on ne peut pas merger
+                        // ConsoleHandler.error(`Widget ${widget.name} has no vo_field_ref, cannot merge`);
+                        // continue; // pas de vo_field_ref, on ne peut pas merger => pourquoi pas sur le custom
+
+                        if (!options.custom_filter_name) {
+                            ConsoleHandler.error(`Widget ${widget.name} has no vo_field_ref and no custom_filter_name, cannot merge`);
+                            continue; // pas de vo_field_ref, on ne peut pas merger
+                        }
+
+                        if (!filters_by_vo_field_ref[widget.id]) {
+                            filters_by_vo_field_ref[widget.id] = {};
+                        }
+
+                        if (!filters_by_vo_field_ref[widget.id][options.custom_filter_name]) {
+                            filters_by_vo_field_ref[widget.id][options.custom_filter_name] = [];
+                        }
+
+                        filters_by_vo_field_ref[widget.id][options.custom_filter_name].push(page_widget);
+                        continue;
                     }
 
                     if (!filters_by_vo_field_ref[widget.id]) {
@@ -326,8 +473,24 @@ export default class Patch20250722MigrateWidgetsPageIdToPageIdRanges implements 
                     // AdvancedDateFilterWidgetOptions.vo_field_ref
 
                     if (!options || !options.vo_field_ref) {
-                        ConsoleHandler.error(`Widget ${widget.name} has no vo_field_ref, cannot merge`);
-                        continue; // pas de vo_field_ref, on ne peut pas merger
+                        // ConsoleHandler.error(`Widget ${widget.name} has no vo_field_ref, cannot merge`);
+                        // continue; // pas de vo_field_ref, on ne peut pas merger => pourquoi pas sur le custom
+
+                        if (!options.custom_filter_name) {
+                            ConsoleHandler.error(`Widget ${widget.name} has no vo_field_ref and no custom_filter_name, cannot merge`);
+                            continue; // pas de vo_field_ref, on ne peut pas merger
+                        }
+
+                        if (!filters_by_vo_field_ref[widget.id]) {
+                            filters_by_vo_field_ref[widget.id] = {};
+                        }
+
+                        if (!filters_by_vo_field_ref[widget.id][options.custom_filter_name]) {
+                            filters_by_vo_field_ref[widget.id][options.custom_filter_name] = [];
+                        }
+
+                        filters_by_vo_field_ref[widget.id][options.custom_filter_name].push(page_widget);
+                        continue;
                     }
 
                     if (!filters_by_vo_field_ref[widget.id]) {
@@ -342,7 +505,16 @@ export default class Patch20250722MigrateWidgetsPageIdToPageIdRanges implements 
                     filters_by_vo_field_ref[widget.id][advanced_date_field_ref].push(page_widget);
                     break;
                 default:
-                    ConsoleHandler.error(`Widget ${widget.name} is not supported for migration in Patch20250722MigrateWidgetsPageIdToPageIdRanges`);
+                    ConsoleHandler.warn(`Widget ${widget.name} is not supported for migration in Patch20250722MigrateWidgetsPageIdToPageIdRanges. Using just the widget_name`);
+                    // pas de vo_field_ref mais on doit merger
+                    if (!filters_by_vo_field_ref[widget.id]) {
+                        filters_by_vo_field_ref[widget.id] = {};
+                    }
+                    if (!filters_by_vo_field_ref[widget.id][widget.name]) {
+                        filters_by_vo_field_ref[widget.id][widget.name] = [];
+                    }
+
+                    filters_by_vo_field_ref[widget.id][widget.name].push(page_widget);
                     continue; // pas un widget de filtre qu'on supporte
             }
         }
@@ -357,6 +529,7 @@ export default class Patch20250722MigrateWidgetsPageIdToPageIdRanges implements 
         all_widgets_by_id_for_update: { [widget_id: number]: DashboardWidgetVO },
         page_widget_to_keep: DashboardPageWidgetVO,
         page_widgets_to_delete: DashboardPageWidgetVO[],
+        exports_by_id: { [id: number]: ExportContextQueryToXLSXQueryVO },
     ) {
 
         /**
@@ -425,14 +598,17 @@ export default class Patch20250722MigrateWidgetsPageIdToPageIdRanges implements 
 
                 // TableWidgetOptionsVO.columns ?: TableColumnDescVO[];
                 if (options && options.columns && Array.isArray(options.columns) && options.columns.length > 0) {
-                    options.columns = this.migrate_table_column_descs(
+                    const new_columns = this.migrate_table_column_descs(
                         options.columns,
                         page_widget_to_keep,
                         page_widgets_to_delete,
                     );
 
-                    page_widget.json_options = JSON.stringify(options);
-                    await ModuleDAOServer.instance.insertOrUpdateVO_as_server(page_widget);
+                    if (JSON.stringify(new_columns) !== JSON.stringify(options.columns)) {
+                        options.columns = new_columns;
+                        page_widget.json_options = JSON.stringify(options);
+                        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(page_widget);
+                    }
 
                     // TableColumnDescVO.children: TableColumnDescVO[] :)
                     // ExportContextQueryToXLSXQueryVO.columns: TableColumnDescVO[];
@@ -444,18 +620,22 @@ export default class Patch20250722MigrateWidgetsPageIdToPageIdRanges implements 
         // 1 . les vos TableWidgetOptionsVO => c'est pas un VO en réalité pour le moment => on ne peut pas le faire
 
         // On doit chercher tous les TableColumnDescVO dans les ExportContextQueryToXLSXQueryVO
-        const exports: ExportContextQueryToXLSXQueryVO[] = await query(ExportContextQueryToXLSXQueryVO.API_TYPE_ID)
-            .exec_as_server()
-            .select_vos<ExportContextQueryToXLSXQueryVO>();
-        for (const export_query of exports) {
+        for (const i in exports_by_id) {
+            const export_query: ExportContextQueryToXLSXQueryVO = exports_by_id[i];
+
             if (export_query.columns && Array.isArray(export_query.columns) && export_query.columns.length > 0) {
 
-                export_query.columns = this.migrate_table_column_descs(
+                const new_columns = this.migrate_table_column_descs(
                     export_query.columns,
                     page_widget_to_keep,
                     page_widgets_to_delete,
                 );
-                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(export_query);
+
+                if (JSON.stringify(new_columns) !== JSON.stringify(export_query.columns)) {
+                    export_query.columns = new_columns;
+                    await ModuleDAOServer.instance.insertOrUpdateVO_as_server(export_query);
+                    exports_by_id[i] = export_query; // on met à jour le tableau pour les prochaines itérations
+                }
             }
         }
 
@@ -602,5 +782,171 @@ export default class Patch20250722MigrateWidgetsPageIdToPageIdRanges implements 
         }
 
         return columns;
+    }
+
+
+    private async delete_references_to_page_widgets(
+        all_page_widgets: DashboardPageWidgetVO[],
+        all_widgets_by_id: { [widget_id: number]: DashboardWidgetVO },
+        all_pages_by_id: { [page_id: number]: DashboardPageVO },
+        all_widgets_by_id_for_update: { [widget_id: number]: DashboardWidgetVO },
+        page_widgets_to_delete: DashboardPageWidgetVO[],
+        page_widget_to_keep: DashboardPageWidgetVO,
+        exports_by_id: { [id: number]: ExportContextQueryToXLSXQueryVO },
+    ) {
+
+        /**
+         * On informe du merge qu'on s'apprête à faire
+         */
+
+        ConsoleHandler.log(`Deleting ${page_widgets_to_delete.length} page widgets`);
+
+        for (const page_widget of page_widgets_to_delete) {
+            ConsoleHandler.log(` - ${page_widget.id} (${LocaleManager.t(all_pages_by_id[page_widget.page_id].titre_page)})`);
+        }
+
+        /**
+         * On met à jour les références vers les widgets qu'on va supprimer
+         */
+        // DashboardViewportPageWidgetVO.page_widget_id => on supprime
+        await query(DashboardViewportPageWidgetVO.API_TYPE_ID)
+            .filter_by_num_x_ranges(field_names<DashboardViewportPageWidgetVO>().page_widget_id, RangeHandler.get_ids_ranges_from_vos(page_widgets_to_delete))
+            .exec_as_server()
+            .delete_vos();
+
+        // TableColumnDescVO.column_dynamic_page_widget_id
+        // TableColumnDescVO.do_not_user_filter_active_ids
+        // TableColumnDescVO.hide_if_any_filter_active
+        // TableColumnDescVO.show_if_any_filter_active
+
+        // là on doit modifier en base si ça existe mais surtout dans les params de widgets pour le moment qui ne sont pas encore des vos mais des jsons...
+        // 1 . On met à jour les vos
+        await query(TableColumnDescVO.API_TYPE_ID)
+            .filter_by_num_x_ranges(field_names<TableColumnDescVO>().column_dynamic_page_widget_id, RangeHandler.get_ids_ranges_from_vos(page_widgets_to_delete))
+            .exec_as_server()
+            .update_vos<TableColumnDescVO>({
+                column_dynamic_page_widget_id: page_widget_to_keep.id, // eslint-disable-line @stylistic/indent
+            }); // eslint-disable-line @stylistic/indent
+
+        await query(TableColumnDescVO.API_TYPE_ID)
+            .filter_by_num_x_ranges(field_names<TableColumnDescVO>().do_not_user_filter_active_ids, RangeHandler.get_ids_ranges_from_vos(page_widgets_to_delete))
+            .exec_as_server()
+            .update_vos<TableColumnDescVO>({
+                do_not_user_filter_active_ids: [page_widget_to_keep.id], // eslint-disable-line @stylistic/indent
+            }); // eslint-disable-line @stylistic/indent
+
+        await query(TableColumnDescVO.API_TYPE_ID)
+            .filter_by_num_x_ranges(field_names<TableColumnDescVO>().hide_if_any_filter_active, RangeHandler.get_ids_ranges_from_vos(page_widgets_to_delete))
+            .exec_as_server()
+            .update_vos<TableColumnDescVO>({
+                hide_if_any_filter_active: [page_widget_to_keep.id], // eslint-disable-line @stylistic/indent
+            }); // eslint-disable-line @stylistic/indent
+
+        await query(TableColumnDescVO.API_TYPE_ID)
+            .filter_by_num_x_ranges(field_names<TableColumnDescVO>().show_if_any_filter_active, RangeHandler.get_ids_ranges_from_vos(page_widgets_to_delete))
+            .exec_as_server()
+            .update_vos<TableColumnDescVO>({
+                show_if_any_filter_active: [page_widget_to_keep.id], // eslint-disable-line @stylistic/indent
+            }); // eslint-disable-line @stylistic/indent
+
+
+        // 2 . On met à jour les jsons des widgets
+        for (const page_widget of all_page_widgets) {
+            if (page_widget.json_options) {
+                const options = ObjectHandler.try_get_json(page_widget.json_options);
+
+                // TableWidgetOptionsVO.columns ?: TableColumnDescVO[];
+                if (options && options.columns && Array.isArray(options.columns) && options.columns.length > 0) {
+
+                    const new_columns = this.migrate_table_column_descs(
+                        options.columns,
+                        page_widget_to_keep,
+                        page_widgets_to_delete,
+                    );
+
+                    if (JSON.stringify(new_columns) !== JSON.stringify(options.columns)) {
+                        options.columns = new_columns;
+                        page_widget.json_options = JSON.stringify(options);
+                        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(page_widget);
+                    }
+
+                    // TableColumnDescVO.children: TableColumnDescVO[] :)
+                    // ExportContextQueryToXLSXQueryVO.columns: TableColumnDescVO[];
+                }
+            }
+        }
+
+        // On doit chercher tous les TableColumnDescVO dans les TableWidgetOptionsVO
+        // 1 . les vos TableWidgetOptionsVO => c'est pas un VO en réalité pour le moment => on ne peut pas le faire
+
+        // On doit chercher tous les TableColumnDescVO dans les ExportContextQueryToXLSXQueryVO
+        for (const i in exports_by_id) {
+            const export_query: ExportContextQueryToXLSXQueryVO = exports_by_id[i];
+
+            if (export_query.columns && Array.isArray(export_query.columns) && export_query.columns.length > 0) {
+
+                const new_columns = this.migrate_table_column_descs(
+                    export_query.columns,
+                    page_widget_to_keep,
+                    page_widgets_to_delete,
+                );
+
+                if (JSON.stringify(new_columns) !== JSON.stringify(export_query.columns)) {
+                    export_query.columns = new_columns;
+                    await ModuleDAOServer.instance.insertOrUpdateVO_as_server(export_query);
+                    exports_by_id[i] = export_query; // on met à jour le tableau pour les prochaines itérations
+                }
+            }
+        }
+
+
+        // YearFilterWidgetOptionsVO.relative_to_other_filter_id
+        // AdvancedDateFilterWidgetOptions.relative_to_other_filter_id
+        // FieldValueFilterWidgetOptionsVO.relative_to_other_filter_id
+        // MonthFilterWidgetOptionsVO.relative_to_other_filter_id
+        // VarChartOptionsVO.selected_filter_id
+
+        // là on doit modifier en base si ça existe mais surtout dans les params de widgets pour le moment qui ne sont pas encore des vos mais des jsons...
+
+        // 1 . On met à jour les vos => YearFilterWidgetOptionsVO.relative_to_other_filter_id : C'est pas un VO en réalité pour le moment => on ne peut pas le faire
+        // 1 . On met à jour les vos => AdvancedDateFilterWidgetOptions.relative_to_other_filter_id : C'est pas un VO en réalité pour le moment => on ne peut pas le faire
+        // 1 . On met à jour les vos => FieldValueFilterWidgetOptionsVO.relative_to_other_filter_id : C'est pas un VO en réalité pour le moment => on ne peut pas le faire
+        // 1 . On met à jour les vos => MonthFilterWidgetOptionsVO.relative_to_other_filter_id : C'est pas un VO en réalité pour le moment => on ne peut pas le faire
+        // 1 . On met à jour les vos => VarChartOptionsVO.selected_filter_id : C'est pas un VO en réalité pour le moment => on ne peut pas le faire
+        // await query(YearFilterWidgetOptionsVO.API_TYPE_ID)
+        //     .filter_by_num_x_ranges(field_names<YearFilterWidgetOptionsVO>().relative_to_other_filter_id, RangeHandler.get_ids_ranges_from_vos(page_widgets_to_delete))
+        //     .exec_as_server()
+        //     .update_vos<YearFilterWidgetOptionsVO>({
+        //         relative_to_other_filter_id: page_widget_to_keep.id, // eslint-disable-line @stylistic/indent
+        //     }); // eslint-disable-line @stylistic/indent
+
+        // 2 . On met à jour les jsons des widgets : relative_to_other_filter_id
+        for (const page_widget of all_page_widgets) {
+            if (page_widget.json_options) {
+                const options = ObjectHandler.try_get_json(page_widget.json_options);
+                if (options && options.relative_to_other_filter_id) {
+                    if (RangeHandler.elt_intersects_any_range(options.relative_to_other_filter_id, RangeHandler.get_ids_ranges_from_vos(page_widgets_to_delete))) {
+                        options.relative_to_other_filter_id = page_widget_to_keep.id;
+                        page_widget.json_options = JSON.stringify(options);
+                        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(page_widget);
+                    }
+                }
+            }
+        }
+
+
+        // 2 . On met à jour les jsons des widgets : selected_filter_id
+        for (const page_widget of all_page_widgets) {
+            if (page_widget.json_options) {
+                const options = ObjectHandler.try_get_json(page_widget.json_options);
+                if (options && options.selected_filter_id) {
+                    if (RangeHandler.elt_intersects_any_range(options.selected_filter_id, RangeHandler.get_ids_ranges_from_vos(page_widgets_to_delete))) {
+                        options.selected_filter_id = page_widget_to_keep.id;
+                        page_widget.json_options = JSON.stringify(options);
+                        await ModuleDAOServer.instance.insertOrUpdateVO_as_server(page_widget);
+                    }
+                }
+            }
+        }
     }
 }

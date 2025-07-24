@@ -5,14 +5,17 @@
  */
 
 import { cloneDeep } from "lodash";
+import { field_names } from "../../../tools/ObjectHandler";
 import RangeHandler from "../../../tools/RangeHandler";
 import ContextFilterVO from "../../ContextFilter/vos/ContextFilterVO";
+import { query } from "../../ContextFilter/vos/ContextQueryVO";
 import TimeSegment from "../../DataRender/vos/TimeSegment";
 import TSRange from "../../DataRender/vos/TSRange";
 import Dates from "../../FormatDatesNombres/Dates/Dates";
 import FieldFiltersVOManager from "../manager/FieldFiltersVOManager";
 import VOFieldRefVOManager from "../manager/VOFieldRefVOManager";
 import WidgetOptionsVOManager from "../manager/WidgetOptionsVOManager";
+import DashboardWidgetVO from "../vos/DashboardWidgetVO";
 import FavoritesFiltersExportFrequencyVO from "../vos/FavoritesFiltersExportFrequencyVO";
 import FavoritesFiltersExportParamsVO from "../vos/FavoritesFiltersExportParamsVO";
 import FavoritesFiltersVO from "../vos/FavoritesFiltersVO";
@@ -117,13 +120,14 @@ export default class FavoritesFiltersController {
             for (const field_id in filters) {
                 const field_filters = filters[field_id];
 
-                for (const widget_id in field_filters) {
+                for (const widget_id_str in field_filters) {
 
                     // Add default context filters
                     context_field_filters = FieldFiltersVOManager.overwrite_field_filters_with_context_filter(
                         context_field_filters,
                         { api_type_id, field_id },
-                        field_filters[widget_id]
+                        parseInt(widget_id_str),
+                        field_filters[widget_id_str],
                     );
                 }
             }
@@ -136,16 +140,30 @@ export default class FavoritesFiltersController {
             for (const field_id in filters) {
                 const field_filters = filters[field_id];
 
-                for (const widget_id in field_filters) {
+                for (const widget_id_str in field_filters) {
 
                     // Add default context filters
                     context_field_filters = FieldFiltersVOManager.overwrite_field_filters_with_context_filter(
                         context_field_filters,
                         { api_type_id, field_id },
-                        field_filters[widget_id]
+                        parseInt(widget_id_str),
+                        field_filters[widget_id_str],
                     );
                 }
             }
+        }
+
+        // On va avoir besoin d'identifier l'id de widget year et month
+        const year_filter_widget = await query(DashboardWidgetVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<DashboardWidgetVO>().name, DashboardWidgetVO.WIDGET_NAME_yearfilter)
+            .select_vo<DashboardWidgetVO>();
+
+        const month_filter_widget = await query(DashboardWidgetVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<DashboardWidgetVO>().name, DashboardWidgetVO.WIDGET_NAME_monthfilter)
+            .select_vo<DashboardWidgetVO>();
+
+        if (!year_filter_widget || !month_filter_widget) {
+            throw new Error("Year and Month filter widgets must be defined in the dashboard to use custom dates filters");
         }
 
         // Create field_filters depend on if the user choose to config a custom dates filters
@@ -174,15 +192,21 @@ export default class FavoritesFiltersController {
                     );
 
                     // Add|Merge the custom_field_filters
+                    // On doit impatcer le filtre année sur un widget_id de filtre année, et le filtre mois sur un widget_id de filtre mois
+                    // Si on ne trouve pas de widget_id cohérent, c'est probablement une erreur à remonter, qu'on log simplement pour le moment, et on crée un widget_id 0
+
+                    const widget_id = (widget_name === DashboardWidgetVO.WIDGET_NAME_yearfilter) ? year_filter_widget.id : month_filter_widget.id;
+
                     custom_field_filters = FieldFiltersVOManager.merge_field_filters_with_context_filter(
                         custom_field_filters,
                         vo_field_ref,
                         widget_id,
-                        context_filter
+                        context_filter,
                     );
                 }
             }
 
+            // V JNE : je sais pas si c'est encore d'actualité cette remarque V depuis qu'on a des filtres qui sont par widget id ? pas sur du coup V
             // Une fois qu'on a écrasé, on doit aussi rejouer les filtrages par défaut pour les champs qui d'une part dépendent d'un custom filter surchargé, et d'autre part ne sont pas déjà surchargés ...
             // TODO
 
@@ -195,13 +219,14 @@ export default class FavoritesFiltersController {
             for (const field_id in filters) {
                 const field_filters = filters[field_id];
 
-                for (const widget_id in field_filters) {
+                for (const widget_id_str in field_filters) {
 
                     // Add custom context filters
                     context_field_filters = FieldFiltersVOManager.overwrite_field_filters_with_context_filter(
                         context_field_filters,
                         { api_type_id, field_id },
-                        field_filters[widget_id]
+                        parseInt(widget_id_str),
+                        field_filters[widget_id_str]
                     );
                 }
             }

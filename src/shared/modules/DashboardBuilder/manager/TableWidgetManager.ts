@@ -698,14 +698,14 @@ export default class TableWidgetManager {
         widget_options: TableWidgetOptionsVO,
         active_field_filters: FieldFiltersVO,
         all_page_widgets_by_id: { [id: number]: DashboardPageWidgetVO }
-    ): Promise<{ [datatable_field_uid: string]: { [var_param_field_name: string]: { [widget_id: number]: ContextFilterVO } } }> {
+    ): Promise<FieldFiltersVO> {
 
         // Get page_widgets (or all_page_widgets from dashboard)
         const page_widgets = await query(DashboardPageWidgetVO.API_TYPE_ID)
             .filter_by_num_eq(field_names<DashboardPageWidgetVO>().dashboard_id, dashboard_id)
             .select_vos<DashboardPageWidgetVO>();
 
-        const columns_custom_filters_by_field_uid: { [datatable_field_uid: string]: { [var_param_field_name: string]: { [widget_id: number]: ContextFilterVO } } } = {};
+        const columns_custom_filters_by_field_uid: FieldFiltersVO = {};
 
         active_field_filters = cloneDeep(active_field_filters);
 

@@ -328,20 +328,20 @@ export default class AutoVarServerController extends VarServerControllerBase<Var
         return u_vo_holder.post_update_vo[this.varConf.auto_vofieldref_field_name] != u_vo_holder.pre_update_vo[this.varConf.auto_vofieldref_field_name];
     }
 
-    private async get_invalid_params_intersectors_from_vo(vo: IDistantVOBase): Promise<VarDataBaseVO> {
+    // private async get_invalid_params_intersectors_from_vo(vo: IDistantVOBase): Promise<VarDataBaseVO> {
 
-        const active_field_filters: FieldFiltersVO = {
-            [vo._type]: { id: filter(vo._type).by_id(vo.id) }
-        };
+    //     const active_field_filters: FieldFiltersVO = {
+    //         [vo._type]: { id: filter(vo._type).by_id(vo.id) }
+    //     };
 
-        const var_param = await ModuleVar.getInstance().getVarParamFromContextFilters(
-            this.varConf.name,
-            active_field_filters,
-            null,
-            this.varConf.auto_param_context_api_type_ids,
-            this.varConf.auto_param_context_discarded_field_paths,
-            true);
-        //TODO FIXME handle return null case
-        return var_param;
-    }
+    //     const var_param = await ModuleVar.getInstance().getVarParamFromContextFilters(
+    //         this.varConf.name,
+    //         active_field_filters,
+    //         null,
+    //         this.varConf.auto_param_context_api_type_ids,
+    //         this.varConf.auto_param_context_discarded_field_paths,
+    //         true);
+    //     //TODO FIXME handle return null case
+    //     return var_param;
+    // }
 }

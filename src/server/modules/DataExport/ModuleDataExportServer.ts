@@ -450,8 +450,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         fields: { [datatable_field_uid: string]: DatatableField<any, any> } = null,
         varcolumn_conf: { [datatable_field_uid: string]: ExportVarcolumnConfVO } = null,
         active_field_filters: FieldFiltersVO = null,
-        active_field_filters_column_labels: { [field_name: string]: string } = null,
-        custom_filters: { [datatable_field_uid: string]: { [var_param_field_name: string]: { [widget_id: number]: ContextFilterVO } } } = null,
+        custom_filters: FieldFiltersVO = null,
         active_api_type_ids: string[] = null,
         discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } } = null,
 
@@ -498,7 +497,6 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                     fields,
                     varcolumn_conf,
                     active_field_filters,
-                    active_field_filters_column_labels,
                     custom_filters,
                     active_api_type_ids,
                     discarded_field_paths,
@@ -523,7 +521,6 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                     fields,
                     varcolumn_conf,
                     active_field_filters,
-                    active_field_filters_column_labels,
                     custom_filters,
                     active_api_type_ids,
                     discarded_field_paths,
@@ -552,8 +549,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         fields: { [datatable_field_uid: string]: DatatableField<any, any> } = null,
         varcolumn_conf: { [datatable_field_uid: string]: ExportVarcolumnConfVO } = null, // TODO FIXME : Quand est-ce qu'on applique le format ???
         active_field_filters: FieldFiltersVO = null,
-        active_field_filters_column_labels: { [field_name: string]: string } = null,
-        custom_filters: { [datatable_field_uid: string]: { [var_param_field_name: string]: { [widget_id: number]: ContextFilterVO } } } = null,
+        custom_filters: FieldFiltersVO = null,
         active_api_type_ids: string[] = null,
         discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } } = null,
 
@@ -1998,7 +1994,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         datatable_rows: IDistantVOBase[],
         columns: TableColumnDescVO[],
 
-        custom_filters: { [datatable_field_uid: string]: { [var_param_field_name: string]: { [widget_id: number]: ContextFilterVO } } } = null,
+        custom_filters: FieldFiltersVO = null,
     ): Promise<IDistantVOBase[]> {
 
         // May be better to not alter the original data rows

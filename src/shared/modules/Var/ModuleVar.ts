@@ -23,6 +23,7 @@ import APISimpleVOParamVO, { APISimpleVOParamVOStatic } from '../DAO/vos/APISimp
 import APISimpleVOsParamVO, { APISimpleVOsParamVOStatic } from '../DAO/vos/APISimpleVOsParamVO';
 import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import VOFieldRefVOHandler from '../DashboardBuilder/handlers/VOFieldRefVOHandler';
+import FieldFiltersVOManager from '../DashboardBuilder/manager/FieldFiltersVOManager';
 import DashboardPageWidgetVO from '../DashboardBuilder/vos/DashboardPageWidgetVO';
 import FieldFiltersVO from '../DashboardBuilder/vos/FieldFiltersVO';
 import FieldValueFilterWidgetOptionsVO from '../DashboardBuilder/vos/FieldValueFilterWidgetOptionsVO';
@@ -395,6 +396,21 @@ export default class ModuleVar extends Module {
         const res: TSRange[] = [];
 
         // TODO FIXME On doit  d'abord merger les filtres de tous les widgets, puis ensuite faire le traitement
+        let custom_field_filters: FieldFiltersVO = {};
+
+        for (const widget_id_str in custom_filter) {
+            custom_field_filters = FieldFiltersVOManager.merge_field_filters_with_context_filter(
+                custom_field_filters,
+                { api_type_id: "fake", field_id: "fake" },
+                0,
+                custom_filter[widget_id_str],
+            );
+        }
+
+        if (!custom_field_filters || !custom_field_filters['fake'] || !custom_field_filters['fake']['fake'] || !custom_field_filters['fake']['fake'][0]) {
+            return [RangeHandler.getMaxTSRange()];
+        }
+        const merged_custom_filter: ContextFilterVO = custom_field_filters['fake']['fake'][0];
 
         /**
          * On va chercher par type, et on décide d'un ordre de priorité. Le but étant d'être le plus discriminant possible pour éviter de dépasser la limite du nombre de ranges
@@ -402,19 +418,19 @@ export default class ModuleVar extends Module {
          *      si on prend lundi, jeudi en premier, sur un max_range initial, on se retrouve avec une "infinité" de ranges.
          *      par contre si on commence par limiter à 2019 et 2020 on a 1 range, puis 2 avec le découpage mois, puis ~60 avec les découpages lundi et jeudi donc là ça passe
          */
-        if (!custom_filter) {
+        if (!merged_custom_filter) {
             return [RangeHandler.getMaxTSRange()];
         }
 
         // si on a un filtre direct (x ranges par exemple) on gère directement
-        if ((custom_filter.filter_type == ContextFilterVO.TYPE_DATE_INTERSECTS) && !!custom_filter.param_tsranges) {
-            return custom_filter.param_tsranges;
+        if ((merged_custom_filter.filter_type == ContextFilterVO.TYPE_DATE_INTERSECTS) && !!merged_custom_filter.param_tsranges) {
+            return merged_custom_filter.param_tsranges;
         }
 
         /**
          * Si on a pas de filtre année, on peut de toutes façons rien faire
          */
-        const year = ContextFilterVOHandler.find_context_filter_by_type(custom_filter, ContextFilterVO.TYPE_DATE_YEAR);
+        const year = ContextFilterVOHandler.find_context_filter_by_type(merged_custom_filter, ContextFilterVO.TYPE_DATE_YEAR);
         if (!year) {
             return [RangeHandler.getMaxTSRange()];
         }
@@ -424,24 +440,24 @@ export default class ModuleVar extends Module {
             return null;
         }
 
-        const month = ContextFilterVOHandler.find_context_filter_by_type(custom_filter, ContextFilterVO.TYPE_DATE_MONTH);
+        const month = ContextFilterVOHandler.find_context_filter_by_type(merged_custom_filter, ContextFilterVO.TYPE_DATE_MONTH);
         if (month) {
             tsranges = this.get_ts_ranges_from_custom_filter_month(tsranges, month, limit_nb_range);
         }
 
-        const week = ContextFilterVOHandler.find_context_filter_by_type(custom_filter, ContextFilterVO.TYPE_DATE_WEEK);
+        const week = ContextFilterVOHandler.find_context_filter_by_type(merged_custom_filter, ContextFilterVO.TYPE_DATE_WEEK);
         if (week) {
             throw new Error('Not implemented');
             // tsranges = this.get_ts_ranges_from_custom_filter_week(tsranges, week, limit_nb_range);
         }
 
-        const dow = ContextFilterVOHandler.find_context_filter_by_type(custom_filter, ContextFilterVO.TYPE_DATE_DOW);
+        const dow = ContextFilterVOHandler.find_context_filter_by_type(merged_custom_filter, ContextFilterVO.TYPE_DATE_DOW);
         if (dow) {
             tsranges = this.get_ts_ranges_from_custom_filter_dow(tsranges, dow, limit_nb_range);
         }
 
 
-        const dom = ContextFilterVOHandler.find_context_filter_by_type(custom_filter, ContextFilterVO.TYPE_DATE_DOM);
+        const dom = ContextFilterVOHandler.find_context_filter_by_type(merged_custom_filter, ContextFilterVO.TYPE_DATE_DOM);
         if (dom) {
             tsranges = this.get_ts_ranges_from_custom_filter_dom(tsranges, dom, limit_nb_range);
         }

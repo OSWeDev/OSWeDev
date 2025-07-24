@@ -22,13 +22,6 @@ import ExportHandlerBase from "../../DataExport/ExportHandlerBase";
 
 export default class SuiviCompetencesRapportExportHandler extends ExportHandlerBase {
 
-    public static getInstance() {
-        if (!SuiviCompetencesRapportExportHandler.instance) {
-            SuiviCompetencesRapportExportHandler.instance = new SuiviCompetencesRapportExportHandler();
-        }
-        return SuiviCompetencesRapportExportHandler.instance;
-    }
-
     private static instance: SuiviCompetencesRapportExportHandler = null;
 
     private column_labels: { [field_name: string]: string } = {};
@@ -37,6 +30,14 @@ export default class SuiviCompetencesRapportExportHandler extends ExportHandlerB
     protected constructor() {
         super();
     }
+
+    public static getInstance() {
+        if (!SuiviCompetencesRapportExportHandler.instance) {
+            SuiviCompetencesRapportExportHandler.instance = new SuiviCompetencesRapportExportHandler();
+        }
+        return SuiviCompetencesRapportExportHandler.instance;
+    }
+
 
     public async prepare_datas(exhi: ExportHistoricVO): Promise<IExportableDatas> {
 

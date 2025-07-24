@@ -1467,7 +1467,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                             const alias = matroid_field.foreign_ref_vo_type + '__id';
                             const context_query: ContextQueryVO = query(matroid_field.foreign_ref_vo_type)
                                 .using(active_api_type_ids)
-                                .add_filters(ContextFilterVOManager.get_context_filters_from_context_field_filters(cleaned_active_field_filters))
+                                .add_filters(ContextFilterVOManager.get_context_filters_from_field_filters(cleaned_active_field_filters))
                                 .set_query_distinct()
                                 .add_fields([
                                     new ContextQueryFieldVO(matroid_field.foreign_ref_vo_type, 'id', alias)

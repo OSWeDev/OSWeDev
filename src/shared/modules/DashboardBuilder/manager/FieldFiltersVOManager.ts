@@ -133,6 +133,7 @@ export default class FieldFiltersVOManager {
                     default_field_filters = FieldFiltersVOManager.merge_field_filters_with_context_filter(
                         default_field_filters,
                         vo_field_ref,
+                        widget.id,
                         context_filter
                     );
                 }
@@ -385,7 +386,7 @@ export default class FieldFiltersVOManager {
         options?: {
             keep_empty_context_filter?: boolean
         }
-    ): { [api_type_id: string]: { [field_id: string]: ContextFilterVO; }; } {
+    ): FieldFiltersVO {
 
         let field_filters: FieldFiltersVO = cloneDeep(from_field_filters);
 
@@ -553,55 +554,58 @@ export default class FieldFiltersVOManager {
             for (const key_j in required_api_type_ids) {
                 const api_type_id: string = required_api_type_ids[key_j];
 
-                const field_filters: {
-                    [field_id: string]: ContextFilterVO
-                } = cloneDeep(field_filter_for_request);
+                const field_filters: { [field_id: string]: { [widget_id: number]: ContextFilterVO } } = cloneDeep(field_filter_for_request);
 
                 for (const field_id in field_filters) {
-                    const context_filter: ContextFilterVO = field_filters[field_id];
+                    const filters = field_filters[field_id];
 
-                    if (!context_filter) { continue; }
+                    for (const widget_id_str in filters) {
+                        const context_filter: ContextFilterVO = filters[widget_id_str];
 
-                    if (!field_filters_by_api_type_ids[api_type_id]) {
-                        // We must create an empty field_filters for the given api_type_id if it does not exist
-                        const empty_field_filters = {};
+                        if (!context_filter) { continue; }
 
-                        empty_field_filters[api_type_id] = {};
+                        if (!field_filters_by_api_type_ids[api_type_id]) {
+                            // We must create an empty field_filters for the given api_type_id if it does not exist
+                            const empty_field_filters = {};
 
-                        field_filters_by_api_type_ids[api_type_id] = empty_field_filters;
-                    }
+                            empty_field_filters[api_type_id] = {};
 
-                    // We must update the vo_type of the context_filter
-                    // /!\ Updating is not filtering
-                    if (context_filter.vo_type) {
-                        context_filter.vo_type = api_type_id;
-                    } else if (ContextFilterVOHandler.is_conditional_context_filter(context_filter)) {
-                        // TODO: to be continued
-                        // TODO: - Maybe we should update deeply the whole context_filter tree for the given api_type_id (or vo_type)
-                    }
+                            field_filters_by_api_type_ids[api_type_id] = empty_field_filters;
+                        }
 
-                    // Check if the api_type_id (or vo_type) actually have the field_id to filter on
-                    const base_table: ModuleTableVO = ModuleTableController.module_tables_by_vo_type[api_type_id];
-                    const base_table_fields: ModuleTableFieldVO[] = base_table.get_fields();
+                        // We must update the vo_type of the context_filter
+                        // /!\ Updating is not filtering
+                        if (context_filter.vo_type) {
+                            context_filter.vo_type = api_type_id;
+                        } else if (ContextFilterVOHandler.is_conditional_context_filter(context_filter)) {
+                            // TODO: to be continued
+                            // TODO: - Maybe we should update deeply the whole context_filter tree for the given api_type_id (or vo_type)
+                        }
 
-                    const has_context_filter_field: boolean = base_table_fields.find((field: ModuleTableFieldVO) => {
-                        return field.field_id == context_filter.field_name;
-                    }) != null;
+                        // Check if the api_type_id (or vo_type) actually have the field_id to filter on
+                        const base_table: ModuleTableVO = ModuleTableController.module_tables_by_vo_type[api_type_id];
+                        const base_table_fields: ModuleTableFieldVO[] = base_table.get_fields();
 
-                    if (!has_context_filter_field) {
-                        continue;
-                    }
+                        const has_context_filter_field: boolean = base_table_fields.find((field: ModuleTableFieldVO) => {
+                            return field.field_id == context_filter.field_name;
+                        }) != null;
 
-                    if (field_filters_by_api_type_ids[api_type_id][api_type_id]) {
-                        // In this case the field_filters are already set for this api_type_id
-                        // We must merge the two field_filters
-                        field_filters_by_api_type_ids[api_type_id] = FieldFiltersVOManager.merge_field_filters_with_context_filter(
-                            field_filters_by_api_type_ids[api_type_id],
-                            { api_type_id, field_id },
-                            context_filter
-                        );
-                    } else {
-                        field_filters_by_api_type_ids[api_type_id][api_type_id] = field_filters;
+                        if (!has_context_filter_field) {
+                            continue;
+                        }
+
+                        if (field_filters_by_api_type_ids[api_type_id][api_type_id]) {
+                            // In this case the field_filters are already set for this api_type_id
+                            // We must merge the two field_filters
+                            field_filters_by_api_type_ids[api_type_id] = FieldFiltersVOManager.merge_field_filters_with_context_filter(
+                                field_filters_by_api_type_ids[api_type_id],
+                                { api_type_id, field_id },
+                                parseInt(widget_id_str),
+                                context_filter
+                            );
+                        } else {
+                            field_filters_by_api_type_ids[api_type_id][api_type_id] = field_filters;
+                        }
                     }
                 }
             }

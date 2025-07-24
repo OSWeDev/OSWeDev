@@ -40,7 +40,7 @@ export default class ExportContextQueryToXLSXQueryVO implements IDistantVOBase {
     public fields: { [datatable_field_uid: string]: DatatableField<any, any> };
     public varcolumn_conf: { [datatable_field_uid: string]: ExportVarcolumnConfVO };
     public active_field_filters: FieldFiltersVO;
-    public custom_filters: { [datatable_field_uid: string]: { [var_param_field_name: string]: { [widget_id: number]: ContextFilterVO } } };
+    public custom_filters: FieldFiltersVO;
     public active_api_type_ids: string[];
     public discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
 
@@ -77,7 +77,7 @@ export default class ExportContextQueryToXLSXQueryVO implements IDistantVOBase {
         varcolumn_conf: { [datatable_field_uid: string]: ExportVarcolumnConfVO } = null,
 
         active_field_filters: FieldFiltersVO = null,
-        custom_filters: { [datatable_field_uid: string]: { [var_param_field_name: string]: { [widget_id: number]: ContextFilterVO } } } = null,
+        custom_filters: FieldFiltersVO = null,
 
         active_api_type_ids: string[] = null,
         discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } } = null,

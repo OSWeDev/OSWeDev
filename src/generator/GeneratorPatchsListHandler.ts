@@ -157,6 +157,7 @@ import Patch20250717UpdateWidgetsIconHTML from './patchs/postmodules/Patch202507
 import Patch20250721UpdateWidgetsIconHTML from './patchs/postmodules/Patch20250721UpdateWidgetsIconHTML';
 import Patch20250722MigrateWidgetsPageIdToPageIdRanges from './patchs/postmodules/Patch20250722MigrateWidgetsPageIdToPageIdRanges';
 import Patch20250722MigrateFavFiltersPageIdToDBId from './patchs/postmodules/Patch20250722MigrateFavFiltersPageIdToDBId';
+import Patch20250724MigrateContextFiltersAddWidgetID from './patchs/postmodules/Patch20250724MigrateContextFiltersAddWidgetID';
 
 export default class GeneratorPatchsListHandler {
 
@@ -352,5 +353,6 @@ export default class GeneratorPatchsListHandler {
         Patch20250717UpdateWidgetsIconHTML.getInstance(),
         Patch20250721UpdateWidgetsIconHTML.getInstance(),
 
+        Patch20250724MigrateContextFiltersAddWidgetID.getInstance(),
     ];
 }

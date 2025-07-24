@@ -3049,7 +3049,7 @@ export default class ContextFilterServerController {
                             break;
 
                         case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
-                            where_clause_date_intersects += "('[" + tsrange.min + "," + tsrange.max + ")'::numrange && ANY (" + field_name + "::numeric[]))";
+                            where_clause_date_intersects += "('[" + tsrange.min + "," + tsrange.max + ")'::numrange @> ANY (" + field_name + "::numeric[]))";
                             break;
 
                         case ModuleTableFieldVO.FIELD_TYPE_tstz:
