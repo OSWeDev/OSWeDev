@@ -1191,14 +1191,14 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         this.$emit('update_column', this.column);
     }
 
-    public async switch_can_filter_by() {
-        if (!this.column) {
-            return;
-        }
+    // public async switch_can_filter_by() {
+    //     if (!this.column) {
+    //         return;
+    //     }
 
-        this.column.can_filter_by = !this.column.can_filter_by;
-        this.$emit('update_column', this.column);
-    }
+    //     this.column.can_filter_by = !this.column.can_filter_by;
+    //     this.$emit('update_column', this.column);
+    // }
 
     public async switch_is_sticky() {
         if (!this.column) {

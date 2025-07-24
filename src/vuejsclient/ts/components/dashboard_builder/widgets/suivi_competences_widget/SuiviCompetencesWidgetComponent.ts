@@ -44,12 +44,12 @@ import VarDataRefComponent from '../../../Var/components/dataref/VarDataRefCompo
 import VueComponentBase from '../../../VueComponentBase';
 import CRUDComponentManager from '../../../crud/CRUDComponentManager';
 import { ModuleDAOAction } from '../../../dao/store/DaoStore';
+import { ModuleModalsAndBasicPageComponentsHolderGetter } from '../../../modals_and_basic_page_components_holder/ModalsAndBasicPageComponentsHolderStore';
+import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../page/DashboardPageStore';
 import CRUDCreateModalComponent from '../table_widget/crud_modals/create/CRUDCreateModalComponent';
 import './SuiviCompetencesWidgetComponent.scss';
 import SuiviCompetencesWidgetController from './SuiviCompetencesWidgetController';
 import SuiviCompetencesWidgetContainerComponent from './container/SuiviCompetencesWidgetContainerComponent';
-import { ModuleModalsAndBasicPageComponentsHolderGetter } from '../../../modals_and_basic_page_components_holder/ModalsAndBasicPageComponentsHolderStore';
-import { IDashboardGetters, IDashboardPageActionsMethods, IDashboardPageConsumer } from '../../page/DashboardPageStore';
 
 @Component({
     template: require('./SuiviCompetencesWidgetComponent.pug'),
@@ -562,13 +562,16 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase im
             let is_ok_groupe: boolean = true;
 
             for (const field_name in this.get_active_field_filters[SuiviCompetencesGroupeVO.API_TYPE_ID]) {
+
+                const context_filter: ContextFilterVO = FieldFiltersVOManager.get_merged_context_filter_from_widgets_context_filters(this.get_active_field_filters[SuiviCompetencesGroupeVO.API_TYPE_ID][field_name]);
+
                 // Si j'ai un filtrage multiple et que le groupe a la valeur, je rajoute
                 if (
-                    !!this.get_active_field_filters[SuiviCompetencesGroupeVO.API_TYPE_ID][field_name]?.param_textarray?.length
+                    !!context_filter?.param_textarray?.length
                 ) {
                     if (
                         !!groupe[field_name] &&
-                        !this.get_active_field_filters[SuiviCompetencesGroupeVO.API_TYPE_ID][field_name].param_textarray.includes(groupe[field_name])
+                        !context_filter.param_textarray.includes(groupe[field_name])
                     ) {
                         is_ok_groupe = false;
                         continue;
@@ -577,11 +580,11 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase im
 
                 // Si j'ai un filtrage simple et que le groupe a la valeur, je rajoute
                 if (
-                    !!this.get_active_field_filters[SuiviCompetencesGroupeVO.API_TYPE_ID][field_name]?.param_text?.length
+                    !!context_filter?.param_text?.length
                 ) {
                     if (
                         !!groupe[field_name] &&
-                        (this.get_active_field_filters[SuiviCompetencesGroupeVO.API_TYPE_ID][field_name].param_text != groupe[field_name])
+                        (context_filter.param_text != groupe[field_name])
                     ) {
                         is_ok_groupe = false;
                         continue;
@@ -618,9 +621,10 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase im
                     }
 
                     for (const field_name in this.get_active_field_filters[SuiviCompetencesItemRapportVO.API_TYPE_ID]) {
+                        const context_filter: ContextFilterVO = FieldFiltersVOManager.get_merged_context_filter_from_widgets_context_filters(this.get_active_field_filters[SuiviCompetencesItemRapportVO.API_TYPE_ID][field_name]);
                         if (
-                            !!this.get_active_field_filters[SuiviCompetencesItemRapportVO.API_TYPE_ID][field_name] &&
-                            !RangeHandler.elt_intersects_any_range(item_rapport.indicateur, this.get_active_field_filters[SuiviCompetencesItemRapportVO.API_TYPE_ID][field_name].param_numranges)
+                            !!context_filter &&
+                            !RangeHandler.elt_intersects_any_range(item_rapport.indicateur, context_filter.param_numranges)
                         ) {
                             continue;
                         }

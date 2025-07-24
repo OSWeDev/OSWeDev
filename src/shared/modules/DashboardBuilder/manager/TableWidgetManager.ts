@@ -690,7 +690,7 @@ export default class TableWidgetManager {
      * Get Columns Custom Filters By Widget Options
      *
      * @param {TableWidgetOptions} [widget_options]
-     * @returns {{ [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } }}
+     * @returns {{ [datatable_field_uid: string]: { [var_param_field_name: string]: { [widget_id: number]: ContextFilterVO } } }}
      */
     public static async get_table_columns_custom_filters_by_widget_options(
         widget_id: number,

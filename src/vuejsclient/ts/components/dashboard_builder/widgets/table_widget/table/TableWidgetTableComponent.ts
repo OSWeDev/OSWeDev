@@ -27,7 +27,6 @@ import DatatableField from '../../../../../../../shared/modules/DAO/vos/datatabl
 import SelectBoxDatatableFieldVO from '../../../../../../../shared/modules/DAO/vos/datatable/SelectBoxDatatableFieldVO';
 import SimpleDatatableFieldVO from '../../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import VarDatatableFieldVO from '../../../../../../../shared/modules/DAO/vos/datatable/VarDatatableFieldVO';
-import FieldFiltersVOHandler from '../../../../../../../shared/modules/DashboardBuilder/handlers/FieldFiltersVOHandler';
 import VOFieldRefVOHandler from '../../../../../../../shared/modules/DashboardBuilder/handlers/VOFieldRefVOHandler';
 import FieldFiltersVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
 import FieldValueFilterWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterWidgetManager';
@@ -677,7 +676,7 @@ export default class TableWidgetTableComponent extends VueComponentBase implemen
                             this.get_active_field_filters[vo_field_ref.api_type_id] &&
                             this.get_active_field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id]
                         ) {
-                            vo_field_ref_filter = this.get_active_field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id];
+                            vo_field_ref_filter = FieldFiltersVOManager.get_merged_context_filter_from_widgets_context_filters(this.get_active_field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id]);
                         }
 
                         if (!!vo_field_ref_filter) {
@@ -884,8 +883,8 @@ export default class TableWidgetTableComponent extends VueComponentBase implemen
     }
 
 
-    get columns_custom_filters(): { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } {
-        const res: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } = {};
+    get columns_custom_filters(): FieldFiltersVO {
+        const res: FieldFiltersVO = {};
 
         for (const i in this.columns) {
             const column = this.columns[i];
@@ -1548,122 +1547,122 @@ export default class TableWidgetTableComponent extends VueComponentBase implemen
             ) && (this.filtering_by_active_field_filter.vo_type == column.api_type_id);
     }
 
-    /**
-     * Handle Filter By
-     *  - Happen each time we want toggle filter (on click row filter)
-     */
-    public handle_filter_by(column: TableColumnDescVO, datatable_field_uid: string, vo: any) {
+    // /**
+    //  * Handle Filter By
+    //  *  - Happen each time we want toggle filter (on click row filter)
+    //  */
+    // public handle_filter_by(column: TableColumnDescVO, datatable_field_uid: string, vo: any) {
 
-        // case when no Value Object
-        // - empty the active filter
-        if (!vo) {
-            this.is_filtering_by = false;
-            this.filtering_by_active_field_filter = null;
-            this.remove_active_field_filter({ vo_type: column.api_type_id, field_id: (column.field_id ?? 'id') });
-            return;
-        }
+    //     // case when no Value Object
+    //     // - empty the active filter
+    //     if (!vo) {
+    //         this.is_filtering_by = false;
+    //         this.filtering_by_active_field_filter = null;
+    //         this.remove_active_field_filter({ vo_type: column.api_type_id, field_id: (column.field_id ?? 'id') });
+    //         return;
+    //     }
 
-        const raw_value = vo[datatable_field_uid + '__raw'];
-        // let field_value = vo ? vo[datatable_field_uid] : null;
+    //     const raw_value = vo[datatable_field_uid + '__raw'];
+    //     // let field_value = vo ? vo[datatable_field_uid] : null;
 
-        this.is_filtering_by = true;
+    //     this.is_filtering_by = true;
 
-        const context_filter: ContextFilterVO = new ContextFilterVO();
-        context_filter.vo_type = column.api_type_id;
-        context_filter.field_name = column.field_id;
+    //     const context_filter: ContextFilterVO = new ContextFilterVO();
+    //     context_filter.vo_type = column.api_type_id;
+    //     context_filter.field_name = column.field_id;
 
-        // case when field_id is "id" or datatable_field_uid is crud action
-        if ((!column.field_id) || (column.field_id == 'id') || (column.datatable_field_uid == "__crud_actions")) {
+    //     // case when field_id is "id" or datatable_field_uid is crud action
+    //     if ((!column.field_id) || (column.field_id == 'id') || (column.datatable_field_uid == "__crud_actions")) {
 
-            if (!raw_value) {
-                context_filter.has_null();
-            } else {
-                context_filter.by_id(raw_value);
-            }
-        } else {
-            const moduleTable = ModuleTableController.module_tables_by_vo_type[column.api_type_id];
-            const field = moduleTable.get_field_by_id(column.field_id);
+    //         if (!raw_value) {
+    //             context_filter.has_null();
+    //         } else {
+    //             context_filter.by_id(raw_value);
+    //         }
+    //     } else {
+    //         const moduleTable = ModuleTableController.module_tables_by_vo_type[column.api_type_id];
+    //         const field = moduleTable.get_field_by_id(column.field_id);
 
-            switch (field.field_type) {
-                case ModuleTableFieldVO.FIELD_TYPE_html:
-                case ModuleTableFieldVO.FIELD_TYPE_password:
-                case ModuleTableFieldVO.FIELD_TYPE_textarea:
-                case ModuleTableFieldVO.FIELD_TYPE_email:
-                case ModuleTableFieldVO.FIELD_TYPE_string:
-                case ModuleTableFieldVO.FIELD_TYPE_color:
-                    if (raw_value == null) {
-                        context_filter.has_null();
-                    } else {
-                        context_filter.by_text_has(raw_value);
-                    }
-                    break;
+    //         switch (field.field_type) {
+    //             case ModuleTableFieldVO.FIELD_TYPE_html:
+    //             case ModuleTableFieldVO.FIELD_TYPE_password:
+    //             case ModuleTableFieldVO.FIELD_TYPE_textarea:
+    //             case ModuleTableFieldVO.FIELD_TYPE_email:
+    //             case ModuleTableFieldVO.FIELD_TYPE_string:
+    //             case ModuleTableFieldVO.FIELD_TYPE_color:
+    //                 if (raw_value == null) {
+    //                     context_filter.has_null();
+    //                 } else {
+    //                     context_filter.by_text_has(raw_value);
+    //                 }
+    //                 break;
 
-                case ModuleTableFieldVO.FIELD_TYPE_enum:
-                    if (raw_value == null) {
-                        context_filter.has_null();
-                    } else {
-                        context_filter.by_num_eq(raw_value);
-                    }
-                    break;
+    //             case ModuleTableFieldVO.FIELD_TYPE_enum:
+    //                 if (raw_value == null) {
+    //                     context_filter.has_null();
+    //                 } else {
+    //                     context_filter.by_num_eq(raw_value);
+    //                 }
+    //                 break;
 
-                case ModuleTableFieldVO.FIELD_TYPE_int:
-                case ModuleTableFieldVO.FIELD_TYPE_float:
-                case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
-                case ModuleTableFieldVO.FIELD_TYPE_amount:
-                case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
-                case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
-                case ModuleTableFieldVO.FIELD_TYPE_prct:
-                    if (raw_value == null) {
-                        context_filter.has_null();
-                    } else {
-                        context_filter.by_num_eq(raw_value);
-                    }
-                    break;
+    //             case ModuleTableFieldVO.FIELD_TYPE_int:
+    //             case ModuleTableFieldVO.FIELD_TYPE_float:
+    //             case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+    //             case ModuleTableFieldVO.FIELD_TYPE_amount:
+    //             case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
+    //             case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
+    //             case ModuleTableFieldVO.FIELD_TYPE_prct:
+    //                 if (raw_value == null) {
+    //                     context_filter.has_null();
+    //                 } else {
+    //                     context_filter.by_num_eq(raw_value);
+    //                 }
+    //                 break;
 
-                case ModuleTableFieldVO.FIELD_TYPE_file_ref:
-                case ModuleTableFieldVO.FIELD_TYPE_image_field:
-                case ModuleTableFieldVO.FIELD_TYPE_date:
-                case ModuleTableFieldVO.FIELD_TYPE_image_ref:
-                case ModuleTableFieldVO.FIELD_TYPE_html_array:
-                case ModuleTableFieldVO.FIELD_TYPE_boolean:
-                case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
-                case ModuleTableFieldVO.FIELD_TYPE_geopoint:
-                case ModuleTableFieldVO.FIELD_TYPE_numrange:
-                case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
-                case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
-                case ModuleTableFieldVO.FIELD_TYPE_file_field:
-                case ModuleTableFieldVO.FIELD_TYPE_float_array:
-                case ModuleTableFieldVO.FIELD_TYPE_int_array:
-                case ModuleTableFieldVO.FIELD_TYPE_string_array:
-                case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
-                case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
-                case ModuleTableFieldVO.FIELD_TYPE_daterange:
-                case ModuleTableFieldVO.FIELD_TYPE_tstz:
-                case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
-                case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
-                case ModuleTableFieldVO.FIELD_TYPE_tsrange:
-                case ModuleTableFieldVO.FIELD_TYPE_hour:
-                case ModuleTableFieldVO.FIELD_TYPE_hourrange:
-                case ModuleTableFieldVO.FIELD_TYPE_hourrange_array:
-                case ModuleTableFieldVO.FIELD_TYPE_day:
-                case ModuleTableFieldVO.FIELD_TYPE_timewithouttimezone:
-                case ModuleTableFieldVO.FIELD_TYPE_month:
-                case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
-                case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
-                default:
-                    throw new Error('Not implemented');
-            }
+    //             case ModuleTableFieldVO.FIELD_TYPE_file_ref:
+    //             case ModuleTableFieldVO.FIELD_TYPE_image_field:
+    //             case ModuleTableFieldVO.FIELD_TYPE_date:
+    //             case ModuleTableFieldVO.FIELD_TYPE_image_ref:
+    //             case ModuleTableFieldVO.FIELD_TYPE_html_array:
+    //             case ModuleTableFieldVO.FIELD_TYPE_boolean:
+    //             case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
+    //             case ModuleTableFieldVO.FIELD_TYPE_geopoint:
+    //             case ModuleTableFieldVO.FIELD_TYPE_numrange:
+    //             case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+    //             case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
+    //             case ModuleTableFieldVO.FIELD_TYPE_file_field:
+    //             case ModuleTableFieldVO.FIELD_TYPE_float_array:
+    //             case ModuleTableFieldVO.FIELD_TYPE_int_array:
+    //             case ModuleTableFieldVO.FIELD_TYPE_string_array:
+    //             case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
+    //             case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
+    //             case ModuleTableFieldVO.FIELD_TYPE_daterange:
+    //             case ModuleTableFieldVO.FIELD_TYPE_tstz:
+    //             case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
+    //             case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
+    //             case ModuleTableFieldVO.FIELD_TYPE_tsrange:
+    //             case ModuleTableFieldVO.FIELD_TYPE_hour:
+    //             case ModuleTableFieldVO.FIELD_TYPE_hourrange:
+    //             case ModuleTableFieldVO.FIELD_TYPE_hourrange_array:
+    //             case ModuleTableFieldVO.FIELD_TYPE_day:
+    //             case ModuleTableFieldVO.FIELD_TYPE_timewithouttimezone:
+    //             case ModuleTableFieldVO.FIELD_TYPE_month:
+    //             case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
+    //             case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
+    //             default:
+    //                 throw new Error('Not implemented');
+    //         }
 
-        }
+    //     }
 
-        this.set_active_field_filter({
-            field_id: column.field_id,
-            vo_type: column.api_type_id,
-            active_field_filter: context_filter,
-        });
+    //     this.set_active_field_filter({
+    //         field_id: column.field_id,
+    //         vo_type: column.api_type_id,
+    //         active_field_filter: context_filter,
+    //     });
 
-        this.filtering_by_active_field_filter = context_filter;
-    }
+    //     this.filtering_by_active_field_filter = context_filter;
+    // }
 
     public get_column_filter(column: TableColumnDescVO): any {
         if (!column) {
@@ -2062,6 +2061,7 @@ export default class TableWidgetTableComponent extends VueComponentBase implemen
         this.is_busy = true;
 
         const table_fields = TableWidgetManager.get_table_fields_by_widget_options(
+            this.page_widget.widget_id,
             this.dashboard,
             this.widget_options,
             this.get_active_field_filters,
@@ -2078,38 +2078,38 @@ export default class TableWidgetTableComponent extends VueComponentBase implemen
             return;
         }
 
-        /**
-         * On checke si le param de is_filtering_by devrait pas être invalidé (suite changement de filtrage manuel par ailleurs typiquement)
-         */
-        if (this.is_filtering_by && this.filtering_by_active_field_filter) {
+        // /**
+        //  * On checke si le param de is_filtering_by devrait pas être invalidé (suite changement de filtrage manuel par ailleurs typiquement)
+        //  */
+        // if (this.is_filtering_by && this.filtering_by_active_field_filter) {
 
-            let context_filter: ContextFilterVO = null;
+        //     let context_filter: ContextFilterVO = null;
 
-            const is_valid_filtering = this.filtering_by_active_field_filter.vo_type && this.filtering_by_active_field_filter.field_name;
+        //     const is_valid_filtering = this.filtering_by_active_field_filter.vo_type && this.filtering_by_active_field_filter.field_name;
 
-            const is_field_filters_empty = is_valid_filtering ? FieldFiltersVOHandler.is_field_filters_empty(
-                {
-                    api_type_id: this.filtering_by_active_field_filter.vo_type,
-                    field_id: this.filtering_by_active_field_filter.field_name
-                },
-                this.get_active_field_filters,
-            ) : true;
+        //     const is_field_filters_empty = is_valid_filtering ? FieldFiltersVOHandler.is_field_filters_empty(
+        //         {
+        //             api_type_id: this.filtering_by_active_field_filter.vo_type,
+        //             field_id: this.filtering_by_active_field_filter.field_name
+        //         },
+        //         this.get_active_field_filters,
+        //     ) : true;
 
-            if (!is_field_filters_empty) {
-                context_filter = this.get_active_field_filters[this.filtering_by_active_field_filter.vo_type][this.filtering_by_active_field_filter.field_name];
-            }
+        //     if (!is_field_filters_empty) {
+        //         context_filter = this.get_active_field_filters[this.filtering_by_active_field_filter.vo_type][this.filtering_by_active_field_filter.field_name];
+        //     }
 
-            if ((is_field_filters_empty) ||
-                (context_filter.filter_type != this.filtering_by_active_field_filter.filter_type) ||
-                (context_filter.vo_type != this.filtering_by_active_field_filter.vo_type) ||
-                (context_filter.field_name != this.filtering_by_active_field_filter.field_name) ||
-                (context_filter.param_numeric != this.filtering_by_active_field_filter.param_numeric) ||
-                (context_filter.param_text != this.filtering_by_active_field_filter.param_text)) {
+        //     if ((is_field_filters_empty) ||
+        //         (context_filter.filter_type != this.filtering_by_active_field_filter.filter_type) ||
+        //         (context_filter.vo_type != this.filtering_by_active_field_filter.vo_type) ||
+        //         (context_filter.field_name != this.filtering_by_active_field_filter.field_name) ||
+        //         (context_filter.param_numeric != this.filtering_by_active_field_filter.param_numeric) ||
+        //         (context_filter.param_text != this.filtering_by_active_field_filter.param_text)) {
 
-                this.filtering_by_active_field_filter = null;
-                this.is_filtering_by = false;
-            }
-        }
+        //         this.filtering_by_active_field_filter = null;
+        //         this.is_filtering_by = false;
+        //     }
+        // }
 
         let crud_api_type_id = this.widget_options.crud_api_type_id;
         if (!crud_api_type_id) {
@@ -2755,6 +2755,7 @@ export default class TableWidgetTableComponent extends VueComponentBase implemen
         export_name = slug(export_name, { lower: false }) + ".xlsx";
 
         const widget_options_fields = TableWidgetManager.get_table_fields_by_widget_options(
+            this.page_widget.widget_id,
             this.dashboard,
             this.widget_options,
             this.get_active_field_filters,

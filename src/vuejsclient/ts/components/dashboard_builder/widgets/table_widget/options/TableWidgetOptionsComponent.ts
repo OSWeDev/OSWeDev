@@ -876,16 +876,16 @@ export default class TableWidgetOptionsComponent extends VueComponentBase implem
         }
     }
 
-    public async switch_can_filter_by() {
-        this.can_filter_by = !this.can_filter_by;
+    // public async switch_can_filter_by() {
+    //     this.can_filter_by = !this.can_filter_by;
 
 
 
-        if (this.widget_options.can_filter_by != this.can_filter_by) {
-            this.widget_options.can_filter_by = this.can_filter_by;
-            this.update_options();
-        }
-    }
+    //     if (this.widget_options.can_filter_by != this.can_filter_by) {
+    //         this.widget_options.can_filter_by = this.can_filter_by;
+    //         this.update_options();
+    //     }
+    // }
 
     public async switch_delete_all_button() {
         this.delete_all_button = !this.delete_all_button;

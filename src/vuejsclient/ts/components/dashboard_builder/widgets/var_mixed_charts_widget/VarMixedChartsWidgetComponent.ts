@@ -1093,14 +1093,14 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase impl
                         // Selon type "string" ou "number"
                         switch (typeof dimension_value) {
                             case 'string':
-                                active_field_filters[this.widget_options.dimension_vo_field_ref.api_type_id][this.widget_options.dimension_vo_field_ref.field_id] =
+                                active_field_filters[this.widget_options.dimension_vo_field_ref.api_type_id][this.widget_options.dimension_vo_field_ref.field_id][0] =
                                     filter(
                                         this.widget_options.dimension_vo_field_ref.api_type_id,
                                         this.widget_options.dimension_vo_field_ref.field_id
                                     ).by_text_has(dimension_value);
                                 break;
                             case 'number':
-                                active_field_filters[this.widget_options.dimension_vo_field_ref.api_type_id][this.widget_options.dimension_vo_field_ref.field_id] =
+                                active_field_filters[this.widget_options.dimension_vo_field_ref.api_type_id][this.widget_options.dimension_vo_field_ref.field_id][0] =
                                     filter(
                                         this.widget_options.dimension_vo_field_ref.api_type_id,
                                         this.widget_options.dimension_vo_field_ref.field_id
@@ -1119,14 +1119,14 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase impl
                             }
                             switch (typeof dataset) {
                                 case 'string':
-                                    active_field_filters[this.widget_options.multiple_dataset_vo_field_ref.api_type_id][this.widget_options.multiple_dataset_vo_field_ref.field_id] =
+                                    active_field_filters[this.widget_options.multiple_dataset_vo_field_ref.api_type_id][this.widget_options.multiple_dataset_vo_field_ref.field_id][0] =
                                         filter(
                                             this.widget_options.multiple_dataset_vo_field_ref.api_type_id,
                                             this.widget_options.multiple_dataset_vo_field_ref.field_id
                                         ).by_text_has(dataset);
                                     break;
                                 case 'number':
-                                    active_field_filters[this.widget_options.multiple_dataset_vo_field_ref.api_type_id][this.widget_options.multiple_dataset_vo_field_ref.field_id] =
+                                    active_field_filters[this.widget_options.multiple_dataset_vo_field_ref.api_type_id][this.widget_options.multiple_dataset_vo_field_ref.field_id][0] =
                                         filter(
                                             this.widget_options.multiple_dataset_vo_field_ref.api_type_id,
                                             this.widget_options.multiple_dataset_vo_field_ref.field_id
@@ -1253,7 +1253,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase impl
                     promises.push((async () => {
                         // Copie du filter
                         const active_field_filters = cloneDeep(this.get_active_field_filters);
-                        active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE][this.widget_options.dimension_custom_filter_name] = filter(
+                        active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE][this.widget_options.dimension_custom_filter_name][0] = filter(
                             ContextFilterVO.CUSTOM_FILTERS_TYPE,
                             this.widget_options.dimension_custom_filter_name
                         ).by_date_x_ranges([
@@ -1290,14 +1290,14 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase impl
                             }
                             switch (typeof dataset) {
                                 case 'string':
-                                    active_field_filters[this.widget_options.multiple_dataset_vo_field_ref.api_type_id][this.widget_options.multiple_dataset_vo_field_ref.field_id] =
+                                    active_field_filters[this.widget_options.multiple_dataset_vo_field_ref.api_type_id][this.widget_options.multiple_dataset_vo_field_ref.field_id][0] =
                                         filter(
                                             this.widget_options.multiple_dataset_vo_field_ref.api_type_id,
                                             this.widget_options.multiple_dataset_vo_field_ref.field_id
                                         ).by_text_has(dataset);
                                     break;
                                 case 'number':
-                                    active_field_filters[this.widget_options.multiple_dataset_vo_field_ref.api_type_id][this.widget_options.multiple_dataset_vo_field_ref.field_id] =
+                                    active_field_filters[this.widget_options.multiple_dataset_vo_field_ref.api_type_id][this.widget_options.multiple_dataset_vo_field_ref.field_id][0] =
                                         filter(
                                             this.widget_options.multiple_dataset_vo_field_ref.api_type_id,
                                             this.widget_options.multiple_dataset_vo_field_ref.field_id
@@ -1353,12 +1353,19 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase impl
         if (!this.widget_options.dimension_custom_filter_name) {
             return null;
         }
-        const root_context_filter = this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE]
+        const root_context_filters = this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE]
             ? this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE][this.widget_options.dimension_custom_filter_name]
             : null;
 
-        if (!root_context_filter) {
+        if (!root_context_filters) {
             // pas de filtre => impossible de déterminer
+            return null;
+        }
+
+        // Il faut merger les potentiels ContextFilterVO de chaque widget_id
+        const root_context_filter = FieldFiltersVOManager.get_merged_context_filter_from_widgets_context_filters(root_context_filters);
+        if (!root_context_filter) {
+            // Pas de filtre => impossible de déterminer
             return null;
         }
 

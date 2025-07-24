@@ -331,6 +331,25 @@ export default class FieldFiltersVOManager {
         return field_filter;
     }
 
+    public static get_merged_context_filter_from_widgets_context_filters(
+        widgets_context_filters: { [widget_id: number]: ContextFilterVO },
+    ): ContextFilterVO {
+        let merged_context_filter: ContextFilterVO = null;
+
+        for (const widget_id in widgets_context_filters) {
+            const context_filter: ContextFilterVO = widgets_context_filters[widget_id];
+
+            if (context_filter) {
+                merged_context_filter = ContextFilterVOHandler.add_context_filter_to_tree(
+                    merged_context_filter,
+                    Object.assign(new ContextFilterVO(), context_filter),
+                );
+            }
+        }
+
+        return merged_context_filter;
+    }
+
     /**
      * Merge Field Filters With Context Filters
      *

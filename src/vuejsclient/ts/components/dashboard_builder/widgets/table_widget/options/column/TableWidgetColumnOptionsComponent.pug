@@ -122,13 +122,13 @@
                             :width="75"
                             :labels="{checked: label('table_widget_column_conf.editable_column.show_in_table'), unchecked: label('table_widget_column_conf.editable_column.hide_from_table')}")
 
-                    .can_filter_by_column(v-if='can_filter_by_table && (column.datatable_field_uid != "__crud_actions")' v-tooltip='label("table_widget_column_conf.can_filter_by_column")')
-                        toggle-button(
-                            @change="switch_can_filter_by" 
-                            :value="column.can_filter_by" 
-                            :sync="true"
-                            :width="100"
-                            :labels="{checked: label('table_widget_column_conf.editable_column.can_filter_by'), unchecked: label('table_widget_column_conf.editable_column.cannot_filter_by')}")
+                    //- .can_filter_by_column(v-if='can_filter_by_table && (column.datatable_field_uid != "__crud_actions")' v-tooltip='label("table_widget_column_conf.can_filter_by_column")')
+                    //-     toggle-button(
+                    //-         @change="switch_can_filter_by" 
+                    //-         :value="column.can_filter_by" 
+                    //-         :sync="true"
+                    //-         :width="100"
+                    //-         :labels="{checked: label('table_widget_column_conf.editable_column.can_filter_by'), unchecked: label('table_widget_column_conf.editable_column.cannot_filter_by')}")
 
                     .sortable_column(v-tooltip='label("table_widget_column_conf.sortable_column")')
                         toggle-button(

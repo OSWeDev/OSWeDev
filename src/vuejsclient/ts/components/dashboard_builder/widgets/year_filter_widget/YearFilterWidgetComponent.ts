@@ -227,6 +227,7 @@ export default class YearFilterWidgetComponent extends VueComponentBase implemen
         // 1 on cherche le contextfilter correspondant à ce type de filtre
         const root_context_filter: ContextFilterVO = FieldFiltersVOManager.get_context_filter_by_widget_options_from_field_filters(
             this.widget_options,
+            this.page_widget.widget_id,
             this.get_active_field_filters,
         );
 
@@ -349,6 +350,7 @@ export default class YearFilterWidgetComponent extends VueComponentBase implemen
         // 1 on cherche le contextfilter correspondant à ce type de filtre
         const root_context_filter: ContextFilterVO = FieldFiltersVOManager.get_context_filter_by_widget_options_from_field_filters(
             this.widget_options,
+            this.page_widget.widget_id,
             this.get_active_field_filters,
         );
 

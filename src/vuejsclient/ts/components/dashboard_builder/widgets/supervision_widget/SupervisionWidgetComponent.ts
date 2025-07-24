@@ -363,16 +363,19 @@ export default class SupervisionWidgetComponent extends VueComponentBase impleme
             // On supprime aussi de l'arbre tous les filtres qui ne sont pas du bon type de supervision
             const field_filters = api_field_filters[api_type_id];
             for (const field_id in field_filters) {
+                const context_filters = field_filters[field_id];
 
-                if (!field_filters[field_id]) {
+                if (!context_filters) {
                     continue;
                 }
 
-                field_filters[field_id] = ContextFilterVOManager.filter_context_filter_tree_by_vo_type(
-                    field_filters[field_id],
-                    supervision_type,
-                    available_api_type_ids
-                );
+                for (const widget_id in context_filters) {
+                    context_filters[widget_id] = ContextFilterVOManager.filter_context_filter_tree_by_vo_type(
+                        context_filters[widget_id],
+                        supervision_type,
+                        available_api_type_ids
+                    );
+                }
             }
         }
 

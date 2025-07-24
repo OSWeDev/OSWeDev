@@ -13,7 +13,6 @@ import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import ModuleTableController from '../../../../../../../shared/modules/DAO/ModuleTableController';
 import ModuleTableFieldVO from '../../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import ModuleTableVO from '../../../../../../../shared/modules/DAO/vos/ModuleTableVO';
-import FieldFiltersVOHandler from '../../../../../../../shared/modules/DashboardBuilder/handlers/FieldFiltersVOHandler';
 import FieldFiltersVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
 import FieldValueFilterWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterWidgetManager';
 import DashboardPageVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
@@ -1114,9 +1113,12 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         }
 
         // Init context filter of the current filter
-        const root_context_filter: ContextFilterVO = FieldFiltersVOManager.get_context_filter_from_field_filters(
-            this.vo_field_ref,
-            this.get_active_field_filters,
+        if (!this.get_active_field_filters || !this.get_active_field_filters[this.vo_field_ref.api_type_id] || !this.get_active_field_filters[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id]) {
+            this.filter_visible_options_lvl2 = {};
+            this.filter_visible_options = [];
+        }
+        const root_context_filter = FieldFiltersVOManager.get_merged_context_filter_from_widgets_context_filters(
+            this.get_active_field_filters[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id]
         );
 
         // Say if has active field filter
@@ -1261,15 +1263,9 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                     this.get_active_field_filters,
                     { should_restrict_to_api_type_id: true }
                 );
-                if (this.vo_field_ref_lvl2) {
-                    const is_active_field_filters_empty = FieldFiltersVOHandler.is_field_filters_empty(
-                        this.vo_field_ref_lvl2,
-                        active_field_filters
-                    );
-
-                    if (!is_active_field_filters_empty) {
-                        delete active_field_filters[this.vo_field_ref_lvl2.api_type_id][this.vo_field_ref_lvl2.field_id];
-                    }
+                if (this.vo_field_ref_lvl2 && active_field_filters && active_field_filters[this.vo_field_ref_lvl2.api_type_id] &&
+                    active_field_filters[this.vo_field_ref_lvl2.api_type_id][this.vo_field_ref_lvl2.field_id]) {
+                    delete active_field_filters[this.vo_field_ref_lvl2.api_type_id][this.vo_field_ref_lvl2.field_id];
                 }
             }
 
@@ -1459,7 +1455,11 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                         }
 
                         if (!active_field_filters_lvl2[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id]) {
-                            active_field_filters_lvl2[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id] = ContextFilterVOManager.create_context_filter_from_data_filter_option(
+                            active_field_filters_lvl2[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id] = {};
+                        }
+
+                        if (!active_field_filters_lvl2[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id][0]) {
+                            active_field_filters_lvl2[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id][0] = ContextFilterVOManager.create_context_filter_from_data_filter_option(
                                 opt,
                                 null,
                                 field,

@@ -362,8 +362,8 @@ export default class TableWidgetKanbanComponent extends VueComponentBase impleme
         return this.can_open_vocus_right && this.widget_options.vocus_button;
     }
 
-    get columns_custom_filters(): { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } {
-        const res: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } = {};
+    get columns_custom_filters(): FieldFiltersVO {
+        const res: FieldFiltersVO = {};
 
         for (const i in this.columns) {
             const column = this.columns[i];
@@ -1604,109 +1604,109 @@ export default class TableWidgetKanbanComponent extends VueComponentBase impleme
             ) && (this.filtering_by_active_field_filter.vo_type == column.api_type_id);
     }
 
-    private filter_by(column: TableColumnDescVO, datatable_field_uid: string, vo: any) {
+    // private filter_by(column: TableColumnDescVO, datatable_field_uid: string, vo: any) {
 
-        /**
-         * On vide le filtre
-         */
-        if (!vo) {
-            this.is_filtering_by = false;
-            this.filtering_by_active_field_filter = null;
-            this.remove_active_field_filter({ vo_type: column.api_type_id, field_id: (column.field_id ? column.field_id : 'id') });
-            return;
-        }
+    //     /**
+    //      * On vide le filtre
+    //      */
+    //     if (!vo) {
+    //         this.is_filtering_by = false;
+    //         this.filtering_by_active_field_filter = null;
+    //         this.remove_active_field_filter({ vo_type: column.api_type_id, field_id: (column.field_id ? column.field_id : 'id') });
+    //         return;
+    //     }
 
-        const filtered_value = vo ? vo[datatable_field_uid] : null;
+    //     const filtered_value = vo ? vo[datatable_field_uid] : null;
 
-        this.is_filtering_by = true;
-        const filtering_by_active_field_filter: ContextFilterVO = new ContextFilterVO();
-        filtering_by_active_field_filter.vo_type = column.api_type_id;
-        filtering_by_active_field_filter.field_name = column.field_id;
+    //     this.is_filtering_by = true;
+    //     const filtering_by_active_field_filter: ContextFilterVO = new ContextFilterVO();
+    //     filtering_by_active_field_filter.vo_type = column.api_type_id;
+    //     filtering_by_active_field_filter.field_name = column.field_id;
 
-        // cas de l'id
-        if ((!column.field_id) || (column.field_id == 'id') || (column.datatable_field_uid == "__crud_actions")) {
+    //     // cas de l'id
+    //     if ((!column.field_id) || (column.field_id == 'id') || (column.datatable_field_uid == "__crud_actions")) {
 
-            if (!filtered_value) {
-                filtering_by_active_field_filter.has_null();
-            } else {
-                filtering_by_active_field_filter.by_id(filtered_value);
-            }
-        } else {
-            const field = ModuleTableController.module_tables_by_vo_type[column.api_type_id].getFieldFromId(column.field_id);
-            switch (field.field_type) {
-                case ModuleTableFieldVO.FIELD_TYPE_html:
-                case ModuleTableFieldVO.FIELD_TYPE_password:
-                case ModuleTableFieldVO.FIELD_TYPE_textarea:
-                case ModuleTableFieldVO.FIELD_TYPE_email:
-                case ModuleTableFieldVO.FIELD_TYPE_string:
-                case ModuleTableFieldVO.FIELD_TYPE_color:
-                    if (!filtered_value) {
-                        filtering_by_active_field_filter.has_null();
-                    } else {
-                        filtering_by_active_field_filter.by_text_has(filtered_value);
-                    }
-                    break;
+    //         if (!filtered_value) {
+    //             filtering_by_active_field_filter.has_null();
+    //         } else {
+    //             filtering_by_active_field_filter.by_id(filtered_value);
+    //         }
+    //     } else {
+    //         const field = ModuleTableController.module_tables_by_vo_type[column.api_type_id].getFieldFromId(column.field_id);
+    //         switch (field.field_type) {
+    //             case ModuleTableFieldVO.FIELD_TYPE_html:
+    //             case ModuleTableFieldVO.FIELD_TYPE_password:
+    //             case ModuleTableFieldVO.FIELD_TYPE_textarea:
+    //             case ModuleTableFieldVO.FIELD_TYPE_email:
+    //             case ModuleTableFieldVO.FIELD_TYPE_string:
+    //             case ModuleTableFieldVO.FIELD_TYPE_color:
+    //                 if (!filtered_value) {
+    //                     filtering_by_active_field_filter.has_null();
+    //                 } else {
+    //                     filtering_by_active_field_filter.by_text_has(filtered_value);
+    //                 }
+    //                 break;
 
-                case ModuleTableFieldVO.FIELD_TYPE_enum:
-                case ModuleTableFieldVO.FIELD_TYPE_int:
-                case ModuleTableFieldVO.FIELD_TYPE_float:
-                case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
-                case ModuleTableFieldVO.FIELD_TYPE_amount:
-                case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
-                case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
-                case ModuleTableFieldVO.FIELD_TYPE_prct:
-                    if (!filtered_value) {
-                        filtering_by_active_field_filter.has_null();
-                    } else {
-                        filtering_by_active_field_filter.by_num_eq(filtered_value);
-                    }
-                    break;
+    //             case ModuleTableFieldVO.FIELD_TYPE_enum:
+    //             case ModuleTableFieldVO.FIELD_TYPE_int:
+    //             case ModuleTableFieldVO.FIELD_TYPE_float:
+    //             case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+    //             case ModuleTableFieldVO.FIELD_TYPE_amount:
+    //             case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
+    //             case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
+    //             case ModuleTableFieldVO.FIELD_TYPE_prct:
+    //                 if (!filtered_value) {
+    //                     filtering_by_active_field_filter.has_null();
+    //                 } else {
+    //                     filtering_by_active_field_filter.by_num_eq(filtered_value);
+    //                 }
+    //                 break;
 
-                case ModuleTableFieldVO.FIELD_TYPE_file_ref:
-                case ModuleTableFieldVO.FIELD_TYPE_image_field:
-                case ModuleTableFieldVO.FIELD_TYPE_date:
-                case ModuleTableFieldVO.FIELD_TYPE_image_ref:
-                case ModuleTableFieldVO.FIELD_TYPE_html_array:
-                case ModuleTableFieldVO.FIELD_TYPE_boolean:
-                case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
-                case ModuleTableFieldVO.FIELD_TYPE_geopoint:
-                case ModuleTableFieldVO.FIELD_TYPE_numrange:
-                case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
-                case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
-                case ModuleTableFieldVO.FIELD_TYPE_file_field:
-                case ModuleTableFieldVO.FIELD_TYPE_float_array:
-                case ModuleTableFieldVO.FIELD_TYPE_int_array:
-                case ModuleTableFieldVO.FIELD_TYPE_string_array:
-                case ModuleTableFieldVO.FIELD_TYPE_color_array:
-                case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
-                case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
-                case ModuleTableFieldVO.FIELD_TYPE_daterange:
-                case ModuleTableFieldVO.FIELD_TYPE_tstz:
-                case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
-                case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
-                case ModuleTableFieldVO.FIELD_TYPE_tsrange:
-                case ModuleTableFieldVO.FIELD_TYPE_hour:
-                case ModuleTableFieldVO.FIELD_TYPE_hourrange:
-                case ModuleTableFieldVO.FIELD_TYPE_hourrange_array:
-                case ModuleTableFieldVO.FIELD_TYPE_day:
-                case ModuleTableFieldVO.FIELD_TYPE_timewithouttimezone:
-                case ModuleTableFieldVO.FIELD_TYPE_month:
-                case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
-                case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
-                default:
-                    throw new Error('Not implemented');
-            }
+    //             case ModuleTableFieldVO.FIELD_TYPE_file_ref:
+    //             case ModuleTableFieldVO.FIELD_TYPE_image_field:
+    //             case ModuleTableFieldVO.FIELD_TYPE_date:
+    //             case ModuleTableFieldVO.FIELD_TYPE_image_ref:
+    //             case ModuleTableFieldVO.FIELD_TYPE_html_array:
+    //             case ModuleTableFieldVO.FIELD_TYPE_boolean:
+    //             case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
+    //             case ModuleTableFieldVO.FIELD_TYPE_geopoint:
+    //             case ModuleTableFieldVO.FIELD_TYPE_numrange:
+    //             case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+    //             case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
+    //             case ModuleTableFieldVO.FIELD_TYPE_file_field:
+    //             case ModuleTableFieldVO.FIELD_TYPE_float_array:
+    //             case ModuleTableFieldVO.FIELD_TYPE_int_array:
+    //             case ModuleTableFieldVO.FIELD_TYPE_string_array:
+    //             case ModuleTableFieldVO.FIELD_TYPE_color_array:
+    //             case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
+    //             case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
+    //             case ModuleTableFieldVO.FIELD_TYPE_daterange:
+    //             case ModuleTableFieldVO.FIELD_TYPE_tstz:
+    //             case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
+    //             case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
+    //             case ModuleTableFieldVO.FIELD_TYPE_tsrange:
+    //             case ModuleTableFieldVO.FIELD_TYPE_hour:
+    //             case ModuleTableFieldVO.FIELD_TYPE_hourrange:
+    //             case ModuleTableFieldVO.FIELD_TYPE_hourrange_array:
+    //             case ModuleTableFieldVO.FIELD_TYPE_day:
+    //             case ModuleTableFieldVO.FIELD_TYPE_timewithouttimezone:
+    //             case ModuleTableFieldVO.FIELD_TYPE_month:
+    //             case ModuleTableFieldVO.FIELD_TYPE_translatable_string:
+    //             case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
+    //             default:
+    //                 throw new Error('Not implemented');
+    //         }
 
-        }
+    //     }
 
-        this.set_active_field_filter({
-            field_id: column.field_id,
-            vo_type: column.api_type_id,
-            active_field_filter: filtering_by_active_field_filter,
-        });
+    //     this.set_active_field_filter({
+    //         field_id: column.field_id,
+    //         vo_type: column.api_type_id,
+    //         active_field_filter: filtering_by_active_field_filter,
+    //     });
 
-        this.filtering_by_active_field_filter = filtering_by_active_field_filter;
-    }
+    //     this.filtering_by_active_field_filter = filtering_by_active_field_filter;
+    // }
 
     private get_column_filter(column: TableColumnDescVO): any {
         if (!column) {
@@ -1737,9 +1737,9 @@ export default class TableWidgetKanbanComponent extends VueComponentBase impleme
             return true;
         }
 
-        if (!this.filter_by) {
-            return true;
-        }
+        // if (!this.filter_by) {
+        //     return true;
+        // }
 
         if (!this.filtering_by_active_field_filter) {
             return true;
@@ -2075,22 +2075,22 @@ export default class TableWidgetKanbanComponent extends VueComponentBase impleme
             return;
         }
 
-        /**
-         * On checke si le param de is_filtering_by devrait pas être invalidé (suite changement de filtrage manuel par ailleurs typiquement)
-         */
-        if (this.is_filtering_by && this.filtering_by_active_field_filter) {
+        // /**
+        //  * On checke si le param de is_filtering_by devrait pas être invalidé (suite changement de filtrage manuel par ailleurs typiquement)
+        //  */
+        // if (this.is_filtering_by && this.filtering_by_active_field_filter) {
 
-            if ((!this.get_active_field_filters[this.filtering_by_active_field_filter.vo_type]) ||
-                (!this.get_active_field_filters[this.filtering_by_active_field_filter.vo_type][this.filtering_by_active_field_filter.field_name]) ||
-                (this.get_active_field_filters[this.filtering_by_active_field_filter.vo_type][this.filtering_by_active_field_filter.field_name].filter_type != this.filtering_by_active_field_filter.filter_type) ||
-                (this.get_active_field_filters[this.filtering_by_active_field_filter.vo_type][this.filtering_by_active_field_filter.field_name].vo_type != this.filtering_by_active_field_filter.vo_type) ||
-                (this.get_active_field_filters[this.filtering_by_active_field_filter.vo_type][this.filtering_by_active_field_filter.field_name].field_name != this.filtering_by_active_field_filter.field_name) ||
-                (this.get_active_field_filters[this.filtering_by_active_field_filter.vo_type][this.filtering_by_active_field_filter.field_name].param_numeric != this.filtering_by_active_field_filter.param_numeric) ||
-                (this.get_active_field_filters[this.filtering_by_active_field_filter.vo_type][this.filtering_by_active_field_filter.field_name].param_text != this.filtering_by_active_field_filter.param_text)) {
-                this.is_filtering_by = false;
-                this.filtering_by_active_field_filter = null;
-            }
-        }
+        //     if ((!this.get_active_field_filters[this.filtering_by_active_field_filter.vo_type]) ||
+        //         (!this.get_active_field_filters[this.filtering_by_active_field_filter.vo_type][this.filtering_by_active_field_filter.field_name]) ||
+        //         (this.get_active_field_filters[this.filtering_by_active_field_filter.vo_type][this.filtering_by_active_field_filter.field_name].filter_type != this.filtering_by_active_field_filter.filter_type) ||
+        //         (this.get_active_field_filters[this.filtering_by_active_field_filter.vo_type][this.filtering_by_active_field_filter.field_name].vo_type != this.filtering_by_active_field_filter.vo_type) ||
+        //         (this.get_active_field_filters[this.filtering_by_active_field_filter.vo_type][this.filtering_by_active_field_filter.field_name].field_name != this.filtering_by_active_field_filter.field_name) ||
+        //         (this.get_active_field_filters[this.filtering_by_active_field_filter.vo_type][this.filtering_by_active_field_filter.field_name].param_numeric != this.filtering_by_active_field_filter.param_numeric) ||
+        //         (this.get_active_field_filters[this.filtering_by_active_field_filter.vo_type][this.filtering_by_active_field_filter.field_name].param_text != this.filtering_by_active_field_filter.param_text)) {
+        //         this.is_filtering_by = false;
+        //         this.filtering_by_active_field_filter = null;
+        //     }
+        // }
 
         let crud_api_type_id = this.crud_activated_api_type;
         if (!crud_api_type_id) {
@@ -2120,17 +2120,17 @@ export default class TableWidgetKanbanComponent extends VueComponentBase impleme
 
         FieldValueFilterWidgetManager.add_discarded_field_paths(query_, this.get_dashboard_discarded_field_paths);
 
-        /**
-         * Si on a un filtre actif sur la table on veut ignorer le filtre généré par la table à ce stade et charger toutes les valeurs, et mettre en avant simplement celles qui sont filtrées
-         */
-        if (this.is_filtering_by && this.filtering_by_active_field_filter) {
-            query_.filters = query_.filters.filter((f) =>
-                (f.filter_type != this.filtering_by_active_field_filter.filter_type) ||
-                (f.vo_type != this.filtering_by_active_field_filter.vo_type) ||
-                (f.field_name != this.filtering_by_active_field_filter.field_name) ||
-                (f.param_numeric != this.filtering_by_active_field_filter.param_numeric) ||
-                (f.param_text != this.filtering_by_active_field_filter.param_text));
-        }
+        // /**
+        //  * Si on a un filtre actif sur la table on veut ignorer le filtre généré par la table à ce stade et charger toutes les valeurs, et mettre en avant simplement celles qui sont filtrées
+        //  */
+        // if (this.is_filtering_by && this.filtering_by_active_field_filter) {
+        //     query_.filters = query_.filters.filter((f) =>
+        //         (f.filter_type != this.filtering_by_active_field_filter.filter_type) ||
+        //         (f.vo_type != this.filtering_by_active_field_filter.vo_type) ||
+        //         (f.field_name != this.filtering_by_active_field_filter.field_name) ||
+        //         (f.param_numeric != this.filtering_by_active_field_filter.param_numeric) ||
+        //         (f.param_text != this.filtering_by_active_field_filter.param_text));
+        // }
 
         // Si on est sur un kanban, on ordonne par weight si c'est activé
         const kanban_moduletable = ModuleTableController.module_tables_by_vo_type[this.kanban_column.api_type_id];

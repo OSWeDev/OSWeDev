@@ -445,7 +445,7 @@ export default class VarRadarChartWidgetComponent extends VueComponentBase imple
     }
 
     private async get_var_params_by_dimension_when_dimension_is_vo_field_ref(
-        custom_filters_1: { [var_param_field_name: string]: ContextFilterVO }
+        custom_filters_1: { [var_param_field_name: string]: { [widget_id: number]: ContextFilterVO } }
     ): Promise<{ [dataset_label: string]: { [dimension_value: number]: VarDataBaseVO } }> {
 
         if ((!this.widget_options.var_id_1) || !VarsController.var_conf_by_id[this.widget_options.var_id_1] || !this.widget_options.dimension_vo_field_ref) {
@@ -554,13 +554,13 @@ export default class VarRadarChartWidgetComponent extends VueComponentBase imple
 
                     switch (typeof dimension_value) {
                         case 'string':
-                            active_field_filters[this.widget_options.dimension_vo_field_ref.api_type_id][this.widget_options.dimension_vo_field_ref.field_id] = filter(
+                            active_field_filters[this.widget_options.dimension_vo_field_ref.api_type_id][this.widget_options.dimension_vo_field_ref.field_id][0] = filter(
                                 this.widget_options.dimension_vo_field_ref.api_type_id,
                                 this.widget_options.dimension_vo_field_ref.field_id
                             ).by_text_has(dimension_value);
                             break;
                         case 'number':
-                            active_field_filters[this.widget_options.dimension_vo_field_ref.api_type_id][this.widget_options.dimension_vo_field_ref.field_id] = filter(
+                            active_field_filters[this.widget_options.dimension_vo_field_ref.api_type_id][this.widget_options.dimension_vo_field_ref.field_id][0] = filter(
                                 this.widget_options.dimension_vo_field_ref.api_type_id,
                                 this.widget_options.dimension_vo_field_ref.field_id
                             ).by_num_has([dimension_value]);
@@ -575,13 +575,13 @@ export default class VarRadarChartWidgetComponent extends VueComponentBase imple
 
                         switch (typeof dataset) {
                             case 'string':
-                                active_field_filters[this.widget_options.multiple_dataset_vo_field_ref.api_type_id][this.widget_options.multiple_dataset_vo_field_ref.field_id] = filter(
+                                active_field_filters[this.widget_options.multiple_dataset_vo_field_ref.api_type_id][this.widget_options.multiple_dataset_vo_field_ref.field_id][0] = filter(
                                     this.widget_options.multiple_dataset_vo_field_ref.api_type_id,
                                     this.widget_options.multiple_dataset_vo_field_ref.field_id
                                 ).by_text_has(dataset);
                                 break;
                             case 'number':
-                                active_field_filters[this.widget_options.multiple_dataset_vo_field_ref.api_type_id][this.widget_options.multiple_dataset_vo_field_ref.field_id] = filter(
+                                active_field_filters[this.widget_options.multiple_dataset_vo_field_ref.api_type_id][this.widget_options.multiple_dataset_vo_field_ref.field_id][0] = filter(
                                     this.widget_options.multiple_dataset_vo_field_ref.api_type_id,
                                     this.widget_options.multiple_dataset_vo_field_ref.field_id
                                 ).by_num_has([dataset]);
@@ -649,7 +649,7 @@ export default class VarRadarChartWidgetComponent extends VueComponentBase imple
      * @returns {Promise<{[dimension_value: number]: VarDataBaseVO}>}
      */
     private async get_var_params_by_dimension_when_dimension_is_custom_filter(
-        custom_filters_1: { [var_param_field_name: string]: ContextFilterVO }
+        custom_filters_1: { [var_param_field_name: string]: { [widget_id: number]: ContextFilterVO } }
     ): Promise<{ [dataset_label: string]: { [dimension_value: number]: VarDataBaseVO } }> {
 
         if ((!this.widget_options.var_id_1) || !VarsController.var_conf_by_id[this.widget_options.var_id_1]) {
@@ -755,7 +755,7 @@ export default class VarRadarChartWidgetComponent extends VueComponentBase imple
                      */
                     let active_field_filters = cloneDeep(this.get_active_field_filters);
 
-                    active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE][this.widget_options.dimension_custom_filter_name] = filter(
+                    active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE][this.widget_options.dimension_custom_filter_name][0] = filter(
                         ContextFilterVO.CUSTOM_FILTERS_TYPE,
                         this.widget_options.dimension_custom_filter_name
                     ).by_date_x_ranges([RangeHandler.create_single_elt_TSRange(dimension_value, this.widget_options.dimension_custom_filter_segment_type)]);
@@ -784,13 +784,13 @@ export default class VarRadarChartWidgetComponent extends VueComponentBase imple
 
                         switch (typeof dataset) {
                             case 'string':
-                                active_field_filters[this.widget_options.multiple_dataset_vo_field_ref.api_type_id][this.widget_options.multiple_dataset_vo_field_ref.field_id] = filter(
+                                active_field_filters[this.widget_options.multiple_dataset_vo_field_ref.api_type_id][this.widget_options.multiple_dataset_vo_field_ref.field_id][0] = filter(
                                     this.widget_options.multiple_dataset_vo_field_ref.api_type_id,
                                     this.widget_options.multiple_dataset_vo_field_ref.field_id
                                 ).by_text_has(dataset);
                                 break;
                             case 'number':
-                                active_field_filters[this.widget_options.multiple_dataset_vo_field_ref.api_type_id][this.widget_options.multiple_dataset_vo_field_ref.field_id] = filter(
+                                active_field_filters[this.widget_options.multiple_dataset_vo_field_ref.api_type_id][this.widget_options.multiple_dataset_vo_field_ref.field_id][0] = filter(
                                     this.widget_options.multiple_dataset_vo_field_ref.api_type_id,
                                     this.widget_options.multiple_dataset_vo_field_ref.field_id
                                 ).by_num_has([dataset]);
@@ -837,19 +837,25 @@ export default class VarRadarChartWidgetComponent extends VueComponentBase imple
     private get_dimension_values(): number[] {
 
         // On récupère le root du filtrage
-        let root_context_filter: ContextFilterVO = null;
         if (!this.widget_options.dimension_custom_filter_name) {
             return null;
         }
 
-        root_context_filter = this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE] ?
-            this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE][this.widget_options.dimension_custom_filter_name] : null;
+        const root_context_filters = this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE]
+            ? this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE][this.widget_options.dimension_custom_filter_name]
+            : null;
 
-        /** Si on a pas de filtre, on peut pas connaître les bornes, donc on refuse */
-        if (!root_context_filter) {
+        if (!root_context_filters) {
+            // pas de filtre => impossible de déterminer
             return null;
         }
 
+        // Il faut merger les potentiels ContextFilterVO de chaque widget_id
+        const root_context_filter = FieldFiltersVOManager.get_merged_context_filter_from_widgets_context_filters(root_context_filters);
+        if (!root_context_filter) {
+            // Pas de filtre => impossible de déterminer
+            return null;
+        }
 
         let ts_ranges = ContextFilterVOHandler.get_ts_ranges_from_context_filter_root(
             root_context_filter,
@@ -880,7 +886,7 @@ export default class VarRadarChartWidgetComponent extends VueComponentBase imple
             return;
         }
 
-        let custom_filters_1: { [var_param_field_name: string]: ContextFilterVO } = VarWidgetComponent.get_var_custom_filters(this.var_custom_filters_1, this.get_active_field_filters);
+        let custom_filters_1: { [var_param_field_name: string]: { [widget_id: number]: ContextFilterVO } } = VarWidgetComponent.get_var_custom_filters(this.var_custom_filters_1, this.get_active_field_filters);
         if (this.widget_options.has_dimension) {
             await this.set_var_params_by_dimension(custom_filters_1, launch_cpt);
         } else {
@@ -889,7 +895,7 @@ export default class VarRadarChartWidgetComponent extends VueComponentBase imple
     }
 
     private async set_var_params_by_dimension(
-        custom_filters_1: { [var_param_field_name: string]: ContextFilterVO },
+        custom_filters_1: { [var_param_field_name: string]: { [widget_id: number]: ContextFilterVO } },
         launch_cpt: number
     ) {
         if (this.var_params_1_et_2_by_dataset_and_dimension) {
@@ -912,7 +918,7 @@ export default class VarRadarChartWidgetComponent extends VueComponentBase imple
     }
 
     private async set_var_params_1_et_2(
-        custom_filters_1: { [var_param_field_name: string]: ContextFilterVO },
+        custom_filters_1: { [var_param_field_name: string]: { [widget_id: number]: ContextFilterVO } },
         launch_cpt: number
     ) {
 
@@ -927,7 +933,7 @@ export default class VarRadarChartWidgetComponent extends VueComponentBase imple
             this.var_params_by_dataset_and_dimension = null;
         }
 
-        const custom_filters_2: { [var_param_field_name: string]: ContextFilterVO } = VarWidgetComponent.get_var_custom_filters(this.var_custom_filters_2, this.get_active_field_filters);
+        const custom_filters_2: { [var_param_field_name: string]: { [widget_id: number]: ContextFilterVO } } = VarWidgetComponent.get_var_custom_filters(this.var_custom_filters_2, this.get_active_field_filters);
         const var_params_1_et_2_by_dataset_and_dimension: { [dataset_label: string]: { [dimension_value: number]: VarDataBaseVO } } = {};
         const promises = [];
         const datasets = [];
@@ -983,13 +989,13 @@ export default class VarRadarChartWidgetComponent extends VueComponentBase imple
 
                 switch (typeof dataset) {
                     case 'string':
-                        active_field_filters[this.widget_options.multiple_dataset_vo_field_ref.api_type_id][this.widget_options.multiple_dataset_vo_field_ref.field_id] = filter(
+                        active_field_filters[this.widget_options.multiple_dataset_vo_field_ref.api_type_id][this.widget_options.multiple_dataset_vo_field_ref.field_id][0] = filter(
                             this.widget_options.multiple_dataset_vo_field_ref.api_type_id,
                             this.widget_options.multiple_dataset_vo_field_ref.field_id
                         ).by_text_has(dataset);
                         break;
                     case 'number':
-                        active_field_filters[this.widget_options.multiple_dataset_vo_field_ref.api_type_id][this.widget_options.multiple_dataset_vo_field_ref.field_id] = filter(
+                        active_field_filters[this.widget_options.multiple_dataset_vo_field_ref.api_type_id][this.widget_options.multiple_dataset_vo_field_ref.field_id][0] = filter(
                             this.widget_options.multiple_dataset_vo_field_ref.api_type_id,
                             this.widget_options.multiple_dataset_vo_field_ref.field_id
                         ).by_num_has([dataset]);
