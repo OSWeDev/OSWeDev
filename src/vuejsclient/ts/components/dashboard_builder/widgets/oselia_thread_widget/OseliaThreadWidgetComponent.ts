@@ -491,28 +491,19 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
             // Désactiver le realtime - Déconnexion forcée
             this.realtime_connecting = true;
             try {
-                const controller = OseliaRealtimeController.getInstance();
+                // ✅ SIMPLIFICATION : On ne gère plus la déconnexion ici.
+                // On envoie juste l'ordre de fermer le realtime.
+                // OseliaRealtimeController se chargera de la déconnexion et de la mise à jour du thread.
+                EventsController.emit_event(
+                    EventifyEventInstanceVO.new_event(ModuleOselia.EVENT_OSELIA_CLOSE_REALTIME, false)
+                );
 
-                // Marquer immédiatement le flag comme false pour l'UI
+                // On met à jour l'UI immédiatement
                 this.use_realtime_voice = false;
 
-                // Force la déconnexion complète
-                await controller.disconnect_to_realtime();
-
-                // Attendre un délai pour s'assurer que toutes les ressources sont libérées
-                await new Promise(resolve => setTimeout(resolve, 500));
-
-                // S'assurer que le thread dans le store est réinitialisé
-                if (this.thread) {
-                    await this.$store.dispatch('OseliaStore/set_current_thread', null);
-                    // Petite pause puis remettre le thread actuel
-                    await new Promise(resolve => setTimeout(resolve, 100));
-                    await this.$store.dispatch('OseliaStore/set_current_thread', this.thread);
-                }
-
-                ConsoleHandler.log('Session realtime arrêtée depuis le bouton du thread widget');
+                ConsoleHandler.log('Ordre d\'arrêt de la session realtime envoyé depuis le thread widget');
             } catch (error) {
-                ConsoleHandler.error('Erreur lors de l\'arrêt de la session realtime:', error);
+                ConsoleHandler.error('Erreur lors de l\'envoi de l\'ordre d\'arrêt de la session realtime:', error);
                 // En cas d'erreur, utiliser la méthode de déconnexion forcée
                 await this.ensureRealtimeFullyDisconnected();
             } finally {
@@ -554,12 +545,8 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
                 this.use_realtime_voice = false;
             }
 
-            // Nettoyer l'état du thread si nécessaire
-            if (this.thread) {
-                await this.$store.dispatch('OseliaStore/set_current_thread', null);
-                await new Promise(resolve => setTimeout(resolve, 100));
-                await this.$store.dispatch('OseliaStore/set_current_thread', this.thread);
-            }
+            // Le thread reste maintenu dans le store - pas besoin de le réinitialiser
+            // OseliaRealtimeController se charge déjà de maintenir la continuité du thread
 
             ConsoleHandler.log('Déconnexion realtime forcée terminée');
         } catch (error) {

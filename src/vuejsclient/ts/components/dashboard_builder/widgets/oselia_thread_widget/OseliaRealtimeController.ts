@@ -64,7 +64,7 @@ export default class OseliaRealtimeController extends VueComponentBase {
         return OseliaRealtimeController.instance;
     }
 
-    @Watch('get_current_thread')
+    @Watch(reflect<OseliaRealtimeController>().get_current_thread, { immediate: true })
     private async onCurrentThreadChange(new_thread: GPTAssistantAPIThreadVO | null) {
         // Si on n'est pas connecté au realtime ou qu'on est en cours de connexion, pas besoin de faire quoi que ce soit
         if (!this.is_connected_to_realtime || this.connecting) {
@@ -113,7 +113,13 @@ export default class OseliaRealtimeController extends VueComponentBase {
         // this.oselia_run_template.initial_content_text = prompt || '';
 
         /* 3)  (re)crée un thread si besoin, ou utilise le thread courant */
-        const current_thread = this.get_current_thread;
+        let current_thread: GPTAssistantAPIThreadVO | null = null;
+        if(!this.call_thread) {
+            current_thread = this.get_current_thread;
+        } else {
+            ConsoleHandler.log('OseliaRealtimeController: Utilisation du thread existant:', this.call_thread.id);
+            current_thread = this.call_thread;
+        }
         if (current_thread) {
             // Utiliser le thread existant si disponible (usage depuis thread widget)
             // Mais d'abord le recharger depuis la base pour avoir la version la plus récente
@@ -208,10 +214,15 @@ export default class OseliaRealtimeController extends VueComponentBase {
             await this.updateThreadWithRetry(this.call_thread);
         }
 
-        /* 5)  Notifie l’UI */
-        await VueAppBaseInstanceHolder.instance.vueInstance.$store.dispatch(
-            'OseliaStore/set_current_thread', null
-        );
+        /* 5)  Notifie l'UI */
+        // On maintient le thread dans le store pour la prochaine connexion
+        // Le thread reste disponible même après déconnexion
+        if (this.call_thread) {
+            await VueAppBaseInstanceHolder.instance.vueInstance.$store.dispatch(
+                'OseliaStore/set_current_thread',
+                this.call_thread
+            );
+        }
 
         const audio = new Audio("public/vuejsclient/sound/realtime-deactivated.mp3");
         audio.play().catch(err => console.error("Erreur de lecture :", err));

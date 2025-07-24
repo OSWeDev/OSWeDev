@@ -72,8 +72,6 @@ export default class OseliaChatHandlerComponent extends VueComponentBase {
 
     @Watch(reflect<OseliaChatHandlerComponent>().get_current_thread, { deep: true })
     private async onCurrentThreadChange() {
-        // Ne réagir que si le composant est actif (usage externe avec referrer)
-        // Sinon on évite les conflits avec l'usage interne (thread widget)
         if (!this.isActive) {
             return;
         }
@@ -83,20 +81,35 @@ export default class OseliaChatHandlerComponent extends VueComponentBase {
                 if (this.connection_established != this.get_current_thread.realtime_activated) {
                     this.connection_established = this.get_current_thread.realtime_activated;
                 }
-                // Si le thread n’a pas changé, on ne fait rien
                 return;
             }
             this.currentThreadVO = this.get_current_thread;
             if (this.currentThreadVO) {
                 this.new_thread_id = this.currentThreadVO.gpt_thread_id;
                 this.connection_established = this.currentThreadVO.realtime_activated;
-                this.is_open = true;
+
+                // ✅ AMÉLIORATION : Maintenir l'iframe ouverte si elle était déjà ouverte
+                if (!this.is_open) {
+                    this.is_open = true;
+                }
+
                 if (!this.iframe_loaded) {
                     this.iframe_is_loading = true;
                 }
                 if (!this.ott) {
                     await this.refreshOTT();
                 }
+            }
+        } else {
+            if (this.currentThreadVO) {
+                this.connection_established = false;
+
+                // Vérification différée pour éviter la fermeture prématurée
+                setTimeout(async () => {
+                    if (!this.get_current_thread) {
+                        console.log('[OseliaChatHandler] Thread absent après délai - maintien iframe');
+                    }
+                }, 200);
             }
         }
 
@@ -210,24 +223,26 @@ export default class OseliaChatHandlerComponent extends VueComponentBase {
         EventsController.emit_event(
             EventifyEventInstanceVO.new_event(ModuleOselia.EVENT_OSELIA_CLOSE_REALTIME, false)
         );
-        if (this.is_open) {
-            this.is_open = false;            // cache le template <iframe>
-            this.iframe_is_loading = false;
-            this.iframe_loaded = false;      // l’iframe n’est plus chargée
-            this.is_closing = true;        // on est en train de fermer
-            this.ott = null;
-            sleep(1000).then(() => {
-                this.is_closing = false;   // on a fini de fermer
-            });
-            return;
-        }
+        // if (this.is_open) {
+        //     this.is_open = false;            // cache le template <iframe>
+        //     this.iframe_is_loading = false;
+        //     this.iframe_loaded = false;      // l’iframe n’est plus chargée
+        //     this.is_closing = true;        // on est en train de fermer
+        //     this.ott = null;
+        //     sleep(1000).then(() => {
+        //         this.is_closing = false;   // on a fini de fermer
+        //     });
+        //     return;
+        // }
     }
 
     /* ------------------------------------------------------------------
      *                         HELPERS                                    */
     private async refreshOTT() {
         const local_ott = await ModuleOselia.getInstance().get_token_oselia(document.location.href);
-        if (local_ott != this.ott) {
+
+        // Ne mettre à jour que si nécessaire et iframe pas déjà chargée
+        if (local_ott != this.ott && (!this.iframe_loaded || !this.ott)) {
             this.ott = local_ott;
         }
     }
