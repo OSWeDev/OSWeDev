@@ -301,7 +301,7 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
      * (ex: (vo) => vo_ids.includes(vo.id) ou (vo) => vo.id>10)
      * @returns datafield
      */
-    public setSieveCondition<P extends IDistantVOBase>(condition: (vos: P) => boolean = null): this {
+    public setSieveCondition<P extends IDistantVOBase>(condition: (vo: P) => boolean = null): this {
 
         this.sieve = (vos: P[]): P[] => vos.filter((elt) => true);
         this.sieveCondition = (e) => true;
