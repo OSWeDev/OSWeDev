@@ -19,6 +19,7 @@ import { ref } from 'vue';
 import OseliaRealtimeController from '../dashboard_builder/widgets/oselia_thread_widget/OseliaRealtimeController';
 import AjaxCacheClientController from '../../modules/AjaxCache/AjaxCacheClientController';
 import { sleep } from 'openai/core';
+import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 @Component({
     template: require('./OseliaChatHandlerComponent.pug'),
 })
@@ -77,26 +78,74 @@ export default class OseliaChatHandlerComponent extends VueComponentBase {
         }
 
         if (this.get_current_thread) {
+            const isNewThread = !this.currentThreadVO ||
+                           this.currentThreadVO.id !== this.get_current_thread.id ||
+                           this.currentThreadVO.gpt_thread_id !== this.get_current_thread.gpt_thread_id;
+
+            const realtimeJustActivated = !this.connection_established &&
+                        this.get_current_thread.realtime_activated;
+
+            let needsRefreshOTT = false;
+
+            // Si realtime s'active et fenêtre fermée, ouvrir automatiquement
+            if (realtimeJustActivated && !this.is_open) {
+                ConsoleHandler.log('[OseliaChatHandler] Realtime activé depuis contexte externe - ouverture automatique de la fenêtre');
+                this.is_open = true;
+                this.iframe_is_loading = true;
+                this.ott = null;
+                needsRefreshOTT = true;
+            }
+
+            // Vérification si c'est le même thread avec des changements d'état
             if ((this.currentThreadVO && this.get_current_thread) && (this.currentThreadVO.id == this.get_current_thread.id)) {
                 if (this.connection_established != this.get_current_thread.realtime_activated) {
                     this.connection_established = this.get_current_thread.realtime_activated;
+
+                    // Si realtime s'active sur le même thread mais fenêtre fermée
+                    if (this.connection_established && !this.is_open) {
+                        ConsoleHandler.log('[OseliaChatHandler] Realtime réactivé sur thread existant - ouverture de la fenêtre');
+                        this.is_open = true;
+                        this.iframe_is_loading = true;
+                        this.ott = null;
+                        needsRefreshOTT = true; // Marquer qu'on doit refresher
+                    }
                 }
+
+                // AJOUT : Même pour le même thread, si realtime est actif et fenêtre fermée, ouvrir
+                if (this.get_current_thread.realtime_activated && !this.is_open) {
+                    ConsoleHandler.log('[OseliaChatHandler] Thread existant avec realtime actif - ouverture de la fenêtre');
+                    this.is_open = true;
+                    this.iframe_is_loading = true;
+                    this.ott = null;
+                    needsRefreshOTT = true; // Marquer qu'on doit refresher
+                }
+
+                // NOUVEAU : Refresher l'OTT si nécessaire avant de retourner
+                if (needsRefreshOTT) {
+                    await this.refreshOTT();
+                }
+
                 return;
             }
+
+            // Nouveau thread
             this.currentThreadVO = this.get_current_thread;
             if (this.currentThreadVO) {
                 this.new_thread_id = this.currentThreadVO.gpt_thread_id;
                 this.connection_established = this.currentThreadVO.realtime_activated;
 
-                // ✅ AMÉLIORATION : Maintenir l'iframe ouverte si elle était déjà ouverte
-                if (!this.is_open) {
+                // Ouvrir automatiquement si realtime est activé OU si nouveau thread
+                if (this.connection_established || isNewThread) {
                     this.is_open = true;
                 }
 
+                // Laisser la logique existante qui utilise iframe_is_loading
                 if (!this.iframe_loaded) {
                     this.iframe_is_loading = true;
                 }
-                if (!this.ott) {
+
+                // Toujours refresher l'OTT si realtime est actif ou nouveau thread
+                if (!this.ott || isNewThread || this.connection_established || needsRefreshOTT) {
                     await this.refreshOTT();
                 }
             }
@@ -220,20 +269,27 @@ export default class OseliaChatHandlerComponent extends VueComponentBase {
     }
 
     private async stopClick(): Promise<void> {
-        EventsController.emit_event(
-            EventifyEventInstanceVO.new_event(ModuleOselia.EVENT_OSELIA_CLOSE_REALTIME, false)
-        );
-        // if (this.is_open) {
-        //     this.is_open = false;            // cache le template <iframe>
-        //     this.iframe_is_loading = false;
-        //     this.iframe_loaded = false;      // l’iframe n’est plus chargée
-        //     this.is_closing = true;        // on est en train de fermer
-        //     this.ott = null;
-        //     sleep(1000).then(() => {
-        //         this.is_closing = false;   // on a fini de fermer
-        //     });
-        //     return;
-        // }
+        if (this.connection_established) {
+            EventsController.emit_event(
+                EventifyEventInstanceVO.new_event(ModuleOselia.EVENT_OSELIA_CLOSE_REALTIME, false)
+            );
+
+            this.connection_established = false; // on coupe la connexion
+            this.isStopHover = false; // on arrête la pulsation
+            return;
+        }
+
+        if (this.is_open) {
+            this.is_open = false;            // cache le template <iframe>
+            this.iframe_is_loading = false;
+            this.iframe_loaded = false;      // l’iframe n’est plus chargée
+            this.is_closing = true;        // on est en train de fermer
+            this.ott = null;
+            sleep(1000).then(() => {
+                this.is_closing = false;   // on a fini de fermer
+            });
+            return;
+        }
     }
 
     /* ------------------------------------------------------------------

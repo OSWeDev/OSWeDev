@@ -70,6 +70,7 @@ export default class ModuleGPT extends Module {
     // public static APINAME_connect_to_realtime_voice: string = "modulegpt_connect_to_realtime_voice";
 
     public static MANUAL_TASK_NAME_sync_openai_datas: string = ModuleGPT.MODULE_NAME + ".sync_openai_datas";
+    public static ASSISTANT_CHECK_OSELIA_REALTIME_FUNCTION: string = "Oselia - Vérification de la fonction en temps réel";
 
     public static POLICY_GROUP = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleGPT.MODULE_NAME;
     public static POLICY_BO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleGPT.MODULE_NAME + ".BO_ACCESS";

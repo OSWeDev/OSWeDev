@@ -127,6 +127,21 @@ export default class CheckListModalComponent extends VueComponentBase {
                 "Explication : " + this.checklist_item.explaination + "\n" +
                 "Id de la checklist lié : " + this.checklist_item.checklist_id;
             const cache_key = this.checklist_item._type + '_' + this.checklist_item.id;
+            if (!prompt_for_realtime.trim() || prompt_for_realtime.includes('undefined') || prompt_for_realtime.includes('null')) {
+                ConsoleHandler.warn('ProgramPlanComponentModalCR: Prompt technique incomplet, utilisation d\'un prompt par défaut');
+                const fallback_prompt = "Nous sommes en train d'éditer un compte-rendu de rendez-vous.";
+                OseliaRealtimeController.getInstance().connect_to_realtime(
+                    ModuleProgramPlanBase.getInstance().getAssistantName('CR'),
+                    fallback_prompt,
+                    { [cache_key]: this.checklist_item }
+                );
+            } else {
+                OseliaRealtimeController.getInstance().connect_to_realtime(
+                    ModuleProgramPlanBase.getInstance().getAssistantName('CR'),
+                    prompt_for_realtime,
+                    { [cache_key]: this.checklist_item }
+                );
+            }
             OseliaRealtimeController.getInstance().connect_to_realtime(ModuleProgramPlanBase.getInstance().getAssistantName('PRIME'), prompt_for_realtime, { [cache_key]: this.checklist_item });
         } else {
             OseliaRealtimeController.getInstance().disconnect_to_realtime();

@@ -88,6 +88,48 @@ export default class OseliaRealtimeController extends VueComponentBase {
         return this.lock(() => this._connect_impl(oselia_run_template_name, prompt, map_cache_vo));
     }
 
+    /**
+     * S'assure que le message technique est bien envoyé après l'établissement de la connexion
+     */
+    private async ensureTechnicalMessageSent(prompt: string, maxRetries: number = 5): Promise<void> {
+        if (!this.call_thread || !prompt?.trim()) {
+            return;
+        }
+
+        ConsoleHandler.log('OseliaRealtimeController: Envoi du message technique:', prompt.substring(0, 100) + '...');
+
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+            // Attendre que la connexion soit vraiment prête
+                if (!this.connection_ready) {
+                    ConsoleHandler.log(`OseliaRealtimeController: Attente connexion ready (tentative ${attempt}/${maxRetries})`);
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    continue;
+                }
+
+                // Envoyer le message technique via l'API
+                await ModuleGPT.getInstance().create_technical_message(
+                    this.call_thread.gpt_thread_id,
+                    prompt,
+                    VueAppController.getInstance().data_user.id
+                );
+
+                ConsoleHandler.log(`OseliaRealtimeController: Message technique envoyé avec succès (tentative ${attempt})`);
+                return; // Succès
+
+            } catch (error) {
+                ConsoleHandler.error(`OseliaRealtimeController: Échec envoi message technique (tentative ${attempt}/${maxRetries}):`, error);
+
+                if (attempt < maxRetries) {
+                // Attendre avant de réessayer
+                    await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+                }
+            }
+        }
+
+        ConsoleHandler.error(`OseliaRealtimeController: Impossible d'envoyer le message technique après ${maxRetries} tentatives`);
+    }
+
     /**  Implémentation interne : connexion */
     private async _connect_impl(oselia_run_template_name:string, prompt?:string, map_cache_vo?: {[cache_key: string] : IDistantVOBase | null}): Promise<void> {
 
@@ -120,9 +162,8 @@ export default class OseliaRealtimeController extends VueComponentBase {
             ConsoleHandler.log('OseliaRealtimeController: Utilisation du thread existant:', this.call_thread.id);
             current_thread = this.call_thread;
         }
+
         if (current_thread) {
-            // Utiliser le thread existant si disponible (usage depuis thread widget)
-            // Mais d'abord le recharger depuis la base pour avoir la version la plus récente
             ConsoleHandler.log('OseliaRealtimeController: Rechargement du thread existant:', current_thread.id);
             this.call_thread = await query(GPTAssistantAPIThreadVO.API_TYPE_ID)
                 .filter_by_id(current_thread.id)
@@ -132,7 +173,6 @@ export default class OseliaRealtimeController extends VueComponentBase {
             }
             ConsoleHandler.log('OseliaRealtimeController: Thread existant rechargé avec succès:', this.call_thread.id);
         } else {
-            // Créer un nouveau thread si aucun thread courant (usage depuis nouveau contexte)
             const thread_id = await ModuleOselia.getInstance().create_thread();
             if (!thread_id) throw new Error('OseliaRealtimeController : Impossible de créer le thread');
             this.call_thread = await query(GPTAssistantAPIThreadVO.API_TYPE_ID)
@@ -142,30 +182,15 @@ export default class OseliaRealtimeController extends VueComponentBase {
             ConsoleHandler.log('OseliaRealtimeController: Nouveau thread créé:', this.call_thread.id);
         }
 
-        /* 4) On met à jour l'assistant du thread selon le template (même si le thread existe déjà) */
-        if (this.oselia_run_template.assistant_id) {
-            this.call_thread.current_oselia_assistant_id = this.oselia_run_template.assistant_id;
-            this.call_thread.current_default_assistant_id = this.oselia_run_template.assistant_id;
-            // On marque ce thread comme étant en cours d'utilisation pour realtime
-            this.call_thread.realtime_activated = true;
+        /* 4) ✅ NOUVELLE MÉTHODE : Assignation atomique de l'assistant */
+        await this.ensureThreadHasCorrectAssistant(this.call_thread, this.oselia_run_template);
 
-            // Utiliser une méthode avec retry pour éviter les conflits de concurrence
-            await this.updateThreadWithRetry(this.call_thread);
-        }
-
-        /* 5) On met le vo dans le cache du thread */
+        /* 5) Cache */
         if (map_cache_vo && this.call_thread) {
             await ModuleOselia.getInstance().set_cache_value(this.call_thread, Object.keys(map_cache_vo)[0], JSON.stringify(Object.values(map_cache_vo)[0]), this.call_thread.id);
         }
 
-        /* 5.5) Si on a un prompt, on crée un message technique (système) sans déclencher l'assistant */
-        if (prompt && prompt.trim()) {
-            await this.create_technical_message(prompt);
-            // Petit délai pour s'assurer que la synchronisation s'est bien faite
-            await new Promise(resolve => setTimeout(resolve, 500));
-        }
-
-        /* 6)  Met à jour le store AVANT de marquer la connexion comme active pour éviter les conflits avec le watcher */
+        /* 6) Store - IMPORTANT : mettre à jour le store APRÈS l'assignation d'assistant */
         await VueAppBaseInstanceHolder.instance.vueInstance.$store.dispatch('OseliaStore/set_current_thread', this.call_thread);
 
         /* 7)  Drapeaux */
@@ -175,7 +200,12 @@ export default class OseliaRealtimeController extends VueComponentBase {
         /* 8)  Connecte au serveur + initialise VAD/micro */
         await this.connect_to_server(this.call_thread.gpt_thread_id, prompt);
 
-        await this.initRecorder();          // démarre la capture micro
+        await this.initRecorder();
+
+        /* 9) ✅ NOUVEAU : Envoyer le message technique APRÈS que la connexion soit établie */
+        if (prompt && prompt.trim()) {
+            await this.ensureTechnicalMessageSent(prompt);
+        }
 
         this.connecting = false;
     }
@@ -544,5 +574,79 @@ export default class OseliaRealtimeController extends VueComponentBase {
             this.currentSrc = null;
         }
         this.isPlaying = false;
+    }
+
+    /**
+ * Met à jour l'assistant d'un thread de manière atomique avec le template
+ */
+    private async ensureThreadHasCorrectAssistant(
+        thread_vo: GPTAssistantAPIThreadVO,
+        oselia_run_template: OseliaRunTemplateVO,
+        maxRetries: number = 5
+    ): Promise<void> {
+        if (!oselia_run_template.assistant_id) {
+            ConsoleHandler.warn('OseliaRealtimeController: Pas d\'assistant défini dans le template');
+            return;
+        }
+
+        const targetAssistantId = oselia_run_template.assistant_id;
+
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+            // Toujours recharger le thread pour avoir la version la plus récente
+                const fresh_thread = await query(GPTAssistantAPIThreadVO.API_TYPE_ID)
+                    .filter_by_id(thread_vo.id)
+                    .select_vo<GPTAssistantAPIThreadVO>();
+
+                if (!fresh_thread) {
+                    throw new Error(`Thread ${thread_vo.id} non trouvé lors de la mise à jour d'assistant`);
+                }
+
+                // Vérifier si l'assistant est déjà correct
+                if (fresh_thread.current_oselia_assistant_id === targetAssistantId &&
+                fresh_thread.current_default_assistant_id === targetAssistantId) {
+
+                    // Copier les valeurs à jour
+                    thread_vo.current_oselia_assistant_id = fresh_thread.current_oselia_assistant_id;
+                    thread_vo.current_default_assistant_id = fresh_thread.current_default_assistant_id;
+                    thread_vo.realtime_activated = fresh_thread.realtime_activated;
+
+                    ConsoleHandler.log(`OseliaRealtimeController: Assistant ${targetAssistantId} déjà correctement assigné au thread ${thread_vo.id}`);
+                    return;
+                }
+
+                // Appliquer les modifications sur la version fraîche
+                fresh_thread.current_oselia_assistant_id = targetAssistantId;
+                fresh_thread.current_default_assistant_id = targetAssistantId;
+                fresh_thread.realtime_activated = true;
+
+                await ModuleDAO.getInstance().insertOrUpdateVO(fresh_thread);
+
+                // Copier les valeurs dans notre référence locale
+                thread_vo.current_oselia_assistant_id = fresh_thread.current_oselia_assistant_id;
+                thread_vo.current_default_assistant_id = fresh_thread.current_default_assistant_id;
+                thread_vo.realtime_activated = fresh_thread.realtime_activated;
+
+                ConsoleHandler.log(`OseliaRealtimeController: Assistant ${targetAssistantId} assigné avec succès au thread ${thread_vo.id} (tentative ${attempt})`);
+                return;
+
+            } catch (error) {
+                const errorMsg = error?.message || String(error);
+
+                if (errorMsg.includes('modified by another request') ||
+                errorMsg.includes('concurrent_modification') ||
+                errorMsg.includes('409')) {
+
+                    ConsoleHandler.warn(`OseliaRealtimeController: Conflit lors de l'assignation d'assistant (tentative ${attempt}/${maxRetries}), retry...`);
+
+                    if (attempt < maxRetries) {
+                        await new Promise(resolve => setTimeout(resolve, 200 * attempt));
+                        continue;
+                    }
+                }
+
+                throw new Error(`Impossible d'assigner l'assistant après ${maxRetries} tentatives: ${error}`);
+            }
+        }
     }
 }

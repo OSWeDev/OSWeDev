@@ -332,11 +332,26 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
         }
         if (this.oselia_opened) {
             const prompt_for_realtime = "Nous sommes en train d'éditer un CR, voici ses informations :\n\n" +
-                "Fichier lié : " + (this.selected_rdv_cr ? this.selected_rdv_cr.cr_file_id : '') + "\n" +
-                "ID du CR : " + (this.selected_rdv_cr ? this.selected_rdv_cr.id : '') + "\n" +
-                "Id du RDV lié : " + (this.selected_rdv_cr ? this.selected_rdv_cr.rdv_id : '');
+            "Fichier lié : " + (this.selected_rdv_cr ? this.selected_rdv_cr.cr_file_id : '') + "\n" +
+            "ID du CR : " + (this.selected_rdv_cr ? this.selected_rdv_cr.id : '') + "\n" +
+            "Id du RDV lié : " + (this.selected_rdv_cr ? this.selected_rdv_cr.rdv_id : '');
             const cache_key = this.selected_rdv_cr ? this.selected_rdv_cr._type + '_' + this.selected_rdv_cr.id : '';
-            OseliaRealtimeController.getInstance().connect_to_realtime(ModuleProgramPlanBase.getInstance().getAssistantName('CR'), prompt_for_realtime, { [cache_key]: this.selected_rdv_cr });
+
+            if (!prompt_for_realtime.trim() || prompt_for_realtime.includes('undefined') || prompt_for_realtime.includes('null')) {
+                ConsoleHandler.warn('ProgramPlanComponentModalCR: Prompt technique incomplet, utilisation d\'un prompt par défaut');
+                const fallback_prompt = "Nous sommes en train d'éditer un compte-rendu de rendez-vous.";
+                OseliaRealtimeController.getInstance().connect_to_realtime(
+                    ModuleProgramPlanBase.getInstance().getAssistantName('CR'),
+                    fallback_prompt,
+                    { [cache_key]: this.selected_rdv_cr }
+                );
+            } else {
+                OseliaRealtimeController.getInstance().connect_to_realtime(
+                    ModuleProgramPlanBase.getInstance().getAssistantName('CR'),
+                    prompt_for_realtime,
+                    { [cache_key]: this.selected_rdv_cr }
+                );
+            }
         } else {
             OseliaRealtimeController.getInstance().disconnect_to_realtime();
         }

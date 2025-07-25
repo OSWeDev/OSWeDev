@@ -271,6 +271,12 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
             return;
         }
 
+        // ✅ PROTECTION : Ne pas écraser l'assistant si realtime est actif avec override
+        if (this.thread.realtime_activated) {
+            ConsoleHandler.log('OseliaThreadWidget: Assistant protégé par realtime, changement ignoré');
+            return;
+        }
+
         if (this.currently_selected_assistant.id == this.thread.current_default_assistant_id) {
             return;
         }
@@ -491,7 +497,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
             // Désactiver le realtime - Déconnexion forcée
             this.realtime_connecting = true;
             try {
-                // ✅ SIMPLIFICATION : On ne gère plus la déconnexion ici.
+                // On ne gère plus la déconnexion ici.
                 // On envoie juste l'ordre de fermer le realtime.
                 // OseliaRealtimeController se chargera de la déconnexion et de la mise à jour du thread.
                 EventsController.emit_event(
