@@ -12,20 +12,20 @@ import Alert from '../../../../../../shared/modules/Alert/vos/Alert';
 import ContextQueryVO, { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../../../../shared/modules/ContextFilter/vos/SortByVO';
 import DAOController from '../../../../../../shared/modules/DAO/DAOController';
-import ICRUDComponentField from '../../../../../../shared/modules/DAO/interface/ICRUDComponentField';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import ModuleTableController from '../../../../../../shared/modules/DAO/ModuleTableController';
 import ModuleTableFieldController from '../../../../../../shared/modules/DAO/ModuleTableFieldController';
+import ICRUDComponentField from '../../../../../../shared/modules/DAO/interface/ICRUDComponentField';
+import InsertOrDeleteQueryResult from '../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import ModuleTableFieldVO from '../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import Datatable from '../../../../../../shared/modules/DAO/vos/datatable/Datatable';
 import DatatableField from '../../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import ManyToManyReferenceDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/datatable/ManyToManyReferenceDatatableFieldVO';
 import ManyToOneReferenceDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableFieldVO';
 import OneToManyReferenceDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/datatable/OneToManyReferenceDatatableFieldVO';
-import ReferenceDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/ReferenceDatatableField';
 import RefRangesReferenceDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/datatable/RefRangesReferenceDatatableFieldVO';
+import ReferenceDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/ReferenceDatatableField';
 import SimpleDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
-import InsertOrDeleteQueryResult from '../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
-import ModuleTableFieldVO from '../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import DashboardBuilderController from '../../../../../../shared/modules/DashboardBuilder/DashboardBuilderController';
 import DataFilterOption from '../../../../../../shared/modules/DataRender/vos/DataFilterOption';
 import NumRange from '../../../../../../shared/modules/DataRender/vos/NumRange';
@@ -42,9 +42,10 @@ import TableFieldTypeControllerBase from '../../../../../../shared/modules/Table
 import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../../../../shared/tools/DateHandler';
-import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
+import ObjectHandler, { field_names } from '../../../../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../../../../shared/tools/RangeHandler';
+import VueComponentBase from '../../../VueComponentBase';
 import { ModuleAlertAction, ModuleAlertGetter } from '../../../alert/AlertStore';
 import { ModuleDAOAction, ModuleDAOGetter } from '../../../dao/store/DaoStore';
 import TableWidgetExternalSelectorController from '../../../dashboard_builder/widgets/table_widget/external_selector/TableWidgetExternalSelectorController';
@@ -58,11 +59,10 @@ import TimestampInputComponent from '../../../timestampinput/TimestampInputCompo
 import TSRangeInputComponent from '../../../tsrangeinput/TSRangeInputComponent';
 import TSRangesInputComponent from '../../../tsrangesinput/TSRangesInputComponent';
 import TSTZInputComponent from '../../../tstzinput/TSTZInputComponent';
-import VueComponentBase from '../../../VueComponentBase';
 import CRUDComponentManager from '../../CRUDComponentManager';
+import CRUDFormServices from '../CRUDFormServices';
 import CRUDCreateFormComponent from '../create/CRUDCreateFormComponent';
 import CRUDCreateFormController from '../create/CRUDCreateFormController';
-import CRUDFormServices from '../CRUDFormServices';
 import CRUDUpdateFormComponent from '../update/CRUDUpdateFormComponent';
 import './CRUDComponentField.scss';
 const debounce = require('lodash/debounce');
@@ -706,18 +706,23 @@ export default class CRUDComponentField extends VueComponentBase
             }
 
             query_currently_selected_vos = query_currently_selected_vos
-                .field('id')
+                .field(field_names<IDistantVOBase>().id)
                 .field(field_label.field_name)
                 .using(active_api_types);
         }
 
         // Autres valeurs pour sélection
         let context_query = query(target_table.vo_type)
-            .field('id')
+            .field(field_names<IDistantVOBase>().id)
             .field(field_label.field_name)
             .set_limit(50)
             .set_sort(new SortByVO(api_type_id, field_label.field_name, true))
             .using(active_api_types);
+
+        // Si on a un champ de tri, on l'utilise
+        if (target_table.sort_by_field) {
+            context_query = context_query.set_sort(target_table.sort_by_field);
+        }
 
         if (this.actual_query && this.actual_query.length) {
             context_query = context_query.filter_by_text_including(
