@@ -32,6 +32,7 @@ import Patch20240701AddDbOseliaAssistantsetfonctions from './patchs/postmodules/
 import Patch20240905AddOseliaAssistantThreadTitleWriter from './patchs/postmodules/Patch20240905AddOseliaAssistantThreadTitleWriter';
 import Patch20240905InitAllThreadsOseliaToHavingContents from './patchs/postmodules/Patch20240905InitAllThreadsOseliaToHavingContents';
 import Patch20240906DeleteOldAssistantObjDBLinks from './patchs/postmodules/Patch20240906DeleteOldAssistantObjDBLinks';
+import Patch20250728AddOseliaRealtimeFunctionCheckAssistant from './patchs/postmodules/Patch20250728AddOseliaRealtimeFunctionCheckAssistant';
 import Patch20240912PreinitOseliaPrices from './patchs/postmodules/Patch20240912PreinitOseliaPrices';
 import Patch20240926AddOseliaFunction_TRELLO_trello_create_card from './patchs/postmodules/Patch20240926AddOseliaFunction_TRELLO_trello_create_card';
 import Patch20240926AddOseliaFunction_TRELLO_trello_delete_card from './patchs/postmodules/Patch20240926AddOseliaFunction_TRELLO_trello_delete_card';
@@ -219,6 +220,7 @@ export default class GeneratorPatchsListHandler {
         Patch20240905InitAllThreadsOseliaToHavingContents.getInstance(),
         Patch20240905AddOseliaAssistantThreadTitleWriter.getInstance(),
         Patch20240906DeleteOldAssistantObjDBLinks.getInstance(),
+        Patch20250728AddOseliaRealtimeFunctionCheckAssistant.getInstance(),
         Patch20241010CreateLogType.getInstance(),
         Patch20240912PreinitOseliaPrices.getInstance(),
         Patch20240926PreInitOseliaThreadRoles.getInstance(),

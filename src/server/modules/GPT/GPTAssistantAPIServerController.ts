@@ -2446,21 +2446,113 @@ export default class GPTAssistantAPIServerController {
 
 
     private static async check_with_assistant(fnName: string, args: string, availableFunctionsParametersByParamName: Record<string, any>): Promise<boolean> {
-        const check_assistant = await query(GPTAssistantAPIAssistantVO.API_TYPE_ID)
-            .filter_by_text_eq(field_names<GPTAssistantAPIAssistantVO>().nom, ModuleGPT.ASSISTANT_CHECK_OSELIA_REALTIME_FUNCTION)
-            .exec_as_server()
-            .select_vo<GPTAssistantAPIAssistantVO>();
+        try {
+            const check_assistant = await query(GPTAssistantAPIAssistantVO.API_TYPE_ID)
+                .filter_by_text_eq(field_names<GPTAssistantAPIAssistantVO>().nom, ModuleGPT.ASSISTANT_CHECK_OSELIA_REALTIME_FUNCTION)
+                .exec_as_server()
+                .select_vo<GPTAssistantAPIAssistantVO>();
 
-        if (!check_assistant) {
-            ConsoleHandler.error(`check_with_assistant: Assistant de vérification non trouvé pour la fonction ${fnName}`);
-            return false;
+            if (!check_assistant) {
+                ConsoleHandler.error(`check_with_assistant: Assistant de vérification non trouvé pour la fonction ${fnName}`);
+                // En cas d'erreur, on autorise par défaut pour ne pas bloquer le système
+                return true;
+            }
+
+            if (!check_assistant.gpt_assistant_id) {
+                ConsoleHandler.warn(`check_with_assistant: Assistant de vérification pas encore synchronisé avec OpenAI pour la fonction ${fnName}`);
+                // En cas d'erreur, on autorise par défaut pour ne pas bloquer le système
+                return true;
+            }
+
+            // Préparer le message de vérification pour l'assistant
+            const verification_message = `Veuillez analyser cet appel de fonction pour vérifier sa cohérence :
+
+**Fonction :** ${fnName}
+**Arguments fournis :** ${args}
+
+Paramètres attendus pour cette fonction :
+${JSON.stringify(availableFunctionsParametersByParamName, null, 2)}
+
+Évaluez si cet appel de fonction est cohérent et logique. 
+Répondez par "AUTORISE" si l'appel est correct, ou "REFUSE" suivi de vos recommandations si il y a des problèmes.`;
+
+            // Créer un thread temporaire pour la vérification
+            const temp_thread = await GPTAssistantAPIServerController.get_thread(
+                await ModuleVersionedServer.getInstance().get_robot_user_id(),
+                null,
+                check_assistant.id
+            );
+
+            if (!temp_thread || !temp_thread.thread_vo) {
+                ConsoleHandler.error(`check_with_assistant: Impossible de créer un thread temporaire pour la vérification de ${fnName}`);
+                return true; // Autoriser par défaut en cas d'erreur
+            }
+
+            // Faire l'appel à l'assistant de vérification
+            const verification_messages = await GPTAssistantAPIServerController.ask_assistant(
+                check_assistant.gpt_assistant_id,
+                temp_thread.thread_vo.gpt_thread_id,
+                `Vérification fonction ${fnName}`,
+                verification_message,
+                [], // pas de fichiers
+                await ModuleVersionedServer.getInstance().get_robot_user_id(),
+                false, // ne pas cacher le prompt
+                null, // pas d'osélia run
+                null, // pas de purpose state
+                null, // pas d'additional tools
+                null, // pas de referrer
+                false // pas de voice summary
+            );
+
+            if (!verification_messages || verification_messages.length === 0) {
+                ConsoleHandler.error(`check_with_assistant: Aucune réponse de l'assistant de vérification pour ${fnName}`);
+                return true; // Autoriser par défaut en cas d'erreur
+            }
+
+            // Analyser la réponse de l'assistant
+            let assistant_response = '';
+            for (const message of verification_messages) {
+                if (message.role === GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_ASSISTANT) {
+                    // Récupérer le contenu du message
+                    const contents = await query(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID)
+                        .filter_by_num_eq(field_names<GPTAssistantAPIThreadMessageContentVO>().thread_message_id, message.id)
+                        .exec_as_server()
+                        .select_vos<GPTAssistantAPIThreadMessageContentVO>();
+
+                    for (const content of contents) {
+                        if (content.content_type_text) {
+                            const text_content = await query(GPTAssistantAPIThreadMessageContentTextVO.API_TYPE_ID)
+                                .filter_by_id(content.content_type_text.id)
+                                .exec_as_server()
+                                .select_vo<GPTAssistantAPIThreadMessageContentTextVO>();
+
+                            if (text_content && text_content.value) {
+                                assistant_response += text_content.value + ' ';
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Analyser la réponse
+            const response_upper = assistant_response.toUpperCase();
+            if (response_upper.includes('AUTORISE')) {
+                ConsoleHandler.log(`check_with_assistant: Fonction ${fnName} autorisée par l'assistant de vérification`);
+                return true;
+            } else if (response_upper.includes('REFUSE')) {
+                ConsoleHandler.warn(`check_with_assistant: Fonction ${fnName} refusée par l'assistant de vérification: ${assistant_response}`);
+                return false;
+            } else {
+                ConsoleHandler.warn(`check_with_assistant: Réponse ambiguë de l'assistant de vérification pour ${fnName}: ${assistant_response}`);
+                // En cas de réponse ambiguë, on penche vers la prudence mais on autorise pour ne pas bloquer
+                return true;
+            }
+
+        } catch (error) {
+            ConsoleHandler.error(`check_with_assistant: Erreur lors de la vérification de ${fnName}: ${error}`);
+            // En cas d'erreur, on autorise par défaut pour ne pas bloquer le système
+            return true;
         }
-        // Ici, on peut implémenter la logique pour vérifier avec l'assistant
-        // si l'appel de fonction est autorisé ou s'il nécessite une confirmation.
-        // Par exemple, on pourrait appeler une API ou vérifier des règles internes.
-
-        // Pour l'instant, on simule un comportement simple :
-        return true;
     }
     /**
      * Synchronise les messages Realtime stockés en local avec OpenAI après la fermeture d'une session Realtime

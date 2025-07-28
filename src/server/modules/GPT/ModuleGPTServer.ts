@@ -422,6 +422,58 @@ export default class ModuleGPTServer extends ModuleServerBase {
         return GPTAssistantAPIFunctionGetVoTypeDescriptionController.run_action(thread_vo, api_type_id);
     }
 
+    /**
+     * Fonction pour demander à un assistant de re-réfléchir à sa demande d'appel de fonction
+     * Utilisée par l'assistant de vérification pour signaler des problèmes de cohérence
+     * @param thread_vo Le thread concerné
+     * @param function_name Nom de la fonction pour laquelle la re-réflexion est demandée
+     * @param current_arguments Arguments actuellement fournis pour l'appel de fonction (en JSON)
+     * @param issues_identified Description des problèmes identifiés avec l'appel de fonction actuel
+     * @param suggestions Suggestions pour améliorer l'appel de fonction ou questions à poser à l'utilisateur
+     * @returns Message de demande de re-réflexion
+     */
+    public async request_assistant_rethink(
+        thread_vo: GPTAssistantAPIThreadVO,
+        function_name: string,
+        current_arguments: string,
+        issues_identified: string,
+        suggestions?: string
+    ): Promise<string> {
+
+        if (!thread_vo || !function_name || !current_arguments || !issues_identified) {
+            return "Erreur: Paramètres manquants pour la demande de re-réflexion.";
+        }
+
+        let rethink_message = `⚠️ **DEMANDE DE RE-RÉFLEXION** ⚠️\n\n`;
+        rethink_message += `L'assistant de vérification a identifié des problèmes avec votre appel de fonction :\n\n`;
+        rethink_message += `**Fonction concernée :** ${function_name}\n\n`;
+        rethink_message += `**Arguments fournis :** ${current_arguments}\n\n`;
+        rethink_message += `**Problèmes identifiés :**\n${issues_identified}\n\n`;
+
+        if (suggestions && suggestions.trim()) {
+            rethink_message += `**Suggestions d'amélioration :**\n${suggestions}\n\n`;
+        }
+
+        rethink_message += `Merci de **revoir votre approche** et de :\n`;
+        rethink_message += `1. Analyser les problèmes identifiés\n`;
+        rethink_message += `2. Poser des questions à l'utilisateur si nécessaire pour clarifier\n`;
+        rethink_message += `3. Reformuler votre demande avec des paramètres cohérents\n\n`;
+        rethink_message += `**Veuillez re-tenter l'appel de fonction avec des paramètres corrigés.**`;
+
+        // Créer un message technique dans le thread pour tracer la demande de re-réflexion
+        try {
+            await GPTAssistantAPIServerController.create_technical_message(
+                thread_vo.gpt_thread_id,
+                `Assistant de vérification: ${issues_identified}`,
+                await ModuleVersionedServer.getInstance().get_robot_user_id()
+            );
+        } catch (error) {
+            ConsoleHandler.error('request_assistant_rethink: Erreur lors de la création du message technique: ' + error);
+        }
+
+        return rethink_message;
+    }
+
     // istanbul ignore next: cannot test configure
     public async configure() {
 
