@@ -18,7 +18,7 @@ import ConfigurationService from '../../env/ConfigurationService';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleServerBase from '../ModuleServerBase';
 import PushDataServerController from '../PushData/PushDataServerController';
-const zlib = require('zlib');
+import zlib from 'zlib';
 
 export default class ModuleAPIServer extends ModuleServerBase {
 

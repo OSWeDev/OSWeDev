@@ -159,8 +159,7 @@
         "wkhtmltopdf": "0.3.4",
         "workbox-cli": "6.5.4",
         "xlsx": "0.18.5",
-        "xml-reader": "2.4.3",
-        "zlib": "1.0.5"
+        "xml-reader": "2.4.3"
     },
     "devDependencies": {
         "@3scarecrow/vue-quarter-select": "2.0.0",
