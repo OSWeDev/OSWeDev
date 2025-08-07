@@ -1,0 +1,8 @@
+.qr-code-component
+    .qr-code-image
+        img(:src="qrCodeSvg", :alt="label('mfa.qr_code.alt')", :width="size", :height="size")
+    
+    .qr-code-fallback
+        p {{ label('mfa.qr_code.probleme') }}
+        p {{ label('mfa.qr_code.manuel') }}
+        textarea.qr-code-data(readonly, :value="data", rows="3")

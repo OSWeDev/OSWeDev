@@ -1,0 +1,117 @@
+.user-mfa
+    h2 {{ label('mfa.titre') }}
+    
+    // Chargement
+    .loading(v-if="loading")
+        i.fa.fa-spinner.fa-spin
+        span {{ label('mfa.chargement') }}
+    
+    // État MFA
+    .mfa-status(v-if="!loading && !isConfiguring")
+        .mfa-enabled(v-if="isMFAEnabled")
+            .alert.alert-success
+                i.fa.fa-shield-alt
+                span {{ label('mfa.statut.active') }}
+                strong {{ currentMethodLabel }}
+            
+            .mfa-info(v-if="mfaConfig")
+                p {{ label('mfa.info.derniere_utilisation') }}: 
+                    span(v-if="mfaConfig.last_used_date") {{ formatDate(mfaConfig.last_used_date) }}
+                    span(v-else) {{ label('mfa.info.jamais_utilise') }}
+                
+                p {{ label('mfa.info.date_creation') }}: {{ formatDate(mfaConfig.created_date) }}
+            
+            .mfa-actions
+                button.btn.btn-danger(v-on:click="disableMFA", :disabled="loading")
+                    i.fa.fa-times
+                    span {{ label('mfa.bouton.desactiver') }}
+        
+        .mfa-disabled(v-else)
+            .alert.alert-warning
+                i.fa.fa-exclamation-triangle
+                span {{ label('mfa.statut.inactive') }}
+            
+            p {{ label('mfa.description') }}
+            
+            .mfa-actions
+                button.btn.btn-primary(v-on:click="startMFAConfiguration", :disabled="loading")
+                    i.fa.fa-shield-alt
+                    span {{ label('mfa.bouton.activer') }}
+    
+    // Configuration MFA
+    .mfa-configuration(v-if="isConfiguring && !isActivating")
+        h3 {{ label('mfa.configuration.titre') }}
+        
+        form(onsubmit="return false;")
+            // Sélection de la méthode
+            .form-group
+                label(for="mfa-method") {{ label('mfa.configuration.methode') }}
+                select#mfa-method(v-model="selectedMethod")
+                    option(:value="MFA_METHOD_EMAIL") {{ label('mfa.methode.email') }}
+                    option(:value="MFA_METHOD_SMS") {{ label('mfa.methode.sms') }}
+                    option(:value="MFA_METHOD_AUTHENTICATOR") {{ label('mfa.methode.authenticator') }}
+            
+            // Numéro de téléphone pour SMS
+            .form-group(v-if="selectedMethod === MFA_METHOD_SMS")
+                label(for="phone-number") {{ label('mfa.configuration.telephone') }}
+                input#phone-number(type="tel", v-model="phoneNumber", :placeholder="label('mfa.configuration.telephone_placeholder')")
+            
+            // Explication de la méthode sélectionnée
+            .method-explanation
+                .email-explanation(v-if="selectedMethod === MFA_METHOD_EMAIL")
+                    p {{ label('mfa.explication.email') }}
+                
+                .sms-explanation(v-if="selectedMethod === MFA_METHOD_SMS")
+                    p {{ label('mfa.explication.sms') }}
+                
+                .authenticator-explanation(v-if="selectedMethod === MFA_METHOD_AUTHENTICATOR")
+                    p {{ label('mfa.explication.authenticator') }}
+                    ul
+                        li Google Authenticator
+                        li Microsoft Authenticator
+                        li Authy
+                        li 1Password
+            
+            .form-actions
+                button.btn.btn-primary(v-on:click="configureMFA", :disabled="loading")
+                    i.fa.fa-cog
+                    span {{ label('mfa.bouton.configurer') }}
+                
+                button.btn.btn-secondary(v-on:click="cancelConfiguration", :disabled="loading")
+                    i.fa.fa-times
+                    span {{ label('mfa.bouton.annuler') }}
+    
+    // Activation MFA
+    .mfa-activation(v-if="isActivating")
+        h3 {{ label('mfa.activation.titre') }}
+        
+        // QR Code pour l'Authenticator
+        .qr-code-section(v-if="showQRCode && qrCodeData")
+            h4 {{ label('mfa.qr_code.titre') }}
+            p {{ label('mfa.qr_code.instructions') }}
+            
+            qr-code(:data="qrCodeData", :size="200")
+        
+        // Instructions pour les autres méthodes
+        .verification-instructions(v-if="selectedMethod !== MFA_METHOD_AUTHENTICATOR")
+            p(v-if="selectedMethod === MFA_METHOD_EMAIL") {{ label('mfa.activation.instructions.email') }}
+            p(v-if="selectedMethod === MFA_METHOD_SMS") {{ label('mfa.activation.instructions.sms') }}
+            
+            button.btn.btn-info(v-on:click="sendVerificationCode", :disabled="loading")
+                i.fa.fa-paper-plane
+                span {{ label('mfa.bouton.envoyer_code') }}
+        
+        // Saisie du code de vérification
+        form(onsubmit="return false;")
+            .form-group
+                label(for="verification-code") {{ label('mfa.activation.code') }}
+                input#verification-code(type="text", v-model="verificationCode", :placeholder="label('mfa.activation.code_placeholder')", maxlength="6")
+            
+            .form-actions
+                button.btn.btn-success(v-on:click="activateMFA", :disabled="loading || !verificationCode")
+                    i.fa.fa-check
+                    span {{ label('mfa.bouton.activer') }}
+                
+                button.btn.btn-secondary(v-on:click="cancelConfiguration", :disabled="loading")
+                    i.fa.fa-times
+                    span {{ label('mfa.bouton.annuler') }}

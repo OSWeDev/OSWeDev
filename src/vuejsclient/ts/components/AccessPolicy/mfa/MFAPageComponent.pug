@@ -1,0 +1,206 @@
+.mfa-page
+    .container
+        .header
+            h1.title
+                i.fa.fa-shield-alt
+                span Authentification à deux facteurs (MFA)
+            
+            .navigation
+                button.btn.btn-secondary(v-on:click="goToUserPage")
+                    i.fa.fa-arrow-left
+                    span Retour au compte
+
+        // Chargement
+        .loading-section(v-if="loading")
+            .loading-spinner
+                i.fa.fa-spinner.fa-spin
+                span Chargement...
+
+        // État MFA actuel
+        .current-status(v-if="!loading && !isConfiguring")
+            .status-card(v-if="isMFAEnabled", class="enabled")
+                .status-header
+                    .status-icon
+                        i.fa.fa-shield-alt.text-success
+                    .status-info
+                        h2 MFA Activé
+                        p.method-info Méthode: {{ currentMethodLabel }}
+
+                .status-details(v-if="mfaConfig")
+                    .detail-item
+                        span.label Dernière utilisation:
+                        span.value(v-if="mfaConfig.last_used_date") {{ formatDate(mfaConfig.last_used_date) }}
+                        span.value(v-else) Jamais utilisé
+                    
+                    .detail-item
+                        span.label Date de création:
+                        span.value {{ formatDate(mfaConfig.created_date) }}
+
+                .status-actions
+                    button.btn.btn-danger(v-on:click="disableMFA", :disabled="loading")
+                        i.fa.fa-times
+                        span Désactiver MFA
+
+            .status-card(v-else, class="disabled")
+                .status-header
+                    .status-icon
+                        i.fa.fa-exclamation-triangle.text-warning
+                    .status-info
+                        h2 MFA Non activé
+                        p Votre compte n'est pas protégé par l'authentification à deux facteurs
+
+                .status-description
+                    p L'authentification à deux facteurs ajoute une couche de sécurité supplémentaire à votre compte.
+                    p Même si votre mot de passe est compromis, votre compte restera protégé.
+
+                .status-actions
+                    button.btn.btn-primary.btn-large(v-on:click="startMFAConfiguration", :disabled="loading")
+                        i.fa.fa-shield-alt
+                        span Activer MFA
+
+        // Configuration MFA
+        .configuration-section(v-if="isConfiguring && !isActivating")
+            .config-card
+                h2
+                    i.fa.fa-cog
+                    span Configuration MFA
+
+                .method-selection
+                    h3 Choisissez votre méthode d'authentification
+                    
+                    .method-options
+                        .method-option(:class="{ selected: selectedMethod === MFA_METHOD_AUTHENTICATOR }")
+                            input(type="radio", :value="MFA_METHOD_AUTHENTICATOR", v-model="selectedMethod", id="method-auth")
+                            label(for="method-auth")
+                                .method-icon
+                                    i.fa.fa-mobile-alt
+                                .method-info
+                                    h4 Application d'authentification
+                                    p.recommended (Recommandé)
+                                    p Utilisez Google Authenticator, Microsoft Authenticator, ou Authy
+
+                        .method-option(:class="{ selected: selectedMethod === MFA_METHOD_EMAIL }")
+                            input(type="radio", :value="MFA_METHOD_EMAIL", v-model="selectedMethod", id="method-email")
+                            label(for="method-email")
+                                .method-icon
+                                    i.fa.fa-envelope
+                                .method-info
+                                    h4 Email
+                                    p Code envoyé par email à {{ user.email }}
+
+                        .method-option(:class="{ selected: selectedMethod === MFA_METHOD_SMS }")
+                            input(type="radio", :value="MFA_METHOD_SMS", v-model="selectedMethod", id="method-sms")
+                            label(for="method-sms")
+                                .method-icon
+                                    i.fa.fa-sms
+                                .method-info
+                                    h4 SMS
+                                    p Code envoyé par SMS
+
+                // Configuration SMS
+                .sms-config(v-if="selectedMethod === MFA_METHOD_SMS")
+                    .form-group
+                        label(for="phone-number") Numéro de téléphone
+                        input#phone-number(
+                            type="tel", 
+                            v-model="phoneNumber", 
+                            placeholder="+33 6 12 34 56 78",
+                            required
+                        )
+
+                .config-actions
+                    button.btn.btn-primary(v-on:click="configureMFA", :disabled="loading || (selectedMethod === MFA_METHOD_SMS && !phoneNumber)")
+                        i.fa.fa-arrow-right
+                        span Continuer
+
+                    button.btn.btn-secondary(v-on:click="cancelConfiguration", :disabled="loading")
+                        i.fa.fa-times
+                        span Annuler
+
+        // Activation MFA
+        .activation-section(v-if="isActivating")
+            .activation-card
+                h2
+                    i.fa.fa-check-circle
+                    span Activation MFA
+
+                // Instructions pour Authenticator avec QR Code
+                .authenticator-setup(v-if="selectedMethod === MFA_METHOD_AUTHENTICATOR && showQRCode")
+                    .setup-steps
+                        h3 Configuration de votre application d'authentification
+
+                        .step
+                            .step-number 1
+                            .step-content
+                                h4 Scannez le QR Code
+                                p Ouvrez votre application d'authentification et scannez le code QR ci-dessous :
+
+                        .qr-code-container
+                            qr-code(:data="qrCodeData", :size="200")
+
+                        .step
+                            .step-number 2
+                            .step-content
+                                h4 Ou saisissez le code manuellement
+                                p Si vous ne pouvez pas scanner le QR code, saisissez ce code dans votre application :
+                                .manual-code
+                                    code {{ totpSecret }}
+                                    button.btn.btn-sm(v-on:click="copyToClipboard(totpSecret)")
+                                        i.fa.fa-copy
+                                        span Copier
+
+                        .step
+                            .step-number 3
+                            .step-content
+                                h4 Applications recommandées
+                                .app-list
+                                    .app-item
+                                        i.fa.fa-android
+                                        span Google Authenticator
+                                    .app-item
+                                        i.fa.fa-microsoft
+                                        span Microsoft Authenticator
+                                    .app-item
+                                        i.fa.fa-lock
+                                        span Authy
+                                    .app-item
+                                        i.fa.fa-key
+                                        span 1Password
+
+                // Instructions pour les autres méthodes
+                .other-method-setup(v-if="selectedMethod !== MFA_METHOD_AUTHENTICATOR")
+                    .setup-instructions
+                        p(v-if="selectedMethod === MFA_METHOD_EMAIL") 
+                            | Un code de vérification sera envoyé à votre adresse email 
+                            strong {{ user.email }}
+                        
+                        p(v-if="selectedMethod === MFA_METHOD_SMS") 
+                            | Un code de vérification sera envoyé par SMS au 
+                            strong {{ phoneNumber }}
+
+                    .send-code-section
+                        button.btn.btn-info(v-on:click="sendVerificationCode", :disabled="loading")
+                            i.fa.fa-paper-plane
+                            span Envoyer le code
+
+                // Vérification du code
+                .verification-section
+                    .form-group
+                        label(for="verification-code") Code de vérification
+                        input#verification-code(
+                            type="text", 
+                            v-model="verificationCode", 
+                            placeholder="123456",
+                            maxlength="6",
+                            class="verification-input"
+                        )
+                        .help-text Saisissez le code à 6 chiffres généré par votre application d'authentification
+
+                    .verification-actions
+                        button.btn.btn-success.btn-large(v-on:click="activateMFA", :disabled="loading || !verificationCode")
+                            i.fa.fa-shield-alt
+                            span Activer MFA
+
+                        button.btn.btn-secondary(v-on:click="cancelConfiguration", :disabled="loading")
+                            i.fa.fa-times
+                            span Annuler

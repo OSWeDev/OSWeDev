@@ -1,0 +1,42 @@
+.mfa-login-verification
+    .container
+        .row.justify-content-center
+            .col-md-6.col-lg-4
+                .card
+                    .card-header.text-center
+                        h3 {{ label('mfa.verification.titre') }}
+                        p {{ label('mfa.verification.description') }}
+                        p.text-muted {{ methodLabel }}
+                    
+                    .card-body
+                        // Chargement
+                        .loading.text-center(v-if="loading")
+                            i.fa.fa-spinner.fa-spin
+                            span {{ label('mfa.chargement') }}
+                        
+                        // Formulaire de vérification
+                        form(v-if="!loading", onsubmit="return false;")
+                            .form-group(v-if="mfaMethod !== 'AUTHENTICATOR'")
+                                button.btn.btn-info.btn-block(v-on:click="sendCode", :disabled="loading")
+                                    i.fa.fa-paper-plane
+                                    span {{ label('mfa.bouton.envoyer_code') }}
+                                
+                                hr
+                            
+                            .form-group
+                                label(for="verification-code") {{ label('mfa.verification.code') }}
+                                input#verification-code.form-control(
+                                    type="text",
+                                    v-model="verificationCode",
+                                    :placeholder="label('mfa.verification.code_placeholder')",
+                                    maxlength="6",
+                                    autocomplete="off"
+                                )
+                            
+                            .form-group
+                                button.btn.btn-success.btn-block(v-on:click="verifyCode", :disabled="loading || !verificationCode")
+                                    i.fa.fa-check
+                                    span {{ label('mfa.bouton.verifier') }}
+                    
+                    .card-footer.text-center.text-muted
+                        small {{ label('mfa.verification.aide') }}
