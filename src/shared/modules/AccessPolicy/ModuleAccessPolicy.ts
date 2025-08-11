@@ -30,10 +30,15 @@ import UserLogVO from './vos/UserLogVO';
 import UserRoleVO from './vos/UserRoleVO';
 import UserVO from './vos/UserVO';
 import LoginParamVO, { LoginParamVOStatic } from './vos/apis/LoginParamVO';
+import MFAActivateParamVO, { MFAActivateParamVOStatic } from './vos/apis/MFAActivateParamVO';
+import MFAConfigureParamVO, { MFAConfigureParamVOStatic } from './vos/apis/MFAConfigureParamVO';
+import MFAGenerateCodeParamVO, { MFAGenerateCodeParamVOStatic } from './vos/apis/MFAGenerateCodeParamVO';
+import MFAVerifyCodeParamVO, { MFAVerifyCodeParamVOStatic } from './vos/apis/MFAVerifyCodeParamVO';
 import ResetPwdParamVO, { ResetPwdParamVOStatic } from './vos/apis/ResetPwdParamVO';
 import ResetPwdUIDParamVO, { ResetPwdUIDParamVOStatic } from './vos/apis/ResetPwdUIDParamVO';
 import SigninParamVO, { SigninParamVOStatic } from './vos/apis/SigninParamVO';
 import ToggleAccessParamVO, { ToggleAccessParamVOStatic } from './vos/apis/ToggleAccessParamVO';
+import UserMFAVO from './vos/UserMFAVO';
 
 export default class ModuleAccessPolicy extends Module {
 
@@ -95,6 +100,14 @@ export default class ModuleAccessPolicy extends Module {
     public static APINAME_get_my_sid = "get_my_sid";
     public static APINAME_get_my_session_id = "get_my_session_id";
     public static APINAME_sendrecapture = "sendrecapture";
+    // MFA
+    public static APINAME_MFA_IS_ENABLED = "mfa_is_enabled";
+    public static APINAME_MFA_GET_CONFIG = "mfa_get_config";
+    public static APINAME_MFA_CONFIGURE = "mfa_configure";
+    public static APINAME_MFA_GENERATE_CODE = "mfa_generate_code";
+    public static APINAME_MFA_ACTIVATE = "mfa_activate";
+    public static APINAME_MFA_DISABLE = "mfa_disable";
+    public static APINAME_MFA_VERIFY_CODE = "mfa_verify_code";
 
     public static APINAME_GET_AVATAR_URL = ModuleAccessPolicy.MODULE_NAME + "__get_avatar_url";
     public static APINAME_GET_AVATAR_NAME = ModuleAccessPolicy.MODULE_NAME + "__get_avatar_name";
@@ -162,6 +175,14 @@ export default class ModuleAccessPolicy extends Module {
     public get_user_roles: (uid: number) => Promise<RoleVO[]> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_GET_USER_ROLES);
     public get_avatar_url: (uid: number) => Promise<string> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_GET_AVATAR_URL);
     public get_avatar_name: (uid: number) => Promise<string> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_GET_AVATAR_NAME);
+    // MFA client wrappers
+    public mfaIsEnabled: (userId: number) => Promise<boolean> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_MFA_IS_ENABLED);
+    public mfaGetConfig: (userId: number) => Promise<UserMFAVO> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_MFA_GET_CONFIG);
+    public mfaConfigure: (userId: number, method: string, phoneNumber?: string) => Promise<boolean> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_MFA_CONFIGURE);
+    public mfaGenerateCode: (userId: number, method: string) => Promise<string> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_MFA_GENERATE_CODE);
+    public mfaActivate: (userId: number, verificationCode: string) => Promise<boolean> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_MFA_ACTIVATE);
+    public mfaDisable: (userId: number) => Promise<boolean> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_MFA_DISABLE);
+    public mfaVerifyCode: (userId: number, code: string, method: string) => Promise<boolean> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_MFA_VERIFY_CODE);
 
     private constructor() {
 
@@ -424,6 +445,56 @@ export default class ModuleAccessPolicy extends Module {
             ModuleAccessPolicy.APINAME_change_lang,
             [UserVO.API_TYPE_ID, LangVO.API_TYPE_ID],
             NumberParamVOStatic
+        ));
+
+        // MFA APIs
+        APIControllerWrapper.registerApi(new GetAPIDefinition<NumberParamVO, boolean>(
+            null,
+            ModuleAccessPolicy.APINAME_MFA_IS_ENABLED,
+            [UserMFAVO.API_TYPE_ID, UserVO.API_TYPE_ID],
+            NumberParamVOStatic
+        ));
+
+        APIControllerWrapper.registerApi(new GetAPIDefinition<NumberParamVO, UserMFAVO>(
+            null,
+            ModuleAccessPolicy.APINAME_MFA_GET_CONFIG,
+            [UserMFAVO.API_TYPE_ID, UserVO.API_TYPE_ID],
+            NumberParamVOStatic
+        ));
+
+        APIControllerWrapper.registerApi(new PostAPIDefinition<MFAConfigureParamVO, boolean>(
+            null,
+            ModuleAccessPolicy.APINAME_MFA_CONFIGURE,
+            [UserMFAVO.API_TYPE_ID, UserVO.API_TYPE_ID],
+            MFAConfigureParamVOStatic
+        ));
+
+        APIControllerWrapper.registerApi(new PostAPIDefinition<MFAGenerateCodeParamVO, string>(
+            null,
+            ModuleAccessPolicy.APINAME_MFA_GENERATE_CODE,
+            [UserMFAVO.API_TYPE_ID, UserVO.API_TYPE_ID],
+            MFAGenerateCodeParamVOStatic
+        ));
+
+        APIControllerWrapper.registerApi(new PostAPIDefinition<MFAActivateParamVO, boolean>(
+            null,
+            ModuleAccessPolicy.APINAME_MFA_ACTIVATE,
+            [UserMFAVO.API_TYPE_ID, UserVO.API_TYPE_ID],
+            MFAActivateParamVOStatic
+        ));
+
+        APIControllerWrapper.registerApi(new PostAPIDefinition<NumberParamVO, boolean>(
+            null,
+            ModuleAccessPolicy.APINAME_MFA_DISABLE,
+            [UserMFAVO.API_TYPE_ID, UserVO.API_TYPE_ID],
+            NumberParamVOStatic
+        ));
+
+        APIControllerWrapper.registerApi(new PostAPIDefinition<MFAVerifyCodeParamVO, boolean>(
+            null,
+            ModuleAccessPolicy.APINAME_MFA_VERIFY_CODE,
+            [UserMFAVO.API_TYPE_ID, UserVO.API_TYPE_ID],
+            MFAVerifyCodeParamVOStatic
         ));
 
     }
