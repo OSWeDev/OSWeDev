@@ -300,6 +300,7 @@ export default class ModuleDataImport extends Module {
             ModuleTableFieldController.create_new(DataImportFormatVO.API_TYPE_ID, field_names<DataImportFormatVO>().batch_size, ModuleTableFieldVO.FIELD_TYPE_int, 'Taille d\'un segment (si import par segment)', true, true, 10000),
             ModuleTableFieldController.create_new(DataImportFormatVO.API_TYPE_ID, field_names<DataImportFormatVO>().use_multiple_connections, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Insertions en //', true, true, true),
             ModuleTableFieldController.create_new(DataImportFormatVO.API_TYPE_ID, field_names<DataImportFormatVO>().save_error_logs, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Sauvegarde des logs d\'erreur'),
+            ModuleTableFieldController.create_new(DataImportFormatVO.API_TYPE_ID, field_names<DataImportFormatVO>().csv_delimiter, ModuleTableFieldVO.FIELD_TYPE_string, 'Délimiteur CSV', false, true, ';'),
         ];
         const datatable_desc = ModuleTableController.create_new(this.name, DataImportFormatVO, label_field, "Fichiers d'import");
         field_file_id.donotCascadeOnDelete();

@@ -72,4 +72,5 @@ export default class DataImportFormatVO implements IDistantVOBase {
      * Indique si l'on veut enregistrer les logs d'erreurs
      */
     public save_error_logs: boolean;
+    public csv_delimiter: string = ";";
 }

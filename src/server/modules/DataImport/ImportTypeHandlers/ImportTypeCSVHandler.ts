@@ -64,7 +64,7 @@ export default class ImportTypeCSVHandler {
 
             const raw_rows: any[] = [];
             inputStream
-                .pipe(new CsvReadableStream({ parseNumbers: false, parseBooleans: false, trim: false, delimiter: ';' }))
+                .pipe(new CsvReadableStream({ parseNumbers: false, parseBooleans: false, trim: false, delimiter: dataImportFormat.csv_delimiter }))
                 .on('data', function (row) {
                     /**
                      * On pourrait importer ligne par ligne et pas mettre tout le fichier en mémoire du coup ....
@@ -200,7 +200,7 @@ export default class ImportTypeCSVHandler {
             let closed: boolean = false;
             let batch_datas: IImportedData[] = [];
             inputStream
-                .pipe(new CsvReadableStream({ parseNumbers: false, parseBooleans: false, trim: false, delimiter: ';' }))
+                .pipe(new CsvReadableStream({ parseNumbers: false, parseBooleans: false, trim: false, delimiter: dataImportFormat.csv_delimiter }))
                 .on('data', async function (raw_row_data) {
 
                     if (raw_row_index == dataImportFormat.column_labels_row_index) {
