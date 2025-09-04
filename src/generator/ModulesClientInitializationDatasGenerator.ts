@@ -91,7 +91,7 @@ export default class ModulesClientInitializationDatasGenerator {
         fileContent += "    EnvHandler.max_pool = " + ConfigurationService.node_configuration.max_pool + ";\n";
         fileContent += "    EnvHandler.zoom_auto = " + ((ConfigurationService.node_configuration.zoom_auto) ? 'true' : 'false') + ';\n';
         fileContent += "    EnvHandler.logo_path = '" + ConfigurationService.node_configuration.logo_path + "';\n";
-
+        fileContent += "    EnvHandler.app_title = '" + ConfigurationService.node_configuration.app_title + "';\n";
 
         fileContent += this.generateModulesCode(this.generateModuleData, target);
 

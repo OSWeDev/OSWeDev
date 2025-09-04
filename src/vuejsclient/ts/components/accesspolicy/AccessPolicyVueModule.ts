@@ -30,7 +30,8 @@ export default class AccessPolicyVueModule extends VueModuleBase {
 
     public initialize() {
         this.routes.push(
-            this.getRouteUser()
+            this.getRouteUser(),
+            this.getRouteMFA()
         );
 
         Vue.component('Impersonatecomponent', async () => (await import('./user/impersonate/ImpersonateComponent')));
@@ -93,4 +94,13 @@ export default class AccessPolicyVueModule extends VueModuleBase {
             component: () => import('./user/UserComponent')
         };
     }
+
+    private getRouteMFA(): RouteConfig {
+        return {
+            path: '/mfa',
+            name: 'mfa',
+            component: () => import('./mfa/MFAPageComponent')
+        };
+    }
+
 }

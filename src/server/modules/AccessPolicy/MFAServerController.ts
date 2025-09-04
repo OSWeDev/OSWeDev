@@ -6,7 +6,6 @@ import UserMFAVO from '../../../shared/modules/AccessPolicy/vos/UserMFAVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import SortByVO from '../../../shared/modules/ContextFilter/vos/SortByVO';
-import { filter } from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import * as crypto from 'crypto';
 import ModuleMailerServer from '../Mailer/ModuleMailerServer';
 import SendInBlueSmsServerController from '../SendInBlue/sms/SendInBlueSmsServerController';
@@ -16,6 +15,9 @@ import TranslationVO from '../../../shared/modules/Translation/vos/TranslationVO
 import TranslatableTextVO from '../../../shared/modules/Translation/vos/TranslatableTextVO';
 import ParamsServerController from '../Params/ParamsServerController';
 import ModuleSendInBlue from '../../../shared/modules/SendInBlue/ModuleSendInBlue';
+import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import SendInBlueMailServerController from '../SendInBlue/SendInBlueMailServerController';
+import SendInBlueMailVO from '../../../shared/modules/SendInBlue/vos/SendInBlueMailVO';
 
 export default class MFAServerController {
 
@@ -83,9 +85,7 @@ export default class MFAServerController {
             // Supprimer les anciennes sessions non vérifiées
             const oldSessions = await query(MFASessionVO.API_TYPE_ID)
                 .filter_by_num_eq(field_names<MFASessionVO>().user_id, user_id)
-                .add_filters([
-                    filter(MFASessionVO.API_TYPE_ID, field_names<MFASessionVO>().is_verified).is_false()
-                ])
+                .filter_is_false(field_names<MFASessionVO>().is_verified)
                 .exec_as_server()
                 .select_vos<MFASessionVO>();
 
@@ -129,9 +129,7 @@ export default class MFAServerController {
             const mfaSessions = await query(MFASessionVO.API_TYPE_ID)
                 .filter_by_num_eq(field_names<MFASessionVO>().user_id, user_id)
                 .filter_by_text_eq(field_names<MFASessionVO>().mfa_method, mfa_method)
-                .add_filters([
-                    filter(MFASessionVO.API_TYPE_ID, field_names<MFASessionVO>().is_verified).is_false()
-                ])
+                .filter_is_false(field_names<MFASessionVO>().is_verified)
                 .set_sort(new SortByVO(MFASessionVO.API_TYPE_ID, field_names<MFASessionVO>().created_date, false))
                 .exec_as_server()
                 .select_vos<MFASessionVO>();
@@ -200,6 +198,9 @@ export default class MFAServerController {
             let userMFA: UserMFAVO;
             if (userMFAs && userMFAs.length > 0) {
                 userMFA = userMFAs[0];
+                // Mettre à jour la date de création lors d'une reconfiguration
+                // (nouvelle méthode ou réactivation après désactivation)
+                userMFA.created_date = Date.now();
             } else {
                 userMFA = new UserMFAVO();
                 userMFA.user_id = user_id;
@@ -237,9 +238,7 @@ export default class MFAServerController {
         try {
             const userMFAs = await query(UserMFAVO.API_TYPE_ID)
                 .filter_by_num_eq(field_names<UserMFAVO>().user_id, user_id)
-                .add_filters([
-                    filter(UserMFAVO.API_TYPE_ID, field_names<UserMFAVO>().is_active).is_false()
-                ])
+                .filter_is_false(field_names<UserMFAVO>().is_active)
                 .exec_as_server()
                 .select_vos<UserMFAVO>();
 
@@ -261,6 +260,10 @@ export default class MFAServerController {
                 userMFA.is_active = true;
                 userMFA.last_used_date = Date.now();
                 await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(userMFA);
+
+                // Si c'était une configuration MFA forcée, désactiver le flag
+                await this.completeForcedMFAConfig(user_id);
+
                 ConsoleHandler.log('MFA activée pour l\'utilisateur: ' + user_id);
                 return true;
             }
@@ -274,15 +277,36 @@ export default class MFAServerController {
     }
 
     /**
+     * Termine la configuration MFA forcée en désactivant le flag force_mfa_config
+     */
+    public async completeForcedMFAConfig(user_id: number): Promise<void> {
+        try {
+            const users = await query(UserVO.API_TYPE_ID)
+                .filter_by_num_eq(field_names<UserVO>().id, user_id)
+                .exec_as_server()
+                .select_vos<UserVO>();
+
+            if (users && users.length > 0) {
+                const user = users[0];
+                if (user.force_mfa_config) {
+                    user.force_mfa_config = false;
+                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user);
+                    ConsoleHandler.log('Configuration MFA forcée terminée pour l\'utilisateur: ' + user_id);
+                }
+            }
+        } catch (error) {
+            ConsoleHandler.error('Erreur lors de la finalisation de la configuration MFA forcée: ' + error);
+        }
+    }
+
+    /**
      * Vérifie si un utilisateur a la MFA activée
      */
     public async isMFAEnabled(user_id: number): Promise<boolean> {
         try {
             const userMFAs = await query(UserMFAVO.API_TYPE_ID)
                 .filter_by_num_eq(field_names<UserMFAVO>().user_id, user_id)
-                .add_filters([
-                    filter(UserMFAVO.API_TYPE_ID, field_names<UserMFAVO>().is_active).is_true()
-                ])
+                .filter_is_true(field_names<UserMFAVO>().is_active)
                 .exec_as_server()
                 .select_vos<UserMFAVO>();
 
@@ -347,9 +371,7 @@ export default class MFAServerController {
         try {
             const mfaSessions = await query(MFASessionVO.API_TYPE_ID)
                 .filter_by_num_eq(field_names<MFASessionVO>().user_id, user_id)
-                .add_filters([
-                    filter(MFASessionVO.API_TYPE_ID, field_names<MFASessionVO>().is_verified).is_false()
-                ])
+                .filter_is_false(field_names<MFASessionVO>().is_verified)
                 .set_sort(new SortByVO(MFASessionVO.API_TYPE_ID, field_names<MFASessionVO>().created_date, false))
                 .exec_as_server()
                 .select_vos<MFASessionVO>();
@@ -365,7 +387,48 @@ export default class MFAServerController {
             return null;
         }
     }
+    /**
+     * Invalide/supprime toute la configuration MFA existante d'un utilisateur
+     * Utilisé notamment quand on force une reconfiguration MFA (force_mfa_config = true)
+     */
+    public async invalidateUserMFAConfig(user_id: number): Promise<void> {
+        try {
+            ConsoleHandler.log('invalidateUserMFAConfig: Invalidation de la config MFA pour utilisateur: ' + user_id);
 
+            // Récupérer toutes les configurations MFA de l'utilisateur
+            const userMFAs = await query(UserMFAVO.API_TYPE_ID)
+                .filter_by_num_eq(field_names<UserMFAVO>().user_id, user_id)
+                .exec_as_server()
+                .select_vos<UserMFAVO>();
+
+            if (userMFAs && userMFAs.length > 0) {
+                ConsoleHandler.log('invalidateUserMFAConfig: ' + userMFAs.length + ' configuration(s) MFA trouvée(s) à supprimer');
+
+                // Supprimer toutes les configurations MFA
+                await ModuleDAOServer.getInstance().deleteVOs_as_server(userMFAs);
+
+                ConsoleHandler.log('invalidateUserMFAConfig: Toutes les configurations MFA supprimées pour utilisateur: ' + user_id);
+            } else {
+                ConsoleHandler.log('invalidateUserMFAConfig: Aucune configuration MFA trouvée pour utilisateur: ' + user_id);
+            }
+
+            // Nettoyer aussi toutes les sessions MFA en cours pour cet utilisateur
+            const mfaSessions = await query(MFASessionVO.API_TYPE_ID)
+                .filter_by_num_eq(field_names<MFASessionVO>().user_id, user_id)
+                .exec_as_server()
+                .select_vos<MFASessionVO>();
+
+            if (mfaSessions && mfaSessions.length > 0) {
+                ConsoleHandler.log('invalidateUserMFAConfig: ' + mfaSessions.length + ' session(s) MFA en cours trouvée(s) à supprimer');
+                await ModuleDAOServer.getInstance().deleteVOs_as_server(mfaSessions);
+                ConsoleHandler.log('invalidateUserMFAConfig: Sessions MFA nettoyées pour utilisateur: ' + user_id);
+            }
+
+        } catch (error) {
+            ConsoleHandler.error('Erreur lors de l\'invalidation de la config MFA pour utilisateur ' + user_id + ': ' + error);
+            throw error;
+        }
+    }
     /**
      * Vérifie un code TOTP
      */
@@ -589,58 +652,76 @@ export default class MFAServerController {
             }
 
             ConsoleHandler.log('ModuleMailerServer disponible, tentative d\'envoi...');
+            const SEND_MFA_CODE_SEND_IN_BLUE_TEMPLATE_ID_s: string = await ParamsServerController.getParamValueAsString(ModuleAccessPolicy.PARAM_NAME_MFA_CODE_SEND_IN_BLUE_TEMPLATE_ID);
+            const SEND_MFA_CODE_SEND_IN_BLUE_TEMPLATE_ID: number = SEND_MFA_CODE_SEND_IN_BLUE_TEMPLATE_ID_s ? parseInt(SEND_MFA_CODE_SEND_IN_BLUE_TEMPLATE_ID_s) : null;
 
-            // Récupérer les traductions pour le sujet et le corps de l'email
-            let subject = 'Code de vérification MFA';
-            let bodyTemplate = 'Votre code de vérification MFA est: {CODE}';
+            // Send mail
+            if (SEND_MFA_CODE_SEND_IN_BLUE_TEMPLATE_ID) {
 
-            try {
-                const subjectTranslation: TranslationVO = await query(TranslationVO.API_TYPE_ID)
-                    .filter_by_text_eq(field_names<TranslatableTextVO>().code_text, MFAServerController.CODE_TEXT_MFA_EMAIL_SUBJECT, TranslatableTextVO.API_TYPE_ID)
-                    .filter_by_id(user.lang_id, LangVO.API_TYPE_ID)
-                    .select_vo<TranslationVO>();
+                // Using SendInBlue
+                await SendInBlueMailServerController.getInstance().sendWithTemplate(
+                    ModuleAccessPolicy.MAILCATEGORY_ModuleAccessPolicy_MFA_CODE_SEND,
+                    SendInBlueMailVO.createNew(user.name, user.email),
+                    SEND_MFA_CODE_SEND_IN_BLUE_TEMPLATE_ID,
+                    ['sendMFAEmailCode'],
+                    {
+                        EMAIL: user.email,
+                        USER_NAME: user.name,
+                        MFA_CODE: challenge_code,
+                    });
+            } else {
 
-                const bodyTranslation: TranslationVO = await query(TranslationVO.API_TYPE_ID)
-                    .filter_by_text_eq(field_names<TranslatableTextVO>().code_text, MFAServerController.CODE_TEXT_MFA_EMAIL_BODY, TranslatableTextVO.API_TYPE_ID)
-                    .filter_by_id(user.lang_id, LangVO.API_TYPE_ID)
-                    .select_vo<TranslationVO>();
+                // Récupérer les traductions pour le sujet et le corps de l'email
+                let subject = 'Code de vérification MFA';
+                let bodyTemplate = 'Votre code de vérification MFA est: {CODE}';
 
-                if (subjectTranslation?.translated) {
-                    subject = subjectTranslation.translated;
+                try {
+                    const subjectTranslation: TranslationVO = await query(TranslationVO.API_TYPE_ID)
+                        .filter_by_text_eq(field_names<TranslatableTextVO>().code_text, MFAServerController.CODE_TEXT_MFA_EMAIL_SUBJECT, TranslatableTextVO.API_TYPE_ID)
+                        .filter_by_id(user.lang_id, LangVO.API_TYPE_ID)
+                        .select_vo<TranslationVO>();
+
+                    const bodyTranslation: TranslationVO = await query(TranslationVO.API_TYPE_ID)
+                        .filter_by_text_eq(field_names<TranslatableTextVO>().code_text, MFAServerController.CODE_TEXT_MFA_EMAIL_BODY, TranslatableTextVO.API_TYPE_ID)
+                        .filter_by_id(user.lang_id, LangVO.API_TYPE_ID)
+                        .select_vo<TranslationVO>();
+
+                    if (subjectTranslation?.translated) {
+                        subject = subjectTranslation.translated;
+                    }
+                    if (bodyTranslation?.translated) {
+                        bodyTemplate = bodyTranslation.translated;
+                    }
+                } catch (translationError) {
+                    ConsoleHandler.warn('Erreur lors de la récupération des traductions, utilisation des textes par défaut: ' + translationError);
                 }
-                if (bodyTranslation?.translated) {
-                    bodyTemplate = bodyTranslation.translated;
-                }
-            } catch (translationError) {
-                ConsoleHandler.warn('Erreur lors de la récupération des traductions, utilisation des textes par défaut: ' + translationError);
-            }
 
-            // Remplacer les variables dans le corps du message
-            const finalBody = bodyTemplate.replace('{CODE}', challenge_code)
-                .replace('{USER_NAME}', user.name || user.email);
+                // Remplacer les variables dans le corps du message
+                const finalBody = bodyTemplate.replace('{CODE}', challenge_code)
+                    .replace('{USER_NAME}', user.name || user.email);
 
-            const mailData = {
-                to: user.email,
-                subject: subject,
-                html: `
-                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                        <h2 style="color: #333;">Authentification à deux facteurs</h2>
-                        <p>Bonjour ${user.name || user.email},</p>
-                        <p>${finalBody}</p>
-                        <div style="background-color: #f8f9fa; padding: 20px; text-align: center; margin: 20px 0;">
-                            <h3 style="color: #007bff; font-size: 24px; letter-spacing: 4px; margin: 0;">${challenge_code}</h3>
+                const mailData = {
+                    to: user.email,
+                    subject: subject,
+                    html: `
+                        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                            <h2 style="color: #333;">Authentification à deux facteurs</h2>
+                            <p>Bonjour ${user.name || user.email},</p>
+                            <p>${finalBody}</p>
+                            <div style="background-color: #f8f9fa; padding: 20px; text-align: center; margin: 20px 0;">
+                                <h3 style="color: #007bff; font-size: 24px; letter-spacing: 4px; margin: 0;">${challenge_code}</h3>
+                            </div>
+                            <p style="color: #666; font-size: 12px;">Ce code expire dans 5 minutes pour des raisons de sécurité.</p>
+                            <p style="color: #666; font-size: 12px;">Si vous n'avez pas demandé ce code, ignorez ce message.</p>
                         </div>
-                        <p style="color: #666; font-size: 12px;">Ce code expire dans 5 minutes pour des raisons de sécurité.</p>
-                        <p style="color: #666; font-size: 12px;">Si vous n'avez pas demandé ce code, ignorez ce message.</p>
-                    </div>
-                `,
-                text: `Votre code de vérification MFA est: ${challenge_code}. Ce code expire dans 5 minutes.`
-            };
+                    `,
+                    text: `Votre code de vérification MFA est: ${challenge_code}. Ce code expire dans 5 minutes.`
+                };
 
-            ConsoleHandler.log('Données de l\'email préparées, envoi en cours...');
-            await mailerInstance.sendMail(mailData);
-            ConsoleHandler.log('Code MFA envoyé par email avec succès à l\'utilisateur: ' + user.id);
-
+                ConsoleHandler.log('Données de l\'email préparées, envoi en cours...');
+                await mailerInstance.sendMail(mailData);
+                ConsoleHandler.log('Code MFA envoyé par email avec succès à l\'utilisateur: ' + user.id);
+            }
         } catch (error) {
             ConsoleHandler.error('Erreur lors de l\'envoi de l\'email MFA: ' + error);
             ConsoleHandler.error('Stack trace: ' + (error as Error).stack);
@@ -715,4 +796,5 @@ export default class MFAServerController {
             throw error;
         }
     }
+
 }

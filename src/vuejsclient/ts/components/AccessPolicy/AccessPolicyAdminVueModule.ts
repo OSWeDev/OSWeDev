@@ -261,11 +261,13 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
         crud.readDatatable.pushField(ManyToOneReferenceDatatableFieldVO.createNew(
             "lang_id",
             ModuleTableController.module_tables_by_vo_type[LangVO.API_TYPE_ID], [
-            SimpleDatatableFieldVO.createNew("code_lang")
-        ]));
+                SimpleDatatableFieldVO.createNew("code_lang")
+            ]));
 
         if (this.policies_loaded[ModuleAccessPolicy.POLICY_BO_USERS_MANAGMENT_ACCESS]) {
             crud.readDatatable.pushField(SimpleDatatableFieldVO.createNew("blocked"));
+            crud.readDatatable.pushField(SimpleDatatableFieldVO.createNew("force_mfa_config"));
+            crud.readDatatable.pushField(SimpleDatatableFieldVO.createNew("mfa_enabled"));
             crud.readDatatable.pushField(SimpleDatatableFieldVO.createNew("archived"));
 
             crud.readDatatable.pushField(SimpleDatatableFieldVO.createNew("password_change_date"));

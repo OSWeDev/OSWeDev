@@ -6,7 +6,7 @@ export default class UserMFAVO implements IDistantVOBase {
     // Méthodes MFA disponibles
     public static readonly MFA_METHOD_EMAIL = "email";
     public static readonly MFA_METHOD_SMS = "sms";
-    public static readonly MFA_METHOD_AUTHENTICATOR = "authenticator";
+    public static readonly MFA_METHOD_AUTHENTICATOR = "totp";
 
     public id: number;
     public _type: string = UserMFAVO.API_TYPE_ID;

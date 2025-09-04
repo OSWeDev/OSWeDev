@@ -35,9 +35,9 @@ export default class PasswordHistoryServerController {
     public async validatePassword(user_id: number, new_password: string): Promise<string | null> {
         try {
             // Vérifier la complexité du nouveau mot de passe
-            const passwordValidation = ModuleTableFieldController.passwordIsValidProposition(new_password);
-            if (passwordValidation) {
-                ConsoleHandler.error('Mot de passe non conforme:', passwordValidation);
+            const passwordValidation = ModuleTableFieldController.isPasswordComplexityValid(new_password);
+            if (!passwordValidation) {
+                ConsoleHandler.error('Mot de passe non conforme aux critères de complexité');
                 return 'PASSWORD_INVALID';
             }
 
@@ -104,12 +104,26 @@ export default class PasswordHistoryServerController {
      */
     public async addPasswordToHistory(user_id: number, clear_password: string): Promise<void> {
         try {
+            ConsoleHandler.log('🔧 [DEBUG] addPasswordToHistory - Début pour utilisateur:', user_id);
+
+            if (!user_id || !clear_password) {
+                ConsoleHandler.warn('Paramètres invalides pour l\'ajout à l\'historique des mots de passe');
+                return;
+            }
+
+            ConsoleHandler.log('🔧 [DEBUG] Hachage du mot de passe...');
             // Hasher le mot de passe avec bcrypt via PostgreSQL
             const hashed_password = await this.hashPassword(clear_password);
+            ConsoleHandler.log('🔧 [DEBUG] Hash généré:', hashed_password?.substring(0, 20) + '...');
 
+            ConsoleHandler.log('🔧 [DEBUG] Ajout du hash à l\'historique...');
             await this.addPasswordHashToHistory(user_id, hashed_password);
+
+            ConsoleHandler.log('✅ Mot de passe ajouté avec succès à l\'historique pour l\'utilisateur:', user_id);
         } catch (error) {
-            ConsoleHandler.error('Erreur lors de l\'ajout du mot de passe à l\'historique:', error);
+            ConsoleHandler.error('❌ Erreur lors de l\'ajout du mot de passe à l\'historique:', error);
+            // Ne pas rethrow l'erreur pour éviter que cela fasse échouer le reset de mot de passe
+            // L'historique est une fonctionnalité de sécurité additionnelle mais pas critique
         }
     }
 
@@ -158,19 +172,42 @@ export default class PasswordHistoryServerController {
      */
     private async hashPassword(clear_password: string): Promise<string> {
         try {
-            const result = await ModuleDAOServer.getInstance().query(
-                "SELECT crypt($1, gen_salt('bf')) as hash",
-                [clear_password]
+            if (!clear_password) {
+                throw new Error('Mot de passe vide fourni pour le hachage');
+            }
+
+            // Vérifier si l'extension pgcrypto est disponible
+            const extension_check = await ModuleDAOServer.getInstance().query(
+                "SELECT 1 FROM pg_extension WHERE extname = 'pgcrypto'",
+                [],
+                true
             );
 
-            if (result && result.length > 0) {
+            if (!extension_check || extension_check.length === 0) {
+                ConsoleHandler.warn('Extension pgcrypto non trouvée, installation en cours...');
+                try {
+                    await ModuleDAOServer.getInstance().query("CREATE EXTENSION IF NOT EXISTS pgcrypto", [], true);
+                    ConsoleHandler.log('Extension pgcrypto installée avec succès');
+                } catch (ext_error) {
+                    ConsoleHandler.error('Impossible d\'installer l\'extension pgcrypto:', ext_error);
+                    throw new Error('Extension pgcrypto requise pour le hachage des mots de passe');
+                }
+            }
+
+            const result = await ModuleDAOServer.getInstance().query(
+                "SELECT crypt($1, gen_salt('bf')) as hash",
+                [clear_password],
+                true
+            );
+
+            if (result && result.length > 0 && result[0].hash) {
                 return result[0].hash;
             }
 
-            throw new Error('Erreur lors du hachage du mot de passe');
+            throw new Error('Résultat de hachage invalide');
         } catch (error) {
             ConsoleHandler.error('Erreur lors du hachage du mot de passe:', error);
-            throw error;
+            throw new Error('Erreur lors du hachage du mot de passe');
         }
     }
 
@@ -210,7 +247,7 @@ export default class PasswordHistoryServerController {
         try {
             ConsoleHandler.log('Comparaison mot de passe avec hash via PostgreSQL');
             // Utiliser la fonction PostgreSQL crypt pour comparer
-            const result = await ModuleDAOServer.instance.query(
+            const result = await ModuleDAOServer.getInstance().query(
                 "SELECT crypt($1, $2) = $2 as matches",
                 [password, hash],
                 true

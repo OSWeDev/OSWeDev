@@ -22,6 +22,9 @@
                     .form-group.has-feedback
                         input.form-control(type='password', v-model='new_pwd1', name="new_pwd1", :placeholder='label("login.password_placeholder")', autocomplete="off")
                         i.fa-solid.fa-lock.pull-right.fa-fw(aria-hidden="true")
+                    
+                    // Composant de validation du mot de passe en temps réel
+                    PasswordValidationComponent(v-if='new_pwd1', :password='new_pwd1')
 
                     .center
                         button.btn.btn-primary.btn-block.btn-flat(@click="reset") {{ label('login.reset.submit') }}

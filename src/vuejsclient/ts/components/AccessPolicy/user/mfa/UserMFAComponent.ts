@@ -2,6 +2,9 @@ import Component from 'vue-class-component';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import UserMFAVO from '../../../../../../shared/modules/AccessPolicy/vos/UserMFAVO';
 import UserVO from '../../../../../../shared/modules/AccessPolicy/vos/UserVO';
+import MFAConfigureParamVO from '../../../../../../shared/modules/AccessPolicy/vos/apis/MFAConfigureParamVO';
+import MFAActivateParamVO from '../../../../../../shared/modules/AccessPolicy/vos/apis/MFAActivateParamVO';
+import MFAGenerateCodeParamVO from '../../../../../../shared/modules/AccessPolicy/vos/apis/MFAGenerateCodeParamVO';
 import VueAppController from '../../../../../VueAppController';
 import VueComponentBase from '../../../VueComponentBase';
 import QRCodeComponent from './qrcode/QRCodeComponent';
@@ -63,6 +66,12 @@ export default class UserMFAComponent extends VueComponentBase {
         }
     }
 
+    private get canDisableMFA(): boolean {
+        // Une fois la MFA activée, elle ne peut plus être désactivée
+        // Seule la modification est autorisée
+        return false;
+    }
+
     private async created(): Promise<void> {
         await this.loadMFAStatus();
     }
@@ -109,9 +118,11 @@ export default class UserMFAComponent extends VueComponentBase {
         this.loading = true;
         try {
             const success = await ModuleAccessPolicy.getInstance().mfaConfigure(
-                this.user.id,
-                this.selectedMethod,
-                this.phoneNumber || undefined
+                MFAConfigureParamVO.fromParams(
+                    this.user.id,
+                    this.selectedMethod,
+                    this.phoneNumber || undefined
+                )
             );
 
             if (success) {
@@ -142,8 +153,10 @@ export default class UserMFAComponent extends VueComponentBase {
 
         try {
             const secret = await ModuleAccessPolicy.getInstance().mfaGenerateCode(
-                this.user.id,
-                UserMFAVO.MFA_METHOD_AUTHENTICATOR
+                MFAGenerateCodeParamVO.fromParams(
+                    this.user.id,
+                    UserMFAVO.MFA_METHOD_AUTHENTICATOR
+                )
             );
 
             if (secret) {
@@ -165,8 +178,10 @@ export default class UserMFAComponent extends VueComponentBase {
         this.loading = true;
         try {
             const code = await ModuleAccessPolicy.getInstance().mfaGenerateCode(
-                this.user.id,
-                this.selectedMethod
+                MFAGenerateCodeParamVO.fromParams(
+                    this.user.id,
+                    this.selectedMethod
+                )
             );
 
             if (code) {
@@ -191,8 +206,10 @@ export default class UserMFAComponent extends VueComponentBase {
         this.loading = true;
         try {
             const success = await ModuleAccessPolicy.getInstance().mfaActivate(
-                this.user.id,
-                this.verificationCode
+                MFAActivateParamVO.fromParams(
+                    this.user.id,
+                    this.verificationCode
+                )
             );
 
             if (success) {
@@ -201,6 +218,12 @@ export default class UserMFAComponent extends VueComponentBase {
                 this.isActivating = false;
                 this.showQRCode = false;
                 await this.loadMFAStatus();
+
+                // Émettre un événement pour informer le parent que la configuration est terminée
+                this.$emit('configuration-complete', {
+                    success: true,
+                    method: this.selectedMethod
+                });
             } else {
                 this.snotify.error(this.label('mfa.activation.echec'));
             }
@@ -213,34 +236,22 @@ export default class UserMFAComponent extends VueComponentBase {
     }
 
     private async disableMFA(): Promise<void> {
+        // Cette méthode est maintenant obsolète car la MFA ne peut plus être désactivée
+        // On affiche un message informatif
+        this.snotify.warning(this.label('mfa.desactivation.impossible'));
+    }
+
+    private async modifyMFA(): Promise<void> {
         if (!this.user || !this.user.id) {
             return;
         }
 
-        if (!confirm(this.label('mfa.desactivation.confirmation'))) {
+        if (!confirm(this.label('mfa.modification.confirmation'))) {
             return;
         }
 
-        this.loading = true;
-        try {
-            const success = await ModuleAccessPolicy.getInstance().mfaConfigure(
-                this.user.id,
-                '',
-                undefined
-            );
-
-            if (success) {
-                this.snotify.success(this.label('mfa.desactivation.succes'));
-                await this.loadMFAStatus();
-            } else {
-                this.snotify.error(this.label('mfa.desactivation.echec'));
-            }
-        } catch (error) {
-            console.error('Erreur lors de la désactivation MFA:', error);
-            this.snotify.error(this.label('mfa.erreur.desactivation'));
-        } finally {
-            this.loading = false;
-        }
+        // Lancer le processus de reconfiguration
+        this.startMFAConfiguration();
     }
 
     private cancelConfiguration(): void {

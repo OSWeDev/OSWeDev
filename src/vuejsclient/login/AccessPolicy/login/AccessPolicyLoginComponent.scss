@@ -8,4 +8,80 @@
         width: 360px;
         margin-bottom: 2em;
     }
+
+    .method-info {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        padding: 10px;
+        margin-bottom: 15px;
+        text-align: center;
+
+        .method-label {
+            font-size: 14px;
+            color: #6c757d;
+
+            strong {
+                color: #495057;
+                text-transform: capitalize;
+            }
+        }
+    }
+
+    .login-box {
+        .login-box-body {
+            a {
+                color: #495057;
+                text-decoration: underline;
+                font-style: italic;
+
+                &:hover {
+                    text-decoration: underline;
+                }
+            }
+
+            // Intégration Anti-Spam
+            .antispam-section {
+                margin: 0 0 20px 0;
+                border-top: 1px solid #f4f4f4;
+                padding-top: 20px;
+
+                .antispam-wait-container {
+                    margin: 0;
+                    max-width: none;
+                    padding: 0;
+                    background: transparent;
+                    border: none;
+                    color: #666;
+                }
+            }
+
+            // Désactiver les interactions pendant le blocage anti-spam
+            &.antispam-blocked {
+                .form-group {
+                    input {
+                        opacity: 0.5;
+                        pointer-events: none;
+                        background-color: #f9f9f9;
+                    }
+
+                    i {
+                        opacity: 0.5;
+                        pointer-events: none;
+                    }
+                }
+
+                .signin-submit button {
+                    opacity: 0.5;
+                    cursor: not-allowed;
+                    pointer-events: none;
+                }
+
+                .actions {
+                    opacity: 0.5;
+                    pointer-events: none;
+                }
+            }
+        }
+    }
 }

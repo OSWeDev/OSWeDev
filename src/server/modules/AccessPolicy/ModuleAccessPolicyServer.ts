@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Request } from 'express';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import AccessPolicyController from '../../../shared/modules/AccessPolicy/AccessPolicyController';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
@@ -11,6 +11,16 @@ import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
 import UserLogVO from '../../../shared/modules/AccessPolicy/vos/UserLogVO';
 import UserRoleVO from '../../../shared/modules/AccessPolicy/vos/UserRoleVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
+import UserMFAVO from '../../../shared/modules/AccessPolicy/vos/UserMFAVO';
+import MFAActivateParamVO from '../../../shared/modules/AccessPolicy/vos/apis/MFAActivateParamVO';
+import MFAConfigureParamVO from '../../../shared/modules/AccessPolicy/vos/apis/MFAConfigureParamVO';
+import MFAGenerateCodeParamVO from '../../../shared/modules/AccessPolicy/vos/apis/MFAGenerateCodeParamVO';
+import MFAVerifyCodeParamVO from '../../../shared/modules/AccessPolicy/vos/apis/MFAVerifyCodeParamVO';
+import MFAServerController from './MFAServerController';
+import AntiSpamController from './AntiSpamController';
+import AntiSpamResponseVO from '../../../shared/modules/AccessPolicy/vos/AntiSpamResponseVO';
+import LoginResponseVO from '../../../shared/modules/AccessPolicy/vos/LoginResponseVO';
+import ResetPwdResultVO from '../../../shared/modules/AccessPolicy/vos/ResetPwdResultVO';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryFieldVO from '../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
@@ -37,7 +47,6 @@ import { field_names, reflect } from '../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import TextHandler from '../../../shared/tools/TextHandler';
 import StackContext from '../../StackContext';
-import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
 import { RunsOnMainThread } from '../BGThread/annotations/RunsOnMainThread';
 import DAOServerController from '../DAO/DAOServerController';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
@@ -72,6 +81,12 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
     private static instance: ModuleAccessPolicyServer = null;
 
+    // SÉCURITÉ : Éviter les nettoyages MFA concurrents
+    private static isCleanupInProgress: boolean = false;
+
+    // Timer de nettoyage MFA pour pouvoir l'arrêter proprement
+    private static mfaCleanupTimer: NodeJS.Timeout = null;
+
     private debug_check_access: boolean = false;
     private rights_have_been_preloaded: boolean = false;
 
@@ -92,12 +107,180 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     }
 
     /**
+     * Vérifie la validité de la session, notamment pour les utilisateurs avec MFA en attente
+     * Renvoie true si la session est valide pour continuer, false sinon
      */
+    public static checkMFASessionSecurity(session: IServerUserSession): boolean {
+        // Si pas de session, c'est valide (anonyme)
+        if (!session) {
+            return true;
+        }
+
+        // Si utilisateur connecté normalement, c'est valide
+        if (session.uid && !session.mfa_pending && !session.mfa_force_config) {
+            return true;
+        }
+
+        // Si MFA ou force config en attente, l'utilisateur ne doit PAS avoir d'uid
+        if ((session.mfa_pending || session.mfa_force_config) && session.uid) {
+            ConsoleHandler.error('SÉCURITÉ : Session compromise détectée - utilisateur avec uid mais MFA/force config en attente');
+            // SÉCURITÉ : Nettoyer automatiquement la session compromise
+            ModuleAccessPolicyServer.cleanCompromisedSession(session).catch(error => {
+                ConsoleHandler.error('Erreur lors du nettoyage automatique de session compromise:', error);
+            });
+            return false;
+        }
+
+        // Si MFA en attente mais pas d'utilisateur temporaire, session invalide
+        if ((session.mfa_pending || session.mfa_force_config) && !session.mfa_temp_user_id) {
+            ConsoleHandler.warn('SÉCURITÉ : Session MFA/force config sans utilisateur temporaire');
+            // SÉCURITÉ : Nettoyer la session incohérente
+            ModuleAccessPolicyServer.cleanCompromisedSession(session).catch(error => {
+                ConsoleHandler.error('Erreur lors du nettoyage de session incohérente:', error);
+            });
+            return false;
+        }
+
+        // Vérifier l'expiration des sessions MFA temporaires (15 minutes)
+        if ((session.mfa_pending || session.mfa_force_config) && session.mfa_temp_created_at) {
+            const expirationTime = session.mfa_temp_created_at + (15 * 60 * 1000); // 15 minutes
+            if (Date.now() > expirationTime) {
+                ConsoleHandler.warn('SÉCURITÉ : Session MFA temporaire expirée');
+                // SÉCURITÉ : Nettoyer automatiquement la session expirée
+                ModuleAccessPolicyServer.cleanCompromisedSession(session).catch(error => {
+                    ConsoleHandler.error('Erreur lors du nettoyage de session expirée:', error);
+                });
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Nettoie une session corrompue en supprimant les données temporaires dangereuses
+     */
+    public static async cleanCompromisedSession(session: IServerUserSession): Promise<void> {
+        if (!session) {
+            return;
+        }
+
+        ConsoleHandler.warn('SÉCURITÉ : Nettoyage d\'une session compromise');
+
+        // Forcer le logout si l'utilisateur était connecté de manière incorrecte
+        if (session.uid && (session.mfa_pending || session.mfa_force_config)) {
+            session.uid = null;
+            session.user_vo = null;
+        }
+
+        // Nettoyer toutes les données MFA temporaires
+        session.mfa_pending = false;
+        session.mfa_force_config = false;
+        delete session.mfa_temp_user_id;
+        delete session.mfa_temp_user_vo;
+        delete session.mfa_temp_created_at;
+        delete session.mfa_pending_method;
+        delete session.mfa_pending_redirect_to;
+        delete session.mfa_pending_sso;
+
+        // Sauvegarder la session nettoyée
+        if (session.save) {
+            return new Promise<void>((resolve, reject) => {
+                session.save((error) => {
+                    if (error) {
+                        ConsoleHandler.error('Erreur lors de la sauvegarde de la session nettoyée:', error);
+                        reject(error);
+                    } else {
+                        resolve();
+                    }
+                });
+            });
+        }
+    }
+
+    /**
+     */
+    /**
+     * SÉCURITÉ : Nettoyage périodique des sessions MFA expirées pour éviter l'accumulation
+     * Cette fonction doit être appelée périodiquement (ex: toutes les heures)
+     */
+    public static async cleanupExpiredMFASessions(): Promise<void> {
+        // SÉCURITÉ : Éviter les nettoyages concurrents
+        if (ModuleAccessPolicyServer.isCleanupInProgress) {
+            ConsoleHandler.log('Nettoyage MFA déjà en cours, ignore...');
+            return;
+        }
+
+        ModuleAccessPolicyServer.isCleanupInProgress = true;
+
+        try {
+            const now = Date.now();
+            const fifteenMinutes = 15 * 60 * 1000; // 15 minutes en millisecondes
+            let cleanedSessions = 0;
+
+            // Parcourir toutes les sessions en cache
+            for (const sessionId in ExpressDBSessionsServerCacheHolder.parsed_session_cache) {
+                const session = ExpressDBSessionsServerCacheHolder.parsed_session_cache[sessionId];
+
+                if (session && (session.mfa_temp_created_at || session.mfa_pending || session.mfa_force_config)) {
+                    let shouldClean = false;
+
+                    // Vérifier l'expiration si on a un timestamp
+                    if (session.mfa_temp_created_at) {
+                        const createdAt = session.mfa_temp_created_at;
+                        if (now - createdAt > fifteenMinutes) {
+                            shouldClean = true;
+                        }
+                    }
+
+                    // Nettoyer les sessions MFA/force config sans timestamp (orphelines)
+                    if ((session.mfa_pending || session.mfa_force_config) && !session.mfa_temp_created_at) {
+                        ConsoleHandler.warn('Session MFA/force config orpheline détectée: ' + sessionId);
+                        shouldClean = true;
+                    }
+
+                    if (shouldClean) {
+                        // Session MFA expirée ou orpheline
+                        ConsoleHandler.log('Nettoyage session MFA expirée/orpheline: ' + sessionId);
+                        await ModuleAccessPolicyServer.cleanCompromisedSession(session);
+                        cleanedSessions++;
+                    }
+                }
+            }
+
+            if (cleanedSessions > 0) {
+                ConsoleHandler.log(`Nettoyage automatique: ${cleanedSessions} sessions MFA expirées supprimées`);
+            }
+        } catch (error) {
+            ConsoleHandler.error('Erreur lors du nettoyage des sessions MFA expirées: ' + error);
+        } finally {
+            // SÉCURITÉ : Toujours libérer le verrou
+            ModuleAccessPolicyServer.isCleanupInProgress = false;
+        }
+    }
+
+    /**
+     * SÉCURITÉ : Arrête le nettoyage automatique des sessions MFA (pour arrêt propre du serveur)
+     */
+    public static stopMFACleanupTimer(): void {
+        if (ModuleAccessPolicyServer.mfaCleanupTimer) {
+            clearInterval(ModuleAccessPolicyServer.mfaCleanupTimer);
+            ModuleAccessPolicyServer.mfaCleanupTimer = null;
+            ConsoleHandler.log('Timer de nettoyage MFA arrêté');
+        }
+    }
+
     public static getLoggedUserId(): number {
 
         try {
 
             const session = StackContext.get('SESSION');
+
+            // SÉCURITÉ : Vérifier l'intégrité de la session avant de retourner l'UID
+            if (!ModuleAccessPolicyServer.checkMFASessionSecurity(session)) {
+                ConsoleHandler.error('SÉCURITÉ : Session compromise détectée dans getLoggedUserId');
+                return null;
+            }
 
             if (session && session.uid) {
                 return session.uid;
@@ -182,6 +365,17 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
                 try {
                     await ConsoleHandler.log('unregisterSession:onBlockOrInvalidateUserDeleteSessions:uid:' + session.uid);
+
+                    // Nettoyage des données MFA lors de la suppression forcée de session
+                    session.mfa_pending = false;
+                    session.mfa_force_config = false;
+                    delete session.mfa_temp_user_id;
+                    delete session.mfa_temp_user_vo;
+                    delete session.mfa_temp_created_at;
+                    delete session.mfa_pending_method;
+                    delete session.mfa_pending_redirect_to;
+                    delete session.mfa_pending_sso;
+
                     await PushDataServerController.unregisterSession(session.sid);
                     session.destroy(() => {
                     });
@@ -238,6 +432,16 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 session = Object.assign(session, session.impersonated_from);
                 delete session.impersonated_from;
 
+                // Nettoyer les données MFA lors de la restauration de session impersonate
+                session.mfa_pending = false;
+                session.mfa_force_config = false;
+                delete session.mfa_temp_user_id;
+                delete session.mfa_temp_user_vo;
+                delete session.mfa_temp_created_at;
+                delete session.mfa_pending_method;
+                delete session.mfa_pending_redirect_to;
+                delete session.mfa_pending_sso;
+
                 ExpressDBSessionsServerCacheHolder.parsed_session_cache[ExpressDBSessionsServerCacheHolder.session_id_by_sid[sid]] = session;
 
                 if (!session.save) {
@@ -258,6 +462,16 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
                 session.uid = null;
                 session.user_vo = null;
+
+                // Nettoyer les données MFA en cas de logout pendant la validation MFA
+                session.mfa_pending = false;
+                session.mfa_force_config = false;
+                delete session.mfa_temp_user_id;
+                delete session.mfa_temp_user_vo;
+                delete session.mfa_temp_created_at;
+                delete session.mfa_pending_method;
+                delete session.mfa_pending_redirect_to;
+                delete session.mfa_pending_sso;
 
                 if (!session.save) {
                     ConsoleHandler.error('ServerExpressController:post_init_session_middleware:session_no_save:catch:' + JSON.stringify(session));
@@ -282,6 +496,39 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     public async logout(req: Request) {
 
         return this.logout_sid(req.session.sid);
+    }
+
+    /**
+     * Récupère l'utilisateur temporaire stocké en session pendant la configuration MFA forcée
+     * Utilisé par le frontend pour avoir accès aux informations utilisateur nécessaires
+     */
+    @RunsOnMainThread(ModuleAccessPolicyServer.getInstance)
+    public async mfaGetTempUser(req?: Request): Promise<UserVO> {
+        try {
+            ConsoleHandler.log('mfaGetTempUser: Début de la méthode d\'instance avec req:', !!req);
+
+            let session = null;
+            const sid = StackContext.get('SID');
+            session = ExpressDBSessionsServerCacheHolder.parsed_session_cache[ExpressDBSessionsServerCacheHolder.session_id_by_sid[sid]];
+
+            if (!session) {
+                ConsoleHandler.error('mfaGetTempUser: Impossible de récupérer la session');
+                return null;
+            }
+
+            // SÉCURITÉ : Vérifier que c'est bien une configuration MFA forcée ET qu'on a un utilisateur temporaire
+            if (!session.mfa_force_config || !session.mfa_temp_user_vo) {
+                ConsoleHandler.warn('mfaGetTempUser: Pas de configuration forcée en cours ou pas d\'utilisateur temporaire');
+                ConsoleHandler.warn('mfaGetTempUser: mfa_force_config=' + session.mfa_force_config + ', mfa_temp_user_vo=' + !!session.mfa_temp_user_vo);
+                return null;
+            }
+
+            ConsoleHandler.log('mfaGetTempUser: Utilisateur temporaire récupéré: ' + session.mfa_temp_user_vo.id);
+            return session.mfa_temp_user_vo;
+        } catch (error) {
+            ConsoleHandler.error('Erreur mfaGetTempUser:', error);
+            return null;
+        }
     }
 
     /**
@@ -474,6 +721,12 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             await ConsoleHandler.log('unregisterSession:delete_session:impersonated_from:uid:' + session.uid);
             await PushDataServerController.unregisterSession(session.sid, false);
 
+            // Nettoyage des données MFA lors du logout depuis impersonation
+            session.mfa_pending = false;
+            delete session.mfa_pending_method;
+            delete session.mfa_pending_redirect_to;
+            delete session.mfa_pending_sso;
+
             session = Object.assign(session, session.impersonated_from);
             delete session.impersonated_from; // POURQUOI c'était commenté ???
 
@@ -494,6 +747,12 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         await ConsoleHandler.log('unregisterSession:delete_session:uid:' + session.uid);
         await PushDataServerController.unregisterSession(session.sid, true);
+
+        // Nettoyage des données MFA lors du logout final
+        session.mfa_pending = false;
+        delete session.mfa_pending_method;
+        delete session.mfa_pending_redirect_to;
+        delete session.mfa_pending_sso;
 
         session.uid = null;
         session.user_vo = null;
@@ -634,6 +893,261 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     }
 
     @RunsOnMainThread(ModuleAccessPolicyServer.getInstance)
+    private async loginWithAntiSpam(email: string, password: string, redirect_to: string, sso: boolean): Promise<LoginResponseVO> {
+
+        try {
+            const sid = StackContext.get('SID');
+            const session = ExpressDBSessionsServerCacheHolder.parsed_session_cache[ExpressDBSessionsServerCacheHolder.session_id_by_sid[sid]];
+
+            if (!session) {
+                ConsoleHandler.warn('ModuleAccessPolicyServer.loginWithAntiSpam:session not found:SID:' + sid + ':UID:' + email);
+                return LoginResponseVO.createError('Session non trouvée');
+            }
+
+            // === ANTI-SPAM : Vérification des limites de tentatives ===
+            const antiSpam = AntiSpamController.getInstance();
+            // Plus besoin de l'IP - anti-spam basé sur email/user seulement
+            const client_ip = ''; // Placeholder - non utilisé
+
+            // D'abord récupérer l'utilisateur par email pour avoir son ID
+            let target_user: UserVO = null;
+            if (email) {
+                try {
+                    // Récupérer l'utilisateur par email seulement (sans vérifier le mot de passe)
+                    target_user = await query(UserVO.API_TYPE_ID)
+                        .filter_by_text_eq(field_names<UserVO>().email, email)
+                        .exec_as_server()
+                        .select_vo<UserVO>();
+                } catch (error) {
+                    // Utilisateur non trouvé, on continuera avec les vérifications IP/email seulement
+                }
+            }
+
+            // Vérifier les limites avec tous les identifiants disponibles
+            const multi_check = await antiSpam.checkMultipleRateLimits(
+                client_ip,
+                email,
+                target_user?.id?.toString(),
+                'login'
+            );
+
+            if (!multi_check.allowed) {
+                ConsoleHandler.warn(`[ANTI-SPAM] Tentative de login bloquée - IP: ${client_ip}, Email: ${email}, User: ${target_user?.id} - ${multi_check.message}`);
+
+                // Retourner directement les informations anti-spam structurées
+                return LoginResponseVO.createWithAntiSpam(multi_check);
+            }
+
+            if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
+                // On est en readonly partout, donc on informe sur impossibilité de se connecter
+                return LoginResponseVO.createError('error.global_update_blocker.activated.___LABEL___');
+            }
+
+            if (session && session.uid) {
+                await PushDataServerController.notify_user_and_redirect(session.sid, redirect_to, sso);
+                return LoginResponseVO.createSuccess(session.uid);
+            }
+
+            session.uid = null;
+            session.user_vo = null;
+
+            if ((!email) || (!password)) {
+                return LoginResponseVO.createError('Email et mot de passe requis');
+            }
+
+            let user: UserVO = null;
+
+            if (AccessPolicyServerController.hook_user_login) {
+                user = await AccessPolicyServerController.hook_user_login(email, password);
+            } else {
+                user = await ModuleDAOServer.instance.selectOneUser(email, password);
+            }
+
+            if (!user) {
+                // === ANTI-SPAM : Enregistrer l'échec de connexion ===
+                antiSpam.recordMultipleAttempts(client_ip, email, target_user?.id, false);
+                ConsoleHandler.warn(`[ANTI-SPAM] Tentative de login échouée - IP: ${client_ip}, Email: ${email}, User: ${target_user?.id}`);
+                return LoginResponseVO.createError('Identifiants invalides');
+            }
+
+            if (user.blocked) {
+                // === ANTI-SPAM : Enregistrer l'échec (compte bloqué) ===
+                antiSpam.recordMultipleAttempts(client_ip, email, user.id, false);
+                ConsoleHandler.warn(`[ANTI-SPAM] Tentative de login sur compte bloqué - IP: ${client_ip}, Email: ${email}, User: ${user.id}`);
+                return LoginResponseVO.createError('Compte bloqué');
+            }
+
+            if (user.invalidated) {
+                // Si le mot de passe est invalidé on refuse la connexion mais on envoie aussi un mail pour récupérer le mot de passe
+                await PasswordRecovery.getInstance().beginRecovery(user.email);
+                // === ANTI-SPAM : Enregistrer l'échec (compte invalidé) ===
+                antiSpam.recordMultipleAttempts(client_ip, email, user.id, false);
+                ConsoleHandler.warn(`[ANTI-SPAM] Tentative de login sur compte invalidé - IP: ${client_ip}, Email: ${email}, User: ${user.id}`);
+                return LoginResponseVO.createError('Mot de passe invalidé, email de récupération envoyé');
+            }
+
+            if (!user.logged_once) {
+                user.logged_once = true;
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(user);
+            }
+
+            // Vérifier si l'utilisateur est forcé à configurer la MFA
+            if (user.force_mfa_config) {
+                const isMFAEnabled = await MFAServerController.getInstance().isMFAEnabled(user.id);
+
+                if (!isMFAEnabled) {
+                    // L'utilisateur doit configurer la MFA de force
+                    // SÉCURITÉ : Ne PAS connecter l'utilisateur avant configuration MFA
+                    session.mfa_temp_user_id = user.id;
+                    session.mfa_temp_user_vo = user;
+                    session.mfa_temp_created_at = Date.now();
+                    session.mfa_force_config = true;
+                    session.mfa_pending_redirect_to = redirect_to;
+                    session.mfa_pending_sso = sso;
+
+                    // IMPORTANT : uid reste null jusqu'à configuration MFA
+                    session.uid = null;
+                    session.user_vo = null;
+
+                    if (session.save) {
+                        await new Promise<void>((resolve, reject) => {
+                            session.save((error) => {
+                                if (error) {
+                                    ConsoleHandler.error('ModuleAccessPolicyServer.loginWithAntiSpam:session.save:' + error);
+                                    reject(error);
+                                } else {
+                                    resolve();
+                                }
+                            });
+                        });
+                    }
+
+                    // Retourner un code spécial pour indiquer qu'il faut configurer la MFA de force
+                    return LoginResponseVO.createMFA('force_config', 'Configuration MFA obligatoire');
+                }
+            }
+
+            // Vérifier si l'utilisateur a la MFA activée
+            const isMFAEnabled = await MFAServerController.getInstance().isMFAEnabled(user.id);
+
+            if (isMFAEnabled) {
+                // Récupérer la configuration MFA de l'utilisateur
+                const userMFAConfig = await MFAServerController.getInstance().getUserMFAConfig(user.id);
+
+                if (!userMFAConfig) {
+                    ConsoleHandler.error('ModuleAccessPolicyServer.loginWithAntiSpam: MFA activé mais pas de config trouvée pour user:' + user.id);
+                    return LoginResponseVO.createError('Erreur configuration MFA');
+                }
+
+                // SÉCURITÉ : Ne PAS connecter l'utilisateur avant validation MFA
+                session.mfa_temp_user_id = user.id;
+                session.mfa_temp_user_vo = user;
+                session.mfa_temp_created_at = Date.now();
+                session.mfa_pending = true;
+                session.mfa_pending_redirect_to = redirect_to;
+                session.mfa_pending_sso = sso;
+                session.mfa_pending_method = userMFAConfig.mfa_method;
+
+                // IMPORTANT : uid reste null jusqu'à validation MFA
+                session.uid = null;
+                session.user_vo = null;
+
+                // Si c'est Email ou SMS, envoyer automatiquement le code
+                if (userMFAConfig.mfa_method === 'email' || userMFAConfig.mfa_method === 'sms') {
+                    try {
+                        await MFAServerController.getInstance().generateAndSendMFACode(
+                            user.id,
+                            userMFAConfig.mfa_method
+                        );
+                    } catch (error) {
+                        ConsoleHandler.error('ModuleAccessPolicyServer.loginWithAntiSpam: Erreur envoi code MFA:', error);
+                        // On continue quand même, l'utilisateur pourra réessayer
+                    }
+                }
+
+                if (session.save) {
+                    session.save((error) => {
+                        if (error) {
+                            ConsoleHandler.error('ModuleAccessPolicyServer.loginWithAntiSpam:session.save:' + error);
+                        }
+                    });
+                }
+
+                // Retourner la méthode MFA requise
+                return LoginResponseVO.createMFA(userMFAConfig.mfa_method, 'Authentification multifacteur requise');
+            }
+
+            // Connexion normale réussie
+            session.uid = user.id;
+            session.user_vo = user;
+
+            if (session.save) {
+                session.save((error) => {
+                    if (error) {
+                        ConsoleHandler.error('ModuleAccessPolicyServer.loginWithAntiSpam:session.save:' + error);
+                    }
+                });
+            }
+
+            // On stocke le log de connexion en base
+            const user_log = new UserLogVO();
+            user_log.user_id = user.id;
+            user_log.log_time = Dates.now();
+            user_log.impersonated = false;
+            user_log.referer = StackContext.get('REFERER');
+            user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
+
+            await this.insert_or_update_uselog(user_log);
+
+            await PushDataServerController.notify_user_and_redirect(session.sid, redirect_to, sso);
+
+            // === ANTI-SPAM : Enregistrer le succès de connexion ===
+            antiSpam.recordMultipleAttempts(client_ip, email, user.id, true);
+            ConsoleHandler.log(`[ANTI-SPAM] Connexion réussie - IP: ${client_ip}, Email: ${email}, User: ${user.id}`);
+
+            return LoginResponseVO.createSuccess(user.id);
+        } catch (error) {
+            ConsoleHandler.error("loginWithAntiSpam:" + email + ":" + error);
+            return LoginResponseVO.createError('Erreur interne du serveur');
+        }
+    }
+
+    @RunsOnMainThread(ModuleAccessPolicyServer.getInstance)
+    private async getAntiSpamStatus(email: string): Promise<AntiSpamResponseVO> {
+        try {
+            // === ANTI-SPAM : Récupération du statut sans tentative ===
+            const antiSpam = AntiSpamController.getInstance();
+            // Plus besoin de l'IP - anti-spam basé sur email/user seulement
+            const client_ip = ''; // Placeholder - non utilisé
+
+            // Récupérer l'utilisateur par email pour avoir son ID
+            let target_user: UserVO = null;
+            if (email) {
+                try {
+                    target_user = await query(UserVO.API_TYPE_ID)
+                        .filter_by_text_eq(field_names<UserVO>().email, email)
+                        .exec_as_server()
+                        .select_vo<UserVO>();
+                } catch (error) {
+                    // Utilisateur non trouvé, on continuera avec les vérifications IP/email seulement
+                }
+            }
+
+            // Récupérer le statut anti-spam actuel sans enregistrer de tentative
+            const antiSpamResponse = await antiSpam.getAntiSpamStatus(
+                client_ip,
+                email,
+                target_user ? target_user.id.toString() : null
+            );
+
+            return antiSpamResponse;
+        } catch (error) {
+            ConsoleHandler.error("getAntiSpamStatus:" + email + ":" + error);
+            return AntiSpamResponseVO.createAllowed();
+        }
+    }
+
+    @RunsOnMainThread(ModuleAccessPolicyServer.getInstance)
     private async loginAndRedirect(email: string, password: string, redirect_to: string, sso: boolean): Promise<number> {
 
         try {
@@ -642,6 +1156,54 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
             if (!session) {
                 ConsoleHandler.warn('ModuleAccessPolicyServer.signinAndRedirect:session not found:SID:' + sid + ':UID:' + email);
+                return null;
+            }
+
+            // === ANTI-SPAM : Vérification des limites de tentatives ===
+            const antiSpam = AntiSpamController.getInstance();
+            // Plus besoin de l'IP - anti-spam basé sur email/user seulement
+            const client_ip = ''; // Placeholder - non utilisé
+
+            // D'abord récupérer l'utilisateur par email pour avoir son ID
+            let target_user: UserVO = null;
+            if (email) {
+                try {
+                    // Récupérer l'utilisateur par email seulement (sans vérifier le mot de passe)
+                    target_user = await query(UserVO.API_TYPE_ID)
+                        .filter_by_text_eq(field_names<UserVO>().email, email)
+                        .exec_as_server()
+                        .select_vo<UserVO>();
+                } catch (error) {
+                    // Utilisateur non trouvé, on continuera avec les vérifications IP/email seulement
+                }
+            }
+
+            // Vérifier les limites avec tous les identifiants disponibles
+            const multi_check = await antiSpam.checkMultipleRateLimits(
+                client_ip,
+                email,
+                target_user?.id?.toString(),
+                'login'
+            );
+
+            if (!multi_check.allowed) {
+                ConsoleHandler.warn(`[ANTI-SPAM] Tentative de login bloquée - IP: ${client_ip}, Email: ${email}, User: ${target_user?.id} - ${multi_check.message}`);
+
+                // Préparer la notification avec les détails du blocage
+                let notification_message = 'error.anti_spam.too_many_attempts.___LABEL___';
+
+                if (multi_check.delay_seconds) {
+                    // Si il y a un délai, afficher le temps d'attente spécifique
+                    notification_message = multi_check.message || `Veuillez attendre ${multi_check.delay_seconds} secondes avant de réessayer.`;
+                } else {
+                    // Si c'est un blocage complet, utiliser le message personnalisé
+                    notification_message = multi_check.message || 'Compte temporairement bloqué en raison de trop nombreuses tentatives.';
+                }
+
+                await PushDataServerController.notifySession(
+                    notification_message,
+                    NotificationVO.SIMPLE_ERROR
+                );
                 return null;
             }
 
@@ -675,10 +1237,16 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             }
 
             if (!user) {
+                // === ANTI-SPAM : Enregistrer l'échec de connexion ===
+                antiSpam.recordMultipleAttempts(client_ip, email, target_user?.id, false);
+                ConsoleHandler.warn(`[ANTI-SPAM] Tentative de login échouée - IP: ${client_ip}, Email: ${email}, User: ${target_user?.id}`);
                 return null;
             }
 
             if (user.blocked) {
+                // === ANTI-SPAM : Enregistrer l'échec (compte bloqué) ===
+                antiSpam.recordMultipleAttempts(client_ip, email, user.id, false);
+                ConsoleHandler.warn(`[ANTI-SPAM] Tentative de login sur compte bloqué - IP: ${client_ip}, Email: ${email}, User: ${user.id}`);
                 return null;
             }
 
@@ -688,12 +1256,143 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 // if ((!user.recovery_expiration) || (user.recovery_expiration<=Dates.now())) {
                 await PasswordRecovery.getInstance().beginRecovery(user.email);
                 // }
+                // === ANTI-SPAM : Enregistrer l'échec (compte invalidé) ===
+                antiSpam.recordMultipleAttempts(client_ip, email, user.id, false);
+                ConsoleHandler.warn(`[ANTI-SPAM] Tentative de login sur compte invalidé - IP: ${client_ip}, Email: ${email}, User: ${user.id}`);
                 return null;
             }
 
             if (!user.logged_once) {
                 user.logged_once = true;
                 await ModuleDAOServer.instance.insertOrUpdateVO_as_server(user);
+            }
+
+            // Vérifier si l'utilisateur est forcé à configurer la MFA
+            if (user.force_mfa_config) {
+                ConsoleHandler.log('loginAndRedirect: user.force_mfa_config = true pour user:', user.id);
+                const isMFAEnabled = await MFAServerController.getInstance().isMFAEnabled(user.id);
+                ConsoleHandler.log('loginAndRedirect: isMFAEnabled =', isMFAEnabled);
+
+                if (!isMFAEnabled) {
+                    ConsoleHandler.log('loginAndRedirect: MFA pas encore configuré, stockage données temporaires');
+                    // L'utilisateur doit configurer la MFA de force
+                    // SÉCURITÉ : Ne PAS connecter l'utilisateur avant configuration MFA
+                    session.mfa_temp_user_id = user.id;
+                    session.mfa_temp_user_vo = user;
+                    session.mfa_temp_created_at = Date.now();
+                    session.mfa_force_config = true;
+                    session.mfa_pending_redirect_to = redirect_to;
+                    session.mfa_pending_sso = sso;
+
+                    ConsoleHandler.log('loginAndRedirect: Données MFA stockées. session.mfa_force_config =', session.mfa_force_config);
+                    ConsoleHandler.log('loginAndRedirect: session.mfa_temp_user_id =', session.mfa_temp_user_id);
+
+                    // IMPORTANT : uid reste null jusqu'à configuration MFA
+                    session.uid = null;
+                    session.user_vo = null;
+                    ConsoleHandler.log('loginAndRedirect: session.uid mis à null =', session.uid);
+
+                    if (!session.save) {
+                        ConsoleHandler.error('ModuleAccessPolicyServer.loginAndRedirect:session.save:session.save not found:SID:' + sid);
+                    } else {
+                        ConsoleHandler.log('loginAndRedirect: Sauvegarde de la session...');
+
+                        // Attendre explicitement que la sauvegarde soit terminée
+                        await new Promise<void>((resolve, reject) => {
+                            session.save((error) => {
+                                if (error) {
+                                    ConsoleHandler.error('ModuleAccessPolicyServer.loginAndRedirect:session.save:' + error);
+                                    reject(error);
+                                } else {
+                                    ConsoleHandler.log('loginAndRedirect: Session sauvegardée avec succès');
+                                    resolve();
+                                }
+                            });
+                        });
+
+                        // Double vérification : relire la session depuis le cache pour confirmer
+                        const verifySession = ExpressDBSessionsServerCacheHolder.parsed_session_cache[ExpressDBSessionsServerCacheHolder.session_id_by_sid[sid]];
+                        ConsoleHandler.log('loginAndRedirect: Vérification session après sauvegarde:');
+                        ConsoleHandler.log('loginAndRedirect: verifySession.mfa_force_config =', verifySession.mfa_force_config);
+                        ConsoleHandler.log('loginAndRedirect: verifySession.mfa_temp_user_id =', verifySession.mfa_temp_user_id);
+                        ConsoleHandler.log('loginAndRedirect: verifySession.uid =', verifySession.uid);
+                    }
+
+                    ConsoleHandler.log('loginAndRedirect: Retour -31 pour configuration MFA forcée');
+                    // Retourner un code spécial pour indiquer qu'il faut configurer la MFA de force
+                    // -31: Configuration MFA forcée requise (afficher composant config dans login)
+                    return -31;
+                }
+                // Si MFA est déjà configuré, on continue normalement avec la vérification MFA
+            }
+
+            // Vérifier si l'utilisateur a la MFA activée
+            const isMFAEnabled = await MFAServerController.getInstance().isMFAEnabled(user.id);
+
+            if (isMFAEnabled) {
+                // Récupérer la configuration MFA de l'utilisateur
+                const userMFAConfig = await MFAServerController.getInstance().getUserMFAConfig(user.id);
+
+                if (!userMFAConfig) {
+                    ConsoleHandler.error('ModuleAccessPolicyServer.loginAndRedirect: MFA activé mais pas de config trouvée pour user:' + user.id);
+                    return null;
+                }
+
+                // SÉCURITÉ : Ne PAS connecter l'utilisateur avant validation MFA
+                // On stocke temporairement les infos dans une session MFA temporaire
+                session.mfa_temp_user_id = user.id;
+                session.mfa_temp_user_vo = user;
+                session.mfa_temp_created_at = Date.now();
+                session.mfa_pending = true;
+                session.mfa_pending_redirect_to = redirect_to;
+                session.mfa_pending_sso = sso;
+                session.mfa_pending_method = userMFAConfig.mfa_method;
+
+                // IMPORTANT : uid reste null jusqu'à validation MFA
+                session.uid = null;
+                session.user_vo = null;
+
+                ConsoleHandler.log('loginAndRedirect: MFA method stored =', userMFAConfig.mfa_method);
+                ConsoleHandler.log('loginAndRedirect: session uid =', session.uid);
+
+                // Si c'est Email ou SMS, envoyer automatiquement le code
+                if (userMFAConfig.mfa_method === 'email' || userMFAConfig.mfa_method === 'sms') {
+                    try {
+                        await MFAServerController.getInstance().generateAndSendMFACode(
+                            user.id,
+                            userMFAConfig.mfa_method
+                        );
+                    } catch (error) {
+                        ConsoleHandler.error('ModuleAccessPolicyServer.loginAndRedirect: Erreur envoi code MFA:', error);
+                        // On continue quand même, l'utilisateur pourra réessayer
+                    }
+                }
+
+                if (!session.save) {
+                    ConsoleHandler.error('ModuleAccessPolicyServer.loginAndRedirect:session.save:session.save not found:SID:' + sid);
+                } else {
+                    session.save((error) => {
+                        if (error) {
+                            ConsoleHandler.error('ModuleAccessPolicyServer.loginAndRedirect:session.save:' + error);
+                        }
+                    });
+                }
+
+                // Retourner un code spécial pour indiquer qu'il faut faire la MFA
+                // On encode la méthode dans le code de retour:
+                // -20: MFA TOTP required
+                // -21: MFA Email required
+                // -22: MFA SMS required
+                switch (userMFAConfig.mfa_method) {
+                    case 'totp':
+                        return -20;
+                    case 'email':
+                        return -21;
+                    case 'sms':
+                        return -22;
+                    default:
+                        return -2; // MFA requis mais méthode inconnue
+                }
             }
 
             session.uid = user.id;
@@ -722,12 +1421,325 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
             await PushDataServerController.notify_user_and_redirect(session.sid, redirect_to, sso);
 
+            // === ANTI-SPAM : Enregistrer le succès de connexion ===
+            antiSpam.recordMultipleAttempts(client_ip, email, user.id, true);
+            ConsoleHandler.log(`[ANTI-SPAM] Connexion réussie - IP: ${client_ip}, Email: ${email}, User: ${user.id}`);
+
             return user.id;
         } catch (error) {
             ConsoleHandler.error("login:" + email + ":" + error);
         }
 
         return null;
+    }
+
+
+    @RunsOnMainThread(ModuleAccessPolicyServer.getInstance)
+    private async mfaConfigure(param: MFAConfigureParamVO): Promise<boolean> {
+        if (!param || !param.userId || !param.method) {
+            return false;
+        }
+        try {
+            // SÉCURITÉ : Vérifier que l'utilisateur configure sa propre MFA ou a les droits admin
+            const sid = StackContext.get('SID');
+            const session = ExpressDBSessionsServerCacheHolder.parsed_session_cache[ExpressDBSessionsServerCacheHolder.session_id_by_sid[sid]];
+            if (!session) {
+                ConsoleHandler.error('ModuleAccessPolicyServer.mfaConfigure: Aucune session trouvée pour SID:', sid);
+                return false;
+            }
+            const current_user_id = ModuleAccessPolicyServer.getLoggedUserId();
+
+            // Pour la configuration forcée, utiliser l'utilisateur temporaire
+            const target_user_id = (session && session.mfa_force_config && session.mfa_temp_user_id)
+                ? session.mfa_temp_user_id
+                : current_user_id;
+
+            if (param.userId !== target_user_id && !AccessPolicyServerController.checkAccessSync(ModuleAccessPolicy.POLICY_BO_USERS_MANAGMENT_ACCESS)) {
+                ConsoleHandler.error('SÉCURITÉ : Tentative de configuration MFA non autorisée pour utilisateur:', param.userId, 'par:', target_user_id);
+                return false;
+            }
+
+            return await MFAServerController.getInstance().configureMFA(
+                param.userId,
+                param.method,
+                param.phoneNumber
+            );
+        } catch (error) {
+            ConsoleHandler.error('Erreur lors de la configuration MFA:', error);
+            return false;
+        }
+    }
+
+    @RunsOnMainThread(ModuleAccessPolicyServer.getInstance)
+    private async mfaActivate(param: MFAActivateParamVO): Promise<boolean> {
+        if (!param || !param.userId || !param.verificationCode) {
+            return false;
+        }
+
+        try {
+            // SÉCURITÉ : Vérifier que l'utilisateur active sa propre MFA ou a les droits admin
+            const sid = StackContext.get('SID');
+            const session = ExpressDBSessionsServerCacheHolder.parsed_session_cache[ExpressDBSessionsServerCacheHolder.session_id_by_sid[sid]];
+            if (!session) {
+                ConsoleHandler.error('ModuleAccessPolicyServer.mfaActivate: Aucune session trouvée pour SID:', sid);
+                return false;
+            }
+            const current_user_id = ModuleAccessPolicyServer.getLoggedUserId();
+
+            // Pour la configuration forcée, utiliser l'utilisateur temporaire
+            const target_user_id = (session && session.mfa_force_config && session.mfa_temp_user_id)
+                ? session.mfa_temp_user_id
+                : current_user_id;
+
+            if (param.userId !== target_user_id && !AccessPolicyServerController.checkAccessSync(ModuleAccessPolicy.POLICY_BO_USERS_MANAGMENT_ACCESS)) {
+                ConsoleHandler.error('SÉCURITÉ : Tentative d\'activation MFA non autorisée pour utilisateur:', param.userId, 'par:', target_user_id);
+                return false;
+            }
+
+            return await MFAServerController.getInstance().activateMFA(
+                param.userId,
+                param.verificationCode
+            );
+        } catch (error) {
+            ConsoleHandler.error('Erreur lors de l\'activation MFA:', error);
+            return false;
+        }
+    }
+
+
+    @RunsOnMainThread(ModuleAccessPolicyServer.getInstance)
+    private async mfaLoginVerify(param: MFAVerifyCodeParamVO): Promise<number> {
+        if (!param || !param.code || !param.method) {
+            ConsoleHandler.warn('mfaLoginVerify: Paramètres invalides:', param);
+            return -1; // Paramètres invalides
+        }
+
+        try {
+            // Récupérer la session depuis StackContext
+            const sid = StackContext.get('SID');
+            const session = ExpressDBSessionsServerCacheHolder.parsed_session_cache[ExpressDBSessionsServerCacheHolder.session_id_by_sid[sid]];
+            if (!session) {
+                ConsoleHandler.warn('ModuleAccessPolicyServer.mfaLoginVerify: Aucune session trouvée');
+                return -3; // Session expirée ou invalide
+            }
+
+            // SÉCURITÉ : Vérifier que la MFA est en attente ET qu'on a un utilisateur temporaire
+            if (!session.mfa_pending || !session.mfa_temp_user_id) {
+                ConsoleHandler.warn('ModuleAccessPolicyServer.mfaLoginVerify: Pas de MFA en attente ou pas d\'utilisateur temporaire');
+                return -3; // Pas de MFA en attente
+            }
+
+            const user_id = session.mfa_temp_user_id;
+
+            // Vérifier le code MFA
+            const isValidCode = await MFAServerController.getInstance().verifyMFACode(
+                user_id,
+                param.code,
+                param.method
+            );
+
+            if (!isValidCode) {
+                return -1; // Code invalide
+            }
+
+            // Code valide : maintenant on peut connecter réellement l'utilisateur
+            session.uid = session.mfa_temp_user_id;
+            session.user_vo = session.mfa_temp_user_vo;
+
+            // Nettoyer les données temporaires et MFA
+            session.mfa_pending = false;
+            delete session.mfa_temp_user_id;
+            delete session.mfa_temp_user_vo;
+            delete session.mfa_temp_created_at;
+            delete session.mfa_pending_method;
+            delete session.mfa_pending_redirect_to;
+            delete session.mfa_pending_sso;
+
+            // Mettre à jour le last_used_date de la configuration MFA
+            try {
+                const config : UserMFAVO = await query(UserMFAVO.API_TYPE_ID)
+                    .filter_by_num_eq(field_names<UserMFAVO>().user_id, user_id)
+                    .filter_by_text_eq(field_names<UserMFAVO>().mfa_method, param.method)
+                    .filter_boolean_value(field_names<UserMFAVO>().is_active, true)
+                    .select_vo<UserMFAVO>();
+                config.last_used_date = Dates.now() * 1000;
+                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(config);
+                ConsoleHandler.log('mfaLoginVerify: last_used_date mis à jour pour user:', user_id, 'method:', param.method);
+            } catch (error) {
+                ConsoleHandler.warn('mfaLoginVerify: Erreur mise à jour last_used_date:', error);
+                // On continue quand même, ce n'est pas bloquant
+            }
+
+            // On stocke le log de connexion en base
+            const user_log = new UserLogVO();
+            user_log.user_id = user_id;
+            user_log.log_time = Dates.now();
+            user_log.impersonated = false;
+            user_log.referer = StackContext.get('REFERER');
+            user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
+
+            await this.insert_or_update_uselog(user_log);
+
+            // Notification et redirection
+            await PushDataServerController.notify_user_and_redirect(
+                StackContext.get('SID'),
+                '/',
+                false
+            );
+            return user_id;
+
+        } catch (error) {
+            ConsoleHandler.error('Erreur lors de la vérification MFA de connexion:', error);
+            return -1;
+        }
+    }
+
+    @RunsOnMainThread(ModuleAccessPolicyServer.getInstance)
+    private async mfaGetLoginMethod(): Promise<string> {
+        try {
+            // Utiliser l'approche simplifiée avec StackContext
+            const sid = StackContext.get('SID');
+            const session = ExpressDBSessionsServerCacheHolder.parsed_session_cache[ExpressDBSessionsServerCacheHolder.session_id_by_sid[sid]];
+            if (!session) {
+                ConsoleHandler.warn('ModuleAccessPolicyServer.mfaGetLoginMethod: Aucune session trouvée');
+                return null;
+            }
+
+            // SÉCURITÉ : Vérifier que la MFA est en attente ET qu'on a un utilisateur temporaire
+            if (!session.mfa_pending || !session.mfa_temp_user_id) {
+                ConsoleHandler.log('mfaGetLoginMethod: pas de MFA en attente ou pas d\'utilisateur temporaire');
+                return null;
+            }
+
+            ConsoleHandler.log('mfaGetLoginMethod: session =', {
+                mfa_temp_user_id: session.mfa_temp_user_id,
+                mfa_pending_method: session.mfa_pending_method,
+                mfa_pending: session.mfa_pending
+            });
+
+            if (!session.mfa_pending_method) {
+                ConsoleHandler.log('mfaGetLoginMethod: pas de mfa_pending_method');
+                return null;
+            }
+
+            return session.mfa_pending_method;
+        } catch (error) {
+            ConsoleHandler.error('Erreur mfaGetLoginMethod:', error);
+            return null;
+        }
+    }
+
+    /**
+     * Renvoie le code MFA pour les méthodes Email et SMS
+     */
+    @RunsOnMainThread(ModuleAccessPolicyServer.getInstance)
+    private async mfaResendCode(): Promise<boolean> {
+        try {
+            // Utiliser l'approche simplifiée avec StackContext
+            const session = ExpressDBSessionsServerCacheHolder.parsed_session_cache[ExpressDBSessionsServerCacheHolder.session_id_by_sid[StackContext.get('SID')]];
+            if (!session) {
+                ConsoleHandler.warn('ModuleAccessPolicyServer.mfaResendCode: Aucune session trouvée');
+                return false;
+            }
+
+            // SÉCURITÉ : Vérifier que la MFA est en attente ET qu'on a un utilisateur temporaire
+            if (!session.mfa_pending || !session.mfa_temp_user_id) {
+                ConsoleHandler.log('mfaResendCode: pas de MFA en attente ou pas d\'utilisateur temporaire');
+                return false;
+            }
+
+            ConsoleHandler.log('mfaResendCode: session =', {
+                mfa_temp_user_id: session.mfa_temp_user_id,
+                mfa_pending_method: session.mfa_pending_method,
+                mfa_pending: session.mfa_pending
+            });
+
+            if (!session.mfa_pending_method) {
+                ConsoleHandler.log('mfaResendCode: pas de données de session MFA');
+                return false;
+            }
+
+            // Seuls Email et SMS peuvent être renvoyés
+            if (session.mfa_pending_method !== 'email' && session.mfa_pending_method !== 'sms') {
+                ConsoleHandler.log('mfaResendCode: méthode non applicable:', session.mfa_pending_method);
+                return false;
+            }
+
+            const user_id = session.mfa_temp_user_id;
+
+            // Récupérer la config MFA de l'utilisateur
+            const userMFA = await query(UserMFAVO.API_TYPE_ID)
+                .filter_by_num_eq('user_id', user_id)
+                .filter_by_text_eq('method', session.mfa_pending_method)
+                .filter_by_num_eq('enabled', 1)
+                .select_one();
+
+            if (!userMFA) {
+                ConsoleHandler.warn('mfaResendCode: Configuration MFA non trouvée pour user:', user_id);
+                return false;
+            }
+
+            // Générer et envoyer un nouveau code
+            const result = await MFAServerController.getInstance().generateAndSendMFACode(user_id, session.mfa_pending_method);
+
+            if (result) {
+                ConsoleHandler.log('mfaResendCode: Code renvoyé avec succès');
+                return true;
+            }
+
+            return false;
+        } catch (error) {
+            ConsoleHandler.error('Erreur mfaResendCode:', error);
+            return false;
+        }
+    }
+
+    @RunsOnMainThread(ModuleAccessPolicyServer.getInstance)
+    private async completeForcedMFAConfig(): Promise<boolean> {
+        try {
+            const sid = StackContext.get('SID');
+            const session = ExpressDBSessionsServerCacheHolder.parsed_session_cache[ExpressDBSessionsServerCacheHolder.session_id_by_sid[sid]];
+            if (!session) {
+                ConsoleHandler.warn('completeForcedMFAConfig: Aucune session trouvée');
+                return false;
+            }
+
+            // SÉCURITÉ : Vérifier que c'est bien une configuration MFA forcée ET qu'on a un utilisateur temporaire
+            if (!session.mfa_force_config || !session.mfa_temp_user_id) {
+                ConsoleHandler.warn('completeForcedMFAConfig: Pas de configuration forcée en cours ou pas d\'utilisateur temporaire');
+                return false;
+            }
+
+            const user_id = session.mfa_temp_user_id;
+
+            // Vérifier que la MFA est maintenant bien configurée et activée
+            const isMFAEnabled = await MFAServerController.getInstance().isMFAEnabled(user_id);
+            if (!isMFAEnabled) {
+                ConsoleHandler.warn('completeForcedMFAConfig: MFA toujours pas activée pour l\'utilisateur: ' + user_id);
+                return false;
+            }
+
+            // Finaliser la configuration MFA forcée côté utilisateur
+            await MFAServerController.getInstance().completeForcedMFAConfig(user_id);
+
+            // Maintenant on peut connecter réellement l'utilisateur
+            session.uid = session.mfa_temp_user_id;
+            session.user_vo = session.mfa_temp_user_vo;
+
+            // Nettoyer les données temporaires et MFA
+            session.mfa_force_config = false;
+            delete session.mfa_temp_user_id;
+            delete session.mfa_temp_user_vo;
+            delete session.mfa_temp_created_at;
+            delete session.mfa_pending_redirect_to;
+            delete session.mfa_pending_sso;
+
+            ConsoleHandler.log('Configuration MFA forcée terminée avec succès pour l\'utilisateur: ' + user_id);
+            return true;
+        } catch (error) {
+            ConsoleHandler.error('Erreur completeForcedMFAConfig:', error);
+            return false;
+        }
     }
 
     /**
@@ -1089,6 +2101,9 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         ModuleDAOServer.instance.registerContextAccessHook(AccessPolicyVO.API_TYPE_ID, this, this.filterPolicyByActivModulesContextAccessHook);
         ModuleDAOServer.instance.registerAccessHook(AccessPolicyVO.API_TYPE_ID, ModuleDAO.DAO_ACCESS_TYPE_READ, this, this.filterPolicyByActivModules);
+
+        // Hook pour calculer automatiquement le champ mfa_enabled des utilisateurs
+        ModuleDAOServer.instance.registerAccessHook(UserVO.API_TYPE_ID, ModuleDAO.DAO_ACCESS_TYPE_READ, this, this.calculateMFAEnabledField);
     }
 
     // istanbul ignore next: cannot test configure
@@ -1125,12 +2140,18 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         postUpdateTrigger.registerHandler(RolePolicyVO.API_TYPE_ID, this, this.onUpdateRolePolicyVO);
         postUpdateTrigger.registerHandler(RoleVO.API_TYPE_ID, this, this.onUpdateRoleVO);
         postUpdateTrigger.registerHandler(UserRoleVO.API_TYPE_ID, this, this.onUpdateUserRoleVO);
+        postUpdateTrigger.registerHandler(UserVO.API_TYPE_ID, this, this.onUpdateUserVO);
 
         preDeleteTrigger.registerHandler(AccessPolicyVO.API_TYPE_ID, this, this.onDeleteAccessPolicyVO);
         preDeleteTrigger.registerHandler(PolicyDependencyVO.API_TYPE_ID, this, this.onDeletePolicyDependencyVO);
         preDeleteTrigger.registerHandler(RolePolicyVO.API_TYPE_ID, this, this.onDeleteRolePolicyVO);
         preDeleteTrigger.registerHandler(RoleVO.API_TYPE_ID, this, this.onDeleteRoleVO);
         preDeleteTrigger.registerHandler(UserRoleVO.API_TYPE_ID, this, this.onDeleteUserRoleVO);
+
+        // Triggers pour mettre à jour automatiquement le champ mfa_enabled des utilisateurs
+        postCreateTrigger.registerHandler(UserMFAVO.API_TYPE_ID, this, this.onCreateUserMFAVO);
+        postUpdateTrigger.registerHandler(UserMFAVO.API_TYPE_ID, this, this.onUpdateUserMFAVO);
+        preDeleteTrigger.registerHandler(UserMFAVO.API_TYPE_ID, this, this.onDeleteUserMFAVO);
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Partager la connexion'
@@ -1317,6 +2338,9 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             'fr-fr': 'Connexion validée'
         }, 'login.ok.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Configuration MFA requise - Redirection...'
+        }, 'login.mfa_force_config.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Récupération du mot de passe'
         }, 'login.recover.title.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
@@ -1377,13 +2401,19 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             'fr-fr': 'Récupération échouée'
         }, 'recover.failed.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-            'fr-fr': 'Consultez vos mails'
+            'fr-fr': 'Consultez vos mails<'
         }, 'recover.ok.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Vous devriez recevoir un mail d\'ici quelques minutes pour réinitialiser votre compte. Si vous n\'avez reçu aucun mail, vérifiez vos spams, et que le mail saisi est bien celui du compte et réessayez. Vous pouvez également tenter la récupération par SMS.'
         }, 'login.recover.answercansms.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-            'fr-fr': 'Vous devriez recevoir un mail d\'ici quelques minutes pour réinitialiser votre compte. Si vous n\'avez reçu aucun mail, vérifiez vos spams, et que le mail saisi est bien celui du compte et réessayez.'
+            'fr-fr': 'Je n\'ai rien reçu - Besoin d\'aide ?'
+        }, 'login.recover.help.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Il arrive que nos emails de réinitialisation soient retenus par Mailinblack. \n Pas d\'inquiétude : voici comment les retrouver et autoriser notre adresse pour recevoir sans problème tous nos prochains emails (mot de passe oublié, notifications, etc..). \n \n 1️⃣ Vérifier votre boîte Mailinblack si un email intitulé "Demande de validation" est en attente. \n 2️⃣ Cliquez sur "Accepter / Autoriser l\'expéditeur" afin de valider l\'adresse contact@wedev.fr \n 3️⃣ Une fois validée, tous les prochains emails arriveront directement dans votre boîte de réception.'
+        }, 'login.recover.help.tooltip.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': '⚠️ Renseignez bien l\'adresse email lié à votre compte. \n Vous devriez recevoir un mail d\'ici quelques minutes pour réinitialiser votre compte. Si vous n\'avez reçu aucun mail, vérifiez vos spams, et que le mail saisi est bien celui du compte et réessayez.'
         }, 'login.recover.answer.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Réinitialisation de votre mot de passe'
@@ -1434,6 +2464,184 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Mon profil'
         }, 'my_account_page.my_account_content_header.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Authentification à deux facteurs'
+        }, 'my_account_page.mfa_management.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Sécurisez votre compte avec l\'authentification à deux facteurs'
+        }, 'my_account_page.mfa_description.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Gérer MFA'
+        }, 'my_account_page.mfa_button.___LABEL___'));
+
+        // Traductions pour MFA Login
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Authentification à deux facteurs requise'
+        }, 'login.mfa_required.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Vérification en cours...'
+        }, 'mfa.verifying.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Vérification MFA requise'
+        }, 'mfa.verification_required.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Saisissez votre code d\'authentification'
+        }, 'mfa.enter_code.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Saisissez le code de votre authenticateur'
+        }, 'mfa.enter_totp_code.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Un code a été envoyé à votre adresse email'
+        }, 'mfa.code_sent_email.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Un code a été envoyé par SMS'
+        }, 'mfa.code_sent_sms.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Méthode'
+        }, 'mfa.method_label.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Code à 6 chiffres'
+        }, 'mfa.code_placeholder.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Vérifier'
+        }, 'mfa.verify.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Annuler'
+        }, 'mfa.cancel.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Code invalide'
+        }, 'mfa.invalid_code.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Vérification MFA échouée'
+        }, 'mfa.verification_failed.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Authentificateur (TOTP)'
+        }, 'mfa.method.totp.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Email'
+        }, 'mfa.method.email.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'SMS'
+        }, 'mfa.method.sms.___LABEL___'));
+
+        // Traductions pour le renvoi de code MFA
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Renvoyer le code'
+        }, 'mfa.resend.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Renvoyer dans {seconds}s'
+        }, 'mfa.resend_wait.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Renvoi du code en cours...'
+        }, 'mfa.resending.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Code renvoyé avec succès'
+        }, 'mfa.resent.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Échec du renvoi du code'
+        }, 'mfa.resend_failed.___LABEL___'));
+
+        // Traductions pour la configuration MFA
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Configuration de l\'authentification à deux facteurs'
+        }, 'mfa.configuration.titre.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Méthode d\'authentification'
+        }, 'mfa.configuration.methode.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Numéro de téléphone'
+        }, 'mfa.configuration.telephone.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Ex: +33123456789'
+        }, 'mfa.configuration.telephone_placeholder.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Configuration MFA réussie'
+        }, 'mfa.configuration.succes.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Échec de la configuration MFA'
+        }, 'mfa.configuration.echec.___LABEL___'));
+
+        // Traductions pour la vérification MFA
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Vérification à deux facteurs'
+        }, 'mfa.verification.titre.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Saisissez le code reçu pour continuer'
+        }, 'mfa.verification.description.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Code de vérification'
+        }, 'mfa.verification.code.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Saisissez le code à 6 chiffres'
+        }, 'mfa.verification.code_placeholder.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Besoin d\'aide ? Contactez votre administrateur'
+        }, 'mfa.verification.aide.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Vérification réussie'
+        }, 'mfa.verification.succes.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Code incorrect ou expiré'
+        }, 'mfa.verification.echec.___LABEL___'));
+
+        // Traductions pour les méthodes MFA (pas de doublons - utiliser celles existantes)
+        // Ajout des traductions manquantes avec nomenclature .methode. utilisée dans les composants
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Email'
+        }, 'mfa.methode.email.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'SMS'
+        }, 'mfa.methode.sms.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Application Authentificateur'
+        }, 'mfa.methode.authenticator.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Méthode inconnue'
+        }, 'mfa.methode.inconnue.___LABEL___'));
+
+        // Traductions pour les boutons MFA
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Envoyer le code'
+        }, 'mfa.bouton.envoyer_code.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Vérifier le code'
+        }, 'mfa.bouton.verifier.___LABEL___'));
+
+        // Traductions pour le chargement MFA
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Chargement en cours...'
+        }, 'mfa.chargement.___LABEL___'));
+
+        // Traductions pour les codes MFA
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Code envoyé avec succès'
+        }, 'mfa.code.envoye.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Échec de l\'envoi du code'
+        }, 'mfa.code.echec.___LABEL___'));
+
+        // Traductions pour les erreurs MFA
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Erreur lors du chargement'
+        }, 'mfa.erreur.chargement.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Utilisateur invalide'
+        }, 'mfa.erreur.utilisateur_invalide.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Le numéro de téléphone est requis pour le SMS'
+        }, 'mfa.erreur.telephone_requis.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Erreur lors de l\'envoi du code'
+        }, 'mfa.erreur.envoi_code.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Le code de vérification est requis'
+        }, 'mfa.erreur.code_requis.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Erreur lors de la vérification'
+        }, 'mfa.erreur.verification.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Accéder au site'
@@ -1659,6 +2867,327 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Confirmation archivage"
         }, 'TableWidgetComponent.confirm_archive.title.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': "Crescendo"
+        }, 'app_name.___LABEL___'));
+
+        // Traductions MFA
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Erreur lors du chargement du statut MFA'
+        }, 'mfa.error.load_status.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Utilisateur invalide'
+        }, 'mfa.error.invalid_user.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Numéro de téléphone requis'
+        }, 'mfa.error.phone_required.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Configuration MFA réussie'
+        }, 'mfa.success.configure.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Échec de la configuration MFA'
+        }, 'mfa.error.configure_failed.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Erreur lors de la configuration MFA'
+        }, 'mfa.error.configure.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Erreur lors de la génération du QR code'
+        }, 'mfa.error.qr_code.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Code de vérification envoyé'
+        }, 'mfa.success.code_sent.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Échec de l\'envoi du code'
+        }, 'mfa.error.send_failed.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Erreur lors de l\'envoi du code'
+        }, 'mfa.error.send.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Code de vérification requis'
+        }, 'mfa.error.code_required.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'MFA activé avec succès'
+        }, 'mfa.success.activate.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Code de vérification invalide'
+        }, 'mfa.error.invalid_code.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Erreur lors de l\'activation MFA'
+        }, 'mfa.error.activate.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Êtes-vous sûr de vouloir désactiver l\'authentification à deux facteurs ?'
+        }, 'mfa.confirm.disable.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'MFA désactivé avec succès'
+        }, 'mfa.success.disable.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Échec de la désactivation MFA'
+        }, 'mfa.error.disable_failed.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Erreur lors de la désactivation MFA'
+        }, 'mfa.error.disable.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Non défini'
+        }, 'mfa.date.undefined.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Date invalide'
+        }, 'mfa.date.invalid.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Code copié dans le presse-papiers'
+        }, 'mfa.success.copy.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Erreur lors de la copie'
+        }, 'mfa.error.copy.___LABEL___'));
+
+        // Labels méthodes MFA
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Email'
+        }, 'mfa.method.email.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'SMS'
+        }, 'mfa.method.sms.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Application d\'authentification'
+        }, 'mfa.method.authenticator.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Méthode inconnue'
+        }, 'mfa.method.unknown.___LABEL___'));
+
+        // Labels pour le login MFA
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Vérification requise'
+        }, 'mfa.verification_required.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Saisissez le code de votre application d\'authentification'
+        }, 'mfa.enter_totp_code.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Un code de vérification a été envoyé à votre adresse email'
+        }, 'mfa.code_sent_email.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Un code de vérification a été envoyé par SMS'
+        }, 'mfa.code_sent_sms.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Méthode'
+        }, 'mfa.method_label.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Code de vérification'
+        }, 'mfa.code_placeholder.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Vérifier'
+        }, 'mfa.verify.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Annuler'
+        }, 'mfa.cancel.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Renvoyer le code'
+        }, 'mfa.resend.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Renvoyer dans {seconds}s'
+        }, 'mfa.resend_wait.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Vérification en cours...'
+        }, 'mfa.verifying.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Renvoi en cours...'
+        }, 'mfa.resending.___LABEL___'));
+
+        // Labels pour MFAPageComponent
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Authentification à deux facteurs (MFA)'
+        }, 'mfa.page.title.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Retour au compte'
+        }, 'mfa.page.back_to_account.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Chargement...'
+        }, 'mfa.page.loading.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'MFA Activé'
+        }, 'mfa.page.status.enabled.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Méthode:'
+        }, 'mfa.page.status.method.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Dernière utilisation:'
+        }, 'mfa.page.status.last_used.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Jamais utilisé'
+        }, 'mfa.page.status.never_used.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Date de création:'
+        }, 'mfa.page.status.created_date.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Désactiver MFA'
+        }, 'mfa.page.action.disable.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'MFA Non activé'
+        }, 'mfa.page.status.disabled.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Votre compte n\'est pas protégé par l\'authentification à deux facteurs'
+        }, 'mfa.page.status.disabled_desc.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'L\'authentification à deux facteurs ajoute une couche de sécurité supplémentaire à votre compte.'
+        }, 'mfa.page.description.security.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Même si votre mot de passe est compromis, votre compte restera protégé.'
+        }, 'mfa.page.description.protection.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Activer MFA'
+        }, 'mfa.page.action.enable.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Activer MFA'
+        }, 'mfa.page.action.activate.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Impossible de désactiver MFA'
+        }, 'mfa.info.desactivation_impossible.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Configuration MFA'
+        }, 'mfa.page.config.title.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Choisissez votre méthode d\'authentification'
+        }, 'mfa.page.config.choose_method.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Application d\'authentification'
+        }, 'mfa.page.config.method.authenticator.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': '(Recommandé)'
+        }, 'mfa.page.config.method.recommended.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Utilisez Google Authenticator, Microsoft Authenticator, ou Authy'
+        }, 'mfa.page.config.method.authenticator_desc.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Code envoyé par email à'
+        }, 'mfa.page.config.method.email_desc.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Code envoyé par SMS'
+        }, 'mfa.page.config.method.sms_desc.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Numéro de téléphone'
+        }, 'mfa.page.config.phone_label.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Continuer'
+        }, 'mfa.page.action.continue.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Modifier MFA'
+        }, 'mfa.page.action.modify.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Activation MFA'
+        }, 'mfa.page.activation.title.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Configuration de votre application d\'authentification'
+        }, 'mfa.page.activation.authenticator_setup.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Scannez le QR Code'
+        }, 'mfa.page.activation.step1.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Ouvrez votre application d\'authentification et scannez le code QR ci-dessous :'
+        }, 'mfa.page.activation.step1_desc.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Ou saisissez le code manuellement'
+        }, 'mfa.page.activation.step2.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Si vous ne pouvez pas scanner le QR code, saisissez ce code dans votre application :'
+        }, 'mfa.page.activation.step2_desc.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Copier'
+        }, 'mfa.page.activation.copy.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Applications recommandées'
+        }, 'mfa.page.activation.step3.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Google Authenticator'
+        }, 'mfa.page.activation.app.google.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Microsoft Authenticator'
+        }, 'mfa.page.activation.app.microsoft.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Authy'
+        }, 'mfa.page.activation.app.authy.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': '1Password'
+        }, 'mfa.page.activation.app.onepassword.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Un code de vérification sera envoyé à votre adresse email'
+        }, 'mfa.page.activation.email_desc.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Un code de vérification sera envoyé par SMS au'
+        }, 'mfa.page.activation.sms_desc.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Envoyer le code'
+        }, 'mfa.page.activation.send_code.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Saisissez le code à 6 chiffres généré par votre application d\'authentification'
+        }, 'mfa.page.activation.verification_help.___LABEL___'));
+
+        // Messages pour la configuration MFA forcée
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Vous devez configurer l\'authentification à deux facteurs pour continuer'
+        }, 'mfa.forced.cannot_leave.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'La configuration MFA est obligatoire, vous ne pouvez pas l\'annuler'
+        }, 'mfa.forced.cannot_cancel.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Configuration MFA obligatoire : Pour des raisons de sécurité, vous devez configurer l\'authentification à deux facteurs avant de pouvoir accéder à l\'application.'
+        }, 'mfa.forced.notice.___LABEL___'));
+
+        // Nouvelles traductions pour la configuration MFA forcée inline
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Configuration MFA Obligatoire'
+        }, 'mfa.forced.title.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Configurez maintenant votre authentification à deux facteurs'
+        }, 'mfa.forced.configure_now.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Choisissez votre méthode d\'authentification préférée'
+        }, 'mfa.forced.choose_method.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Finaliser la configuration'
+        }, 'mfa.forced.complete_config.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Annuler'
+        }, 'mfa.forced.cancel.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Finalisation en cours...'
+        }, 'mfa.force_config.completing.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Configuration MFA finalisée avec succès'
+        }, 'mfa.force_config.completed.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Échec de la finalisation MFA'
+        }, 'mfa.force_config.completion_failed.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Configuration MFA terminée avec succès ! Redirection en cours...'
+        }, 'mfa.forced.config_complete_success.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Erreur lors de la finalisation de la configuration MFA. Veuillez réessayer.'
+        }, 'mfa.forced.config_complete_error.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Chargement des informations utilisateur...'
+        }, 'mfa.page.loading_user.___LABEL___'));
+
+        // Labels manquants utilisés dans les composants
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Erreur lors de la configuration MFA'
+        }, 'mfa.erreur.configuration.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Erreur lors de la génération du QR code'
+        }, 'mfa.erreur.qr_code.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'MFA activé avec succès'
+        }, 'mfa.activation.succes.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Échec de l\'activation MFA'
+        }, 'mfa.activation.echec.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Confirmez-vous vouloir modifier votre méthode d\'authentification à deux facteurs ?'
+        }, 'mfa.modification.confirmation.___LABEL___'));
+        // SÉCURITÉ : Démarrer le nettoyage automatique des sessions MFA expirées
+        // Nettoyer toutes les heures les sessions MFA qui ont expiré (15 minutes)
+        ModuleAccessPolicyServer.mfaCleanupTimer = setInterval(async () => {
+            await ModuleAccessPolicyServer.cleanupExpiredMFASessions();
+        }, 60 * 60 * 1000); // Toutes les heures
+
+        ConsoleHandler.log('Nettoyage automatique des sessions MFA configuré (toutes les heures)');
     }
 
     // istanbul ignore next: cannot test registerServerApiHandlers
@@ -1673,11 +3202,15 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_BEGIN_RECOVER_SMS, this.beginRecoverSMS.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_RESET_PWD, this.resetPwd.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_RESET_PWDUID, this.resetPwdUID.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_RESET_PWD_DETAILED, this.resetPwdDetailed.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_RESET_PWDUID_DETAILED, this.resetPwdUIDDetailed.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_checkCode, this.checkCode.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_checkCodeUID, this.checkCodeUID.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_GET_ACCESS_MATRIX, this.getAccessMatrix.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_TOGGLE_ACCESS, this.togglePolicy.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_LOGIN_AND_REDIRECT, this.loginAndRedirect.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_LOGIN_WITH_ANTISPAM, this.loginWithAntiSpam.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_GET_ANTISPAM_STATUS, this.getAntiSpamStatus.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_SIGNIN_AND_REDIRECT, this.signinAndRedirect.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_GET_LOGGED_USER_ID, ModuleAccessPolicyServer.getLoggedUserId as any);
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_GET_LOGGED_USER_NAME, ModuleAccessPolicyServer.getLoggedUserName);
@@ -1700,6 +3233,20 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_BEGIN_RECOVER_SMS_UID, this.BEGIN_RECOVER_SMS_UID.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_GET_AVATAR_NAME, this.get_avatar_name.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_GET_AVATAR_URL, this.get_avatar_url.bind(this));
+
+        // MFA APIs
+        APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_MFA_IS_ENABLED, this.mfaIsEnabled.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_MFA_GET_CONFIG, this.mfaGetConfig.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_MFA_CONFIGURE, this.mfaConfigure.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_MFA_GENERATE_CODE, this.mfaGenerateCode.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_MFA_ACTIVATE, this.mfaActivate.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_MFA_DISABLE, this.mfaDisable.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_MFA_VERIFY_CODE, this.mfaVerifyCode.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_MFA_LOGIN_VERIFY, this.mfaLoginVerify.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_MFA_GET_LOGIN_METHOD, this.mfaGetLoginMethod.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_MFA_RESEND_CODE, this.mfaResendCode.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_MFA_COMPLETE_FORCED_CONFIG, this.completeForcedMFAConfig.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_MFA_GET_TEMP_USER, this.mfaGetTempUser.bind(this));
     }
 
     public async get_avatar_name(uid: number): Promise<string> {
@@ -1885,8 +3432,8 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         await ModuleDAOServer.instance.query('update ' + ModuleTableController.module_tables_by_vo_type[UserVO.API_TYPE_ID].full_name + ' set ' +
             "lang_id=$1 where id=$2",
-            [num, user_id],
-            true);
+        [num, user_id],
+        true);
     }
 
     /**
@@ -1989,7 +3536,6 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }
 
         // Il faut qu'on sache si il existe une policy explicit à cet endroit
-        let insertOrDeleteQueryResult: InsertOrDeleteQueryResult;
         let role_policy: RolePolicyVO = AccessPolicyServerController.get_role_policy_by_ids(role.id, target_policy.id);
         if (role_policy) {
 
@@ -2006,8 +3552,8 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         role_policy.granted = true;
         role_policy.role_id = role.id;
 
-        insertOrDeleteQueryResult = await ModuleDAOServer.instance.insertOrUpdateVO_as_server(role_policy);
-        if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
+        const insertOrDeleteQueryResult2 = await ModuleDAOServer.instance.insertOrUpdateVO_as_server(role_policy);
+        if ((!insertOrDeleteQueryResult2) || (!insertOrDeleteQueryResult2.id)) {
             return false;
         }
 
@@ -2041,7 +3587,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }
 
         return await
-            query(RoleVO.API_TYPE_ID).filter_by_id(uid, UserVO.API_TYPE_ID).exec_as_server().select_vos();
+        query(RoleVO.API_TYPE_ID).filter_by_id(uid, UserVO.API_TYPE_ID).exec_as_server().select_vos();
     }
 
     private async get_user_roles(uid: number): Promise<RoleVO[]> {
@@ -2051,7 +3597,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }
 
         return await
-            query(RoleVO.API_TYPE_ID).filter_by_id(uid, UserVO.API_TYPE_ID).exec_as_server().select_vos();
+        query(RoleVO.API_TYPE_ID).filter_by_id(uid, UserVO.API_TYPE_ID).exec_as_server().select_vos();
     }
 
     /**
@@ -2171,6 +3717,32 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         return PasswordReset.getInstance().resetPwdUID(uid, challenge, new_pwd1);
     }
 
+    private async resetPwdDetailed(email: string, challenge: string, new_pwd1: string): Promise<ResetPwdResultVO> {
+
+        if (!ModuleAccessPolicy.getInstance().actif) {
+            return ResetPwdResultVO.create({
+                success: false,
+                error_code: ResetPwdResultVO.ERROR_CODE_MODULE_DISABLED,
+                message: 'Module AccessPolicy désactivé'
+            });
+        }
+
+        return PasswordReset.getInstance().resetPwdDetailed(email, challenge, new_pwd1);
+    }
+
+    private async resetPwdUIDDetailed(uid: number, challenge: string, new_pwd1: string): Promise<ResetPwdResultVO> {
+
+        if (!ModuleAccessPolicy.getInstance().actif) {
+            return ResetPwdResultVO.create({
+                success: false,
+                error_code: ResetPwdResultVO.ERROR_CODE_MODULE_DISABLED,
+                message: 'Module AccessPolicy désactivé'
+            });
+        }
+
+        return PasswordReset.getInstance().resetPwdUIDDetailed(uid, challenge, new_pwd1);
+    }
+
     private async handleTriggerUserVOUpdate(vo_update_holder: DAOUpdateVOHolder<UserVO>): Promise<boolean> {
 
         if ((!vo_update_holder.post_update_vo) || (!vo_update_holder.post_update_vo.password) || (!vo_update_holder.post_update_vo.id)) {
@@ -2278,6 +3850,26 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         await ForkedTasksController.broadexec(AccessPolicyServerController.TASK_NAME_reload_access_matrix, vo_update_holder);
     }
 
+    private async onUpdateUserVO(vo_update_holder: DAOUpdateVOHolder<UserVO>): Promise<void> {
+        try {
+            const old_vo = vo_update_holder.pre_update_vo;
+            const new_vo = vo_update_holder.post_update_vo;
+
+            // Vérifier si force_mfa_config passe de false/undefined à true
+            if (new_vo.force_mfa_config && !old_vo.force_mfa_config) {
+                ConsoleHandler.log('onUpdateUserVO: force_mfa_config activé pour utilisateur: ' + new_vo.id + ', invalidation de la config MFA existante');
+
+                // Invalider toute la configuration MFA existante
+                await MFAServerController.getInstance().invalidateUserMFAConfig(new_vo.id);
+
+                ConsoleHandler.log('onUpdateUserVO: Configuration MFA invalidée avec succès pour utilisateur: ' + new_vo.id);
+            }
+        } catch (error) {
+            ConsoleHandler.error('Erreur dans onUpdateUserVO pour invalidation MFA: ' + error);
+            // Ne pas faire échouer la mise à jour de l'utilisateur pour autant
+        }
+    }
+
     private async onDeleteAccessPolicyVO(vo: AccessPolicyVO): Promise<boolean> {
         if ((!vo) || (!vo.id)) {
             return true;
@@ -2326,6 +3918,123 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         return true;
     }
 
+    /**
+     * Handler appelé lors de la création d'un UserMFAVO
+     * Met à jour automatiquement le champ mfa_enabled de l'utilisateur
+     */
+    private async onCreateUserMFAVO(vo: UserMFAVO): Promise<void> {
+        if (!vo || !vo.user_id) {
+            return;
+        }
+
+        try {
+            // Récupérer l'utilisateur
+            const user = await query(UserVO.API_TYPE_ID)
+                .filter_by_id(vo.user_id)
+                .select_vo<UserVO>();
+
+            if (!user) {
+                ConsoleHandler.warn('Utilisateur introuvable pour UserMFAVO: ' + vo.user_id);
+                return;
+            }
+
+            // Mettre à jour le champ mfa_enabled selon l'état du MFA
+            const newMFAStatus = vo.is_active === true;
+
+            if (user.mfa_enabled !== newMFAStatus) {
+                user.mfa_enabled = newMFAStatus;
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(user);
+                ConsoleHandler.log('Champ mfa_enabled mis à jour pour l\'utilisateur ' + vo.user_id + ': ' + newMFAStatus);
+            }
+
+        } catch (error) {
+            ConsoleHandler.error('Erreur lors de la mise à jour du champ mfa_enabled (create): ' + error);
+        }
+    }
+
+    /**
+     * Handler appelé lors de la modification d'un UserMFAVO
+     * Met à jour automatiquement le champ mfa_enabled de l'utilisateur
+     */
+    private async onUpdateUserMFAVO(vo_update_holder: DAOUpdateVOHolder<UserMFAVO>): Promise<void> {
+        const new_vo = vo_update_holder.post_update_vo;
+        const old_vo = vo_update_holder.pre_update_vo;
+
+        if (!new_vo || !new_vo.user_id) {
+            return;
+        }
+
+        // Ne rien faire si le statut is_active n'a pas changé
+        if (old_vo?.is_active === new_vo.is_active) {
+            return;
+        }
+
+        try {
+            // Récupérer l'utilisateur
+            const user = await query(UserVO.API_TYPE_ID)
+                .filter_by_id(new_vo.user_id)
+                .select_vo<UserVO>();
+
+            if (!user) {
+                ConsoleHandler.warn('Utilisateur introuvable pour UserMFAVO: ' + new_vo.user_id);
+                return;
+            }
+
+            // Mettre à jour le champ mfa_enabled selon l'état du MFA
+            const newMFAStatus = new_vo.is_active === true;
+
+            if (user.mfa_enabled !== newMFAStatus) {
+                user.mfa_enabled = newMFAStatus;
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(user);
+                ConsoleHandler.log('Champ mfa_enabled mis à jour pour l\'utilisateur ' + new_vo.user_id + ': ' + newMFAStatus);
+            }
+
+        } catch (error) {
+            ConsoleHandler.error('Erreur lors de la mise à jour du champ mfa_enabled (update): ' + error);
+        }
+    }
+
+    /**
+     * Handler appelé lors de la suppression d'un UserMFAVO
+     * Met le champ mfa_enabled de l'utilisateur à false
+     */
+    private async onDeleteUserMFAVO(vo: UserMFAVO): Promise<boolean> {
+        if (!vo || !vo.user_id) {
+            return true;
+        }
+
+        try {
+            // Récupérer l'utilisateur
+            const user = await query(UserVO.API_TYPE_ID)
+                .filter_by_id(vo.user_id)
+                .select_vo<UserVO>();
+
+            if (!user) {
+                ConsoleHandler.warn('Utilisateur introuvable pour suppression UserMFAVO: ' + vo.user_id);
+                return true;
+            }
+
+            // Vérifier s'il reste d'autres configurations MFA actives pour cet utilisateur
+            const remainingMFA = await query(UserMFAVO.API_TYPE_ID)
+                .filter_by_num_eq(field_names<UserMFAVO>().user_id, vo.user_id)
+                .filter_is_true(field_names<UserMFAVO>().is_active)
+                .select_vo<UserMFAVO>();
+
+            const newMFAStatus = !!remainingMFA;
+
+            if (user.mfa_enabled !== newMFAStatus) {
+                user.mfa_enabled = newMFAStatus;
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(user);
+                ConsoleHandler.log('Champ mfa_enabled mis à jour après suppression pour l\'utilisateur ' + vo.user_id + ': ' + newMFAStatus);
+            }
+
+        } catch (error) {
+            ConsoleHandler.error('Erreur lors de la mise à jour du champ mfa_enabled après suppression: ' + error);
+        }
+
+        return true;
+    }
+
     private async impersonate(uid: number): Promise<number> {
 
         if (!uid) {
@@ -2360,6 +4069,59 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     //         res.redirect("/");
     //     }
     // }
+
+    /**
+     * Hook pour calculer automatiquement le champ mfa_enabled lors de la lecture des utilisateurs
+     * @param datatable La table des utilisateurs
+     * @param vos Les utilisateurs récupérés de la base
+     * @param uid L'ID de l'utilisateur qui fait la requête
+     * @param user_data Les données de l'utilisateur qui fait la requête
+     * @returns Les utilisateurs avec le champ mfa_enabled calculé
+     */
+    private async calculateMFAEnabledField(datatable: ModuleTableVO, vos: UserVO[], uid: number, user_data: IUserData): Promise<UserVO[]> {
+        if (!vos || vos.length === 0) {
+            return vos;
+        }
+
+        try {
+            // Récupérer tous les IDs des utilisateurs
+            const userIds = vos.map(user => user.id).filter(id => id != null);
+
+            if (userIds.length === 0) {
+                return vos;
+            }
+
+            // Créer un set pour les utilisateurs avec MFA activé
+            const enabledMFAUserIds = new Set<number>();
+
+            // Vérifier pour chaque utilisateur s'il a une configuration MFA active
+            // Utilisation de requêtes individuelles pour éviter les complications avec TYPE_IN
+            for (const userId of userIds) {
+                const userMFA = await query(UserMFAVO.API_TYPE_ID)
+                    .filter_by_num_eq(field_names<UserMFAVO>().user_id, userId)
+                    .filter_is_true(field_names<UserMFAVO>().is_active)
+                    .select_vo<UserMFAVO>();
+
+                if (userMFA) {
+                    enabledMFAUserIds.add(userId);
+                }
+            }
+
+            // Mettre à jour le champ mfa_enabled pour chaque utilisateur
+            for (const user of vos) {
+                user.mfa_enabled = user.id != null && enabledMFAUserIds.has(user.id);
+            }
+
+        } catch (error) {
+            ConsoleHandler.error('Erreur lors du calcul du champ mfa_enabled: ' + error);
+            // En cas d'erreur, on met false par défaut
+            for (const user of vos) {
+                user.mfa_enabled = false;
+            }
+        }
+
+        return vos;
+    }
 
     /**
      * Context access hook pour les policies qui doivent être liées à un module valide. On sélectionne l'id des policies valides
@@ -2538,6 +4300,96 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             SendInBlueSmsFormatVO.createNew(phone),
             text,
             'session_share');
+    }
+
+    // ======= MFA METHODS =======
+    // Utilisation du MFAServerController existant pour toutes les fonctionnalités MFA
+
+    private async mfaIsEnabled(userId: number): Promise<boolean> {
+        return MFAServerController.getInstance().isMFAEnabled(userId);
+    }
+
+    private async mfaGetConfig(userId: number): Promise<UserMFAVO> {
+        return MFAServerController.getInstance().getUserMFAConfig(userId);
+    }
+
+    private async mfaDisable(userId: number): Promise<boolean> {
+        if (!userId) {
+            return false;
+        }
+
+        try {
+            // SÉCURITÉ : Vérifier que l'utilisateur désactive sa propre MFA ou a les droits admin
+            const current_user_id = ModuleAccessPolicyServer.getLoggedUserId();
+
+            if (userId !== current_user_id && !AccessPolicyServerController.checkAccessSync(ModuleAccessPolicy.POLICY_BO_USERS_MANAGMENT_ACCESS)) {
+                ConsoleHandler.error('SÉCURITÉ : Tentative de désactivation MFA non autorisée pour utilisateur:', userId, 'par:', current_user_id);
+                return false;
+            }
+
+            // NOUVELLE RÈGLE : Une fois que la MFA est activée, elle ne peut plus être désactivée
+            // Seule la modification de la méthode est autorisée via mfaConfigure
+            const mfaConfigs = await query(UserMFAVO.API_TYPE_ID)
+                .filter_by_num_eq(field_names<UserMFAVO>().user_id, userId)
+                .filter_is_true(field_names<UserMFAVO>().is_active)
+                .exec_as_server()
+                .select_vos<UserMFAVO>();
+
+            if (mfaConfigs && mfaConfigs.length > 0) {
+                ConsoleHandler.warn('SÉCURITÉ : Tentative de désactivation MFA refusée - La MFA ne peut pas être désactivée une fois activée pour l\'utilisateur:', userId);
+                return false;
+            }
+
+            // Si aucune MFA n'est activée, on peut procéder (cas où des configs existent mais ne sont pas actives)
+            const allMfaConfigs = await query(UserMFAVO.API_TYPE_ID)
+                .filter_by_num_eq(field_names<UserMFAVO>().user_id, userId)
+                .exec_as_server()
+                .select_vos<UserMFAVO>();
+
+            for (const config of allMfaConfigs) {
+                config.is_active = false;
+                await ModuleDAOServer.instance.insertOrUpdateVO_as_server(config);
+            }
+
+            return true;
+
+        } catch (error) {
+            ConsoleHandler.error('Erreur lors de la désactivation MFA:', error);
+            return false;
+        }
+    }
+
+    private async mfaGenerateCode(param: MFAGenerateCodeParamVO): Promise<string> {
+        if (!param || !param.userId || !param.method) {
+            return null;
+        }
+
+        try {
+            return await MFAServerController.getInstance().generateAndSendMFACode(
+                param.userId,
+                param.method
+            );
+        } catch (error) {
+            ConsoleHandler.error('Erreur lors de la génération du code MFA:', error);
+            return null;
+        }
+    }
+
+    private async mfaVerifyCode(param: MFAVerifyCodeParamVO): Promise<boolean> {
+        if (!param || !param.userId || !param.code || !param.method) {
+            return false;
+        }
+
+        try {
+            return await MFAServerController.getInstance().verifyMFACode(
+                param.userId,
+                param.code,
+                param.method
+            );
+        } catch (error) {
+            ConsoleHandler.error('Erreur lors de la vérification du code MFA:', error);
+            return false;
+        }
     }
 
     private get_my_sid(req: Request) {

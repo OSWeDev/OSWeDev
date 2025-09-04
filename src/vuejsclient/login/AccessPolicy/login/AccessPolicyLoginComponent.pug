@@ -1,13 +1,27 @@
 .login-page
     .login-box
-        .login-box-body(:class="{error: has_error_form}")
+        .login-box-body(:class="{error: has_error_form, 'antispam-blocked': is_antispam_blocked}")
             .login-logo(v-if='logo_url')
             h1.text-center(v-if='!logo_url') {{ label('login.title') }}
             h2.text-center.sub_title {{ label('login.sub_title') }}
-            p.login-box-msg {{ label('login.msg') }}
+            p.login-box-msg {{ loginMsgLabel }}
             p.server-answer(v-if='message') {{ message }}
 
-            form(v-on:submit.prevent="login", :class="{error: has_error_form}")
+            // ANTI-SPAM: Composant d'attente
+            .antispam-section(v-if="should_show_antispam_info")
+                .text-center(v-if="is_antispam_blocked")
+                Antispamwaitcomponent(
+                    :delay_seconds="antispam_info.delay_seconds || 0"
+                    :message="antispam_info.message || ''"
+                    :blocked_type="antispam_info.blocked_type || ''"
+                    :current_attempts="antispam_info.current_attempts || 0"
+                    :remaining_attempts="antispam_info.remaining_attempts || 0"
+                    :show_progress="true"
+                    @countdown-finished="onAntiSpamCountdownFinished"
+                )
+
+            // Formulaire de connexion normal
+            form(v-if="can_show_login_form" v-on:submit.prevent="login", :class="{error: has_error_form}")
                 .form-group.has-feedback
                     input.form-control(type='text', v-model='email', :placeholder='label("login.email_placeholder")')
                     i.fa-solid.fa-id-card.pull-right.fa-fw.f-r(aria-hidden="true")
@@ -22,14 +36,51 @@
                     button.btn.btn-primary.btn-block.btn-flat(type="submit") 
                         i.loadingspinner.fa.fa-spinner.fa-spin.mr-2(v-if="is_ok_loging" aria-hidden="true")
                         | {{ label('login.signIn') }}
-            .mt-2.actions
+
+            // Composant de configuration MFA forcée
+            .mfa-force-config(v-if="mfa_force_config_required")
+                // Utilisation du composant MFA Page qui est déjà conçu pour la configuration forcée
+                // Le composant détectera automatiquement le mode forcé via user.force_mfa_config
+                Mfapagecomponent(ref="mfaPageComponent")
+
+            // Formulaire de vérification MFA
+            form(v-if="mfa_required" v-on:submit.prevent="verifyMFA", :class="{error: has_error_form}")
+                h3.text-center {{ label('mfa.verification_required') }}
+                p.text-center(v-if="mfa_method === 'totp'") {{ label('mfa.enter_totp_code') }}
+                p.text-center(v-if="mfa_method === 'email'") {{ label('mfa.code_sent_email') }}
+                p.text-center(v-if="mfa_method === 'sms'") {{ label('mfa.code_sent_sms') }}
+                
+                .form-group.method-info
+                    .method-label
+                        span {{ label('mfa.method_label') }}: 
+                        strong {{ mfa_method_label }}
+                
+                .form-group.has-feedback
+                    input.form-control(type='text', v-model='mfa_code', :placeholder='label("mfa.code_placeholder")', maxlength="6")
+                    i.fa-solid.fa-key.pull-right.fa-fw.f-r(aria-hidden="true")
+                    
+                .center.signin-submit
+                    button.btn.btn-primary.btn-block.btn-flat(type="submit") 
+                        i.loadingspinner.fa.fa-spinner.fa-spin.mr-2(v-if="is_ok_loging" aria-hidden="true")
+                        | {{ label('mfa.verify') }}
+                        
+                // Boutons d'action
+                .center.mt-2
+                    button.btn.btn-secondary.btn-block.btn-flat(type="button" @click="cancelMFA") 
+                        | {{ label('mfa.cancel') }}
+                        
+                .center.mt-2(v-if="mfa_method === 'email' || mfa_method === 'sms'")
+                    button.btn.btn-outline-primary.btn-block.btn-flat(type="button" @click="resendMFACode" :disabled="!canResendCode") 
+                        | {{ resendButtonLabel }}
+
+            .mt-2.actions(v-if="!mfa_required && !mfa_force_config_required")
                 template(v-if="signin_allowed")
                     .signin.text-center
                         a.c-p(@click="signin_action") {{ label('signin.title') }}
                 .recover.text-center
-                    a.c-p(@click="recover_action") {{ label('login.recoverlink') }}
+                    a.c-p(@click="recover_action" href="/login#/recover") {{ label('login.recoverlink') }}
 
-            .mt-4.text-center.infos_cgu
+            .mt-4.text-center.infos_cgu(v-if="!mfa_required && !mfa_force_config_required")
                 template(v-if="pdf_info")
                     a.btn.btn-primary.infos(:href="pdf_info" target="_blank")
                         i.fa-solid.fa-info
@@ -42,4 +93,4 @@
     Sessionsharecomponent()
 
     template(v-if="footer_component")
-        div(:is="footer_component") 
+        div(:is="footer_component")

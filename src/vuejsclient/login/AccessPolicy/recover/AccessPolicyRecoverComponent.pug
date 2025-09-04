@@ -17,6 +17,7 @@
                     button.btn.btn-primary.btn-block.btn-flat(@click="recover") {{ label('login.recover.submit') }}
                 .center(v-if='has_sms_activation')
                     button.btn.btn-light.btn-block.btn-flat(@click="recoversms") {{ label('login.recover.sms') }}
-
+                .center(:style="'place-self:center;'")
+                    a.c-p(v-tooltip='label("login.recover.help.tooltip")' :style="'justify-self: center;'") {{label('login.recover.help')}}
     template(v-if="footer_component")
         div(:is="footer_component") 

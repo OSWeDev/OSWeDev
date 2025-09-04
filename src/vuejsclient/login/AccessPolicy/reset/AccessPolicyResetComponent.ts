@@ -5,10 +5,14 @@ import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
 import ModuleSASSSkinConfigurator from '../../../../shared/modules/SASSSkinConfigurator/ModuleSASSSkinConfigurator';
 import ModuleSendInBlue from '../../../../shared/modules/SendInBlue/ModuleSendInBlue';
 import VueComponentBase from '../../../ts/components/VueComponentBase';
+import PasswordValidationComponent from '../../../ts/components/AccessPolicy/password_validation/PasswordValidationComponent';
 import './AccessPolicyResetComponent.scss';
 
 @Component({
-    template: require('./AccessPolicyResetComponent.pug')
+    template: require('./AccessPolicyResetComponent.pug'),
+    components: {
+        PasswordValidationComponent
+    }
 })
 export default class AccessPolicyResetComponent extends VueComponentBase {
 
@@ -30,6 +34,7 @@ export default class AccessPolicyResetComponent extends VueComponentBase {
     private message: string = null;
     private status: boolean = false;
     private show_init_link: boolean = false;
+    private error_code: string = null; // Pour afficher des erreurs spécifiques
 
     private redirect_to: string = "/";
 
@@ -94,7 +99,7 @@ export default class AccessPolicyResetComponent extends VueComponentBase {
     private async reset() {
         this.snotify.info(this.label('reset.start'));
 
-        let reset_res: boolean = false;
+        let reset_res: any = null;
         if (this.is_simplified) {
 
             if (!await ModuleAccessPolicy.getInstance().checkCodeUID(this.prop_user_id, this.prop_challenge)) {
@@ -104,7 +109,7 @@ export default class AccessPolicyResetComponent extends VueComponentBase {
                 this.show_init_link = true;
                 return;
             }
-            reset_res = await ModuleAccessPolicy.getInstance().resetPwdUID(this.prop_user_id, this.prop_challenge, this.new_pwd1);
+            reset_res = await ModuleAccessPolicy.getInstance().resetPwdUIDDetailed(this.prop_user_id, this.prop_challenge, this.new_pwd1);
         } else {
             if (!await ModuleAccessPolicy.getInstance().checkCode(this.email, this.challenge)) {
                 this.message = this.label('login.reset.code_invalid');
@@ -113,16 +118,40 @@ export default class AccessPolicyResetComponent extends VueComponentBase {
                 this.show_init_link = true;
                 return;
             }
-            reset_res = await ModuleAccessPolicy.getInstance().resetPwd(this.email, this.challenge, this.new_pwd1);
+            reset_res = await ModuleAccessPolicy.getInstance().resetPwdDetailed(this.email, this.challenge, this.new_pwd1);
         }
 
         this.show_init_link = false;
-        if (reset_res) {
+        if (reset_res && reset_res.success) {
             this.snotify.success(this.label('reset.ok'));
             this.message = this.label('login.reset.answer_ok');
             this.status = true;
         } else {
-            this.snotify.error(this.label('reset.failed'));
+            // Messages d'erreur conviviaux basés sur le ResetPwdResultVO
+            let errorMessage = this.label('reset.failed');
+            if (reset_res && reset_res.getUserFriendlyMessage) {
+                errorMessage = reset_res.getUserFriendlyMessage();
+            } else if (reset_res && reset_res.error_code) {
+                // Fallback pour les anciens codes si la méthode n'existe pas
+                switch (reset_res.error_code) {
+                    case 'PASSWORD_REUSED':
+                        errorMessage = 'Ce mot de passe a déjà été utilisé récemment. Veuillez en choisir un autre.';
+                        break;
+                    case 'PASSWORD_INVALID':
+                        errorMessage = reset_res.message || 'Le mot de passe ne respecte pas les critères de sécurité requis.';
+                        break;
+                    case 'INVALID_CHALLENGE':
+                        errorMessage = 'Code de récupération invalide ou expiré.';
+                        break;
+                    case 'UNKNOWN_USER':
+                        errorMessage = 'Utilisateur introuvable.';
+                        break;
+                    default:
+                        errorMessage = reset_res.message || this.label('reset.failed');
+                }
+            }
+
+            this.snotify.error(errorMessage);
             if (this.is_simplified) {
                 this.message = this.label('login.reset.answer_ko_simplified');
             } else {
@@ -163,7 +192,7 @@ export default class AccessPolicyResetComponent extends VueComponentBase {
 
                 } else {
                     reject({
-                        body: self.label('recover.failed'),
+                        body: self.label('recover.ok'),
                         config: {
                             timeout: 10000,
                             showProgressBar: true,
@@ -201,7 +230,7 @@ export default class AccessPolicyResetComponent extends VueComponentBase {
                     });
                 } else {
                     reject({
-                        body: self.label('recover.failed'),
+                        body: self.label('recover.ok'),
                         config: {
                             timeout: 10000,
                             showProgressBar: true,

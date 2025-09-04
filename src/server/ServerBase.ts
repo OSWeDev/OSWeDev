@@ -213,6 +213,7 @@ export default abstract class ServerBase {
         EnvHandler.version = this.version;
         EnvHandler.activate_pwa = !!this.envParam.activate_pwa;
         EnvHandler.zoom_auto = !!this.envParam.zoom_auto;
+        EnvHandler.app_title = this.envParam.app_title;
         EnvHandler.debug_vars = !!this.envParam.debug_vars;
         EnvHandler.logo_path = this.envParam.logo_path;
         this.connectionString = this.envParam.connection_string;
@@ -842,7 +843,7 @@ export default abstract class ServerBase {
         }
 
         if (res.headersSent) {
-            // On doit pas refaire un res.send ou redirect à cette étape, on intercepte et on tente d'envoyer une notif de redirect, 
+            // On doit pas refaire un res.send ou redirect à cette étape, on intercepte et on tente d'envoyer une notif de redirect,
             if (!req?.session?.sid) {
                 // On ne put rien faire, on laisse tomber
                 ConsoleHandler.error('ServerBase:redirect_login_or_home:res.headersSent but no session.sid to notify user and redirect');
@@ -1849,13 +1850,13 @@ export default abstract class ServerBase {
     }
 
     private async thread_alive_middleware(req, res) {
-        let uid = req.params.uid;
+        const uid = req.params.uid;
 
         if (!uid) {
             return res.status(404).send('Pas de uid envoyé');
         }
 
-        let fork: IFork = ForkServerController.forks[uid];
+        const fork: IFork = ForkServerController.forks[uid];
 
         if (!fork) {
             return res.status(404).send('Pas de fork trouvé pour uid: ' + uid);
@@ -1863,18 +1864,18 @@ export default abstract class ServerBase {
 
         let check_process: boolean = false;
 
-        for (let i in fork.processes) {
-            let process = fork.processes[i];
+        for (const i in fork.processes) {
+            const process = fork.processes[i];
 
             if (process.type != BGThreadServerDataManager.ForkedProcessType) {
                 continue;
             }
 
-            let thrower = (error) => {
+            const thrower = (error) => {
                 ConsoleHandler.error('API thread_alive:' + error);
                 return res.status(500).send(false);
             };
-            let resolver = async (res_resolver) => {
+            const resolver = async (res_resolver) => {
                 return res.status(200).send(res_resolver);
             };
 
@@ -1895,9 +1896,9 @@ export default abstract class ServerBase {
             return;
         }
 
-        let msg = new PingForkMessage(fork.uid, Dates.now_ms());
+        const msg = new PingForkMessage(fork.uid, Dates.now_ms());
 
-        let is_alive: boolean = await ForkMessageController.send(msg, fork.worker, fork);
+        const is_alive: boolean = await ForkMessageController.send(msg, fork.worker, fork);
 
         return res.status(200).send(is_alive);
     }

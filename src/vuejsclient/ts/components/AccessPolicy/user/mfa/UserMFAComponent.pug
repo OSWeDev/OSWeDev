@@ -22,9 +22,11 @@
                 p {{ label('mfa.info.date_creation') }}: {{ formatDate(mfaConfig.created_date) }}
             
             .mfa-actions
-                button.btn.btn-danger(v-on:click="disableMFA", :disabled="loading")
-                    i.fa.fa-times
-                    span {{ label('mfa.bouton.desactiver') }}
+                button.btn.btn-warning(v-on:click="modifyMFA", :disabled="loading")
+                    i.fa.fa-edit
+                    span {{ label('mfa.bouton.modifier') }}
+                
+                p.text-muted.small.mt-2 {{ label('mfa.info.desactivation_impossible') }}
         
         .mfa-disabled(v-else)
             .alert.alert-warning

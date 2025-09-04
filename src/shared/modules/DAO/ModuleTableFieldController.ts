@@ -397,6 +397,11 @@ export default class ModuleTableFieldController {
         }
     }
 
+    public static isPasswordComplexityValid(pwd: string): boolean {
+        const validationResult = this.passwordIsValidProposition(pwd);
+        return !validationResult;
+    }
+
     private static passwordIsValidProposition(pwd_proposition: string): string {
         if (!pwd_proposition) {
             return ModuleTableFieldVO.VALIDATION_CODE_TEXT_required;

@@ -107,4 +107,8 @@ export default class AccessPolicyMyAccountComponent extends VueComponentBase {
 
     private async onchangevo() {
     }
+
+    private goToMFAManagement(): void {
+        this.$router.push('/mfa');
+    }
 }

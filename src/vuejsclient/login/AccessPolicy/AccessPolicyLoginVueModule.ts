@@ -49,6 +49,11 @@ export default class AccessPolicyLoginVueModule extends VueModuleBase {
                     prop_user_id: parseInt(route.params.user_id),
                     prop_challenge: route.params.challenge
                 })
+            },
+            {
+                path: '/mfa',
+                name: 'mfa',
+                component: () => import('../../ts/components/AccessPolicy/mfa/MFAPageComponent')
             }
         ];
     }

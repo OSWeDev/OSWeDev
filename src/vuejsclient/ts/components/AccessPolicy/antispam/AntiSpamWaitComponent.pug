@@ -1,0 +1,28 @@
+.antispam-wait-container
+    // Message d'erreur principal (sans informations de temps)
+    .antispam-wait-message(v-if="error_message")
+        i.fas.fa-shield-alt
+        span.message-text {{ error_message }}
+
+    // Informations sur les tentatives restantes - TOUJOURS AFFICHER SI DISPONIBLE
+    .antispam-attempts-info(v-if="attempts_info")
+        i.fas.fa-info-circle
+        span.attempts-text {{ attempts_info }}
+
+    // Compteur et barre de progression - dès qu'il y a un délai
+    .antispam-countdown(v-if="delay_seconds > 0")
+        .countdown-timer(:class="{ 'warning': is_warning_phase }")
+            .timer-display {{ countdown_display }}
+            .timer-text {{ get_wait_label() }}
+
+        .progress-bar(v-if="show_progress")
+            .progress-fill(:style="{ width: progress_percentage + '%' }")
+
+    // Information sur le type de blocage (seulement quand il n'y a plus de délai)
+    .antispam-blocked-info(v-if="blocked_type && countdown_seconds <= 0")
+        .blocked-type {{ blocked_type_display }}
+
+    // Indication que l'utilisateur peut réessayer
+    .antispam-finished(v-if="is_countdown_finished && delay_seconds > 0")
+        i.fas.fa-check-circle
+        span {{ get_retry_label() }}

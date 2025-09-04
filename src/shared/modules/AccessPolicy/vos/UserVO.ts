@@ -27,6 +27,18 @@ export default class UserVO implements IArchivedVOBase, IVersionedVO {
     public blocked: boolean;
 
     /**
+     * Force l'utilisateur à configurer la MFA lors de la connexion
+     * L'utilisateur ne peut pas accéder à l'application tant qu'il n'a pas configuré et activé la MFA
+     */
+    public force_mfa_config: boolean;
+
+    /**
+     * Indique si l'utilisateur a configuré et activé la MFA
+     * Champ calculé côté serveur basé sur l'existence d'une configuration MFA active
+     */
+    public mfa_enabled: boolean;
+
+    /**
      * Le premier rappel a été envoyé pour prévenir l'expiration du mot de passe
      */
     public reminded_pwd_1: boolean;

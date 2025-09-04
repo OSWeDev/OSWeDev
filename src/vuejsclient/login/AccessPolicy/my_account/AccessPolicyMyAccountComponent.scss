@@ -50,5 +50,37 @@
         .my_account_plugins>.row {
             margin-bottom: 1em;
         }
+
+        .my_account_mfa {
+            background: white;
+            padding: 1.5em;
+            border-radius: 4px;
+            border-left: 4px solid #007bff;
+
+            .mfa_link_section {
+                text-align: center;
+
+                h4 {
+                    margin-top: 0;
+                    margin-bottom: 0.5em;
+                    color: #333;
+                    font-weight: 600;
+                }
+
+                p {
+                    margin-bottom: 1em;
+                    color: #666;
+                    font-size: 0.9em;
+                }
+
+                .btn {
+                    margin-top: 0.5em;
+
+                    .btn_icon {
+                        margin-right: 0.5em;
+                    }
+                }
+            }
+        }
     }
 }

@@ -22,11 +22,14 @@ import LangVO from '../Translation/vos/LangVO';
 import VersionedVOController from '../Versioned/VersionedVOController';
 import AccessPolicyGroupVO from './vos/AccessPolicyGroupVO';
 import AccessPolicyVO from './vos/AccessPolicyVO';
+import AntiSpamResponseVO from './vos/AntiSpamResponseVO';
+import LoginResponseVO from './vos/LoginResponseVO';
 import PolicyDependencyVO from './vos/PolicyDependencyVO';
 import RolePolicyVO from './vos/RolePolicyVO';
 import RoleVO from './vos/RoleVO';
 import UserAPIVO from './vos/UserAPIVO';
 import UserLogVO from './vos/UserLogVO';
+import UserPasswordHistoryVO from './vos/UserPasswordHistoryVO';
 import UserRoleVO from './vos/UserRoleVO';
 import UserVO from './vos/UserVO';
 import LoginParamVO, { LoginParamVOStatic } from './vos/apis/LoginParamVO';
@@ -35,10 +38,12 @@ import MFAConfigureParamVO, { MFAConfigureParamVOStatic } from './vos/apis/MFACo
 import MFAGenerateCodeParamVO, { MFAGenerateCodeParamVOStatic } from './vos/apis/MFAGenerateCodeParamVO';
 import MFAVerifyCodeParamVO, { MFAVerifyCodeParamVOStatic } from './vos/apis/MFAVerifyCodeParamVO';
 import ResetPwdParamVO, { ResetPwdParamVOStatic } from './vos/apis/ResetPwdParamVO';
+import ResetPwdResultVO, { ResetPwdResultVOStatic } from './vos/apis/ResetPwdResultVO';
 import ResetPwdUIDParamVO, { ResetPwdUIDParamVOStatic } from './vos/apis/ResetPwdUIDParamVO';
 import SigninParamVO, { SigninParamVOStatic } from './vos/apis/SigninParamVO';
 import ToggleAccessParamVO, { ToggleAccessParamVOStatic } from './vos/apis/ToggleAccessParamVO';
 import UserMFAVO from './vos/UserMFAVO';
+import MFASessionVO from './vos/MFASessionVO';
 
 export default class ModuleAccessPolicy extends Module {
 
@@ -84,10 +89,14 @@ export default class ModuleAccessPolicy extends Module {
     public static APINAME_TOGGLE_ACCESS = "TOGGLE_ACCESS";
     public static APINAME_GET_ACCESS_MATRIX = "GET_ACCESS_MATRIX";
     public static APINAME_LOGIN_AND_REDIRECT = "LOGIN_AND_REDIRECT";
+    public static APINAME_LOGIN_WITH_ANTISPAM = "LOGIN_WITH_ANTISPAM";
+    public static APINAME_GET_ANTISPAM_STATUS = "GET_ANTISPAM_STATUS";
     public static APINAME_SIGNIN_AND_REDIRECT = "SIGNIN_AND_REDIRECT";
     public static APINAME_GET_LOGGED_USER_ID = "GET_LOGGED_USER_ID";
     public static APINAME_GET_LOGGED_USER_NAME = "GET_LOGGED_USER_NAME";
     public static APINAME_RESET_PWDUID = "RESET_PWDUID";
+    public static APINAME_RESET_PWD_DETAILED = "RESET_PWD_DETAILED"; // Nouvelle API avec retours détaillés
+    public static APINAME_RESET_PWDUID_DETAILED = "RESET_PWDUID_DETAILED"; // Nouvelle API avec retours détaillés
     public static APINAME_getMyLang = "getMyLang";
     public static APINAME_begininitpwd = "begininitpwd";
     public static APINAME_begininitpwdsms = "begininitpwdsms";
@@ -108,6 +117,11 @@ export default class ModuleAccessPolicy extends Module {
     public static APINAME_MFA_ACTIVATE = "mfa_activate";
     public static APINAME_MFA_DISABLE = "mfa_disable";
     public static APINAME_MFA_VERIFY_CODE = "mfa_verify_code";
+    public static APINAME_MFA_LOGIN_VERIFY = "mfa_login_verify";
+    public static APINAME_MFA_GET_LOGIN_METHOD = "mfa_get_login_method";
+    public static APINAME_MFA_RESEND_CODE = "mfa_resend_code";
+    public static APINAME_MFA_COMPLETE_FORCED_CONFIG = "mfa_complete_forced_config";
+    public static APINAME_MFA_GET_TEMP_USER = "mfa_get_temp_user";
 
     public static APINAME_GET_AVATAR_URL = ModuleAccessPolicy.MODULE_NAME + "__get_avatar_url";
     public static APINAME_GET_AVATAR_NAME = ModuleAccessPolicy.MODULE_NAME + "__get_avatar_name";
@@ -123,10 +137,13 @@ export default class ModuleAccessPolicy extends Module {
     public static PARAM_NAME_RECOVERY_HOURS = 'recovery_hours';
     public static PARAM_NAME_CAN_RECOVER_PWD_BY_SMS = 'ModuleAccessPolicy.CAN_RECOVER_PWD_BY_SMS';
     public static PARAM_NAME_SESSION_SHARE_SEND_IN_BLUE_MAIL_ID = 'ModuleAccessPolicy.SESSION_SHARE_SEND_IN_BLUE_MAIL_ID';
+    public static PARAM_NAME_MFA_CODE_SEND_IN_BLUE_TEMPLATE_ID = 'SEND_IN_BLUE_TEMPLATE_ID.MFA_CODE';
+    public static PARAM_NAME_ACCOUNT_BLOCKED_SEND_IN_BLUE_TEMPLATE_ID = 'SEND_IN_BLUE_TEMPLATE_ID.ACCOUNT_BLOCKED';
 
     public static PARAM_NAME_LOGIN_INFOS = 'ModuleAccessPolicy.LOGIN_INFOS';
     public static PARAM_NAME_LOGIN_CGU = 'ModuleAccessPolicy.LOGIN_CGU';
-
+    public static MAILCATEGORY_ModuleAccessPolicy_MFA_CODE_SEND = 'MAILCATEGORY.ModuleAccessPolicy_MFA_CODE_SEND';
+    public static MAILCATEGORY_ModuleAccessPolicy_ACCOUNT_BLOCKED = 'MAILCATEGORY.ModuleAccessPolicy_ACCOUNT_BLOCKED';
     public static instance: ModuleAccessPolicy = null;
 
     public sendrecapture: (email: string) => Promise<void> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_sendrecapture);
@@ -147,6 +164,8 @@ export default class ModuleAccessPolicy extends Module {
     public impersonateLogin: (email: string) => Promise<number> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_impersonateLogin);
     public impersonate: (uid: number) => Promise<number> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_impersonate);
     public loginAndRedirect: (email: string, password: string, redirect_to: string, sso: boolean) => Promise<number> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_LOGIN_AND_REDIRECT);
+    public loginWithAntiSpam: (email: string, password: string, redirect_to: string, sso: boolean) => Promise<LoginResponseVO> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_LOGIN_WITH_ANTISPAM);
+    public getAntiSpamStatus: (email: string) => Promise<AntiSpamResponseVO> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_GET_ANTISPAM_STATUS);
     public signinAndRedirect: (nom: string, email: string, password: string, redirect_to: string) => Promise<number> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_SIGNIN_AND_REDIRECT);
     public getAccessMatrix: (inherited_only: boolean) => Promise<{ [policy_id: number]: { [role_id: number]: boolean } }> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_GET_ACCESS_MATRIX);
     public togglePolicy: (policy_id: number, role_id: number) => Promise<boolean> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_TOGGLE_ACCESS);
@@ -167,6 +186,8 @@ export default class ModuleAccessPolicy extends Module {
     public beginRecoverSMSUID: (uid: number) => Promise<boolean> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_BEGIN_RECOVER_SMS_UID);
     public resetPwd: (email: string, challenge: string, new_pwd1: string) => Promise<boolean> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_RESET_PWD);
     public resetPwdUID: (uid: number, challenge: string, new_pwd1: string) => Promise<boolean> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_RESET_PWDUID);
+    public resetPwdDetailed: (email: string, challenge: string, new_pwd1: string) => Promise<ResetPwdResultVO> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_RESET_PWD_DETAILED);
+    public resetPwdUIDDetailed: (uid: number, challenge: string, new_pwd1: string) => Promise<ResetPwdResultVO> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_RESET_PWDUID_DETAILED);
     public checkCode: (email: string, challenge: string) => Promise<boolean> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_checkCode);
     public checkCodeUID: (uid: number, challenge: string) => Promise<boolean> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_checkCodeUID);
     public isAdmin: () => Promise<boolean> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_IS_ADMIN);
@@ -178,11 +199,16 @@ export default class ModuleAccessPolicy extends Module {
     // MFA client wrappers
     public mfaIsEnabled: (userId: number) => Promise<boolean> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_MFA_IS_ENABLED);
     public mfaGetConfig: (userId: number) => Promise<UserMFAVO> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_MFA_GET_CONFIG);
-    public mfaConfigure: (userId: number, method: string, phoneNumber?: string) => Promise<boolean> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_MFA_CONFIGURE);
-    public mfaGenerateCode: (userId: number, method: string) => Promise<string> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_MFA_GENERATE_CODE);
-    public mfaActivate: (userId: number, verificationCode: string) => Promise<boolean> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_MFA_ACTIVATE);
+    public mfaConfigure: (param: MFAConfigureParamVO) => Promise<boolean> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_MFA_CONFIGURE);
+    public mfaGenerateCode: (param: MFAGenerateCodeParamVO) => Promise<string> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_MFA_GENERATE_CODE);
+    public mfaActivate: (param: MFAActivateParamVO) => Promise<boolean> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_MFA_ACTIVATE);
     public mfaDisable: (userId: number) => Promise<boolean> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_MFA_DISABLE);
-    public mfaVerifyCode: (userId: number, code: string, method: string) => Promise<boolean> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_MFA_VERIFY_CODE);
+    public mfaVerifyCode: (param: MFAVerifyCodeParamVO) => Promise<boolean> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_MFA_VERIFY_CODE);
+    public mfaLoginVerify: (param: MFAVerifyCodeParamVO) => Promise<number> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_MFA_LOGIN_VERIFY);
+    public mfaGetLoginMethod: () => Promise<string> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_MFA_GET_LOGIN_METHOD);
+    public mfaResendCode: () => Promise<boolean> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_MFA_RESEND_CODE);
+    public completeForcedMFAConfig: () => Promise<boolean> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_MFA_COMPLETE_FORCED_CONFIG);
+    public mfaGetTempUser: () => Promise<UserVO> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_MFA_GET_TEMP_USER);
 
     private constructor() {
 
@@ -392,6 +418,20 @@ export default class ModuleAccessPolicy extends Module {
             ResetPwdUIDParamVOStatic
         ));
 
+        APIControllerWrapper.registerApi(new PostAPIDefinition<ResetPwdParamVO, ResetPwdResultVO>(
+            null,
+            ModuleAccessPolicy.APINAME_RESET_PWD_DETAILED,
+            [UserVO.API_TYPE_ID],
+            ResetPwdParamVOStatic
+        ));
+
+        APIControllerWrapper.registerApi(new PostAPIDefinition<ResetPwdUIDParamVO, ResetPwdResultVO>(
+            null,
+            ModuleAccessPolicy.APINAME_RESET_PWDUID_DETAILED,
+            [UserVO.API_TYPE_ID],
+            ResetPwdUIDParamVOStatic
+        ));
+
         APIControllerWrapper.registerApi(new PostAPIDefinition<ResetPwdParamVO, boolean>(
             null,
             ModuleAccessPolicy.APINAME_checkCode,
@@ -418,6 +458,18 @@ export default class ModuleAccessPolicy extends Module {
             ModuleAccessPolicy.APINAME_LOGIN_AND_REDIRECT,
             [UserVO.API_TYPE_ID],
             LoginParamVOStatic
+        ));
+        APIControllerWrapper.registerApi(new PostAPIDefinition<LoginParamVO, LoginResponseVO>(
+            null,
+            ModuleAccessPolicy.APINAME_LOGIN_WITH_ANTISPAM,
+            [UserVO.API_TYPE_ID, LoginResponseVO.API_TYPE_ID, AntiSpamResponseVO.API_TYPE_ID],
+            LoginParamVOStatic
+        ));
+        APIControllerWrapper.registerApi(new PostAPIDefinition<StringParamVO, AntiSpamResponseVO>(
+            null,
+            ModuleAccessPolicy.APINAME_GET_ANTISPAM_STATUS,
+            [AntiSpamResponseVO.API_TYPE_ID],
+            StringParamVOStatic
         ));
         APIControllerWrapper.registerApi(new PostAPIDefinition<SigninParamVO, number>(
             null,
@@ -451,52 +503,82 @@ export default class ModuleAccessPolicy extends Module {
         APIControllerWrapper.registerApi(new GetAPIDefinition<NumberParamVO, boolean>(
             null,
             ModuleAccessPolicy.APINAME_MFA_IS_ENABLED,
-            [UserMFAVO.API_TYPE_ID, UserVO.API_TYPE_ID],
+            [UserMFAVO.API_TYPE_ID, MFASessionVO.API_TYPE_ID, UserVO.API_TYPE_ID],
             NumberParamVOStatic
         ));
 
         APIControllerWrapper.registerApi(new GetAPIDefinition<NumberParamVO, UserMFAVO>(
             null,
             ModuleAccessPolicy.APINAME_MFA_GET_CONFIG,
-            [UserMFAVO.API_TYPE_ID, UserVO.API_TYPE_ID],
+            [UserMFAVO.API_TYPE_ID, MFASessionVO.API_TYPE_ID, UserVO.API_TYPE_ID],
             NumberParamVOStatic
         ));
 
         APIControllerWrapper.registerApi(new PostAPIDefinition<MFAConfigureParamVO, boolean>(
             null,
             ModuleAccessPolicy.APINAME_MFA_CONFIGURE,
-            [UserMFAVO.API_TYPE_ID, UserVO.API_TYPE_ID],
+            [UserMFAVO.API_TYPE_ID, MFASessionVO.API_TYPE_ID, UserVO.API_TYPE_ID],
             MFAConfigureParamVOStatic
         ));
 
         APIControllerWrapper.registerApi(new PostAPIDefinition<MFAGenerateCodeParamVO, string>(
             null,
             ModuleAccessPolicy.APINAME_MFA_GENERATE_CODE,
-            [UserMFAVO.API_TYPE_ID, UserVO.API_TYPE_ID],
+            [UserMFAVO.API_TYPE_ID, MFASessionVO.API_TYPE_ID, UserVO.API_TYPE_ID],
             MFAGenerateCodeParamVOStatic
         ));
 
         APIControllerWrapper.registerApi(new PostAPIDefinition<MFAActivateParamVO, boolean>(
             null,
             ModuleAccessPolicy.APINAME_MFA_ACTIVATE,
-            [UserMFAVO.API_TYPE_ID, UserVO.API_TYPE_ID],
+            [UserMFAVO.API_TYPE_ID, MFASessionVO.API_TYPE_ID, UserVO.API_TYPE_ID],
             MFAActivateParamVOStatic
         ));
 
         APIControllerWrapper.registerApi(new PostAPIDefinition<NumberParamVO, boolean>(
             null,
             ModuleAccessPolicy.APINAME_MFA_DISABLE,
-            [UserMFAVO.API_TYPE_ID, UserVO.API_TYPE_ID],
+            [UserMFAVO.API_TYPE_ID, MFASessionVO.API_TYPE_ID, UserVO.API_TYPE_ID],
             NumberParamVOStatic
         ));
 
         APIControllerWrapper.registerApi(new PostAPIDefinition<MFAVerifyCodeParamVO, boolean>(
             null,
             ModuleAccessPolicy.APINAME_MFA_VERIFY_CODE,
-            [UserMFAVO.API_TYPE_ID, UserVO.API_TYPE_ID],
+            [UserMFAVO.API_TYPE_ID, MFASessionVO.API_TYPE_ID, UserVO.API_TYPE_ID],
             MFAVerifyCodeParamVOStatic
         ));
 
+        APIControllerWrapper.registerApi(new PostAPIDefinition<MFAVerifyCodeParamVO, number>(
+            null,
+            ModuleAccessPolicy.APINAME_MFA_LOGIN_VERIFY,
+            [UserMFAVO.API_TYPE_ID, MFASessionVO.API_TYPE_ID, UserVO.API_TYPE_ID],
+            MFAVerifyCodeParamVOStatic
+        ));
+
+        APIControllerWrapper.registerApi(new GetAPIDefinition<void, string>(
+            null,
+            ModuleAccessPolicy.APINAME_MFA_GET_LOGIN_METHOD,
+            []
+        ));
+
+        APIControllerWrapper.registerApi(new PostAPIDefinition<void, boolean>(
+            null,
+            ModuleAccessPolicy.APINAME_MFA_RESEND_CODE,
+            [UserMFAVO.API_TYPE_ID, MFASessionVO.API_TYPE_ID, UserVO.API_TYPE_ID]
+        ));
+
+        APIControllerWrapper.registerApi(new PostAPIDefinition<void, boolean>(
+            null,
+            ModuleAccessPolicy.APINAME_MFA_COMPLETE_FORCED_CONFIG,
+            [UserMFAVO.API_TYPE_ID, MFASessionVO.API_TYPE_ID, UserVO.API_TYPE_ID]
+        ));
+
+        APIControllerWrapper.registerApi(new GetAPIDefinition<void, UserVO>(
+            null,
+            ModuleAccessPolicy.APINAME_MFA_GET_TEMP_USER,
+            [UserMFAVO.API_TYPE_ID, MFASessionVO.API_TYPE_ID, UserVO.API_TYPE_ID]
+        ));
     }
 
     public initialize() {
@@ -509,7 +591,11 @@ export default class ModuleAccessPolicy extends Module {
         this.initializeModulePolicyDependency();
         this.initializeRolesPolicies();
         this.initializeUserLogVO();
+        this.initializeUserPasswordHistoryVO();
         this.initializeUserAPIVO();
+        this.initializeUserMFAVO();
+        this.initializeMFASessionVO();
+        this.initializeLoginResponseVO();
     }
 
     private initializeUserAPIVO() {
@@ -532,6 +618,8 @@ export default class ModuleAccessPolicy extends Module {
             (ModuleTableFieldController.create_new(UserVO.API_TYPE_ID, field_names<UserVO>().email, ModuleTableFieldVO.FIELD_TYPE_email, DefaultTranslationVO.create_new({ 'fr-fr': 'E-mail' }), true)).unique(),
             (ModuleTableFieldController.create_new(UserVO.API_TYPE_ID, field_names<UserVO>().phone, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': 'Téléphone' }))).unique(),
             ModuleTableFieldController.create_new(UserVO.API_TYPE_ID, field_names<UserVO>().blocked, ModuleTableFieldVO.FIELD_TYPE_boolean, DefaultTranslationVO.create_new({ 'fr-fr': 'Compte bloqué' }), true, true, false).set_boolean_default_icons("fa-lock", "fa-unlock").set_boolean_invert_colors(),
+            ModuleTableFieldController.create_new(UserVO.API_TYPE_ID, field_names<UserVO>().force_mfa_config, ModuleTableFieldVO.FIELD_TYPE_boolean, DefaultTranslationVO.create_new({ 'fr-fr': 'Configuration MFA obligatoire ?' }), true, true, false),
+            ModuleTableFieldController.create_new(UserVO.API_TYPE_ID, field_names<UserVO>().mfa_enabled, ModuleTableFieldVO.FIELD_TYPE_boolean, DefaultTranslationVO.create_new({ 'fr-fr': 'MFA activé' }), false, true, false).set_boolean_default_icons("fa-shield-alt","fa-shield-slash"),
             ModuleTableFieldController.create_new(UserVO.API_TYPE_ID, field_names<UserVO>().password, ModuleTableFieldVO.FIELD_TYPE_password, DefaultTranslationVO.create_new({ 'fr-fr': 'Mot de passe' }), true),
             ModuleTableFieldController.create_new(UserVO.API_TYPE_ID, field_names<UserVO>().password_change_date, ModuleTableFieldVO.FIELD_TYPE_tstz, DefaultTranslationVO.create_new({ 'fr-fr': 'Date de changement du mot de passe' }), false).set_segmentation_type(TimeSegment.TYPE_MINUTE),
             ModuleTableFieldController.create_new(UserVO.API_TYPE_ID, field_names<UserVO>().reminded_pwd_1, ModuleTableFieldVO.FIELD_TYPE_boolean, DefaultTranslationVO.create_new({ 'fr-fr': 'Premier rappel envoyé' }), true, true, false),
@@ -680,5 +768,70 @@ export default class ModuleAccessPolicy extends Module {
         field_accpol_id.set_many_to_one_target_moduletable_name(AccessPolicyVO.API_TYPE_ID);
         field_role_id.set_many_to_one_target_moduletable_name(RoleVO.API_TYPE_ID);
 
+    }
+
+    private initializeUserMFAVO() {
+        const field_user_id = ModuleTableFieldController.create_new(UserMFAVO.API_TYPE_ID, field_names<UserMFAVO>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Utilisateur', true);
+        const label_field = ModuleTableFieldController.create_new(UserMFAVO.API_TYPE_ID, field_names<UserMFAVO>().mfa_method, ModuleTableFieldVO.FIELD_TYPE_string, 'Méthode MFA', true);
+
+        const datatable_fields = [
+            field_user_id,
+            label_field,
+            ModuleTableFieldController.create_new(UserMFAVO.API_TYPE_ID, field_names<UserMFAVO>().totp_secret, ModuleTableFieldVO.FIELD_TYPE_string, 'Secret TOTP', false),
+            ModuleTableFieldController.create_new(UserMFAVO.API_TYPE_ID, field_names<UserMFAVO>().phone_number, ModuleTableFieldVO.FIELD_TYPE_string, 'Numéro de téléphone', false),
+            ModuleTableFieldController.create_new(UserMFAVO.API_TYPE_ID, field_names<UserMFAVO>().is_active, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Actif', true, true, false),
+            ModuleTableFieldController.create_new(UserMFAVO.API_TYPE_ID, field_names<UserMFAVO>().backup_codes, ModuleTableFieldVO.FIELD_TYPE_string, 'Codes de sauvegarde', false),
+            ModuleTableFieldController.create_new(UserMFAVO.API_TYPE_ID, field_names<UserMFAVO>().created_date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de création', true).set_segmentation_type(TimeSegment.TYPE_DAY),
+            ModuleTableFieldController.create_new(UserMFAVO.API_TYPE_ID, field_names<UserMFAVO>().last_used_date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Dernière utilisation', false).set_segmentation_type(TimeSegment.TYPE_DAY),
+        ];
+
+        const datatable: ModuleTableVO = ModuleTableController.create_new(this.name, UserMFAVO, label_field, DefaultTranslationVO.create_new({ 'fr-fr': "Configuration MFA des utilisateurs" }));
+
+        field_user_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
+    }
+
+    private initializeMFASessionVO() {
+        const field_user_id = ModuleTableFieldController.create_new(MFASessionVO.API_TYPE_ID, field_names<MFASessionVO>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Utilisateur', true);
+        const label_field = ModuleTableFieldController.create_new(MFASessionVO.API_TYPE_ID, field_names<MFASessionVO>().challenge_code, ModuleTableFieldVO.FIELD_TYPE_string, 'Code de vérification', true);
+
+        const datatable_fields = [
+            field_user_id,
+            label_field,
+            ModuleTableFieldController.create_new(MFASessionVO.API_TYPE_ID, field_names<MFASessionVO>().mfa_method, ModuleTableFieldVO.FIELD_TYPE_string, 'Méthode MFA', true),
+            ModuleTableFieldController.create_new(MFASessionVO.API_TYPE_ID, field_names<MFASessionVO>().expiry_date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date d\'expiration', true).set_segmentation_type(TimeSegment.TYPE_MINUTE),
+            ModuleTableFieldController.create_new(MFASessionVO.API_TYPE_ID, field_names<MFASessionVO>().attempts, ModuleTableFieldVO.FIELD_TYPE_int, 'Tentatives', true, true, 0),
+            ModuleTableFieldController.create_new(MFASessionVO.API_TYPE_ID, field_names<MFASessionVO>().max_attempts, ModuleTableFieldVO.FIELD_TYPE_int, 'Tentatives max', true, true, 3),
+            ModuleTableFieldController.create_new(MFASessionVO.API_TYPE_ID, field_names<MFASessionVO>().created_date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de création', true).set_segmentation_type(TimeSegment.TYPE_MINUTE),
+            ModuleTableFieldController.create_new(MFASessionVO.API_TYPE_ID, field_names<MFASessionVO>().is_verified, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Vérifié', true, true, false),
+        ];
+
+        const datatable: ModuleTableVO = ModuleTableController.create_new(this.name, MFASessionVO, label_field, DefaultTranslationVO.create_new({ 'fr-fr': "Sessions MFA" }));
+
+        field_user_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
+    }
+
+    private initializeUserPasswordHistoryVO() {
+
+        const field_user_id = ModuleTableFieldController.create_new(UserPasswordHistoryVO.API_TYPE_ID, field_names<UserPasswordHistoryVO>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'User', true);
+
+        ModuleTableFieldController.create_new(UserPasswordHistoryVO.API_TYPE_ID, field_names<UserPasswordHistoryVO>().password_hash, ModuleTableFieldVO.FIELD_TYPE_string, 'Hash du mot de passe', true);
+        ModuleTableFieldController.create_new(UserPasswordHistoryVO.API_TYPE_ID, field_names<UserPasswordHistoryVO>().created_date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de création', true).set_segmentation_type(TimeSegment.TYPE_SECOND);
+        ModuleTableFieldController.create_new(UserPasswordHistoryVO.API_TYPE_ID, field_names<UserPasswordHistoryVO>().is_current, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Mot de passe actuel', true, true, false);
+
+        ModuleTableController.create_new(this.name, UserPasswordHistoryVO, null, DefaultTranslationVO.create_new({ 'fr-fr': "Historique des mots de passe" })).segment_on_field(field_user_id.field_name, NumSegment.TYPE_INT);
+
+        field_user_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
+
+        // Enregistrer le constructor
+        ModuleTableController.vo_constructor_by_vo_type[UserPasswordHistoryVO.API_TYPE_ID] = ModuleTableController.vo_constructor_wrapper(UserPasswordHistoryVO);
+
+    }
+
+    private initializeLoginResponseVO() {
+        // LoginResponseVO et AntiSpamResponseVO ne sont pas des VOs de BDD mais des objets de transfert
+        // Il faut juste enregistrer leurs constructeurs pour la sérialisation
+        ModuleTableController.vo_constructor_by_vo_type[LoginResponseVO.API_TYPE_ID] = ModuleTableController.vo_constructor_wrapper(LoginResponseVO);
+        ModuleTableController.vo_constructor_by_vo_type[AntiSpamResponseVO.API_TYPE_ID] = ModuleTableController.vo_constructor_wrapper(AntiSpamResponseVO);
+        ModuleTableController.vo_constructor_by_vo_type[ResetPwdResultVO.API_TYPE_ID] = ModuleTableController.vo_constructor_wrapper(ResetPwdResultVO);
     }
 }

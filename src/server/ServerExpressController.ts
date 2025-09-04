@@ -14,6 +14,7 @@ export interface IRequestStackContext {
     SESSION_ID: string;
     SID: string;
     CLIENT_TAB_ID: string;
+    CLIENT_IP?: string; // Adresse IP du client
     CONTEXT_INCOMPATIBLE?: boolean; // Dans le cas où un fonctionnement est incompatible avec le contexte, on peut le désactiver et on indique pourquoi
     CONTEXT_INCOMPATIBLE_REASON?: string; // Dans le cas où un fonctionnement est incompatible avec le contexte, on peut le désactiver et on indique pourquoi
 }
@@ -61,6 +62,9 @@ export default class ServerExpressController {
         const client_tab_id = req.headers.client_tab_id as string;
         const referrer = req.headers.referer as string;
 
+        // Extraire l'IP du client (gestion des proxies)
+        const client_ip = this.extractClientIP(req);
+
         if (!apiKey) {
             return {
                 IS_CLIENT: true,
@@ -69,6 +73,7 @@ export default class ServerExpressController {
                 SESSION_ID: session_id,
                 SID: sid,
                 CLIENT_TAB_ID: client_tab_id,
+                CLIENT_IP: client_ip,
             };
         }
 
@@ -83,6 +88,7 @@ export default class ServerExpressController {
                 SID: sid,
                 CLIENT_TAB_ID: client_tab_id,
                 SESSION_ID: session_id,
+                CLIENT_IP: client_ip,
             };
         }
 
@@ -93,6 +99,32 @@ export default class ServerExpressController {
             SID: sid,
             CLIENT_TAB_ID: client_tab_id,
             SESSION_ID: session_id,
+            CLIENT_IP: client_ip,
         };
+    }
+
+    /**
+     * Extrait l'adresse IP du client en tenant compte des proxies
+     */
+    private extractClientIP(req: Request): string {
+        // Vérifier d'abord les headers des proxies
+        const forwarded_for = req.headers['x-forwarded-for'] as string;
+        if (forwarded_for) {
+            // Prendre la première IP de la liste (client original)
+            return forwarded_for.split(',')[0].trim();
+        }
+
+        const real_ip = req.headers['x-real-ip'] as string;
+        if (real_ip) {
+            return real_ip;
+        }
+
+        const client_ip = req.headers['x-client-ip'] as string;
+        if (client_ip) {
+            return client_ip;
+        }
+
+        // Utiliser l'IP de connexion directe
+        return req.connection?.remoteAddress || req.socket?.remoteAddress || 'unknown';
     }
 }

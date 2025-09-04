@@ -3,70 +3,79 @@
         .header
             h1.title
                 i.fa.fa-shield-alt
-                span Authentification à deux facteurs (MFA)
+                span {{ label('mfa.page.title') }}
             
-            .navigation
+            .navigation(v-if="!isForcedConfig")
                 button.btn.btn-secondary(v-on:click="goToUserPage")
                     i.fa.fa-arrow-left
-                    span Retour au compte
+                    span {{ label('mfa.page.back_to_account') }}
+
+        // Message d'information pour la configuration forcée
+        .forced-config-notice(v-if="isForcedConfig")
+            .alert.alert-warning
+                i.fa.fa-exclamation-triangle
+                span {{ label('mfa.forced.notice') }}
 
         // Chargement
-        .loading-section(v-if="loading")
+        .loading-section(v-if="loading || userDataLoading")
             .loading-spinner
                 i.fa.fa-spinner.fa-spin
-                span Chargement...
+                span(v-if="userDataLoading") {{ label('mfa.page.loading_user') }}
+                span(v-else) {{ label('mfa.page.loading') }}
 
         // État MFA actuel
-        .current-status(v-if="!loading && !isConfiguring")
+        .current-status(v-if="!loading && !userDataLoading && !isConfiguring && user")
             .status-card(v-if="isMFAEnabled", class="enabled")
                 .status-header
                     .status-icon
                         i.fa.fa-shield-alt.text-success
                     .status-info
-                        h2 MFA Activé
-                        p.method-info Méthode: {{ currentMethodLabel }}
+                        h2 {{ label('mfa.page.status.enabled') }}
+                        p.method-info {{ label('mfa.page.status.method') }} {{ currentMethodLabel }}
 
                 .status-details(v-if="mfaConfig")
                     .detail-item
-                        span.label Dernière utilisation:
+                        span.label {{ label('mfa.page.status.last_used') }}
                         span.value(v-if="mfaConfig.last_used_date") {{ formatDate(mfaConfig.last_used_date) }}
-                        span.value(v-else) Jamais utilisé
+                        span.value(v-else) {{ label('mfa.page.status.never_used') }}
                     
                     .detail-item
-                        span.label Date de création:
+                        span.label {{ label('mfa.page.status.created_date') }}
                         span.value {{ formatDate(mfaConfig.created_date) }}
 
                 .status-actions
-                    button.btn.btn-danger(v-on:click="disableMFA", :disabled="loading")
-                        i.fa.fa-times
-                        span Désactiver MFA
+                    button.btn.btn-warning(v-on:click="modifyMFA", :disabled="loading")
+                        i.fa.fa-edit
+                        span {{ label('mfa.page.action.modify') }}
+                    
+                    p.text-muted.small.mt-2 {{ label('mfa.info.desactivation_impossible') }}
 
             .status-card(v-else, class="disabled")
                 .status-header
                     .status-icon
                         i.fa.fa-exclamation-triangle.text-warning
                     .status-info
-                        h2 MFA Non activé
-                        p Votre compte n'est pas protégé par l'authentification à deux facteurs
+                        h2 {{ label('mfa.page.status.disabled') }}
+                        p {{ label('mfa.page.status.disabled_desc') }}
 
                 .status-description
-                    p L'authentification à deux facteurs ajoute une couche de sécurité supplémentaire à votre compte.
-                    p Même si votre mot de passe est compromis, votre compte restera protégé.
+                    p {{ label('mfa.page.description.security') }}
+                    p {{ label('mfa.page.description.protection') }}
 
                 .status-actions
                     button.btn.btn-primary.btn-large(v-on:click="startMFAConfiguration", :disabled="loading")
                         i.fa.fa-shield-alt
-                        span Activer MFA
+                        span {{ label('mfa.page.action.enable') }}
 
         // Configuration MFA
-        .configuration-section(v-if="isConfiguring && !isActivating")
+        .configuration-section(v-if="isConfiguring && !isActivating && user && !userDataLoading")
             .config-card
                 h2
                     i.fa.fa-cog
-                    span Configuration MFA
+                    span {{ label('mfa.page.config.title') }}
 
                 .method-selection
-                    h3 Choisissez votre méthode d'authentification
+                    h3 {{ label('mfa.page.config.choose_method') }}
                     
                     .method-options
                         .method-option(:class="{ selected: selectedMethod === MFA_METHOD_AUTHENTICATOR }")
@@ -75,9 +84,9 @@
                                 .method-icon
                                     i.fa.fa-mobile-alt
                                 .method-info
-                                    h4 Application d'authentification
-                                    p.recommended (Recommandé)
-                                    p Utilisez Google Authenticator, Microsoft Authenticator, ou Authy
+                                    h4 {{ label('mfa.page.config.method.authenticator') }}
+                                    p.recommended {{ label('mfa.page.config.method.recommended') }}
+                                    p {{ label('mfa.page.config.method.authenticator_desc') }}
 
                         .method-option(:class="{ selected: selectedMethod === MFA_METHOD_EMAIL }")
                             input(type="radio", :value="MFA_METHOD_EMAIL", v-model="selectedMethod", id="method-email")
@@ -85,8 +94,8 @@
                                 .method-icon
                                     i.fa.fa-envelope
                                 .method-info
-                                    h4 Email
-                                    p Code envoyé par email à {{ user.email }}
+                                    h4 {{ label('mfa.method.email') }}
+                                    p {{ label('mfa.page.config.method.email_desc') }} {{ user ? user.email : '...' }}
 
                         .method-option(:class="{ selected: selectedMethod === MFA_METHOD_SMS }")
                             input(type="radio", :value="MFA_METHOD_SMS", v-model="selectedMethod", id="method-sms")
@@ -94,13 +103,13 @@
                                 .method-icon
                                     i.fa.fa-sms
                                 .method-info
-                                    h4 SMS
-                                    p Code envoyé par SMS
+                                    h4 {{ label('mfa.method.sms') }}
+                                    p {{ label('mfa.page.config.method.sms_desc') }}
 
                 // Configuration SMS
                 .sms-config(v-if="selectedMethod === MFA_METHOD_SMS")
                     .form-group
-                        label(for="phone-number") Numéro de téléphone
+                        label(for="phone-number") {{ label('mfa.page.config.phone_label') }}
                         input#phone-number(
                             type="tel", 
                             v-model="phoneNumber", 
@@ -111,29 +120,29 @@
                 .config-actions
                     button.btn.btn-primary(v-on:click="configureMFA", :disabled="loading || (selectedMethod === MFA_METHOD_SMS && !phoneNumber)")
                         i.fa.fa-arrow-right
-                        span Continuer
+                        span {{ label('mfa.page.action.continue') }}
 
-                    button.btn.btn-secondary(v-on:click="cancelConfiguration", :disabled="loading")
+                    button.btn.btn-secondary(v-if="!isForcedConfig", v-on:click="cancelConfiguration", :disabled="loading")
                         i.fa.fa-times
-                        span Annuler
+                        span {{ label('mfa.cancel') }}
 
         // Activation MFA
-        .activation-section(v-if="isActivating")
+        .activation-section(v-if="isActivating && user && !userDataLoading")
             .activation-card
                 h2
                     i.fa.fa-check-circle
-                    span Activation MFA
+                    span {{ label('mfa.page.activation.title') }}
 
                 // Instructions pour Authenticator avec QR Code
                 .authenticator-setup(v-if="selectedMethod === MFA_METHOD_AUTHENTICATOR && showQRCode")
                     .setup-steps
-                        h3 Configuration de votre application d'authentification
+                        h3 {{ label('mfa.page.activation.authenticator_setup') }}
 
                         .step
                             .step-number 1
                             .step-content
-                                h4 Scannez le QR Code
-                                p Ouvrez votre application d'authentification et scannez le code QR ci-dessous :
+                                h4 {{ label('mfa.page.activation.step1') }}
+                                p {{ label('mfa.page.activation.step1_desc') }}
 
                         .qr-code-container
                             qr-code(:data="qrCodeData", :size="200")
@@ -141,52 +150,52 @@
                         .step
                             .step-number 2
                             .step-content
-                                h4 Ou saisissez le code manuellement
-                                p Si vous ne pouvez pas scanner le QR code, saisissez ce code dans votre application :
+                                h4 {{ label('mfa.page.activation.step2') }}
+                                p {{ label('mfa.page.activation.step2_desc') }}
                                 .manual-code
                                     code {{ totpSecret }}
                                     button.btn.btn-sm(v-on:click="copyToClipboard(totpSecret)")
                                         i.fa.fa-copy
-                                        span Copier
+                                        span {{ label('mfa.page.activation.copy') }}
 
                         .step
                             .step-number 3
                             .step-content
-                                h4 Applications recommandées
+                                h4 {{ label('mfa.page.activation.step3') }}
                                 .app-list
                                     .app-item
                                         i.fa.fa-android
-                                        span Google Authenticator
+                                        span {{ label('mfa.page.activation.app.google') }}
                                     .app-item
                                         i.fa.fa-microsoft
-                                        span Microsoft Authenticator
+                                        span {{ label('mfa.page.activation.app.microsoft') }}
                                     .app-item
                                         i.fa.fa-lock
-                                        span Authy
+                                        span {{ label('mfa.page.activation.app.authy') }}
                                     .app-item
                                         i.fa.fa-key
-                                        span 1Password
+                                        span {{ label('mfa.page.activation.app.onepassword') }}
 
                 // Instructions pour les autres méthodes
                 .other-method-setup(v-if="selectedMethod !== MFA_METHOD_AUTHENTICATOR")
                     .setup-instructions
                         p(v-if="selectedMethod === MFA_METHOD_EMAIL") 
-                            | Un code de vérification sera envoyé à votre adresse email 
-                            strong {{ user.email }}
+                            | {{ label('mfa.page.activation.email_desc') }} 
+                            strong {{ user ? user.email : '...' }}
                         
                         p(v-if="selectedMethod === MFA_METHOD_SMS") 
-                            | Un code de vérification sera envoyé par SMS au 
+                            | {{ label('mfa.page.activation.sms_desc') }} 
                             strong {{ phoneNumber }}
 
                     .send-code-section
                         button.btn.btn-info(v-on:click="sendVerificationCode", :disabled="loading")
                             i.fa.fa-paper-plane
-                            span Envoyer le code
+                            span {{ label('mfa.page.activation.send_code') }}
 
                 // Vérification du code
                 .verification-section
                     .form-group
-                        label(for="verification-code") Code de vérification
+                        label(for="verification-code") {{ label('mfa.code_placeholder') }}
                         input#verification-code(
                             type="text", 
                             v-model="verificationCode", 
@@ -194,13 +203,13 @@
                             maxlength="6",
                             class="verification-input"
                         )
-                        .help-text Saisissez le code à 6 chiffres généré par votre application d'authentification
+                        .help-text {{ label('mfa.page.activation.verification_help') }}
 
                     .verification-actions
                         button.btn.btn-success.btn-large(v-on:click="activateMFA", :disabled="loading || !verificationCode")
                             i.fa.fa-shield-alt
-                            span Activer MFA
+                            span {{ label('mfa.page.action.activate') }}
 
-                        button.btn.btn-secondary(v-on:click="cancelConfiguration", :disabled="loading")
+                        button.btn.btn-secondary(v-if="!isForcedConfig", v-on:click="cancelConfiguration", :disabled="loading")
                             i.fa.fa-times
-                            span Annuler
+                            span {{ label('mfa.cancel') }}

@@ -129,3 +129,13 @@
                         .col-sm-12
                             .my_account_session_share
                                 Sessionsharecomponent()
+
+                    .row 
+                        .col-sm-12
+                            .my_account_mfa
+                                .mfa_link_section
+                                    h4 {{ label('my_account_page.mfa_management') }}
+                                    p {{ label('my_account_page.mfa_description') }}
+                                    button.btn.btn-primary.btn-flat(@click="goToMFAManagement")
+                                        i.fa-duotone.fa-shield-alt.fa-fw.btn_icon(aria-hidden="true")
+                                        | {{ label('my_account_page.mfa_button') }}

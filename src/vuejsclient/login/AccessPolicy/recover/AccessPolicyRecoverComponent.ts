@@ -45,7 +45,7 @@ export default class AccessPolicyRecoverComponent extends VueComponentBase {
     }
 
     private async load_logo_url() {
-        this.logo_url = await ModuleParams.getInstance().getParamValueAsString(ModuleSASSSkinConfigurator.MODULE_NAME + '.logo_url', null, 10000);
+        this.logo_url = await ModuleParams.getInstance().getParamValueAsString(ModuleSASSSkinConfigurator.PARAM_NAME_logo_url, null, 10000);
         if (this.logo_url && (this.logo_url != '""') && (this.logo_url != '')) {
             return;
         }
@@ -74,8 +74,8 @@ export default class AccessPolicyRecoverComponent extends VueComponentBase {
                         },
                     });
                 } else {
-                    reject({
-                        body: self.label('recover.failed'),
+                    resolve({
+                        body: self.label('recover.ok'),
                         config: {
                             timeout: 10000,
                             showProgressBar: true,
@@ -105,8 +105,8 @@ export default class AccessPolicyRecoverComponent extends VueComponentBase {
                         },
                     });
                 } else {
-                    reject({
-                        body: self.label('recover.failed'),
+                    resolve({
+                        body: self.label('recover.oksms'),
                         config: {
                             timeout: 10000,
                             showProgressBar: true,
