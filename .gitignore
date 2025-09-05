@@ -9,6 +9,8 @@ test-reports.xml
 
 .trash/
 /test-results/
+./test-results-unit/
+unit-test-reports/
 /playwright-report/
 /playwright/.cache/
 playwright-report/
