@@ -1,5 +1,30 @@
 import ServerAPIController from '../../../src/server/modules/API/ServerAPIController';
 import APIControllerWrapper from '../../../src/shared/modules/API/APIControllerWrapper';
+
+// Suppress verbose logging during tests
+const originalLog = console.log;
+const originalWarn = console.warn;
+
+console.log = (...args: any[]) => {
+    const message = args[0];
+    if (typeof message === 'string' && (
+        message.includes('checkAccessTo:') ||
+        message.includes('LT ') || // Timestamp logs
+        message.includes('[LT ')
+    )) {
+        return; // Suppress verbose logs
+    }
+    originalLog(...args);
+};
+
+console.warn = (...args: any[]) => {
+    const message = args[0];
+    if (typeof message === 'string' && message.includes('Deprecation warning')) {
+        return; // Suppress moment.js warnings
+    }
+    originalWarn(...args);
+};
+
 APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
 
 import { test, expect } from "playwright-test-coverage";
