@@ -186,6 +186,17 @@ export default class VarConfVO implements INamedVO {
     public auto_deps: VarConfAutoDepVO[];
 
     /**
+     * Expression textuelle pour les variables automatiques avancées
+     * Permet de définir des variables avec des expressions comme "sum(table.field)" ou "var_a + var_b"
+     */
+    public auto_expression: string;
+
+    /**
+     * Indique si cette variable utilise le système d'expressions automatiques
+     */
+    public is_expression_auto: boolean;
+
+    /**
      * En cas d'opérateur de type vofieldref, contient la référence du champs ciblé
      */
     public auto_vofieldref_api_type_id: string;
