@@ -3,6 +3,17 @@ import ServerAPIController from '../../../src/server/modules/API/ServerAPIContro
 import ImportTypeXLSXHandler from '../../../src/server/modules/DataImport/ImportTypeHandlers/ImportTypeXLSXHandler';
 import APIControllerWrapper from '../../../src/shared/modules/API/APIControllerWrapper';
 import Dates from '../../../src/shared/modules/FormatDatesNombres/Dates/Dates';
+
+// Suppress verbose logging during tests
+const originalWarn = console.warn;
+console.warn = (...args: any[]) => {
+    const message = args[0];
+    if (typeof message === 'string' && message.includes('Deprecation warning')) {
+        return; // Suppress moment.js warnings
+    }
+    originalWarn(...args);
+};
+
 APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
 
 test('ImportTypeXLSXHandler: test getMomentFromXLSDateString', () => {

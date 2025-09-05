@@ -1,5 +1,9 @@
 import { test, expect } from "playwright-test-coverage";
 
+// Setup clean test environment
+import { setupCleanTestEnvironment, suppressConsoleHandler } from '../tools/TestUtils';
+setupCleanTestEnvironment();
+
 import ServerAPIController from '../../../src/server/modules/API/ServerAPIController';
 import APIControllerWrapper from '../../../src/shared/modules/API/APIControllerWrapper';
 
@@ -14,6 +18,9 @@ import ConsoleHandler from '../../../src/shared/tools/ConsoleHandler';
 
 APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
 ConsoleHandler.init();
+
+// Apply ConsoleHandler suppression after it's loaded
+suppressConsoleHandler();
 
 test('AccessPolicyServer: test check access - denied by default to all but admin', () => {
     APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
